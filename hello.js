@@ -1,6 +1,4 @@
 import {
-	App,
-	Editor,
 	MarkdownView,
 	Modal,
 	Notice,
@@ -10,7 +8,6 @@ import {
 } from "obsidian";
 import MyClassificationPipeline from "./embeddings";
 
-// Remember to rename these classes and interfaces!
 
 class MyPluginSettings {
 	constructor() {
