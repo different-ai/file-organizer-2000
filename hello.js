@@ -8,33 +8,35 @@ import {
 	PluginSettingTab,
 	Setting,
 } from "obsidian";
-import MyClassificationPipeline from "./embeddings.js";
+import MyClassificationPipeline from "./embeddings";
 
 // Remember to rename these classes and interfaces!
 
-interface MyPluginSettings {
-	mySetting: string;
+class MyPluginSettings {
+	constructor() {
+		this.mySetting = "default";
+	}
 }
 
-const DEFAULT_SETTINGS: MyPluginSettings = {
-	mySetting: "default",
-};
+const DEFAULT_SETTINGS = new MyPluginSettings();
 
 export default class MyPlugin extends Plugin {
-	settings: MyPluginSettings;
+	constructor(app, plugin) {
+		super(app, plugin);
+		this.settings = DEFAULT_SETTINGS;
+	}
 
 	async onload() {
-		console.log("loading");
-		await MyClassificationPipeline.getInstance();
+		console.log("hello");
+		MyClassificationPipeline.getInstance();
 		console.log("after");
-
 		await this.loadSettings();
 
 		// This creates an icon in the left ribbon.
 		const ribbonIconEl = this.addRibbonIcon(
 			"dice",
 			"Sample Plugin",
-			(evt: MouseEvent) => {
+			(evt) => {
 				// Called when the user clicks the icon.
 				new Notice("This is a notice!");
 			}
@@ -58,7 +60,7 @@ export default class MyPlugin extends Plugin {
 		this.addCommand({
 			id: "sample-editor-command",
 			name: "Sample editor command",
-			editorCallback: (editor: Editor, view: MarkdownView) => {
+			editorCallback: (editor, view) => {
 				console.log(editor.getSelection());
 				editor.replaceSelection("Sample Editor Command");
 			},
@@ -67,7 +69,7 @@ export default class MyPlugin extends Plugin {
 		this.addCommand({
 			id: "open-sample-modal-complex",
 			name: "Open sample modal (complex)",
-			checkCallback: (checking: boolean) => {
+			checkCallback: (checking) => {
 				// Conditions to check
 				const markdownView =
 					this.app.workspace.getActiveViewOfType(MarkdownView);
@@ -79,7 +81,7 @@ export default class MyPlugin extends Plugin {
 					}
 
 					// This command will only show up in Command Palette when the check function returns true
-					return true;
+					// ...
 				}
 			},
 		});
@@ -89,7 +91,7 @@ export default class MyPlugin extends Plugin {
 
 		// If the plugin hooks up any global DOM events (on parts of the app that doesn't belong to this plugin)
 		// Using this function will automatically remove the event listener when this plugin is disabled.
-		this.registerDomEvent(document, "click", (evt: MouseEvent) => {
+		this.registerDomEvent(document, "click", (evt) => {
 			console.log("click", evt);
 		});
 
@@ -115,7 +117,7 @@ export default class MyPlugin extends Plugin {
 }
 
 class SampleModal extends Modal {
-	constructor(app: App) {
+	constructor(app) {
 		super(app);
 	}
 
@@ -131,14 +133,12 @@ class SampleModal extends Modal {
 }
 
 class SampleSettingTab extends PluginSettingTab {
-	plugin: MyPlugin;
-
-	constructor(app: App, plugin: MyPlugin) {
+	constructor(app, plugin) {
 		super(app, plugin);
 		this.plugin = plugin;
 	}
 
-	display(): void {
+	display() {
 		const { containerEl } = this;
 
 		containerEl.empty();
