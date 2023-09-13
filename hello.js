@@ -6,14 +6,20 @@ import {
 	PluginSettingTab,
 	Setting,
 } from "obsidian";
-import MyClassificationPipeline from "./embeddings";
-
+// import Worker from "./example.worker.mjs";
 
 class MyPluginSettings {
 	constructor() {
 		this.mySetting = "default";
 	}
 }
+
+const getInstance = async () => {
+	console.log("get");
+	await import("@xenova/transformers").then(({ pipeline }) => {
+		console.log(pipeline);
+	});
+};
 
 const DEFAULT_SETTINGS = new MyPluginSettings();
 
@@ -24,8 +30,10 @@ export default class MyPlugin extends Plugin {
 	}
 
 	async onload() {
-		console.log("hello");
-		MyClassificationPipeline.getInstance();
+		getInstance();
+
+		// process.release.name;
+		// worker.onmessage = ({ data }) => console.log(data);
 		console.log("after");
 		await this.loadSettings();
 
