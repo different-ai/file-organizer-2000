@@ -3,6 +3,7 @@
   
 This repository contains the code for the Obsidian plugin "File Organizer 2000". This plugin auto-organizes your files, starting with images. It uses GPT Vision to automatically convert your images into text. You can use it for OCR, but it goes also beyond that.  
 
+⚠️ ALPHA Highly experimental
 ### Features
 
   
