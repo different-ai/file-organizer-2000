@@ -1,11 +1,9 @@
 {
-	"id": "sample-plugin",
-	"name": "Sample Plugin",
+	"id": "fileorganizer2000",
+	"name": "File Organizer 2000",
 	"version": "1.0.0",
 	"minAppVersion": "0.15.0",
-	"description": "This is a sample plugin for Obsidian. This plugin demonstrates some of the capabilities of the Obsidian API.",
-	"author": "Obsidian",
-	"authorUrl": "https://obsidian.md",
-	"fundingUrl": "https://obsidian.md/pricing",
-	"isDesktopOnly": false
+	"description": "This plugin auto-organizes your files, starting with images. It uses GPT Vision to automatically convert your images into text. You can use it for OCR, but it goes also beyond that.",
+	"author": "ashgan",
+	"isDesktopOnly": true
 }
