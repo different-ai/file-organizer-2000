@@ -1,8 +1,11 @@
 import { Plugin, Notice, PluginSettingTab, App, Setting } from "obsidian";
 import useName from "./name";
 import useVision from "./vision";
+import useAudio from "./audio";
+import usePostProcessing from "./postprocessaudio";
 
-const supportedFormats = ["png", "jpeg", "gif", "webp", "jpg"];
+const isSupportedImage = ["png", "jpeg", "gif", "webp", "jpg"];
+const isSupportedAudio = ["mp3", "mp4", "mpeg", "mpga", "m4a", "wav", "webm"];
 
 class FileOrganizerSettings {
 	API_KEY = "";
@@ -22,8 +25,16 @@ export default class FileOrganizer extends Plugin {
 					// @ts-ignore
 					console.log(file.extension);
 					// @ts-ignore
-					if (supportedFormats.includes(file.extension)) {
-						await this.processFile(file);
+					if (isSupportedImage.includes(file.extension)) {
+						console.log("is supported image");
+						await this.processImage(file);
+						return;
+					}
+					// do the same for audio files
+					//@ts-ignore
+					if (isSupportedAudio.includes(file.extension)) {
+						console.log("is supported audio");
+						await this.processAudio(file);
 					}
 				})
 			);
@@ -40,12 +51,78 @@ export default class FileOrganizer extends Plugin {
 		await this.saveData(this.settings);
 	}
 
-	async processFile(file) {
+	async processAudio(file) {
 		this.checkHasAPIKey();
 		try {
 			new Notice("Processing file...");
-			await this.createMardownFromImage(file);
-			new Notice("File processed and saved.");
+			const fileName = await this.createMardownFromAudio(file);
+			new Notice(`File processed and saved as ${fileName}`, 5000);
+		} catch (error) {
+			console.error("Error processing file:", error);
+			new Notice(`Failed to process file`, 5000);
+			new Notice(`${error.message}`, 5000);
+		}
+	}
+
+	async processImage(file) {
+		this.checkHasAPIKey();
+		try {
+			new Notice("Processing file...");
+			const fileName = await this.createMardownFromImage(file);
+			new Notice(`File processed and saved as ${fileName}`, 5000);
+		} catch (error) {
+			console.error("Error processing file:", error);
+			new Notice(`Failed to process file`, 5000);
+			new Notice(`${error.message}`, 5000);
+		}
+	}
+	async createMardownFromAudio(audioFile) {
+		this.checkHasAPIKey();
+		try {
+			new Notice("Processing file...");
+			// const filePath = this.app.vault.getResourcePath(audioFile);
+			const filePath =
+				audioFile.vault.adapter.basePath + "/" + audioFile.path;
+			console.log(filePath);
+			const transcribedText = await useAudio(
+				filePath,
+				this.settings.API_KEY
+			);
+			const postProcessedText = await usePostProcessing(
+				transcribedText,
+				this.settings.API_KEY
+			);
+
+			const now = new Date();
+			const formattedNow = now.toISOString().replace(/[-:.TZ]/g, "");
+			let name = formattedNow;
+			try {
+				name = await useName(postProcessedText, this.settings.API_KEY);
+			} catch (error) {
+				console.error("Error processing file:", error.status);
+				new Notice("Could not set a human readable name.");
+			}
+			const safeName = name.replace(/[\\/:]/g, "");
+			const folderPath = "/Processed";
+			const outputFilePath = `${folderPath}/${safeName}.md`;
+
+			// Check if the folder exists
+			if (!this.app.vault.adapter.exists(folderPath)) {
+				// If the folder doesn't exist, create it
+				await this.app.vault.createFolder(folderPath);
+			}
+
+			// Get the path of the original audio
+			const originalAudioPath = this.app.vault.getResourcePath(audioFile);
+
+			// Create a link to the original audio
+			const audioLink = `[${safeName}](${originalAudioPath})`;
+
+			// Include the link in the processed content
+			const contentWithLink = `${audioLink}\n\n${postProcessedText}`;
+
+			await this.app.vault.create(outputFilePath, contentWithLink);
+			return safeName;
 		} catch (error) {
 			console.error("Error processing file:", error);
 			new Notice(`Failed to process file`, 5000);
@@ -93,6 +170,7 @@ export default class FileOrganizer extends Plugin {
 		const contentWithLink = `${imageLink}\n\n${processedContent}`;
 
 		await this.app.vault.create(outputFilePath, contentWithLink);
+		return safeName;
 	}
 
 	checkHasAPIKey() {
