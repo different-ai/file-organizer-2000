@@ -123,7 +123,7 @@ export default class FileOrganizer extends Plugin {
 			console.log(getLinkpath(originalAudioPath));
 
 			// Create a link to the original audio
-			const audioLink = `[[${file.name}]]`;
+			const audioLink = `![[${file.name}]]`;
 
 			// Include the link in the processed content
 			const contentWithLink = `${postProcessedText}\n\n${audioLink}`;
