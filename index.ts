@@ -14,17 +14,20 @@ export default class FileOrganizer extends Plugin {
 	async onload() {
 		await this.loadSettings();
 		this.addSettingTab(new FileOrganizerSettingTab(this.app, this));
-		this.registerEvent(
-			this.app.vault.on("create", async (file) => {
-				console.log("File created:", file);
-				// @ts-ignore
-				console.log(file.extension);
-				// @ts-ignore
-				if (supportedFormats.includes(file.extension)) {
-					await this.processFile(file);
-				}
-			})
-		);
+
+		this.app.workspace.onLayoutReady(() => {
+			this.registerEvent(
+				this.app.vault.on("create", async (file) => {
+					console.log("File created:", file);
+					// @ts-ignore
+					console.log(file.extension);
+					// @ts-ignore
+					if (supportedFormats.includes(file.extension)) {
+						await this.processFile(file);
+					}
+				})
+			);
+		});
 	}
 	async loadSettings() {
 		this.settings = Object.assign(
@@ -59,9 +62,15 @@ export default class FileOrganizer extends Plugin {
 			this.settings.API_KEY
 		);
 
-		// const now = new Date();
-		// const formattedNow = now.toISOString().replace(/[-:.TZ]/g, '');
-		const name = await useName(processedContent, this.settings.API_KEY);
+		const now = new Date();
+		const formattedNow = now.toISOString().replace(/[-:.TZ]/g, "");
+		let name = formattedNow;
+		try {
+			name = await useName(processedContent, this.settings.API_KEY);
+		} catch (error) {
+			console.error("Error processing file:", error);
+			new Notice("Could not set a human readable name.");
+		}
 		const safeName = name.replace(/[\\/:]/g, "");
 		const folderPath = "/Processed";
 		const outputFilePath = `${folderPath}/${safeName}.md`;
