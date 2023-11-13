@@ -56,7 +56,6 @@ export default class FileOrganizer extends Plugin {
 		const fileContent = Buffer.from(arrayBuffer);
 		const encodedImage = fileContent.toString("base64");
 
-		console.log("Encoded image:", encodedImage);
 		const processedContent = await useVision(
 			encodedImage,
 			this.settings.API_KEY
@@ -68,7 +67,7 @@ export default class FileOrganizer extends Plugin {
 		try {
 			name = await useName(processedContent, this.settings.API_KEY);
 		} catch (error) {
-			console.error("Error processing file:", error);
+			console.error("Error processing file:", error.status);
 			new Notice("Could not set a human readable name.");
 		}
 		const safeName = name.replace(/[\\/:]/g, "");
@@ -95,7 +94,6 @@ export default class FileOrganizer extends Plugin {
 	}
 
 	checkHasAPIKey() {
-		console.log(this);
 		if (!this.settings.API_KEY) {
 			new Notice(
 				"Please enter your API Key in the settings of the OCR plugin."

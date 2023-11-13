@@ -32,11 +32,16 @@ async function useVision(encodedImage, apiKey) {
 	});
 
 	if (!response.ok) {
-		throw new Error(`API call failed: ${response.statusText}`);
+		if (response.status === 402) {
+			throw new Error("You have no credits left.");
+		}
+		if (response.status === 429) {
+			throw new Error("You have exceeded the rate limit.");
+		}
 	}
 
 	const result = await response.json();
-    
+
 	return result.choices[0].message.content;
 }
 
