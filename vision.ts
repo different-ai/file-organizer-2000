@@ -38,6 +38,12 @@ async function useVision(encodedImage, apiKey) {
 		if (response.status === 429) {
 			throw new Error("You have exceeded the rate limit.");
 		}
+		if (response.status === 404) {
+			throw new Error("Model not found. It looks like you don't have access to GPT Vision.");
+		}
+		if (response.status === 500) {
+			throw new Error("OpenAI Internal server error.");
+		}
 	}
 
 	const result = await response.json();

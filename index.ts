@@ -48,13 +48,15 @@ export default class FileOrganizer extends Plugin {
 			new Notice("File processed and saved.");
 		} catch (error) {
 			console.error("Error processing file:", error);
-			new Notice("Failed to process file.");
+			new Notice(`Failed to process file`, 5000);
+			new Notice(`${error.message}`, 5000);
 		}
 	}
 	async createMardownFromImage(imageFile) {
 		const arrayBuffer = await this.app.vault.readBinary(imageFile);
 		const fileContent = Buffer.from(arrayBuffer);
 		const encodedImage = fileContent.toString("base64");
+		console.log(`Encoded: ${encodedImage.substring(0, 20)}...`);
 
 		const processedContent = await useVision(
 			encodedImage,
