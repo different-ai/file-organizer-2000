@@ -67,7 +67,7 @@ export default class FileOrganizer extends Plugin {
 	async processImage(file) {
 		this.checkHasAPIKey();
 		try {
-			new Notice("Processing file...");
+			new Notice(`Processing Image: ${file.name}`);
 			const fileName = await this.createMardownFromImage(file);
 			new Notice(`File processed and saved as ${fileName}`, 5000);
 		} catch (error) {
@@ -76,13 +76,12 @@ export default class FileOrganizer extends Plugin {
 			new Notice(`${error.message}`, 5000);
 		}
 	}
-	async createMardownFromAudio(audioFile) {
+	async createMardownFromAudio(file) {
 		this.checkHasAPIKey();
 		try {
-			new Notice("Processing file...");
-			// const filePath = this.app.vault.getResourcePath(audioFile);
+			new Notice(`Processing Audio: ${file.name}`);
 			const filePath =
-				audioFile.vault.adapter.basePath + "/" + audioFile.path;
+				file.vault.adapter.basePath + "/" + file.path;
 			console.log(filePath);
 			const transcribedText = await useAudio(
 				filePath,
@@ -113,7 +112,7 @@ export default class FileOrganizer extends Plugin {
 			}
 
 			// Get the path of the original audio
-			const originalAudioPath = this.app.vault.getResourcePath(audioFile);
+			const originalAudioPath = this.app.vault.getResourcePath(file);
 
 			// Create a link to the original audio
 			const audioLink = `[${safeName}](${originalAudioPath})`;
