@@ -1,4 +1,11 @@
-import { Plugin, Notice, PluginSettingTab, App, Setting } from "obsidian";
+import {
+	Plugin,
+	Notice,
+	PluginSettingTab,
+	App,
+	Setting,
+	getLinkpath,
+} from "obsidian";
 import useName from "./name";
 import useVision from "./vision";
 import useAudio from "./audio";
@@ -80,8 +87,7 @@ export default class FileOrganizer extends Plugin {
 		this.checkHasAPIKey();
 		try {
 			new Notice(`Processing Audio: ${file.name}`);
-			const filePath =
-				file.vault.adapter.basePath + "/" + file.path;
+			const filePath = file.vault.adapter.basePath + "/" + file.path;
 			console.log(filePath);
 			const transcribedText = await useAudio(
 				filePath,
@@ -112,13 +118,15 @@ export default class FileOrganizer extends Plugin {
 			}
 
 			// Get the path of the original audio
+
 			const originalAudioPath = this.app.vault.getResourcePath(file);
+			console.log(getLinkpath(originalAudioPath));
 
 			// Create a link to the original audio
-			const audioLink = `[${safeName}](${originalAudioPath})`;
+			const audioLink = `[[${file.name}]]`;
 
 			// Include the link in the processed content
-			const contentWithLink = `${audioLink}\n\n${postProcessedText}`;
+			const contentWithLink = `${postProcessedText}\n\n${audioLink}`;
 
 			await this.app.vault.create(outputFilePath, contentWithLink);
 			return safeName;
