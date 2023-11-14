@@ -10,21 +10,45 @@ import useName from "./name";
 import useVision from "./vision";
 import useAudio from "./audio";
 import usePostProcessing from "./postprocessaudio";
+import { getAllDailyNotes, getDailyNote } from "./daily-notes";
+import moment from "moment";
 
 const isSupportedImage = ["png", "jpeg", "gif", "webp", "jpg"];
 const isSupportedAudio = ["mp3", "mp4", "mpeg", "mpga", "m4a", "wav", "webm"];
 
+function formatToSafeName(format: string) {
+	return format.replace(/[\\/:"]/g, "");
+}
+
 class FileOrganizerSettings {
 	API_KEY = "";
 	folderPath = "_FileOrganizer2000";
+	useDailyNotesLog = false;
 }
 
 export default class FileOrganizer extends Plugin {
 	settings: FileOrganizerSettings;
 
+	appHasDailyNotesPluginLoaded(): boolean {
+		const app = this.app;
+		// eslint-disable-next-line @typescript-eslint/no-explicit-any
+		const dailyNotesPlugin = (<any>app).internalPlugins.plugins[
+			"daily-notes"
+		];
+		if (dailyNotesPlugin && dailyNotesPlugin.enabled) {
+			return true;
+		}
+		return false;
+	}
+
 	async onload() {
 		await this.loadSettings();
 		this.addSettingTab(new FileOrganizerSettingTab(this.app, this));
+		// console.log(getDailyNote());
+		console.log(
+			"appHasDailyNotesPluginLoaded",
+			this.appHasDailyNotesPluginLoaded()
+		);
 
 		this.app.workspace.onLayoutReady(() => {
 			this.registerEvent(
@@ -65,11 +89,29 @@ export default class FileOrganizer extends Plugin {
 			new Notice("Processing file...");
 			const fileName = await this.createMardownFromAudio(file);
 			new Notice(`File processed and saved as ${fileName}`, 5000);
+			if (this.settings.useDailyNotesLog) {
+				await this.appendToDailyNotes(
+					`${this.settings.folderPath}/${fileName}`
+				);
+			}
 		} catch (error) {
 			console.error("Error processing file:", error);
 			new Notice(`Failed to process file`, 5000);
 			new Notice(`${error.message}`, 5000);
 		}
+	}
+	async appendToDailyNotes(fileName: string) {
+		const dailyNotes = getAllDailyNotes();
+		const lastDailyNote = getDailyNote(moment(), dailyNotes);
+		// render hours:minutes
+		const now = new Date();
+		const formattedNow =
+			now.getHours().toString().padStart(2, "0") +
+			":" +
+			now.getMinutes().toString().padStart(2, "0");
+		// Include the link in the processed content
+		const contentWithLink = `\n - ${formattedNow} [[${fileName}]]`;
+		await this.app.vault.append(lastDailyNote, contentWithLink);
 	}
 
 	async processImage(file) {
@@ -77,7 +119,13 @@ export default class FileOrganizer extends Plugin {
 		try {
 			new Notice(`Processing Image: ${file.name}`);
 			const fileName = await this.createMardownFromImage(file);
+			console.log("Daily Notes Plugin is loaded");
 			new Notice(`File processed and saved as ${fileName}`, 5000);
+			if (this.settings.useDailyNotesLog) {
+				await this.appendToDailyNotes(
+					`${this.settings.folderPath}/${fileName}`
+				);
+			}
 		} catch (error) {
 			console.error("Error processing file:", error);
 			new Notice(`Failed to process file`, 5000);
@@ -108,7 +156,8 @@ export default class FileOrganizer extends Plugin {
 				console.error("Error processing file:", error.status);
 				new Notice("Could not set a human readable name.");
 			}
-			const safeName = name.replace(/[\\/:]/g, "");
+			const safeName = formatToSafeName(name);
+
 			const folderPath = this.settings.folderPath;
 			const outputFilePath = `/${folderPath}/${safeName}.md`;
 
@@ -137,8 +186,8 @@ export default class FileOrganizer extends Plugin {
 			new Notice(`${error.message}`, 5000);
 		}
 	}
-	async createMardownFromImage(imageFile) {
-		const arrayBuffer = await this.app.vault.readBinary(imageFile);
+	async createMardownFromImage(file) {
+		const arrayBuffer = await this.app.vault.readBinary(file);
 		const fileContent = Buffer.from(arrayBuffer);
 		const encodedImage = fileContent.toString("base64");
 		console.log(`Encoded: ${encodedImage.substring(0, 20)}...`);
@@ -157,7 +206,7 @@ export default class FileOrganizer extends Plugin {
 			console.error("Error processing file:", error.status);
 			new Notice("Could not set a human readable name.");
 		}
-		const safeName = name.replace(/[\\/:]/g, "");
+		const safeName = formatToSafeName(name);
 		const folderPath = this.settings.folderPath;
 		const outputFilePath = `/${folderPath}/${safeName}.md`;
 
@@ -167,15 +216,11 @@ export default class FileOrganizer extends Plugin {
 			await this.app.vault.createFolder(folderPath);
 		}
 
-		// Get the path of the original image
-		// const originalImagePath = imageFile.path;
-		const originalImagePath = this.app.vault.getResourcePath(imageFile);
-
 		// Create a link to the original image
-		const imageLink = `![${safeName}](${originalImagePath})`;
+		const imageLink = `![[${file.name}]]`;
 
 		// Include the link in the processed content
-		const contentWithLink = `${imageLink}\n\n${processedContent}`;
+		const contentWithLink = `${processedContent}\n\n${imageLink}`;
 
 		await this.app.vault.create(outputFilePath, contentWithLink);
 		return safeName;
@@ -231,6 +276,18 @@ class FileOrganizerSettingTab extends PluginSettingTab {
 						// cleanup path remove leading and trailing slashes
 						value = value.replace(/^\/+|\/+$/g, "");
 						this.plugin.settings.folderPath = value;
+						await this.plugin.saveSettings();
+					})
+			);
+		new Setting(containerEl)
+			.setName("Use Daily Notes Log")
+			.setDesc("Enable or disable the use of daily notes log.")
+			.setDisabled(!this.plugin.appHasDailyNotesPluginLoaded())
+			.addToggle((toggle) =>
+				toggle
+					.setValue(this.plugin.settings.useDailyNotesLog)
+					.onChange(async (value) => {
+						this.plugin.settings.useDailyNotesLog = value;
 						await this.plugin.saveSettings();
 					})
 			);
