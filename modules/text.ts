@@ -1,16 +1,20 @@
 import fetch from "node-fetch";
 
-async function usePostProcessing(content: string, apiKey: string) {
-	const system_prompt =
-		"You are a helpful assistant. Your task is to correct any spelling discrepancies in the transcribed text.";
+const DEFAULT_SYSTEM_PROMPT =
+	"You are a helpful assistant. Your task is to correct any spelling discrepancies in the transcribed text.";
 
+async function useText(
+	content: string,
+	apiKey: string,
+	systemPrompt = DEFAULT_SYSTEM_PROMPT
+) {
 	const data = {
 		model: "gpt-4",
 		temperature: 0,
 		messages: [
 			{
 				role: "system",
-				content: system_prompt,
+				content: systemPrompt,
 			},
 			{
 				role: "user",
@@ -38,4 +42,4 @@ async function usePostProcessing(content: string, apiKey: string) {
 	return result.choices[0].message.content.trim();
 }
 
-export default usePostProcessing;
+export default useText;

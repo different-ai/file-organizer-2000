@@ -6,11 +6,11 @@ import {
 	Setting,
 	getLinkpath,
 } from "obsidian";
-import useName from "./name";
-import useVision from "./vision";
-import useAudio from "./audio";
-import usePostProcessing from "./postprocessaudio";
-import { getAllDailyNotes, getDailyNote } from "./daily-notes";
+import useName from "./modules/name";
+import useVision from "./modules/vision";
+import useAudio from "./modules/audio";
+import usePostProcessing from "./modules/text";
+import { getAllDailyNotes, getDailyNote } from "./lib/daily-notes";
 import moment from "moment";
 
 const isSupportedImage = ["png", "jpeg", "gif", "webp", "jpg"];
