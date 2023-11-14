@@ -16,7 +16,7 @@ const isSupportedAudio = ["mp3", "mp4", "mpeg", "mpga", "m4a", "wav", "webm"];
 
 class FileOrganizerSettings {
 	API_KEY = "";
-	folderPath = "/_FileOrganizer2000";
+	folderPath = "_FileOrganizer2000";
 }
 
 export default class FileOrganizer extends Plugin {
@@ -110,7 +110,7 @@ export default class FileOrganizer extends Plugin {
 			}
 			const safeName = name.replace(/[\\/:]/g, "");
 			const folderPath = this.settings.folderPath;
-			const outputFilePath = `${folderPath}/${safeName}.md`;
+			const outputFilePath = `/${folderPath}/${safeName}.md`;
 
 			// Check if the folder exists
 			if (!this.app.vault.adapter.exists(this.settings.folderPath)) {
@@ -159,7 +159,7 @@ export default class FileOrganizer extends Plugin {
 		}
 		const safeName = name.replace(/[\\/:]/g, "");
 		const folderPath = this.settings.folderPath;
-		const outputFilePath = `${folderPath}/${safeName}.md`;
+		const outputFilePath = `/${folderPath}/${safeName}.md`;
 
 		// Check if the folder exists
 		if (!this.app.vault.adapter.exists(folderPath)) {
@@ -220,13 +220,16 @@ class FileOrganizerSettingTab extends PluginSettingTab {
 		new Setting(containerEl)
 			.setName("Output Folder Path")
 			.setDesc(
-				"Enter the path where you want to save the processed files. e.g. /Processed/myfavoritefolder"
+				"Enter the path where you want to save the processed files. e.g. Processed/myfavoritefolder"
 			)
 			.addText((text) =>
 				text
 					.setPlaceholder("Enter your path")
-					.setValue(this.plugin.settings.folderPath || "/Processed")
+					.setValue(this.plugin.settings.folderPath)
 					.onChange(async (value) => {
+						value = value.trim();
+						// cleanup path remove leading and trailing slashes
+						value = value.replace(/^\/+|\/+$/g, "");
 						this.plugin.settings.folderPath = value;
 						await this.plugin.saveSettings();
 					})
