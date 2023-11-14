@@ -16,6 +16,7 @@ const isSupportedAudio = ["mp3", "mp4", "mpeg", "mpga", "m4a", "wav", "webm"];
 
 class FileOrganizerSettings {
 	API_KEY = "";
+	folderPath = "/_FileOrganizer2000";
 }
 
 export default class FileOrganizer extends Plugin {
@@ -108,11 +109,11 @@ export default class FileOrganizer extends Plugin {
 				new Notice("Could not set a human readable name.");
 			}
 			const safeName = name.replace(/[\\/:]/g, "");
-			const folderPath = "/Processed";
+			const folderPath = this.settings.folderPath;
 			const outputFilePath = `${folderPath}/${safeName}.md`;
 
 			// Check if the folder exists
-			if (!this.app.vault.adapter.exists(folderPath)) {
+			if (!this.app.vault.adapter.exists(this.settings.folderPath)) {
 				// If the folder doesn't exist, create it
 				await this.app.vault.createFolder(folderPath);
 			}
@@ -157,7 +158,7 @@ export default class FileOrganizer extends Plugin {
 			new Notice("Could not set a human readable name.");
 		}
 		const safeName = name.replace(/[\\/:]/g, "");
-		const folderPath = "/Processed";
+		const folderPath = this.settings.folderPath;
 		const outputFilePath = `${folderPath}/${safeName}.md`;
 
 		// Check if the folder exists
@@ -212,6 +213,21 @@ class FileOrganizerSettingTab extends PluginSettingTab {
 					.setValue(this.plugin.settings.API_KEY)
 					.onChange(async (value) => {
 						this.plugin.settings.API_KEY = value;
+						await this.plugin.saveSettings();
+					})
+			);
+
+		new Setting(containerEl)
+			.setName("Output Folder Path")
+			.setDesc(
+				"Enter the path where you want to save the processed files. e.g. /Processed/myfavoritefolder"
+			)
+			.addText((text) =>
+				text
+					.setPlaceholder("Enter your path")
+					.setValue(this.plugin.settings.folderPath || "/Processed")
+					.onChange(async (value) => {
+						this.plugin.settings.folderPath = value;
 						await this.plugin.saveSettings();
 					})
 			);
