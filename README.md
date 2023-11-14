@@ -4,15 +4,20 @@
 This repository contains the code for the Obsidian plugin "File Organizer 2000". This plugin auto-organizes your files, starting with images. It uses GPT Vision to automatically convert your images into text. You can use it for OCR, but it goes also beyond that.  
 
 ⚠️ ALPHA Highly experimental
+
 ### Features
 
   
-- Automatically processes newly created image files in supported formats (png, jpeg, gif, webp, jpg).  
+- Automatically processes newly media files .  
 - Uses GPT Vision to extract text from images and create a markdown file with the extracted content.  
 - The markdown file is named using a title generated by GPT-3.5-turbo.  
-- The markdown file includes a link to the original image.
+- Supports audio and images.
 
-### Videos
+## Use Case
+- Record a voice memo on your iphone and automatically get it transcribed inside of Obsidian. [You can use this shortcut to make it easier](https://www.icloud.com/shortcuts/36299c16415d4d0e9acfd32eaae4f3f6)
+
+
+### Demo
 
 > Example shows how FileOrganizer2000 automatically detects a new image and adds it inside `/Processed` with an annotation.
 
