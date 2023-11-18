@@ -5,6 +5,8 @@ import {
 	App,
 	Setting,
 	getLinkpath,
+	TFile,
+	TAbstractFile,
 } from "obsidian";
 import useName from "./modules/name";
 import useVision from "./modules/vision";
@@ -19,11 +21,21 @@ const isSupportedAudio = ["mp3", "mp4", "mpeg", "mpga", "m4a", "wav", "webm"];
 function formatToSafeName(format: string) {
 	return format.replace(/[\\/:"]/g, "");
 }
+function cleanPath(path: string) {
+	const trimmedPath = path.trim();
+	// cleanup path remove leading and trailing slashes
+	const pathWithoutLeadingAndTrailingSlashes = trimmedPath.replace(
+		/^\/+|\/+$/g,
+		""
+	);
+	return pathWithoutLeadingAndTrailingSlashes;
+}
 
 class FileOrganizerSettings {
 	API_KEY = "";
-	folderPath = "_FileOrganizer2000";
 	useDailyNotesLog = false;
+	destinationPath = "Ava/Processed";
+	pathToWatch = "Ava/Inbox";
 }
 
 export default class FileOrganizer extends Plugin {
@@ -40,6 +52,44 @@ export default class FileOrganizer extends Plugin {
 		}
 		return false;
 	}
+	async processFile(file: TAbstractFile) {
+		await this.checkAndCreateFolders();
+		console.log("File created:", file);
+		if (!file.path.startsWith(this.settings.pathToWatch)) return;
+
+		// @ts-ignore
+		console.log(file.extension);
+		// @ts-ignore
+		if (isSupportedImage.includes(file.extension)) {
+			console.log("is supported image");
+			await this.processImage(file);
+			return;
+		}
+		// do the same for audio files
+		//@ts-ignore
+		if (isSupportedAudio.includes(file.extension)) {
+			console.log("is supported audio");
+			await this.processAudio(file);
+		}
+	}
+	async checkAndCreateFolders() {
+		// Check if Inbox the folder exists
+		if (!(await this.app.vault.adapter.exists(this.settings.pathToWatch))) {
+			console.log('creating folder "Inbox"');
+			// If the folder doesn't exist, create it
+			await this.app.vault.createFolder(this.settings.pathToWatch);
+		}
+
+		if (
+			!(await this.app.vault.adapter.exists(
+				this.settings.destinationPath
+			))
+		) {
+			console.log('creating folder "Processed"');
+			// If the folder doesn't exist, create it
+			await this.app.vault.createFolder(this.settings.destinationPath);
+		}
+	}
 
 	async onload() {
 		await this.loadSettings();
@@ -50,25 +100,16 @@ export default class FileOrganizer extends Plugin {
 			this.appHasDailyNotesPluginLoaded()
 		);
 
+		/* check if project is correctly setup */
+
+				/* check if project is correctly setup */
+
 		this.app.workspace.onLayoutReady(() => {
 			this.registerEvent(
-				this.app.vault.on("create", async (file) => {
-					console.log("File created:", file);
-					// @ts-ignore
-					console.log(file.extension);
-					// @ts-ignore
-					if (isSupportedImage.includes(file.extension)) {
-						console.log("is supported image");
-						await this.processImage(file);
-						return;
-					}
-					// do the same for audio files
-					//@ts-ignore
-					if (isSupportedAudio.includes(file.extension)) {
-						console.log("is supported audio");
-						await this.processAudio(file);
-					}
-				})
+				this.app.vault.on("create", (file) => this.processFile(file))
+			);
+			this.registerEvent(
+				this.app.vault.on("rename", (file) => this.processFile(file))
 			);
 		});
 	}
@@ -91,7 +132,7 @@ export default class FileOrganizer extends Plugin {
 			new Notice(`File processed and saved as ${fileName}`, 5000);
 			if (this.settings.useDailyNotesLog) {
 				await this.appendToDailyNotes(
-					`${this.settings.folderPath}/${fileName}`
+					`${this.settings.destinationPath}/${fileName}`
 				);
 			}
 		} catch (error) {
@@ -123,7 +164,7 @@ export default class FileOrganizer extends Plugin {
 			new Notice(`File processed and saved as ${fileName}`, 5000);
 			if (this.settings.useDailyNotesLog) {
 				await this.appendToDailyNotes(
-					`${this.settings.folderPath}/${fileName}`
+					`${this.settings.destinationPath}/${fileName}`
 				);
 			}
 		} catch (error) {
@@ -158,11 +199,11 @@ export default class FileOrganizer extends Plugin {
 			}
 			const safeName = formatToSafeName(name);
 
-			const folderPath = this.settings.folderPath;
+			const folderPath = this.settings.destinationPath;
 			const outputFilePath = `/${folderPath}/${safeName}.md`;
 
 			// Check if the folder exists
-			if (!this.app.vault.adapter.exists(this.settings.folderPath)) {
+			if (!this.app.vault.adapter.exists(this.settings.destinationPath)) {
 				// If the folder doesn't exist, create it
 				await this.app.vault.createFolder(folderPath);
 			}
@@ -207,7 +248,7 @@ export default class FileOrganizer extends Plugin {
 			new Notice("Could not set a human readable name.");
 		}
 		const safeName = formatToSafeName(name);
-		const folderPath = this.settings.folderPath;
+		const folderPath = this.settings.destinationPath;
 		const outputFilePath = `/${folderPath}/${safeName}.md`;
 
 		// Check if the folder exists
@@ -270,12 +311,12 @@ class FileOrganizerSettingTab extends PluginSettingTab {
 			.addText((text) =>
 				text
 					.setPlaceholder("Enter your path")
-					.setValue(this.plugin.settings.folderPath)
+					.setValue(this.plugin.settings.destinationPath)
 					.onChange(async (value) => {
 						value = value.trim();
 						// cleanup path remove leading and trailing slashes
 						value = value.replace(/^\/+|\/+$/g, "");
-						this.plugin.settings.folderPath = value;
+						this.plugin.settings.destinationPath = value;
 						await this.plugin.saveSettings();
 					})
 			);
@@ -288,6 +329,21 @@ class FileOrganizerSettingTab extends PluginSettingTab {
 					.setValue(this.plugin.settings.useDailyNotesLog)
 					.onChange(async (value) => {
 						this.plugin.settings.useDailyNotesLog = value;
+						await this.plugin.saveSettings();
+					})
+			);
+		new Setting(containerEl)
+			.setName("Inbox Folder")
+			.setDesc("Enter the path to the folder you want to auto-organize")
+			.addText((text) =>
+				text
+					.setPlaceholder("Enter your path")
+					.setValue(this.plugin.settings.pathToWatch)
+					.onChange(async (value) => {
+						value = value.trim();
+						// cleanup path remove leading and trailing slashes
+						value = value.replace(/^\/+|\/+$/g, "");
+						this.plugin.settings.pathToWatch = value;
 						await this.plugin.saveSettings();
 					})
 			);
