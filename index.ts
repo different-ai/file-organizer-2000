@@ -54,8 +54,8 @@ export default class FileOrganizer extends Plugin {
 	}
 	async processFile(file: TAbstractFile) {
 		await this.checkAndCreateFolders();
-		console.log("File created:", file);
 		if (!file.path.startsWith(this.settings.pathToWatch)) return;
+		this.checkHasAPIKey();
 
 		// @ts-ignore
 		console.log(file.extension);
@@ -102,7 +102,7 @@ export default class FileOrganizer extends Plugin {
 
 		/* check if project is correctly setup */
 
-				/* check if project is correctly setup */
+		/* check if project is correctly setup */
 
 		this.app.workspace.onLayoutReady(() => {
 			this.registerEvent(
@@ -125,14 +125,13 @@ export default class FileOrganizer extends Plugin {
 	}
 
 	async processAudio(file) {
-		this.checkHasAPIKey();
 		try {
 			new Notice("Processing file...");
 			const fileName = await this.createMardownFromAudio(file);
 			new Notice(`File processed and saved as ${fileName}`, 5000);
 			if (this.settings.useDailyNotesLog) {
 				await this.appendToDailyNotes(
-					`${this.settings.destinationPath}/${fileName}`
+					`Transcribed [[${fileName}]]`
 				);
 			}
 		} catch (error) {
@@ -141,7 +140,24 @@ export default class FileOrganizer extends Plugin {
 			new Notice(`${error.message}`, 5000);
 		}
 	}
-	async appendToDailyNotes(fileName: string) {
+	async processImage(file) {
+		try {
+			new Notice(`Processing Image: ${file.name}`);
+			const fileName = await this.createMardownFromImage(file);
+			console.log("Daily Notes Plugin is loaded");
+			new Notice(`File processed and saved as ${fileName}`, 5000);
+			if (this.settings.useDailyNotesLog) {
+				await this.appendToDailyNotes(
+					`Created annotation for [[${fileName}]]`
+				);
+			}
+		} catch (error) {
+			console.error("Error processing file:", error);
+			new Notice(`Failed to process file`, 5000);
+			new Notice(`${error.message}`, 5000);
+		}
+	}
+	async appendToDailyNotes(fileName: string, action = "") {
 		const dailyNotes = getAllDailyNotes();
 		const lastDailyNote = getDailyNote(moment(), dailyNotes);
 		// render hours:minutes
@@ -151,28 +167,10 @@ export default class FileOrganizer extends Plugin {
 			":" +
 			now.getMinutes().toString().padStart(2, "0");
 		// Include the link in the processed content
-		const contentWithLink = `\n - ${formattedNow} [[${fileName}]]`;
+		const contentWithLink = `\n - ${formattedNow} ${fileName}`;
 		await this.app.vault.append(lastDailyNote, contentWithLink);
 	}
 
-	async processImage(file) {
-		this.checkHasAPIKey();
-		try {
-			new Notice(`Processing Image: ${file.name}`);
-			const fileName = await this.createMardownFromImage(file);
-			console.log("Daily Notes Plugin is loaded");
-			new Notice(`File processed and saved as ${fileName}`, 5000);
-			if (this.settings.useDailyNotesLog) {
-				await this.appendToDailyNotes(
-					`${this.settings.destinationPath}/${fileName}`
-				);
-			}
-		} catch (error) {
-			console.error("Error processing file:", error);
-			new Notice(`Failed to process file`, 5000);
-			new Notice(`${error.message}`, 5000);
-		}
-	}
 	async createMardownFromAudio(file) {
 		this.checkHasAPIKey();
 		try {
