@@ -4,9 +4,8 @@ import {
 	PluginSettingTab,
 	App,
 	Setting,
-	getLinkpath,
+	// getLinkpath,
 	TFile,
-	TAbstractFile,
 } from "obsidian";
 import useName from "./modules/name";
 import useVision from "./modules/vision";
@@ -35,6 +34,7 @@ class FileOrganizerSettings {
 	API_KEY = "";
 	useDailyNotesLog = false;
 	destinationPath = "Ava/Processed";
+	attachmentsPath = "Ava/Processed/Attachments";
 	pathToWatch = "Ava/Inbox";
 }
 
@@ -52,24 +52,22 @@ export default class FileOrganizer extends Plugin {
 		}
 		return false;
 	}
-	async processFile(file: TAbstractFile) {
+	async processFile(file: TFile) {
+		console.log("Looking at", file);
 		await this.checkAndCreateFolders();
-		if (!file.path.startsWith(this.settings.pathToWatch)) return;
+		if (!(file.parent?.path === this.settings.pathToWatch)) return;
+		console.log("Will process", file);
 		this.checkHasAPIKey();
 
-		// @ts-ignore
-		console.log(file.extension);
-		// @ts-ignore
 		if (isSupportedImage.includes(file.extension)) {
 			console.log("is supported image");
-			await this.processImage(file);
+			await this.handleImage(file);
 			return;
 		}
 		// do the same for audio files
-		//@ts-ignore
 		if (isSupportedAudio.includes(file.extension)) {
 			console.log("is supported audio");
-			await this.processAudio(file);
+			await this.handleAudio(file);
 		}
 	}
 	async checkAndCreateFolders() {
@@ -89,29 +87,35 @@ export default class FileOrganizer extends Plugin {
 			// If the folder doesn't exist, create it
 			await this.app.vault.createFolder(this.settings.destinationPath);
 		}
+
+		if (
+			!(await this.app.vault.adapter.exists(
+				this.settings.attachmentsPath
+			))
+		) {
+			console.log('creating folder "Processed/Attachments"');
+			// If the folder doesn't exist, create it
+			await this.app.vault.createFolder(this.settings.attachmentsPath);
+		}
 	}
 
 	async onload() {
 		await this.loadSettings();
 		this.addSettingTab(new FileOrganizerSettingTab(this.app, this));
-		// console.log(getDailyNote());
 		console.log(
 			"appHasDailyNotesPluginLoaded",
 			this.appHasDailyNotesPluginLoaded()
 		);
-
-		/* check if project is correctly setup */
-
-		/* check if project is correctly setup */
-
-		this.app.workspace.onLayoutReady(() => {
-			this.registerEvent(
-				this.app.vault.on("create", (file) => this.processFile(file))
-			);
-			this.registerEvent(
-				this.app.vault.on("rename", (file) => this.processFile(file))
-			);
-		});
+		this.registerEvent(
+			this.app.vault.on("create", (file) =>
+				this.processFile(file as TFile)
+			)
+		);
+		this.registerEvent(
+			this.app.vault.on("rename", (file) =>
+				this.processFile(file as TFile)
+			)
+		);
 	}
 	async loadSettings() {
 		this.settings = Object.assign(
@@ -124,41 +128,71 @@ export default class FileOrganizer extends Plugin {
 		await this.saveData(this.settings);
 	}
 
-	async processAudio(file) {
+	async handleAudio(file: TFile) {
 		try {
-			new Notice("Processing file...");
-			const fileName = await this.createMardownFromAudio(file);
-			new Notice(`File processed and saved as ${fileName}`, 5000);
-			if (this.settings.useDailyNotesLog) {
-				await this.appendToDailyNotes(`Transcribed [[${fileName}]]`);
-			}
-			// Move the file after processing
+			new Notice(`Processing Audio: ${file.name}`);
+			const [humanReadableFileName, content] =
+				await this.getContentFromAudio(file);
+
+			const outputFilePath = `/${this.settings.destinationPath}/${humanReadableFileName}.md`;
+
+			const audioLink = `![[${this.settings.attachmentsPath}/${humanReadableFileName}.${file.extension}]]`;
+
+			// Include the link in the processed content
+			const contentWithLink = `${content}\n\n${audioLink}`;
+			await this.app.vault.create(outputFilePath, contentWithLink);
+
+			new Notice(`Moving file`);
 			await this.app.vault.rename(
-				file.path,
-				`${this.settings.destinationPath}/${file.basename}`
+				file,
+				`${this.settings.attachmentsPath}/${humanReadableFileName}.${file.extension}`
 			);
+			new Notice(
+				`File processed and saved as ${humanReadableFileName}`,
+				5000
+			);
+			if (this.settings.useDailyNotesLog) {
+				console.log("Daily Notes Plugin is loaded");
+				await this.appendToDailyNotes(
+					`Transcribed [[${humanReadableFileName}]]`
+				);
+			}
 		} catch (error) {
 			console.error("Error processing file:", error);
 			new Notice(`Failed to process file`, 5000);
 			new Notice(`${error.message}`, 5000);
 		}
 	}
-	async processImage(file) {
+
+	async handleImage(file: TFile) {
 		try {
 			new Notice(`Processing Image: ${file.name}`);
-			const fileName = await this.createMardownFromImage(file);
-			console.log("Daily Notes Plugin is loaded");
-			new Notice(`File processed and saved as ${fileName}`, 5000);
+			const [humanReadableFileName, content] =
+				await this.createMardownFromImage(file);
+
+			const outputFilePath = `/${this.settings.destinationPath}/${humanReadableFileName}.md`;
+
+			const imageLink = `![[${this.settings.attachmentsPath}/${humanReadableFileName}.${file.extension}]]`;
+
+			// Include the link in the processed content
+			const contentWithLink = `${content}\n\n${imageLink}`;
+			await this.app.vault.create(outputFilePath, contentWithLink);
+
+			new Notice(`Moving file`);
+			await this.app.vault.rename(
+				file,
+				`${this.settings.attachmentsPath}/${humanReadableFileName}.${file.extension}`
+			);
+			new Notice(
+				`File processed and saved as ${humanReadableFileName}`,
+				5000
+			);
 			if (this.settings.useDailyNotesLog) {
+				console.log("Daily Notes Plugin is loaded");
 				await this.appendToDailyNotes(
-					`Created annotation for [[${fileName}]]`
+					`Created annotation for [[${humanReadableFileName}]]`
 				);
 			}
-			// Move the file after processing
-			await this.app.vault.rename(
-				file.path,
-				`${this.settings.destinationPath}/${file.basename}`
-			);
 		} catch (error) {
 			console.error("Error processing file:", error);
 			new Notice(`Failed to process file`, 5000);
@@ -179,59 +213,28 @@ export default class FileOrganizer extends Plugin {
 		await this.app.vault.append(lastDailyNote, contentWithLink);
 	}
 
-	async createMardownFromAudio(file) {
-		this.checkHasAPIKey();
+	async getContentFromAudio(file: TFile) {
+		// @ts-ignore
+		const filePath = file.vault.adapter.basePath + "/" + file.path;
+		const transcribedText = await useAudio(filePath, this.settings.API_KEY);
+		const postProcessedText = await usePostProcessing(
+			transcribedText,
+			this.settings.API_KEY
+		);
+
+		const now = new Date();
+		const formattedNow = now.toISOString().replace(/[-:.TZ]/g, "");
+		let name = formattedNow;
 		try {
-			new Notice(`Processing Audio: ${file.name}`);
-			const filePath = file.vault.adapter.basePath + "/" + file.path;
-			console.log(filePath);
-			const transcribedText = await useAudio(
-				filePath,
-				this.settings.API_KEY
-			);
-			const postProcessedText = await usePostProcessing(
-				transcribedText,
-				this.settings.API_KEY
-			);
-
-			const now = new Date();
-			const formattedNow = now.toISOString().replace(/[-:.TZ]/g, "");
-			let name = formattedNow;
-			try {
-				name = await useName(postProcessedText, this.settings.API_KEY);
-			} catch (error) {
-				console.error("Error processing file:", error.status);
-				new Notice("Could not set a human readable name.");
-			}
-			const safeName = formatToSafeName(name);
-
-			const folderPath = this.settings.destinationPath;
-			const outputFilePath = `/${folderPath}/${safeName}.md`;
-
-			// Check if the folder exists
-			if (!this.app.vault.adapter.exists(this.settings.destinationPath)) {
-				// If the folder doesn't exist, create it
-				await this.app.vault.createFolder(folderPath);
-			}
-
-			// Get the path of the original audio
-
-			const originalAudioPath = this.app.vault.getResourcePath(file);
-			console.log(getLinkpath(originalAudioPath));
-
-			// Create a link to the original audio
-			const audioLink = `![[${file.name}]]`;
-
-			// Include the link in the processed content
-			const contentWithLink = `${postProcessedText}\n\n${audioLink}`;
-
-			await this.app.vault.create(outputFilePath, contentWithLink);
-			return safeName;
+			name = await useName(postProcessedText, this.settings.API_KEY);
 		} catch (error) {
-			console.error("Error processing file:", error);
-			new Notice(`Failed to process file`, 5000);
-			new Notice(`${error.message}`, 5000);
+			console.error("Error processing file:", error.status);
+			new Notice("Could not set a human readable name.");
 		}
+		const safeName = formatToSafeName(name);
+
+		// Get the path of the original audio
+		return [safeName, postProcessedText];
 	}
 	async createMardownFromImage(file) {
 		const arrayBuffer = await this.app.vault.readBinary(file);
@@ -254,23 +257,8 @@ export default class FileOrganizer extends Plugin {
 			new Notice("Could not set a human readable name.");
 		}
 		const safeName = formatToSafeName(name);
-		const folderPath = this.settings.destinationPath;
-		const outputFilePath = `/${folderPath}/${safeName}.md`;
 
-		// Check if the folder exists
-		if (!this.app.vault.adapter.exists(folderPath)) {
-			// If the folder doesn't exist, create it
-			await this.app.vault.createFolder(folderPath);
-		}
-
-		// Create a link to the original image
-		const imageLink = `![[${file.name}]]`;
-
-		// Include the link in the processed content
-		const contentWithLink = `${processedContent}\n\n${imageLink}`;
-
-		await this.app.vault.create(outputFilePath, contentWithLink);
-		return safeName;
+		return [safeName, processedContent];
 	}
 
 	checkHasAPIKey() {
@@ -319,10 +307,7 @@ class FileOrganizerSettingTab extends PluginSettingTab {
 					.setPlaceholder("Enter your path")
 					.setValue(this.plugin.settings.destinationPath)
 					.onChange(async (value) => {
-						value = value.trim();
-						// cleanup path remove leading and trailing slashes
-						value = value.replace(/^\/+|\/+$/g, "");
-						this.plugin.settings.destinationPath = value;
+						this.plugin.settings.destinationPath = cleanPath(value);
 						await this.plugin.saveSettings();
 					})
 			);
@@ -346,10 +331,23 @@ class FileOrganizerSettingTab extends PluginSettingTab {
 					.setPlaceholder("Enter your path")
 					.setValue(this.plugin.settings.pathToWatch)
 					.onChange(async (value) => {
-						value = value.trim();
+						this.plugin.settings.pathToWatch = cleanPath(value);
+						await this.plugin.saveSettings();
+					})
+			);
+
+		new Setting(containerEl)
+			.setName("Attachments Folder")
+			.setDesc(
+				"Enter the path to the folder where the original images and audio will be moved."
+			)
+			.addText((text) =>
+				text
+					.setPlaceholder("Enter your path")
+					.setValue(this.plugin.settings.attachmentsPath)
+					.onChange(async (value) => {
 						// cleanup path remove leading and trailing slashes
-						value = value.replace(/^\/+|\/+$/g, "");
-						this.plugin.settings.pathToWatch = value;
+						this.plugin.settings.attachmentsPath = cleanPath(value);
 						await this.plugin.saveSettings();
 					})
 			);
