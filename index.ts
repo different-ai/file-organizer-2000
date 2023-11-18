@@ -10,7 +10,7 @@ import {
 import useName from "./modules/name";
 import useVision from "./modules/vision";
 import useAudio from "./modules/audio";
-import usePostProcessing from "./modules/text";
+// import usePostProcessing from "./modules/text";
 import { getAllDailyNotes, getDailyNote } from "./lib/daily-notes";
 import moment from "moment";
 
@@ -58,6 +58,8 @@ export default class FileOrganizer extends Plugin {
 		if (!(file.parent?.path === this.settings.pathToWatch)) return;
 		console.log("Will process", file);
 		this.checkHasAPIKey();
+
+
 
 		if (isSupportedImage.includes(file.extension)) {
 			console.log("is supported image");
@@ -217,10 +219,11 @@ export default class FileOrganizer extends Plugin {
 		// @ts-ignore
 		const filePath = file.vault.adapter.basePath + "/" + file.path;
 		const transcribedText = await useAudio(filePath, this.settings.API_KEY);
-		const postProcessedText = await usePostProcessing(
-			transcribedText,
-			this.settings.API_KEY
-		);
+		// const postProcessedText = await usePostProcessing(
+		// 	transcribedText,
+		// 	this.settings.API_KEY
+		// );
+		const postProcessedText = transcribedText;
 
 		const now = new Date();
 		const formattedNow = now.toISOString().replace(/[-:.TZ]/g, "");
@@ -285,7 +288,7 @@ class FileOrganizerSettingTab extends PluginSettingTab {
 		containerEl.empty();
 
 		new Setting(containerEl)
-			.setName("API Key")
+			.setName("OpenAI API Key")
 			.setDesc("Enter your API Key here")
 			.addText((text) =>
 				text
@@ -311,18 +314,7 @@ class FileOrganizerSettingTab extends PluginSettingTab {
 						await this.plugin.saveSettings();
 					})
 			);
-		new Setting(containerEl)
-			.setName("Use Daily Notes Log")
-			.setDesc("Enable or disable the use of daily notes log.")
-			.setDisabled(!this.plugin.appHasDailyNotesPluginLoaded())
-			.addToggle((toggle) =>
-				toggle
-					.setValue(this.plugin.settings.useDailyNotesLog)
-					.onChange(async (value) => {
-						this.plugin.settings.useDailyNotesLog = value;
-						await this.plugin.saveSettings();
-					})
-			);
+
 		new Setting(containerEl)
 			.setName("Inbox Folder")
 			.setDesc("Enter the path to the folder you want to auto-organize")
@@ -348,6 +340,18 @@ class FileOrganizerSettingTab extends PluginSettingTab {
 					.onChange(async (value) => {
 						// cleanup path remove leading and trailing slashes
 						this.plugin.settings.attachmentsPath = cleanPath(value);
+						await this.plugin.saveSettings();
+					})
+			);
+		new Setting(containerEl)
+			.setName("Use Daily Notes Log")
+			.setDesc("Enable or disable the use of daily notes log.")
+			.setDisabled(!this.plugin.appHasDailyNotesPluginLoaded())
+			.addToggle((toggle) =>
+				toggle
+					.setValue(this.plugin.settings.useDailyNotesLog)
+					.onChange(async (value) => {
+						this.plugin.settings.useDailyNotesLog = value;
 						await this.plugin.saveSettings();
 					})
 			);
