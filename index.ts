@@ -130,10 +130,13 @@ export default class FileOrganizer extends Plugin {
 			const fileName = await this.createMardownFromAudio(file);
 			new Notice(`File processed and saved as ${fileName}`, 5000);
 			if (this.settings.useDailyNotesLog) {
-				await this.appendToDailyNotes(
-					`Transcribed [[${fileName}]]`
-				);
+				await this.appendToDailyNotes(`Transcribed [[${fileName}]]`);
 			}
+			// Move the file after processing
+			await this.app.vault.rename(
+				file.path,
+				`${this.settings.destinationPath}/${file.basename}`
+			);
 		} catch (error) {
 			console.error("Error processing file:", error);
 			new Notice(`Failed to process file`, 5000);
@@ -151,6 +154,11 @@ export default class FileOrganizer extends Plugin {
 					`Created annotation for [[${fileName}]]`
 				);
 			}
+			// Move the file after processing
+			await this.app.vault.rename(
+				file.path,
+				`${this.settings.destinationPath}/${file.basename}`
+			);
 		} catch (error) {
 			console.error("Error processing file:", error);
 			new Notice(`Failed to process file`, 5000);
