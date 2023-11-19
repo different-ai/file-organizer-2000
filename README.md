@@ -11,8 +11,6 @@ This is an Obsidian Plugin that uses AI to keep your files organized. It trans
 - Automatically move files to correct folder
 - Uses OpenAI GPT Vision to extract text from images and create a markdown file with the extracted content.  
 - Supports text, audio, and images
-- 
-### Demo
 
 ### Move Files
 > Example shows a file being added to the "Inbox" and automatically moved to a relevant folder.
@@ -40,20 +38,15 @@ https://github.com/different-ai/obsidian-file-organizer2000/assets/11430621/364f
 4. Install dependencies by running `npm i` or `yarn`.
 5. Start compilation in watch mode by running `npm run dev`.
 
-### Manual Installation
-
-  
-Copy over main.js, styles.css, manifest.json to your vault VaultFolder/.obsidian/plugins/your-plugin-id/.  
-
 ### Development
 
   
-This plugin is developed using TypeScript. The main logic of the plugin is contained in index.js, vision.ts, and name.ts. The plugin uses the Obsidian API to interact with the Obsidian app.  
+This plugin is developed using TypeScript. The main logic of the plugin is contained in index.ts, vision.ts, and name.ts. The plugin uses the Obsidian API to interact with the Obsidian app.  
 
 ## To Do
 
-- Replace GPT Vision by a local model
-- Make it easy for peopel to extend whaetever workflow.
+- [ ] Replace GPT Vision by a local model
+- [ ] Make it easy for peopel to extend whaetever workflow.
 
 ### Building
 
