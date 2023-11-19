@@ -1,7 +1,7 @@
 # FileOrganizer2000
 
   
-This repository contains the code for the Obsidian plugin "File Organizer 2000". This plugin auto-organizes your files, starting with images. It uses GPT Vision to automatically convert your images into text. You can use it for OCR, but it goes also beyond that.  
+This repository contains the code for the Obsidian plugin "File Organizer 2000". This plugin auto-organizes your file. It transcribes audio, uses AI to annotate images, and automatically renames and moves new files to the most likeley folders.
 
 ⚠️ ALPHA Highly experimental
 
@@ -10,12 +10,8 @@ This repository contains the code for the Obsidian plugin "File Organi
   
 - Automatically move files to correct folder
 - Uses OpenAI GPT Vision to extract text from images and create a markdown file with the extracted content.  
-- Supports text, audio, and images.
-
-## Use Case
-- Record a voice memo on your iphone and automatically get it transcribed inside of Obsidian. [You can use this shortcut to make it easier](https://www.icloud.com/shortcuts/36299c16415d4d0e9acfd32eaae4f3f6)
-
-
+- Supports text, audio, and images
+- 
 ### Demo
 
 ### Move Files
