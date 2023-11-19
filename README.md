@@ -8,10 +8,9 @@ This repository contains the code for the Obsidian plugin "File Organi
 ### Features
 
   
-- Automatically processes newly media files .  
-- Uses GPT Vision to extract text from images and create a markdown file with the extracted content.  
-- The markdown file is named using a title generated by GPT-3.5-turbo.  
-- Supports audio and images.
+- Automatically move files to correct folder
+- Uses OpenAI GPT Vision to extract text from images and create a markdown file with the extracted content.  
+- Supports text, audio, and images.
 
 ## Use Case
 - Record a voice memo on your iphone and automatically get it transcribed inside of Obsidian. [You can use this shortcut to make it easier](https://www.icloud.com/shortcuts/36299c16415d4d0e9acfd32eaae4f3f6)
@@ -19,10 +18,18 @@ This repository contains the code for the Obsidian plugin "File Organi
 
 ### Demo
 
+### Move Files
+> Example shows a file being added to the "Inbox" and automatically moved to a relevant folder.
+
+https://github.com/different-ai/gpt-file-organizer/assets/11430621/f9c8ed77-828f-4a42-a382-4dd01ca17e22
+
+
+### Transcribe Audio
 > Example shows how FileOrganizer2000 automatically detects a new image and adds it inside `/Processed` with an annotation.
 
 https://github.com/different-ai/obsidian-file-organizer2000/assets/11430621/eaea27e6-d5ed-4e02-8722-173dea1351ba
 
+### Automatically Annotate Images
 > Example shows how FileOrganizer2000 detects a handwritten note and automatically extracts the text moves it to `/Processed` using a human understandable name.
 
 https://github.com/different-ai/obsidian-file-organizer2000/assets/11430621/364f3ad8-e1b2-46c6-a114-eee5aad0755e
