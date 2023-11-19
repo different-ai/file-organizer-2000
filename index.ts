@@ -141,6 +141,7 @@ export default class FileOrganizer extends Plugin {
 		// 2. Pass all the folder names to GPT-3 and get the most similar folder
 		const folderNames = folders.map((folder) => folder.parent?.path);
 		const uniqueFolders = [...new Set(folderNames)];
+		console.log("uniqueFolders", uniqueFolders);
 
 		// Prepare the prompt for GPT-4
 		const prompt = `Given the text "${content}" (and if relevant ${fileName}), which of the following folders is the most relevant? ${uniqueFolders.join(
@@ -148,7 +149,7 @@ export default class FileOrganizer extends Plugin {
 		)}`;
 		const mostSimilarFolder = await useText(
 			prompt,
-			'Always answer with a single folder name from the provided list. If none of the folders are relevant, answer "None of the above". A nested path is a path that includes the names of all parent folders, separated by slashes (e.g., "parentFolder/childFolder").',
+			'Always answer with a single folder name from the provided list. If none of the folders are relevant, answer "Ava/Processed". A nested path is a path that includes the names of all parent folders, separated by slashes (e.g., "parentFolder/childFolder").',
 			this.settings.API_KEY
 		);
 		// Extract the most similar folder from the response
