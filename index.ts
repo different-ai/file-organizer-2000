@@ -13,6 +13,7 @@ import useAudio from "./modules/audio";
 // import usePostProcessing from "./modules/text";
 import { getAllDailyNotes, getDailyNote } from "./lib/daily-notes";
 import moment from "moment";
+import useText from "./modules/text";
 
 const isSupportedImage = ["png", "jpeg", "gif", "webp", "jpg"];
 const isSupportedAudio = ["mp3", "mp4", "mpeg", "mpga", "m4a", "wav", "webm"];
@@ -59,7 +60,11 @@ export default class FileOrganizer extends Plugin {
 		console.log("Will process", file);
 		this.checkHasAPIKey();
 
-
+		if (file.extension === "md") {
+			console.log("is markdown file");
+			await this.handleMarkdown(file);
+			return;
+		}
 
 		if (isSupportedImage.includes(file.extension)) {
 			console.log("is supported image");
@@ -128,6 +133,72 @@ export default class FileOrganizer extends Plugin {
 	}
 	async saveSettings() {
 		await this.saveData(this.settings);
+	}
+	async getSimilarFolder(content: string, fileName: string): Promise<string> {
+		// 1. Get all folders from the vault
+		const folders = this.app.vault.getMarkdownFiles();
+
+		// 2. Pass all the folder names to GPT-3 and get the most similar folder
+		const folderNames = folders.map((folder) => folder.parent?.path);
+		const uniqueFolders = [...new Set(folderNames)];
+
+		// Prepare the prompt for GPT-4
+		const prompt = `Given the text "${content}" (and if relevant ${fileName}), which of the following folders is the most relevant? ${uniqueFolders.join(
+			", "
+		)}`;
+		const mostSimilarFolder = await useText(
+			prompt,
+			'Always answer with a single folder name from the provided list. If none of the folders are relevant, answer "None of the above". A nested path is a path that includes the names of all parent folders, separated by slashes (e.g., "parentFolder/childFolder").',
+			this.settings.API_KEY
+		);
+		// Extract the most similar folder from the response
+
+		return mostSimilarFolder;
+	}
+	async handleMarkdown(file: TFile) {
+		try {
+			new Notice(`Processing Markdown: ${file.name}`);
+			const [humanReadableFileName, content] =
+				await this.getContentFromMarkdown(file);
+
+			new Notice(`Moving file ${file.basename}}`, 3000);
+			// get destination folder
+			const destinationFolder = await this.getSimilarFolder(
+				content,
+				file.basename
+			);
+			await this.app.vault.rename(
+				file,
+				`${destinationFolder}/${humanReadableFileName}.${file.extension}`
+			);
+			new Notice(
+				`Moved ${humanReadableFileName} to "${destinationFolder}"`,
+				3000
+			);
+			if (this.settings.useDailyNotesLog) {
+				console.log("Daily Notes Plugin is loaded");
+				await this.appendToDailyNotes(
+					`Organized [[${humanReadableFileName}]]`
+				);
+			}
+		} catch (error) {
+			console.error("Error processing file:", error);
+			new Notice(`Failed to process file`, 5000);
+			new Notice(`${error.message}`, 5000);
+		}
+	}
+
+	async getContentFromMarkdown(file: TFile) {
+		const fileContent = await this.app.vault.read(file);
+		// const processedContent = await useText(
+		// 	fileContent,
+		// 	this.settings.API_KEY
+		// );
+
+		const name = await useName(fileContent, this.settings.API_KEY);
+		const safeName = formatToSafeName(name);
+
+		return [safeName, fileContent];
 	}
 
 	async handleAudio(file: TFile) {
@@ -218,11 +289,12 @@ export default class FileOrganizer extends Plugin {
 	async getContentFromAudio(file: TFile) {
 		// @ts-ignore
 		const filePath = file.vault.adapter.basePath + "/" + file.path;
+		console.log("filePath", filePath);
+		console.log("file", file);
+		// get absolute file path
+		// const filePath = getLinkpath(file, this.app.vault);
+
 		const transcribedText = await useAudio(filePath, this.settings.API_KEY);
-		// const postProcessedText = await usePostProcessing(
-		// 	transcribedText,
-		// 	this.settings.API_KEY
-		// );
 		const postProcessedText = transcribedText;
 
 		const now = new Date();

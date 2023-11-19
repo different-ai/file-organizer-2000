@@ -23,8 +23,10 @@
 	},
 	"dependencies": {
 		"@types/moment": "^2.13.0",
+		"axios": "^1.6.2",
 		"form-data": "^4.0.0",
 		"moment": "^2.29.4",
-		"node-fetch": "^3.3.2"
+		"node-fetch": "^3.3.2",
+		"openai": "^4.19.0"
 	}
 }

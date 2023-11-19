@@ -1,6 +1,6 @@
 async function useName(document, apiKey) {
 	const data = {
-		model: "gpt-3.5-turbo",
+		model: "gpt-4-1106-preview",
 		messages: [
 			{
 				role: "system",
@@ -24,11 +24,9 @@ async function useName(document, apiKey) {
 	});
 
 	if (!response.ok) {
-		console.error("Error:", response.status);
-		return;
+		throw new Error("Error:", response.status);
 	}
 	const result = await response.json();
-	console.log(result);
 	console.log(result.choices[0].message.content);
 	return result.choices[0].message.content.trim();
 }

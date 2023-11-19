@@ -1,15 +1,6 @@
-import fetch from "node-fetch";
-
-const DEFAULT_SYSTEM_PROMPT =
-	"You are a helpful assistant. Your task is to correct any spelling discrepancies in the transcribed text.";
-
-async function useText(
-	content: string,
-	apiKey: string,
-	systemPrompt = DEFAULT_SYSTEM_PROMPT
-) {
+async function useText(content: string, systemPrompt = "", apiKey: string) {
 	const data = {
-		model: "gpt-4",
+		model: "gpt-4-1106-preview",
 		temperature: 0,
 		messages: [
 			{
