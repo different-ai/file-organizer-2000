@@ -1,7 +1,7 @@
 # FileOrganizer2000
 
   
-This repository contains the code for the Obsidian plugin "File Organizer 2000". This plugin auto-organizes your file. It transcribes audio, uses AI to annotate images, and automatically renames and moves new files to the most likeley folders.
+This is an Obsidian Plugin that uses AI to keep your files organized. It transcribes audio, uses AI to annotate images, and automatically renames and moves new files to the most likeley folders.
 
 ⚠️ ALPHA Highly experimental
 
