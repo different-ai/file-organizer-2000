@@ -15,9 +15,6 @@ import { getAllDailyNotes, getDailyNote } from "./lib/daily-notes";
 import moment from "moment";
 import useText from "./modules/text";
 
-const isSupportedImage = ["png", "jpeg", "gif", "webp", "jpg"];
-const isSupportedAudio = ["mp3", "mp4", "mpeg", "mpga", "m4a", "wav", "webm"];
-
 function formatToSafeName(format: string) {
 	return format.replace(/[\\/:"]/g, "");
 }
@@ -39,6 +36,8 @@ class FileOrganizerSettings {
 	pathToWatch = "Ava/Inbox";
 }
 
+type FileHandler = (file: TFile) => Promise<void>;
+
 export default class FileOrganizer extends Plugin {
 	settings: FileOrganizerSettings;
 
@@ -54,75 +53,46 @@ export default class FileOrganizer extends Plugin {
 		return false;
 	}
 	async processFile(file: TFile) {
-		console.log("Looking at", file);
 		await this.checkAndCreateFolders();
+		const fileHandlers: Record<string, FileHandler> = {
+			md: this.handleMarkdown,
+			png: this.handleImage,
+			jpeg: this.handleImage,
+			gif: this.handleImage,
+			webp: this.handleImage,
+			jpg: this.handleImage,
+			mp3: this.handleAudio,
+			mp4: this.handleAudio,
+			mpeg: this.handleAudio,
+			mpga: this.handleAudio,
+			m4a: this.handleAudio,
+			wav: this.handleAudio,
+			webm: this.handleAudio,
+		};
+		console.log("Looking at", file);
 		if (!(file.parent?.path === this.settings.pathToWatch)) return;
 		console.log("Will process", file);
-		this.checkHasAPIKey();
-
-		if (file.extension === "md") {
-			console.log("is markdown file");
-			await this.handleMarkdown(file);
-			return;
+		this.validateAPIKey();
+		const handler = fileHandlers[file.extension];
+		if (handler) {
+			await handler.call(this, file);
 		}
-
-		if (isSupportedImage.includes(file.extension)) {
-			console.log("is supported image");
-			await this.handleImage(file);
-			return;
-		}
-		// do the same for audio files
-		if (isSupportedAudio.includes(file.extension)) {
-			console.log("is supported audio");
-			await this.handleAudio(file);
+	}
+	async ensureFolderExists(folderPath: string) {
+		if (!(await this.app.vault.adapter.exists(folderPath))) {
+			await this.app.vault.createFolder(folderPath);
 		}
 	}
 	async checkAndCreateFolders() {
-		// Check if Inbox the folder exists
-		if (!(await this.app.vault.adapter.exists(this.settings.pathToWatch))) {
-			console.log('creating folder "Inbox"');
-			// If the folder doesn't exist, create it
-			await this.app.vault.createFolder(this.settings.pathToWatch);
-		}
-
-		if (
-			!(await this.app.vault.adapter.exists(
-				this.settings.destinationPath
-			))
-		) {
-			console.log('creating folder "Processed"');
-			// If the folder doesn't exist, create it
-			await this.app.vault.createFolder(this.settings.destinationPath);
-		}
-
-		if (
-			!(await this.app.vault.adapter.exists(
-				this.settings.attachmentsPath
-			))
-		) {
-			console.log('creating folder "Processed/Attachments"');
-			// If the folder doesn't exist, create it
-			await this.app.vault.createFolder(this.settings.attachmentsPath);
-		}
+		this.ensureFolderExists(this.settings.pathToWatch);
+		this.ensureFolderExists(this.settings.destinationPath);
+		this.ensureFolderExists(this.settings.attachmentsPath);
 	}
 
 	async onload() {
-		await this.loadSettings();
-		this.addSettingTab(new FileOrganizerSettingTab(this.app, this));
-		console.log(
-			"appHasDailyNotesPluginLoaded",
-			this.appHasDailyNotesPluginLoaded()
-		);
-		this.registerEvent(
-			this.app.vault.on("create", (file) =>
-				this.processFile(file as TFile)
-			)
-		);
-		this.registerEvent(
-			this.app.vault.on("rename", (file) =>
-				this.processFile(file as TFile)
-			)
-		);
+		await this.initializePlugin();
+		// on layout ready register event handlers
+		this.app.workspace.onLayoutReady(this.registerEventHandlers.bind(this));
 	}
 	async loadSettings() {
 		this.settings = Object.assign(
@@ -133,6 +103,27 @@ export default class FileOrganizer extends Plugin {
 	}
 	async saveSettings() {
 		await this.saveData(this.settings);
+	}
+	async initializePlugin() {
+		await this.loadSettings();
+		this.addSettingTab(new FileOrganizerSettingTab(this.app, this));
+		console.log(
+			"appHasDailyNotesPluginLoaded",
+			this.appHasDailyNotesPluginLoaded()
+		);
+	}
+
+	registerEventHandlers() {
+		this.registerEvent(
+			this.app.vault.on("create", (file) =>
+				this.processFile(file as TFile)
+			)
+		);
+		this.registerEvent(
+			this.app.vault.on("rename", (file) =>
+				this.processFile(file as TFile)
+			)
+		);
 	}
 	async getSimilarFolder(content: string, fileName: string): Promise<string> {
 		// 1. Get all folders from the vault
@@ -162,8 +153,13 @@ export default class FileOrganizer extends Plugin {
 			const [humanReadableFileName, content] =
 				await this.getContentFromMarkdown(file);
 
-			new Notice(`Moving file ${file.basename}}`, 3000);
+			new Notice(`Moving file ${file.basename}`, 3000);
 			// get destination folder
+			await this.app.vault.rename(
+				file,
+				`${this.settings.destinationPath}/${humanReadableFileName}.${file.extension}`
+			);
+
 			const destinationFolder = await this.getSimilarFolder(
 				content,
 				file.basename
@@ -179,7 +175,7 @@ export default class FileOrganizer extends Plugin {
 			if (this.settings.useDailyNotesLog) {
 				console.log("Daily Notes Plugin is loaded");
 				await this.appendToDailyNotes(
-					`Organized [[${humanReadableFileName}]]`
+					`Organized [[${humanReadableFileName}]] into ${destinationFolder}`
 				);
 			}
 		} catch (error) {
@@ -191,10 +187,6 @@ export default class FileOrganizer extends Plugin {
 
 	async getContentFromMarkdown(file: TFile) {
 		const fileContent = await this.app.vault.read(file);
-		// const processedContent = await useText(
-		// 	fileContent,
-		// 	this.settings.API_KEY
-		// );
 
 		const name = await useName(fileContent, this.settings.API_KEY);
 		const safeName = formatToSafeName(name);
@@ -337,14 +329,12 @@ export default class FileOrganizer extends Plugin {
 		return [safeName, processedContent];
 	}
 
-	checkHasAPIKey() {
+	validateAPIKey() {
 		if (!this.settings.API_KEY) {
-			new Notice(
+			throw new Error(
 				"Please enter your API Key in the settings of the OCR plugin."
 			);
-			return false;
 		}
-		return true;
 	}
 }
 class FileOrganizerSettingTab extends PluginSettingTab {
