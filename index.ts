@@ -6,12 +6,19 @@ import {
 	Setting,
 	// getLinkpath,
 	TFile,
+	normalizePath,
+	TFolder,
 } from "obsidian";
 import useName from "./modules/name";
 import useVision from "./modules/vision";
 import useAudio from "./modules/audio";
 // import usePostProcessing from "./modules/text";
-import { getAllDailyNotes, getDailyNote } from "./lib/daily-notes";
+import {
+	getAllDailyNotes,
+	getDailyNote,
+	getDailyNoteSettings,
+	getDateUID,
+} from "./lib/daily-notes";
 import moment from "moment";
 import useText from "./modules/text";
 
@@ -90,6 +97,7 @@ export default class FileOrganizer extends Plugin {
 	}
 
 	async onload() {
+		this.appendToDailyNotes("test");
 		await this.initializePlugin();
 		// on layout ready register event handlers
 		this.app.workspace.onLayoutReady(this.registerEventHandlers.bind(this));
@@ -265,9 +273,18 @@ export default class FileOrganizer extends Plugin {
 			new Notice(`${error.message}`, 5000);
 		}
 	}
-	async appendToDailyNotes(fileName: string, action = "") {
+	// very experimental feature, will probably be removed
+	async appendToDailyNotes(contentToAppend: string, action = "") {
 		const dailyNotes = getAllDailyNotes();
-		const lastDailyNote = getDailyNote(moment(), dailyNotes);
+		let lastDailyNote = getDailyNote(moment(), dailyNotes);
+		if (!lastDailyNote) {
+			const { folder, format } = getDailyNoteSettings();
+			const parsedDate = moment();
+			const formattedDate = parsedDate.format(format);
+			const dailyNotePath = `${folder}/${formattedDate}.md`;
+			lastDailyNote = await this.app.vault.create(dailyNotePath, "");
+		}
+
 		// render hours:minutes
 		const now = new Date();
 		const formattedNow =
@@ -275,7 +292,7 @@ export default class FileOrganizer extends Plugin {
 			":" +
 			now.getMinutes().toString().padStart(2, "0");
 		// Include the link in the processed content
-		const contentWithLink = `\n - ${formattedNow} ${fileName}`;
+		const contentWithLink = `\n - ${formattedNow} ${contentToAppend}`;
 		await this.app.vault.append(lastDailyNote, contentWithLink);
 	}
 
