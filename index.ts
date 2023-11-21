@@ -97,7 +97,6 @@ export default class FileOrganizer extends Plugin {
 	}
 
 	async onload() {
-		this.appendToDailyNotes("test");
 		await this.initializePlugin();
 		// on layout ready register event handlers
 		this.app.workspace.onLayoutReady(this.registerEventHandlers.bind(this));
@@ -299,8 +298,6 @@ export default class FileOrganizer extends Plugin {
 	async getContentFromAudio(file: TFile) {
 		// @ts-ignore
 		const filePath = file.vault.adapter.basePath + "/" + file.path;
-		console.log("filePath", filePath);
-		console.log("file", file);
 		// get absolute file path
 		// const filePath = getLinkpath(file, this.app.vault);
 
