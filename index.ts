@@ -36,6 +36,7 @@ class FileOrganizerSettings {
 	attachmentsPath = "Ava/Processed/Attachments";
 	pathToWatch = "Ava/Inbox";
 	logFolderPath = "Ava/Logs";
+	useSimilarTags = true; // default value is true
 }
 
 type FileHandler = (file: TFile) => Promise<void>;
@@ -181,10 +182,11 @@ export default class FileOrganizer extends Plugin {
 				await this.getContentFromMarkdown(file);
 
 			// Get similar tags
-			const similarTags = await this.getSimilarTags(
-				content,
-				file.basename
-			);
+			let similarTags: string[] = [];
+
+			if (this.settings.useSimilarTags) {
+				similarTags = await this.getSimilarTags(content, file.basename);
+			}
 			// if there are similar tags, prepend them to the content
 			const contentWithTags = `${
 				similarTags.length === 0 ? "" : similarTags.join(" ")
@@ -477,6 +479,17 @@ class FileOrganizerSettingTab extends PluginSettingTab {
 					.setValue(this.plugin.settings.logFolderPath)
 					.onChange(async (value) => {
 						this.plugin.settings.logFolderPath = cleanPath(value);
+						await this.plugin.saveSettings();
+					})
+			);
+		new Setting(containerEl)
+			.setName("Use Similar Tags")
+			.setDesc("Enable or disable the use of similar tags.")
+			.addToggle((toggle) =>
+				toggle
+					.setValue(this.plugin.settings.useSimilarTags)
+					.onChange(async (value) => {
+						this.plugin.settings.useSimilarTags = value;
 						await this.plugin.saveSettings();
 					})
 			);
