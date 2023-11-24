@@ -13,12 +13,6 @@ import useName from "./modules/name";
 import useVision from "./modules/vision";
 import useAudio from "./modules/audio";
 // import usePostProcessing from "./modules/text";
-import {
-	getAllDailyNotes,
-	getDailyNote,
-	getDailyNoteSettings,
-	getDateUID,
-} from "./lib/daily-notes";
 import moment from "moment";
 import useText from "./modules/text";
 
@@ -134,6 +128,30 @@ export default class FileOrganizer extends Plugin {
 			)
 		);
 	}
+	async getSimilarTags(content: string, fileName: string): Promise<string[]> {
+		// 1. Get all tags from the vault
+		const tags = this.app.metadataCache.getTags();
+		console.log("tags", tags);
+
+		console.log("tags", tags);
+		// 2. Pass all the tags to GPT-3 and get the most similar tags
+		const tagNames = Object.keys(tags);
+		const uniqueTags = [...new Set(tagNames)];
+		console.log("uniqueTags", uniqueTags);
+
+		// Prepare the prompt for GPT-4
+		const prompt = `Given the text "${content}" (and if relevant ${fileName}), which of the following tags are the most relevant? ${uniqueTags.join(
+			", "
+		)}`;
+		const mostSimilarTags = await useText(
+			prompt,
+			"Always answer with a list of tag names from the provided list. If none of the tags are relevant, answer with an empty list.",
+			this.settings.API_KEY
+		);
+		// Extract the most similar tags from the response
+
+		return mostSimilarTags.split(",").map((tag) => tag.trim());
+	}
 	async getSimilarFolder(content: string, fileName: string): Promise<string> {
 		// 1. Get all folders from the vault
 		const folders = this.app.vault.getMarkdownFiles();
@@ -161,6 +179,18 @@ export default class FileOrganizer extends Plugin {
 			new Notice(`Processing Markdown: ${file.name}`);
 			const [humanReadableFileName, content] =
 				await this.getContentFromMarkdown(file);
+
+			// Get similar tags
+			const similarTags = await this.getSimilarTags(
+				content,
+				file.basename
+			);
+			// if there are similar tags, prepend them to the content
+			const contentWithTags = `${
+				similarTags.length === 0 ? "" : similarTags.join(" ")
+			}\n\n${content}`;
+			// prepend tags
+			await this.app.vault.modify(file, contentWithTags);
 
 			new Notice(`Moving file ${file.basename}`, 3000);
 			// get destination folder
