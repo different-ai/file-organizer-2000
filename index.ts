@@ -37,10 +37,11 @@ function cleanPath(path: string) {
 
 class FileOrganizerSettings {
 	API_KEY = "";
-	useDailyNotesLog = false;
+	useLogs = true;
 	destinationPath = "Ava/Processed";
 	attachmentsPath = "Ava/Processed/Attachments";
 	pathToWatch = "Ava/Inbox";
+	logFolderPath = "Ava/Logs";
 }
 
 type FileHandler = (file: TFile) => Promise<void>;
@@ -94,6 +95,7 @@ export default class FileOrganizer extends Plugin {
 		this.ensureFolderExists(this.settings.pathToWatch);
 		this.ensureFolderExists(this.settings.destinationPath);
 		this.ensureFolderExists(this.settings.attachmentsPath);
+		this.ensureFolderExists(this.settings.logFolderPath);
 	}
 
 	async onload() {
@@ -179,7 +181,7 @@ export default class FileOrganizer extends Plugin {
 				`Moved ${humanReadableFileName} to "${destinationFolder}"`,
 				3000
 			);
-			if (this.settings.useDailyNotesLog) {
+			if (this.settings.useLogs) {
 				console.log("Daily Notes Plugin is loaded");
 				await this.appendToDailyNotes(
 					`Organized [[${humanReadableFileName}]] into ${destinationFolder}`
@@ -224,7 +226,7 @@ export default class FileOrganizer extends Plugin {
 				`File processed and saved as ${humanReadableFileName}`,
 				5000
 			);
-			if (this.settings.useDailyNotesLog) {
+			if (this.settings.useLogs) {
 				console.log("Daily Notes Plugin is loaded");
 				await this.appendToDailyNotes(
 					`Transcribed [[${humanReadableFileName}]]`
@@ -260,7 +262,7 @@ export default class FileOrganizer extends Plugin {
 				`File processed and saved as ${humanReadableFileName}`,
 				5000
 			);
-			if (this.settings.useDailyNotesLog) {
+			if (this.settings.useLogs) {
 				console.log("Daily Notes Plugin is loaded");
 				await this.appendToDailyNotes(
 					`Created annotation for [[${humanReadableFileName}]]`
@@ -272,27 +274,28 @@ export default class FileOrganizer extends Plugin {
 			new Notice(`${error.message}`, 5000);
 		}
 	}
-	// very experimental feature, will probably be removed
-	async appendToDailyNotes(contentToAppend: string, action = "") {
-		const dailyNotes = getAllDailyNotes();
-		let lastDailyNote = getDailyNote(moment(), dailyNotes);
-		if (!lastDailyNote) {
-			const { folder, format } = getDailyNoteSettings();
-			const parsedDate = moment();
-			const formattedDate = parsedDate.format(format);
-			const dailyNotePath = `${folder}/${formattedDate}.md`;
-			lastDailyNote = await this.app.vault.create(dailyNotePath, "");
+	async appendToCustomLogFile(contentToAppend: string, action = "") {
+		const now = new Date();
+		const formattedDate = moment(now).format("YYYY-MM-DD");
+		const logFilePath = `${this.settings.logFolderPath}/${formattedDate}.md`;
+
+		let logFile = this.app.vault.getAbstractFileByPath(
+			logFilePath
+		) as TFile;
+		if (!logFile) {
+			logFile = await this.app.vault.create(logFilePath, "");
 		}
 
-		// render hours:minutes
-		const now = new Date();
-		const formattedNow =
+		const formattedTime =
 			now.getHours().toString().padStart(2, "0") +
 			":" +
 			now.getMinutes().toString().padStart(2, "0");
-		// Include the link in the processed content
-		const contentWithLink = `\n - ${formattedNow} ${contentToAppend}`;
-		await this.app.vault.append(lastDailyNote, contentWithLink);
+		const contentWithLink = `\n - ${formattedTime} ${contentToAppend}`;
+		await this.app.vault.append(logFile, contentWithLink);
+	}
+	// very experimental feature, will probably be removed
+	async appendToDailyNotes(contentToAppend: string, action = "") {
+		return await this.appendToCustomLogFile(contentToAppend, action);
 	}
 
 	async getContentFromAudio(file: TFile) {
@@ -420,15 +423,30 @@ class FileOrganizerSettingTab extends PluginSettingTab {
 						await this.plugin.saveSettings();
 					})
 			);
+
 		new Setting(containerEl)
 			.setName("Use Daily Notes Log")
 			.setDesc("Enable or disable the use of daily notes log.")
 			.setDisabled(!this.plugin.appHasDailyNotesPluginLoaded())
 			.addToggle((toggle) =>
 				toggle
-					.setValue(this.plugin.settings.useDailyNotesLog)
+					.setValue(this.plugin.settings.useLogs)
 					.onChange(async (value) => {
-						this.plugin.settings.useDailyNotesLog = value;
+						this.plugin.settings.useLogs = value;
+						await this.plugin.saveSettings();
+					})
+			);
+		new Setting(containerEl)
+			.setName("Log Folder Path")
+			.setDesc(
+				"Enter the path where you want to save the log files. e.g. Ava/Logs"
+			)
+			.addText((text) =>
+				text
+					.setPlaceholder("Enter your path")
+					.setValue(this.plugin.settings.logFolderPath)
+					.onChange(async (value) => {
+						this.plugin.settings.logFolderPath = cleanPath(value);
 						await this.plugin.saveSettings();
 					})
 			);
