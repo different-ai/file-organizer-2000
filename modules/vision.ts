@@ -1,5 +1,6 @@
+const defaultPrompt = `Extract text from image. Write in markdown. If there's a drawing, describe it.`;
 // useVision.js
-async function useVision(encodedImage, apiKey) {
+async function useVision(encodedImage, apiKey, systemPrompt = defaultPrompt) {
 	const jsonPayload = {
 		model: "gpt-4-vision-preview",
 		max_tokens: 800,
@@ -9,7 +10,7 @@ async function useVision(encodedImage, apiKey) {
 				content: [
 					{
 						type: "text",
-						text: "Extract text from image. Write in markdown. If there's a drawing, describe it.",
+						text: systemPrompt,
 					},
 					{
 						type: "image_url",
@@ -39,7 +40,9 @@ async function useVision(encodedImage, apiKey) {
 			throw new Error("You have exceeded the rate limit.");
 		}
 		if (response.status === 404) {
-			throw new Error("Model not found. It looks like you don't have access to GPT Vision.");
+			throw new Error(
+				"Model not found. It looks like you don't have access to GPT Vision."
+			);
 		}
 		if (response.status === 500) {
 			throw new Error("OpenAI Internal server error.");

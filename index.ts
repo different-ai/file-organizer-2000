@@ -38,6 +38,7 @@ class FileOrganizerSettings {
 	logFolderPath = "Ava/Logs";
 	useSimilarTags = true; // default value is true
 	useAutoCreateFolders = true; // default value is true
+	customVisionPrompt = ""; // default value is an empty string
 }
 
 type FileHandler = (file: TFile) => Promise<void>;
@@ -426,7 +427,8 @@ export default class FileOrganizer extends Plugin {
 
 		const processedContent = await useVision(
 			encodedImage,
-			this.settings.API_KEY
+			this.settings.API_KEY,
+			this.settings.customVisionPrompt // pass the custom prompt to useVision
 		);
 
 		const now = new Date();
@@ -567,6 +569,18 @@ class FileOrganizerSettingTab extends PluginSettingTab {
 					.setValue(this.plugin.settings.useAutoCreateFolders)
 					.onChange(async (value) => {
 						this.plugin.settings.useAutoCreateFolders = value;
+						await this.plugin.saveSettings();
+					})
+			);
+		new Setting(containerEl)
+			.setName("Custom Vision Prompt")
+			.setDesc("Enter your custom prompt for vision processing here")
+			.addText((text) =>
+				text
+					.setPlaceholder("Enter your custom prompt")
+					.setValue(this.plugin.settings.customVisionPrompt)
+					.onChange(async (value) => {
+						this.plugin.settings.customVisionPrompt = value;
 						await this.plugin.saveSettings();
 					})
 			);
