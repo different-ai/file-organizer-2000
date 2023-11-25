@@ -32,11 +32,12 @@ function cleanPath(path: string) {
 class FileOrganizerSettings {
 	API_KEY = "";
 	useLogs = true;
-	destinationPath = "Ava/Processed";
+	defaultDestinationPath = "Ava/Processed";
 	attachmentsPath = "Ava/Processed/Attachments";
 	pathToWatch = "Ava/Inbox";
 	logFolderPath = "Ava/Logs";
 	useSimilarTags = true; // default value is true
+	useAutoCreateFolders = true; // default value is true
 }
 
 type FileHandler = (file: TFile) => Promise<void>;
@@ -88,7 +89,7 @@ export default class FileOrganizer extends Plugin {
 	}
 	async checkAndCreateFolders() {
 		this.ensureFolderExists(this.settings.pathToWatch);
-		this.ensureFolderExists(this.settings.destinationPath);
+		this.ensureFolderExists(this.settings.defaultDestinationPath);
 		this.ensureFolderExists(this.settings.attachmentsPath);
 		this.ensureFolderExists(this.settings.logFolderPath);
 	}
@@ -153,28 +154,51 @@ export default class FileOrganizer extends Plugin {
 
 		return mostSimilarTags.split(",").map((tag) => tag.trim());
 	}
-	async getSimilarFolder(content: string, fileName: string): Promise<string> {
-		// 1. Get all folders from the vault
-		const folders = this.app.vault.getMarkdownFiles();
-
-		// 2. Pass all the folder names to GPT-3 and get the most similar folder
-		const folderNames = folders.map((folder) => folder.parent?.path);
+	getAllFolders(): string[] {
+		const allFiles = this.app.vault.getAllLoadedFiles();
+		const folderNames = allFiles.map((folder) => folder.path);
 		const uniqueFolders = [...new Set(folderNames)];
 		console.log("uniqueFolders", uniqueFolders);
+		return uniqueFolders;
+	}
 
-		// Prepare the prompt for GPT-4
-		const prompt = `Given the text "${content}" (and if relevant ${fileName}), which of the following folders is the most relevant? ${uniqueFolders.join(
-			", "
-		)}`;
+	async getSimilarFolder(content: string, fileName: string): Promise<string> {
+		const uniqueFolders = this.getAllFolders();
+
 		const mostSimilarFolder = await useText(
-			prompt,
-			'Always answer with a single folder name from the provided list. If none of the folders are relevant, answer "Ava/Processed". A nested path is a path that includes the names of all parent folders, separated by slashes (e.g., "parentFolder/childFolder").',
+			// prompt
+			`Given the text content "${content}" (and ifthe file name "${fileName}"), which of the following folders would be the most appropriate location for the file? Available folders: ${uniqueFolders.join(
+				", "
+			)}`,
+			// system prompt
+			"Please respond with the name of the most appropriate folder from the provided list. If none of the folders are suitable, respond with 'None'.",
 			this.settings.API_KEY
 		);
-		// Extract the most similar folder from the response
 
-		return mostSimilarFolder;
+		// Extract the most similar folder from the response
+		const sanitizedFolderName = mostSimilarFolder.replace(
+			/[\\/:*?"<>|]/g,
+			""
+		);
+
+		return sanitizedFolderName;
 	}
+	async guessNewFolderName(
+		content: string,
+		fileName: string
+	): Promise<string> {
+		const uniqueFolders = this.getAllFolders();
+		// based on the content, the file name, and existiing folders, guess a new folder name
+		const newFolderName = await useText(
+			// prompt
+			`Based on the current folder structure of the user: ${uniqueFolders.join()}, guess a new folder name for the file "${fileName}" and its content "${content}"`,
+			// system prompt
+			"Please respond with a name for the new folder. You never guess an existing folder. Valid answers are like 'New Folder/Path 1' or 'New Folder/Path 2'.",
+			this.settings.API_KEY
+		);
+		return newFolderName;
+	}
+
 	async handleMarkdown(file: TFile) {
 		try {
 			new Notice(`Processing Markdown: ${file.name}`);
@@ -198,13 +222,36 @@ export default class FileOrganizer extends Plugin {
 			// get destination folder
 			await this.app.vault.rename(
 				file,
-				`${this.settings.destinationPath}/${humanReadableFileName}.${file.extension}`
+				`${this.settings.defaultDestinationPath}/${humanReadableFileName}.${file.extension}`
 			);
 
-			const destinationFolder = await this.getSimilarFolder(
+			let destinationFolder = "None";
+			// prompted to return none if nothing is found
+			const mostSimilarFolder = await this.getSimilarFolder(
 				content,
 				file.basename
 			);
+
+			if (
+				this.settings.useAutoCreateFolders &&
+				mostSimilarFolder === "None"
+			) {
+				new Notice(`Creating new folder`, 3000);
+				destinationFolder = await this.guessNewFolderName(
+					content,
+					file.basename
+				);
+				new Notice(`Created new folder ${destinationFolder}`, 3000);
+				this.ensureFolderExists(destinationFolder);
+			}
+
+			if (mostSimilarFolder === "None") {
+				destinationFolder = this.settings.defaultDestinationPath;
+			}
+			if (mostSimilarFolder !== "None") {
+				destinationFolder = mostSimilarFolder;
+			}
+
 			await this.app.vault.rename(
 				file,
 				`${destinationFolder}/${humanReadableFileName}.${file.extension}`
@@ -241,7 +288,7 @@ export default class FileOrganizer extends Plugin {
 			const [humanReadableFileName, content] =
 				await this.getContentFromAudio(file);
 
-			const outputFilePath = `/${this.settings.destinationPath}/${humanReadableFileName}.md`;
+			const outputFilePath = `/${this.settings.defaultDestinationPath}/${humanReadableFileName}.md`;
 
 			const audioLink = `![[${this.settings.attachmentsPath}/${humanReadableFileName}.${file.extension}]]`;
 
@@ -277,7 +324,7 @@ export default class FileOrganizer extends Plugin {
 			const [humanReadableFileName, content] =
 				await this.createMardownFromImage(file);
 
-			const outputFilePath = `/${this.settings.destinationPath}/${humanReadableFileName}.md`;
+			const outputFilePath = `/${this.settings.defaultDestinationPath}/${humanReadableFileName}.md`;
 
 			const imageLink = `![[${this.settings.attachmentsPath}/${humanReadableFileName}.${file.extension}]]`;
 
@@ -420,9 +467,10 @@ class FileOrganizerSettingTab extends PluginSettingTab {
 			.addText((text) =>
 				text
 					.setPlaceholder("Enter your path")
-					.setValue(this.plugin.settings.destinationPath)
+					.setValue(this.plugin.settings.defaultDestinationPath)
 					.onChange(async (value) => {
-						this.plugin.settings.destinationPath = cleanPath(value);
+						this.plugin.settings.defaultDestinationPath =
+							cleanPath(value);
 						await this.plugin.saveSettings();
 					})
 			);
@@ -490,6 +538,17 @@ class FileOrganizerSettingTab extends PluginSettingTab {
 					.setValue(this.plugin.settings.useSimilarTags)
 					.onChange(async (value) => {
 						this.plugin.settings.useSimilarTags = value;
+						await this.plugin.saveSettings();
+					})
+			);
+		new Setting(containerEl)
+			.setName("Use Folder Guessing")
+			.setDesc("Enable or disable the use of folder guessing.")
+			.addToggle((toggle) =>
+				toggle
+					.setValue(this.plugin.settings.useAutoCreateFolders)
+					.onChange(async (value) => {
+						this.plugin.settings.useAutoCreateFolders = value;
 						await this.plugin.saveSettings();
 					})
 			);
