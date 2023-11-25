@@ -198,12 +198,45 @@ export default class FileOrganizer extends Plugin {
 		);
 		return newFolderName;
 	}
+	async determineDestinationFolder(
+		content: string,
+		file: TFile
+	): Promise<string> {
+		let destinationFolder = "None";
+		const mostSimilarFolder = await this.getSimilarFolder(
+			content,
+			file.basename
+		);
+
+		if (
+			this.settings.useAutoCreateFolders &&
+			mostSimilarFolder === "None"
+		) {
+			new Notice(`Creating new folder`, 3000);
+			destinationFolder = await this.guessNewFolderName(
+				content,
+				file.basename
+			);
+			new Notice(`Created new folder ${destinationFolder}`, 3000);
+			this.ensureFolderExists(destinationFolder);
+		}
+
+		if (mostSimilarFolder === "None") {
+			destinationFolder = this.settings.defaultDestinationPath;
+		}
+		if (mostSimilarFolder !== "None") {
+			destinationFolder = mostSimilarFolder;
+		}
+
+		return destinationFolder;
+	}
 
 	async handleMarkdown(file: TFile) {
 		try {
 			new Notice(`Processing Markdown: ${file.name}`);
-			const [humanReadableFileName, content] =
-				await this.getContentFromMarkdown(file);
+			const [newFileName, content] = await this.getContentFromMarkdown(
+				file
+			);
 
 			// Get similar tags
 			let similarTags: string[] = [];
@@ -219,51 +252,26 @@ export default class FileOrganizer extends Plugin {
 			await this.app.vault.modify(file, contentWithTags);
 
 			new Notice(`Moving file ${file.basename}`, 3000);
-			// get destination folder
+			// move to default destination
 			await this.app.vault.rename(
 				file,
-				`${this.settings.defaultDestinationPath}/${humanReadableFileName}.${file.extension}`
+				`${this.settings.defaultDestinationPath}/${newFileName}.${file.extension}`
 			);
 
-			let destinationFolder = "None";
-			// prompted to return none if nothing is found
-			const mostSimilarFolder = await this.getSimilarFolder(
+			const destinationFolder = await this.determineDestinationFolder(
 				content,
-				file.basename
+				file
 			);
 
-			if (
-				this.settings.useAutoCreateFolders &&
-				mostSimilarFolder === "None"
-			) {
-				new Notice(`Creating new folder`, 3000);
-				destinationFolder = await this.guessNewFolderName(
-					content,
-					file.basename
-				);
-				new Notice(`Created new folder ${destinationFolder}`, 3000);
-				this.ensureFolderExists(destinationFolder);
-			}
-
-			if (mostSimilarFolder === "None") {
-				destinationFolder = this.settings.defaultDestinationPath;
-			}
-			if (mostSimilarFolder !== "None") {
-				destinationFolder = mostSimilarFolder;
-			}
-
+			// move to ai determined destination
 			await this.app.vault.rename(
 				file,
-				`${destinationFolder}/${humanReadableFileName}.${file.extension}`
+				`${destinationFolder}/${newFileName}.${file.extension}`
 			);
-			new Notice(
-				`Moved ${humanReadableFileName} to "${destinationFolder}"`,
-				3000
-			);
+			new Notice(`Moved ${newFileName} to "${destinationFolder}"`, 3000);
 			if (this.settings.useLogs) {
-				console.log("Daily Notes Plugin is loaded");
 				await this.appendToDailyNotes(
-					`Organized [[${humanReadableFileName}]] into ${destinationFolder}`
+					`Organized [[${newFileName}]] into ${destinationFolder}`
 				);
 			}
 		} catch (error) {
@@ -330,7 +338,10 @@ export default class FileOrganizer extends Plugin {
 
 			// Include the link in the processed content
 			const contentWithLink = `${content}\n\n${imageLink}`;
-			await this.app.vault.create(outputFilePath, contentWithLink);
+			const annotatedFile = await this.app.vault.create(
+				outputFilePath,
+				contentWithLink
+			);
 
 			new Notice(`Moving file`);
 			await this.app.vault.rename(
@@ -347,6 +358,13 @@ export default class FileOrganizer extends Plugin {
 					`Created annotation for [[${humanReadableFileName}]]`
 				);
 			}
+			// copy file with obsidian
+			const newFile = await this.app.vault.copy(
+				annotatedFile,
+				`copy ${annotatedFile.path}`
+			);
+
+			this.handleMarkdown(newFile);
 		} catch (error) {
 			console.error("Error processing file:", error);
 			new Notice(`Failed to process file`, 5000);
