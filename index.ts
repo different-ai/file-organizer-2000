@@ -362,9 +362,10 @@ export default class FileOrganizer extends Plugin {
 			// copy file with obsidian
 			const newFile = await this.app.vault.copy(
 				annotatedFile,
-				`copy ${annotatedFile.path}`
+				`${this.settings.defaultDestinationPath}/${
+					annotatedFile.basename
+				}-${Date.now().toString()}.md`
 			);
-
 			this.handleMarkdown(newFile);
 		} catch (error) {
 			console.error("Error processing file:", error);
