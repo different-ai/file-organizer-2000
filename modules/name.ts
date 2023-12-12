@@ -5,7 +5,7 @@ async function useName(document, apiKey) {
 			{
 				role: "system",
 				content:
-					"You are a helpful assistant. You only answer short (less than 20 chars titles). You do not use any special character just text. I use jargon like boox and obsidian.",
+					"You are a helpful assistant. You only answer short (less than 30 chars titles). You do not use any special character just text. Use something very specific to the content not a generic title.",
 			},
 			{
 				role: "user",
