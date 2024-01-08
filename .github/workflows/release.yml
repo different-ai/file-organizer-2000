@@ -10,6 +10,9 @@ jobs:
         runs-on: ubuntu-latest
 
         steps:
+            - name: Generate UUID
+              id: uuid
+              run: echo "::set-output name=uuid::$(uuidgen)"
             - name: Checkout code
               uses: actions/checkout@v2
 
@@ -30,8 +33,8 @@ jobs:
               env:
                   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
               with:
-                  tag_name: ${{ github.ref }}
-                  release_name: Release ${{ github.ref }}
+                  tag_name: ${{ steps.uuid.outputs.uuid }}
+                  release_name: Release ${{ steps.uuid.outputs.uuid }}
                   draft: false
                   prerelease: false
 
