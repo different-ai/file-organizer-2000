@@ -47,3 +47,12 @@ jobs:
                   asset_path: ./main.js # replace with your asset path
                   asset_name: main.js # replace with your asset name
                   asset_content_type: application/javascript
+            - name: Add manifest to release
+              uses: actions/upload-release-asset@v1
+              env:
+                  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+              with:
+                  upload_url: ${{ steps.create_release.outputs.upload_url }}
+                  asset_path: ./manifest.json
+                  asset_name: manifest.json
+                  asset_content_type: application/json
