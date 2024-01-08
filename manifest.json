@@ -1,7 +1,7 @@
 {
 	"id": "fileorganizer2000",
 	"name": "File Organizer 2000",
-	"version": "1.0.0",
+	"version": "a9aa1132-e4f3-43e2-a954-bfba35bbf04d",
 	"minAppVersion": "0.15.0",
 	"description": "This plugin auto-organizes your files, starting with images. It uses GPT Vision to automatically convert your images into text. You can use it for OCR, but it goes also beyond that.",
 	"author": "ashgan",
