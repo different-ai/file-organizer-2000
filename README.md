@@ -47,6 +47,8 @@ This plugin is developed using TypeScript. The main logic of the plugin
 
 - [ ] Replace GPT Vision by a local model
 - [ ] Make it easy for peopel to extend whaetever workflow.
+- [ ] Switch to OpenAI assistant API
+
 
 ### Building
 
