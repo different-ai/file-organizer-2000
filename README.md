@@ -5,6 +5,7 @@ This is an Obsidian Plugin that uses AI to keep your files organized. It trans
 
 ⚠️ ALPHA Highly experimental
 
+
 ### Features
 
   
@@ -29,6 +30,11 @@ https://github.com/different-ai/obsidian-file-organizer2000/assets/11430621/eaea
 https://github.com/different-ai/obsidian-file-organizer2000/assets/11430621/364f3ad8-e1b2-46c6-a114-eee5aad0755e
 
 
+### Cool Shortcut (not essential)
+The iOS shortcut bellow makes it easy for you to easily work from your phone with this plugin.
+
+Simply click on "Add to Obsidian" and automatically add whatever pictures, audio, or text on your phone directly into your Obsidian folder.
+https://www.icloud.com/shortcuts/637df35f07e8447ba1bf7e7fdf82aa76
 
 ### How to Use
 
