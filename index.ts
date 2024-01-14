@@ -134,9 +134,7 @@ export default class FileOrganizer extends Plugin {
 	async getSimilarTags(content: string, fileName: string): Promise<string[]> {
 		// 1. Get all tags from the vault
 		const tags = this.app.metadataCache.getTags();
-		console.log("tags", tags);
 
-		console.log("tags", tags);
 		// 2. Pass all the tags to GPT-3 and get the most similar tags
 		const tagNames = Object.keys(tags);
 		const uniqueTags = [...new Set(tagNames)];
@@ -157,33 +155,14 @@ export default class FileOrganizer extends Plugin {
 	}
 	getAllFolders(): string[] {
 		const allFiles = this.app.vault.getAllLoadedFiles();
-		const folderNames = allFiles.map((folder) => folder.path);
-		const uniqueFolders = [...new Set(folderNames)];
+		const folderPaths = allFiles
+			.filter((file) => file instanceof TFolder)
+			.map((folder: TFolder) => folder.path);
+		const uniqueFolders = [...new Set(folderPaths)];
 		console.log("uniqueFolders", uniqueFolders);
 		return uniqueFolders;
 	}
 
-	async getSimilarFolder(content: string, fileName: string): Promise<string> {
-		const uniqueFolders = this.getAllFolders();
-
-		const mostSimilarFolder = await useText(
-			// prompt
-			`Given the text content "${content}" (and ifthe file name "${fileName}"), which of the following folders would be the most appropriate location for the file? Available folders: ${uniqueFolders.join(
-				", "
-			)}`,
-			// system prompt
-			"Please respond with the name of the most appropriate folder from the provided list. If none of the folders are suitable, respond with 'None'.",
-			this.settings.API_KEY
-		);
-
-		// Extract the most similar folder from the response
-		const sanitizedFolderName = mostSimilarFolder.replace(
-			/[\\/:*?"<>|]/g,
-			""
-		);
-
-		return sanitizedFolderName;
-	}
 	async guessNewFolderName(
 		content: string,
 		fileName: string
@@ -203,37 +182,76 @@ export default class FileOrganizer extends Plugin {
 		content: string,
 		file: TFile
 	): Promise<string> {
+		// Initialize destination folder as "None"
 		let destinationFolder = "None";
-		const mostSimilarFolder = await this.getSimilarFolder(
-			content,
-			file.basename
+
+		// Get all folders
+		const uniqueFolders = this.getAllFolders();
+
+		// Remove current file folder from list of uniqueFolders
+		const currentFolderIndex = uniqueFolders.indexOf(file.parent.path);
+		if (currentFolderIndex > -1) {
+			uniqueFolders.splice(currentFolderIndex, 1);
+		}
+		console.log("uniqueFolders", uniqueFolders);
+
+		// Get the most similar folder based on the content and file name
+		const mostSimilarFolder = await useText(
+			`Given the text content "${content}" (and if the file name "${
+				file.basename
+			}"), which of the following folders would be the most appropriate location for the file? Available folders: ${uniqueFolders.join(
+				", "
+			)}`,
+			"Please respond with the name of the most appropriate folder from the provided list. If none of the folders are suitable, respond with 'None'.",
+			this.settings.API_KEY
+		);
+		console.log("mostSimilarFolder", mostSimilarFolder);
+		new Notice(`Most similar folder: ${mostSimilarFolder}`, 3000);
+
+		// Extract the most similar folder from the response
+		const sanitizedFolderName = mostSimilarFolder.replace(
+			/[\\:*?"<>|]/g,
+			""
 		);
 
+		// If auto-create folders is enabled and no similar folder is found
 		if (
 			this.settings.useAutoCreateFolders &&
-			mostSimilarFolder === "None"
+			sanitizedFolderName === "None"
 		) {
+			// Notify user about creating a new folder
 			new Notice(`Creating new folder`, 3000);
+
+			// Guess a new folder name based on the content and file name
 			destinationFolder = await this.guessNewFolderName(
 				content,
 				file.basename
 			);
+
+			// Notify user about the created new folder
 			new Notice(`Created new folder ${destinationFolder}`, 3000);
+
+			// Ensure the new folder exists
 			this.ensureFolderExists(destinationFolder);
 		}
 
-		if (mostSimilarFolder === "None") {
+		// If no similar folder is found, set the destination folder as the default destination path
+		if (sanitizedFolderName === "None") {
 			destinationFolder = this.settings.defaultDestinationPath;
 		}
-		if (mostSimilarFolder !== "None") {
-			destinationFolder = mostSimilarFolder;
+
+		// If a similar folder is found, set the destination folder as the most similar folder
+		if (sanitizedFolderName !== "None") {
+			destinationFolder = sanitizedFolderName;
 		}
 
+		// Return the determined destination folder
 		return destinationFolder;
 	}
 
 	async handleMarkdown(file: TFile) {
 		try {
+			console.log("makrdown file", file);
 			new Notice(`Processing Markdown: ${file.name}`);
 			const [newFileName, content] = await this.getContentFromMarkdown(
 				file
@@ -245,15 +263,40 @@ export default class FileOrganizer extends Plugin {
 			if (this.settings.useSimilarTags) {
 				similarTags = await this.getSimilarTags(content, file.basename);
 			}
-			// if there are similar tags, prepend them to the content
-			const contentWithTags = `${
-				similarTags.length === 0 ? "" : similarTags.join(" ")
-			}\n\n${content}`;
-			// prepend tags
+
+			// Check if the content has frontmatter
+			const frontmatterRegex = /^---[\s\S]*?---/;
+			const frontmatterMatch = content.match(frontmatterRegex);
+
+			let contentWithTags;
+			if (frontmatterMatch) {
+				// If there is frontmatter, append the tags after it
+				const frontmatter = frontmatterMatch[0];
+				const contentWithoutFrontmatter = content.replace(
+					frontmatter,
+					""
+				);
+				contentWithTags = `${frontmatter}\n${
+					similarTags.length === 0 ? "" : similarTags.join(" ")
+				}\n\n${contentWithoutFrontmatter}`;
+			} else {
+				// If there is no frontmatter, prepend the tags to the content
+				contentWithTags = `${
+					similarTags.length === 0 ? "" : similarTags.join(" ")
+				}\n\n${content}`;
+			}
+
+			// Prepend tags
 			await this.app.vault.modify(file, contentWithTags);
 
 			new Notice(`Moving file ${file.basename}`, 3000);
-			// move to default destination
+			console.log(
+				"Moving file",
+				file.basename,
+				"to",
+				`${this.settings.defaultDestinationPath}/${newFileName}.${file.extension}`
+			);
+			// Move to default destination
 			await this.app.vault.rename(
 				file,
 				`${this.settings.defaultDestinationPath}/${newFileName}.${file.extension}`
@@ -263,18 +306,22 @@ export default class FileOrganizer extends Plugin {
 				content,
 				file
 			);
+			console.log("after determineDestinationFolder", destinationFolder);
 
-			// move to ai determined destination
+			// Move to AI determined destination
+			console.log(file, destinationFolder, newFileName, file.extension);
 			await this.app.vault.rename(
 				file,
 				`${destinationFolder}/${newFileName}.${file.extension}`
 			);
+			console.log("after rename", destinationFolder);
 			new Notice(`Moved ${newFileName} to "${destinationFolder}"`, 3000);
 			if (this.settings.useLogs) {
 				await this.appendToDailyNotes(
 					`Organized [[${newFileName}]] into ${destinationFolder}`
 				);
 			}
+			console.log("after appendToDailyNotes", destinationFolder);
 		} catch (error) {
 			console.error("Error processing file:", error);
 			new Notice(`Failed to process file`, 5000);
@@ -490,8 +537,10 @@ class FileOrganizerSettingTab extends PluginSettingTab {
 					.setPlaceholder("Enter your path")
 					.setValue(this.plugin.settings.defaultDestinationPath)
 					.onChange(async (value) => {
+						const cleanedPath = cleanPath(value);
+						console.log(cleanedPath);
 						this.plugin.settings.defaultDestinationPath =
-							cleanPath(value);
+							cleanedPath;
 						await this.plugin.saveSettings();
 					})
 			);
