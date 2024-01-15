@@ -3,7 +3,6 @@
   
 This is an Obsidian Plugin that uses AI to keep your files organized. It transcribes audio, uses AI to annotate images, and automatically renames and moves new files to the most likeley folders.
 
-⚠️ ALPHA Highly experimental
 
 
 ### Features
@@ -12,6 +11,13 @@ This is an Obsidian Plugin that uses AI to keep your files organized. It trans
 - Automatically move files to correct folder
 - Uses OpenAI GPT Vision to extract text from images and create a markdown file with the extracted content.  
 - Supports text, audio, and images
+
+### Quickstart
+In the plugin settings, provide your OpenAI API Key. That's it :)
+
+## How to use
+
+Simply move any of your file to the "Inbox" folder and the plugin will automatically move it to the most likely folder.
 
 ### Move Files
 > Example shows a file being added to the "Inbox" and automatically moved to a relevant folder.
@@ -60,3 +66,8 @@ This plugin is developed using TypeScript. The main logic of the plugin
 
   
 The plugin is bundled using esbuild. The configuration for esbuild is contained in esbuild.config.mjs.
+
+
+### Notes
+
+This plugin interacts with your filesystem.
