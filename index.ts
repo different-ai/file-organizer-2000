@@ -378,8 +378,10 @@ question: is there a request by the user to append this to a document? only answ
 				await this.getContentFromAudio(file);
 
 			console.log("content", content);
-			const shouldAppend = await this.shouldAppendToExistingFile(content);
-			console.log("shouldAppend", shouldAppend);
+			const shouldAppendToFile = await this.shouldAppendToExistingFile(
+				content
+			);
+			console.log("shouldAppend", shouldAppendToFile);
 
 			const outputFilePath = `/${this.settings.defaultDestinationPath}/${humanReadableFileName}.md`;
 
@@ -394,21 +396,25 @@ question: is there a request by the user to append this to a document? only answ
 				file,
 				`${this.settings.attachmentsPath}/${humanReadableFileName}.${file.extension}`
 			);
-			if (shouldAppend) {
-				const mostSimilarFile = await this.getMostSimilarFile(content);
-				console.log("mostSimilarFile", mostSimilarFile);
-				await this.app.vault.append(mostSimilarFile, `\n${content}`);
-			}
-			new Notice(
-				`File processed and saved as ${humanReadableFileName}`,
-				5000
-			);
 			if (this.settings.useLogs) {
 				console.log("Daily Notes Plugin is loaded");
 				await this.appendToDailyNotes(
 					`Transcribed [[${humanReadableFileName}]]`
 				);
 			}
+
+			if (shouldAppendToFile) {
+				const mostSimilarFile = await this.getMostSimilarFile(content);
+				console.log("mostSimilarFile", mostSimilarFile);
+				await this.app.vault.append(mostSimilarFile, `\n${content}`);
+				await this.appendToDailyNotes(
+					`Appended transcription to [[${mostSimilarFile.basename}]]`
+				);
+			}
+			new Notice(
+				`File processed and saved as ${humanReadableFileName}`,
+				5000
+			);
 		} catch (error) {
 			console.error("Error processing file:", error);
 			new Notice(`Failed to process file`, 5000);
