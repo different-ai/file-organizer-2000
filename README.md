@@ -19,6 +19,8 @@ In the plugin settings, provide your OpenAI API Key. That's it :)
 
 Simply move any of your file to the "Inbox" folder and the plugin will automatically move it to the most likely folder.
 
+
+
 ### Move Files
 > Example shows a file being added to the "Inbox" and automatically moved to a relevant folder.
 
@@ -36,11 +38,28 @@ https://github.com/different-ai/obsidian-file-organizer2000/assets/11430621/eaea
 https://github.com/different-ai/obsidian-file-organizer2000/assets/11430621/364f3ad8-e1b2-46c6-a114-eee5aad0755e
 
 
-### Cool Shortcut (not essential)
+
+
+
+### Go beyond, with the iOS Shortcut (not essential)
 The iOS shortcut bellow makes it easy for you to easily work from your phone with this plugin.
 
-Simply click on "Add to Obsidian" and automatically add whatever pictures, audio, or text on your phone directly into your Obsidian folder.
-https://www.icloud.com/shortcuts/637df35f07e8447ba1bf7e7fdf82aa76
+https://www.icloud.com/shortcuts/06915768862848fb9711f2f19b6405e2
+
+Voice Memo:
+
+https://github.com/different-ai/file-organizer-2000/assets/11430621/7565a32f-4e39-4585-b2f6-7c0865d5345d
+
+
+Clipboard:
+https://github.com/different-ai/file-organizer-2000/assets/11430621/e46b87b0-ede3-4293-bca7-69cbfa8762f8
+
+
+Photos:
+https://github.com/different-ai/file-organizer-2000/assets/11430621/e5c5272e-914a-4b1a-98ce-af4def60538f
+
+
+
 
 ### How to Use
 
