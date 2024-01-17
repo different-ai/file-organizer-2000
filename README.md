@@ -60,8 +60,21 @@ From Clipboard:
 https://github.com/different-ai/file-organizer-2000/assets/11430621/e5c5272e-914a-4b1a-98ce-af4def60538f
 
 
+## How It Works
 
+The FileOrganizer plugin is designed to automatically organize your files in Obsidian. Here's a simplified overview of its workflow:
 
+1. **Folder Monitoring**: The plugin watches a specific folder in your Obsidian vault, as defined in the settings. Any new or renamed files in this folder trigger the plugin's processing workflow.
+
+2. **File Detection**: When a new or renamed file is detected, the plugin identifies the file type. For example, it can distinguish between markdown, audio, and image files.
+
+3. **File Transformation**: Depending on the file type, the plugin processes the file using AI:
+
+- For an image file, the AI generates a description of the image. This description is then used to create a markdown file that includes a link to the image.
+
+4. **Renaming and Moving**: The plugin generates a human-readable name for the processed file. It then determines the appropriate destination folder for the file based on its content and moves the file to that folder.
+
+For example, if you add an image file to the watched folder, the plugin will generate a description of the image, create a markdown file with that description and a link to the image, give the markdown file a human-readable name, and move it to the appropriate folder in your Obsidian vault.
 ### How to Use
 
 1. Navigate to your `.obsidian/plugins/` directory.
