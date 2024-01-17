@@ -51,11 +51,12 @@ Voice Memo:
 https://github.com/different-ai/file-organizer-2000/assets/11430621/7565a32f-4e39-4585-b2f6-7c0865d5345d
 
 
-Clipboard:
+Photos:
+
 https://github.com/different-ai/file-organizer-2000/assets/11430621/e46b87b0-ede3-4293-bca7-69cbfa8762f8
 
+From Clipboard:
 
-Photos:
 https://github.com/different-ai/file-organizer-2000/assets/11430621/e5c5272e-914a-4b1a-98ce-af4def60538f
 
 
