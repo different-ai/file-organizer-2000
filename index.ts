@@ -39,6 +39,7 @@ class FileOrganizerSettings {
 	useSimilarTags = true; // default value is true
 	useAutoCreateFolders = true; // default value is true
 	customVisionPrompt = ""; // default value is an empty string
+	useAutoAppend = false; // default value is true
 }
 
 type FileHandler = (file: TFile) => Promise<void>;
@@ -161,6 +162,19 @@ export default class FileOrganizer extends Plugin {
 		const uniqueFolders = [...new Set(folderPaths)];
 		console.log("uniqueFolders", uniqueFolders);
 		return uniqueFolders;
+	}
+
+	async shouldAppendToExistingFile(content: string): Promise<boolean> {
+		if (!this.settings.useAutoAppend) {
+			return false;
+		}
+		const shouldAppend = await useText(
+			`content: ${content}
+question: is there a request by the user to append this to a document? only answer with 'yes' or 'no'`,
+			"You pattern match requests to append text to document. The request is included within the text. Please respond with 'Yes' or 'No'.",
+			this.settings.API_KEY
+		);
+		return shouldAppend.includes("Yes");
 	}
 
 	async guessNewFolderName(
@@ -338,11 +352,34 @@ export default class FileOrganizer extends Plugin {
 		return [safeName, fileContent];
 	}
 
+	async getMostSimilarFile(content: string): Promise<TFile> {
+		const allMarkdownFiles = this.app.vault.getMarkdownFiles();
+		const allMarkdownFilePaths = allMarkdownFiles.map((file) => file.path);
+
+		// Get the most similar file based on the content
+		const mostSimilarFile = await useText(
+			`Given the request of the user to append it in a certain file in "${content}", which of the following files would match the user request the most? Available files: ${allMarkdownFilePaths.join(
+				","
+			)}`,
+			"Please only respond with the full path of the most appropriate file from the provided list.",
+			this.settings.API_KEY
+		);
+
+		// Extract the most similar file from the response
+		const sanitizedFileName = mostSimilarFile.replace(/[\\:*?"<>|]/g, "");
+
+		return this.app.vault.getAbstractFileByPath(sanitizedFileName) as TFile;
+	}
+
 	async handleAudio(file: TFile) {
 		try {
 			new Notice(`Processing Audio: ${file.name}`);
 			const [humanReadableFileName, content] =
 				await this.getContentFromAudio(file);
+
+			console.log("content", content);
+			const shouldAppend = await this.shouldAppendToExistingFile(content);
+			console.log("shouldAppend", shouldAppend);
 
 			const outputFilePath = `/${this.settings.defaultDestinationPath}/${humanReadableFileName}.md`;
 
@@ -357,6 +394,11 @@ export default class FileOrganizer extends Plugin {
 				file,
 				`${this.settings.attachmentsPath}/${humanReadableFileName}.${file.extension}`
 			);
+			if (shouldAppend) {
+				const mostSimilarFile = await this.getMostSimilarFile(content);
+				console.log("mostSimilarFile", mostSimilarFile);
+				await this.app.vault.append(mostSimilarFile, `\n${content}`);
+			}
 			new Notice(
 				`File processed and saved as ${humanReadableFileName}`,
 				5000
@@ -631,6 +673,19 @@ class FileOrganizerSettingTab extends PluginSettingTab {
 					.setValue(this.plugin.settings.customVisionPrompt)
 					.onChange(async (value) => {
 						this.plugin.settings.customVisionPrompt = value;
+						await this.plugin.saveSettings();
+					})
+			);
+		new Setting(containerEl)
+			.setName("Experimental: Use Audio Append Request")
+			.setDesc(
+				"Enable or disable the use of auto append. This will append the audio to an existing file if the user requests it."
+			)
+			.addToggle((toggle) =>
+				toggle
+					.setValue(this.plugin.settings.useAutoAppend)
+					.onChange(async (value) => {
+						this.plugin.settings.useAutoAppend = value;
 						await this.plugin.saveSettings();
 					})
 			);
