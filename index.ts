@@ -99,6 +99,17 @@ export default class FileOrganizer extends Plugin {
 	async onload() {
 		await this.initializePlugin();
 		// on layout ready register event handlers
+		this.addCommand({
+			id: "append-existing-tags",
+			name: "Append Existing Tags",
+			callback: async () => {
+				const activeFile = this.app.workspace.getActiveFile();
+				if (activeFile) {
+					const fileContent = await this.app.vault.read(activeFile);
+					await this.appendSimilarTags(fileContent, activeFile);
+				}
+			},
+		});
 		this.app.workspace.onLayoutReady(this.registerEventHandlers.bind(this));
 	}
 	async loadSettings() {
@@ -262,6 +273,21 @@ question: is there a request by the user to append this to a document? only answ
 		// Return the determined destination folder
 		return destinationFolder;
 	}
+	async appendSimilarTags(content: string, file: TFile) {
+		// Get similar tags
+		const similarTags = await this.getSimilarTags(content, file.basename);
+
+		// Append similar tags
+		if (similarTags.length > 0) {
+			this.appendToDailyNotes(
+				`Added similar tags to [[${file.basename}]]`
+			);
+			await this.app.vault.append(file, similarTags.join(" "));
+			new Notice(`Added similar tags to [[${file.basename}]]`, 3000);
+			return;
+		}
+		new Notice(`No similar tags found`, 3000);
+	}
 
 	async handleMarkdown(file: TFile) {
 		try {
@@ -270,38 +296,6 @@ question: is there a request by the user to append this to a document? only answ
 			const [newFileName, content] = await this.getContentFromMarkdown(
 				file
 			);
-
-			// Get similar tags
-			let similarTags: string[] = [];
-
-			if (this.settings.useSimilarTags) {
-				similarTags = await this.getSimilarTags(content, file.basename);
-			}
-
-			// Check if the content has frontmatter
-			const frontmatterRegex = /^---[\s\S]*?---/;
-			const frontmatterMatch = content.match(frontmatterRegex);
-
-			let contentWithTags;
-			if (frontmatterMatch) {
-				// If there is frontmatter, append the tags after it
-				const frontmatter = frontmatterMatch[0];
-				const contentWithoutFrontmatter = content.replace(
-					frontmatter,
-					""
-				);
-				contentWithTags = `${frontmatter}\n${
-					similarTags.length === 0 ? "" : similarTags.join(" ")
-				}\n\n${contentWithoutFrontmatter}`;
-			} else {
-				// If there is no frontmatter, prepend the tags to the content
-				contentWithTags = `${
-					similarTags.length === 0 ? "" : similarTags.join(" ")
-				}\n\n${content}`;
-			}
-
-			// Prepend tags
-			await this.app.vault.modify(file, contentWithTags);
 
 			new Notice(`Moving file ${file.basename}`, 3000);
 			console.log(
@@ -328,7 +322,11 @@ question: is there a request by the user to append this to a document? only answ
 				file,
 				`${destinationFolder}/${newFileName}.${file.extension}`
 			);
-			console.log("after rename", destinationFolder);
+			// append tags
+			if (this.settings.useSimilarTags) {
+				await this.appendSimilarTags(content, file);
+			}
+
 			new Notice(`Moved ${newFileName} to "${destinationFolder}"`, 3000);
 			if (this.settings.useLogs) {
 				await this.appendToDailyNotes(
