@@ -282,7 +282,7 @@ question: is there a request by the user to append this to a document? only answ
 			this.appendToDailyNotes(
 				`Added similar tags to [[${file.basename}]]`
 			);
-			await this.app.vault.append(file, similarTags.join(" "));
+			await this.app.vault.append(file, `\n${similarTags.join(" ")}`);
 			new Notice(`Added similar tags to [[${file.basename}]]`, 3000);
 			return;
 		}
