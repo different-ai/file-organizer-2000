@@ -361,6 +361,9 @@ question: is there a request by the user to append this to a document? only answ
 	}
 
 	async appendSimilarTags(content: string, file: TFile) {
+		if (!this.settings.useSimilarTags) {
+			return;
+		}
 		// Get similar tags
 		const similarTags = await this.getSimilarTags(content, file.basename);
 
@@ -467,6 +470,89 @@ class FileOrganizerSettingTab extends PluginSettingTab {
 			);
 
 		new Setting(containerEl)
+			.setName("Inbox Folder")
+			.setDesc("Choose which folder to automatically organize files from")
+			.addText((text) =>
+				text
+					.setPlaceholder("Enter your path")
+					.setValue(this.plugin.settings.pathToWatch)
+					.onChange(async (value) => {
+						this.plugin.settings.pathToWatch = cleanPath(value);
+						await this.plugin.saveSettings();
+					})
+			);
+
+		containerEl.createEl("h2", { text: "Features" });
+
+		new Setting(containerEl)
+			.setName("Organization Logs")
+			.setDesc(
+				"Allows you to keep track of the changes made by file Organizer."
+			)
+			.addToggle((toggle) =>
+				toggle
+					.setValue(this.plugin.settings.useLogs)
+					.onChange(async (value) => {
+						this.plugin.settings.useLogs = value;
+						await this.plugin.saveSettings();
+					})
+			);
+
+		new Setting(containerEl)
+			.setName("Similar Tags")
+			.setDesc("Append similar tags to the processed file.")
+			.addToggle((toggle) =>
+				toggle
+					.setValue(this.plugin.settings.useSimilarTags)
+					.onChange(async (value) => {
+						this.plugin.settings.useSimilarTags = value;
+						await this.plugin.saveSettings();
+					})
+			);
+		new Setting(containerEl)
+			.setName("Folder Guessing")
+			.setDesc(
+				"If no similar folder is found, let File Organizer guess a new folder and create it."
+			)
+			.addToggle((toggle) =>
+				toggle
+					.setValue(this.plugin.settings.useAutoCreateFolders)
+					.onChange(async (value) => {
+						this.plugin.settings.useAutoCreateFolders = value;
+						await this.plugin.saveSettings();
+					})
+			);
+
+		containerEl.createEl("h2", { text: "Folder Configuration" });
+
+		new Setting(containerEl)
+			.setName("Attachments Folder")
+			.setDesc(
+				"Enter the path to the folder where the original images and audio will be moved."
+			)
+			.addText((text) =>
+				text
+					.setPlaceholder("Enter your path")
+					.setValue(this.plugin.settings.attachmentsPath)
+					.onChange(async (value) => {
+						// cleanup path remove leading and trailing slashes
+						this.plugin.settings.attachmentsPath = cleanPath(value);
+						await this.plugin.saveSettings();
+					})
+			);
+		new Setting(containerEl)
+			.setName("File Organizer Log Folder")
+			.setDesc("Choose a folder for Organization Logs e.g. Ava/Logs.")
+			.addText((text) =>
+				text
+					.setPlaceholder("Enter your path")
+					.setValue(this.plugin.settings.logFolderPath)
+					.onChange(async (value) => {
+						this.plugin.settings.logFolderPath = cleanPath(value);
+						await this.plugin.saveSettings();
+					})
+			);
+		new Setting(containerEl)
 			.setName("Output Folder Path")
 			.setDesc(
 				"Enter the path where you want to save the processed files. e.g. Processed/myfavoritefolder"
@@ -484,82 +570,8 @@ class FileOrganizerSettingTab extends PluginSettingTab {
 					})
 			);
 
-		new Setting(containerEl)
-			.setName("Inbox Folder")
-			.setDesc("Enter the path to the folder you want to auto-organize")
-			.addText((text) =>
-				text
-					.setPlaceholder("Enter your path")
-					.setValue(this.plugin.settings.pathToWatch)
-					.onChange(async (value) => {
-						this.plugin.settings.pathToWatch = cleanPath(value);
-						await this.plugin.saveSettings();
-					})
-			);
+		containerEl.createEl("h2", { text: "Experimental Features" });
 
-		new Setting(containerEl)
-			.setName("Attachments Folder")
-			.setDesc(
-				"Enter the path to the folder where the original images and audio will be moved."
-			)
-			.addText((text) =>
-				text
-					.setPlaceholder("Enter your path")
-					.setValue(this.plugin.settings.attachmentsPath)
-					.onChange(async (value) => {
-						// cleanup path remove leading and trailing slashes
-						this.plugin.settings.attachmentsPath = cleanPath(value);
-						await this.plugin.saveSettings();
-					})
-			);
-
-		new Setting(containerEl)
-			.setName("Use Daily Notes Log")
-			.setDesc("Enable or disable the use of daily notes log.")
-			.addToggle((toggle) =>
-				toggle
-					.setValue(this.plugin.settings.useLogs)
-					.onChange(async (value) => {
-						this.plugin.settings.useLogs = value;
-						await this.plugin.saveSettings();
-					})
-			);
-		new Setting(containerEl)
-			.setName("Log Folder Path")
-			.setDesc(
-				"Enter the path where you want to save the log files. e.g. Ava/Logs"
-			)
-			.addText((text) =>
-				text
-					.setPlaceholder("Enter your path")
-					.setValue(this.plugin.settings.logFolderPath)
-					.onChange(async (value) => {
-						this.plugin.settings.logFolderPath = cleanPath(value);
-						await this.plugin.saveSettings();
-					})
-			);
-		new Setting(containerEl)
-			.setName("Use Similar Tags")
-			.setDesc("Enable or disable the use of similar tags.")
-			.addToggle((toggle) =>
-				toggle
-					.setValue(this.plugin.settings.useSimilarTags)
-					.onChange(async (value) => {
-						this.plugin.settings.useSimilarTags = value;
-						await this.plugin.saveSettings();
-					})
-			);
-		new Setting(containerEl)
-			.setName("Use Folder Guessing")
-			.setDesc("Enable or disable the use of folder guessing.")
-			.addToggle((toggle) =>
-				toggle
-					.setValue(this.plugin.settings.useAutoCreateFolders)
-					.onChange(async (value) => {
-						this.plugin.settings.useAutoCreateFolders = value;
-						await this.plugin.saveSettings();
-					})
-			);
 		new Setting(containerEl)
 			.setName("Custom Vision Prompt")
 			.setDesc("Enter your custom prompt for vision processing here")
@@ -572,18 +584,24 @@ class FileOrganizerSettingTab extends PluginSettingTab {
 						await this.plugin.saveSettings();
 					})
 			);
+
 		new Setting(containerEl)
-			.setName("Experimental: Use Audio Append Request")
+			.setName("Experimental: Describe workfow (contact for access)")
 			.setDesc(
-				"Enable or disable the use of auto append. This will append the audio to an existing file if the user requests it."
+				"Use words to explain how File Organizer uses GPT-4 to organize your files."
 			)
-			.addToggle((toggle) =>
-				toggle
-					.setValue(this.plugin.settings.useAutoAppend)
-					.onChange(async (value) => {
-						this.plugin.settings.useAutoAppend = value;
-						await this.plugin.saveSettings();
-					})
-			);
+			.setDisabled(true);
+		new Setting(containerEl)
+			.setName(
+				"Experimental: Append to Existing file (contact for access)"
+			)
+			.setDesc(
+				"Let file Organizer find the most similar file and append the content to it."
+			)
+			.setDisabled(true);
+		new Setting(containerEl)
+			.setName("Experimental: Full Auto Org (contact for access	)")
+			.setDesc("Let file Organizer work fully automatically.")
+			.setDisabled(true);
 	}
 }
