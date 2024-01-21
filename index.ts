@@ -420,55 +420,7 @@ question: is there a request by the user to append this to a document? only answ
 		await this.app.vault.append(logFile, contentWithLink);
 	}
 
-	async generateTranscription(file: TFile) {
-		// @ts-ignore
-		const filePath = file.vault.adapter.basePath + "/" + file.path;
-		// get absolute file path
-		// const filePath = getLinkpath(file, this.app.vault);
-
-		const transcribedText = await useAudio(filePath, this.settings.API_KEY);
-		const postProcessedText = transcribedText;
-
-		const now = new Date();
-		const formattedNow = now.toISOString().replace(/[-:.TZ]/g, "");
-		let name = formattedNow;
-		try {
-			name = await useName(postProcessedText, this.settings.API_KEY);
-		} catch (error) {
-			console.error("Error processing file:", error.status);
-			new Notice("Could not set a human readable name.");
-		}
-		const safeName = formatToSafeName(name);
-
-		// Get the path of the original audio
-		return [safeName, postProcessedText];
-	}
-	async createMardownFromImage(file) {
-		const arrayBuffer = await this.app.vault.readBinary(file);
-		const fileContent = Buffer.from(arrayBuffer);
-		const encodedImage = fileContent.toString("base64");
-		logMessage(`Encoded: ${encodedImage.substring(0, 20)}...`);
-
-		const processedContent = await useVision(
-			encodedImage,
-			this.settings.API_KEY,
-			this.settings.customVisionPrompt // pass the custom prompt to useVision
-		);
-
-		const now = new Date();
-		const formattedNow = now.toISOString().replace(/[-:.TZ]/g, "");
-		let name = formattedNow;
-		try {
-			name = await useName(processedContent, this.settings.API_KEY);
-		} catch (error) {
-			console.error("Error processing file:", error.status);
-			new Notice("Could not set a human readable name.");
-		}
-		const safeName = formatToSafeName(name);
-
-		return [safeName, processedContent];
-	}
-
+	
 	validateAPIKey() {
 		if (!this.settings.API_KEY) {
 			throw new Error(
