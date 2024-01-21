@@ -1,7 +1,7 @@
 {
 	"id": "fileorganizer2000",
 	"name": "AI File Organizer 2000",
-	"version": "1.0.5",
+	"version": "1.0.6",
 	"minAppVersion": "0.15.0",
 	"description": "This plugin auto-organizes and annotates your files. It uses AI to handle images, audio, and text.",
 	"author": "Benjamin Ashgan Shafii",
