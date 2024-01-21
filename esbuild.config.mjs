@@ -36,11 +36,14 @@ const context = await esbuild.context({
 		...builtins,
 	],
 	format: "cjs",
+	define: {
+		"process.env.NODE_ENV": prod ? "'production'" : "'development'",
+	},
 	platform: "node",
 	target: "es2018",
 	logLevel: "info",
 	sourcemap: prod ? false : "inline",
-	treeShaking:true,
+	treeShaking: true,
 	outfile: "main.js",
 });
 

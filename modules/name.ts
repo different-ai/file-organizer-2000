@@ -1,3 +1,5 @@
+import { logMessage } from "../utils";
+
 async function useName(document, apiKey) {
 	const data = {
 		model: "gpt-4-1106-preview",
@@ -27,7 +29,7 @@ async function useName(document, apiKey) {
 		throw new Error("Error:", response.status);
 	}
 	const result = await response.json();
-	console.log(result.choices[0].message.content);
+	logMessage(result.choices[0].message.content);
 	return result.choices[0].message.content.trim();
 }
 

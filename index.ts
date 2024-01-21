@@ -4,10 +4,9 @@ import {
 	PluginSettingTab,
 	App,
 	Setting,
-	// getLinkpath,
-	TFile,
-	normalizePath,
+	File,
 	TFolder,
+	TFile,
 } from "obsidian";
 import useName from "./modules/name";
 import useVision from "./modules/vision";
@@ -15,19 +14,12 @@ import useAudio from "./modules/audio";
 // import usePostProcessing from "./modules/text";
 import moment from "moment";
 import useText from "./modules/text";
-
-function formatToSafeName(format: string) {
-	return format.replace(/[\\/:"]/g, "");
-}
-function cleanPath(path: string) {
-	const trimmedPath = path.trim();
-	// cleanup path remove leading and trailing slashes
-	const pathWithoutLeadingAndTrailingSlashes = trimmedPath.replace(
-		/^\/+|\/+$/g,
-		""
-	);
-	return pathWithoutLeadingAndTrailingSlashes;
-}
+import { logMessage, formatToSafeName, cleanPath } from "./utils";
+console.log(
+	"Running in production mode: ",
+	process.env.NODE_ENV === "production",
+	process.env.NODE_ENV
+);
 
 class FileOrganizerSettings {
 	API_KEY = "";
@@ -75,9 +67,9 @@ export default class FileOrganizer extends Plugin {
 			wav: this.handleAudio,
 			webm: this.handleAudio,
 		};
-		console.log("Looking at", file);
+		logMessage("Looking at", file);
 		if (!(file.parent?.path === this.settings.pathToWatch)) return;
-		console.log("Will process", file);
+		logMessage("Will process", file);
 		this.validateAPIKey();
 		const handler = fileHandlers[file.extension];
 		if (handler) {
@@ -125,7 +117,7 @@ export default class FileOrganizer extends Plugin {
 	async initializePlugin() {
 		await this.loadSettings();
 		this.addSettingTab(new FileOrganizerSettingTab(this.app, this));
-		console.log(
+		logMessage(
 			"appHasDailyNotesPluginLoaded",
 			this.appHasDailyNotesPluginLoaded()
 		);
@@ -133,14 +125,18 @@ export default class FileOrganizer extends Plugin {
 
 	registerEventHandlers() {
 		this.registerEvent(
-			this.app.vault.on("create", (file) =>
-				this.processFile(file as TFile)
-			)
+			this.app.vault.on("create", (file) => {
+				if (file instanceof TFile) {
+					this.processFile(file);
+				}
+			})
 		);
 		this.registerEvent(
-			this.app.vault.on("rename", (file) =>
-				this.processFile(file as TFile)
-			)
+			this.app.vault.on("rename", (file) => {
+				if (file instanceof TFile) {
+					this.processFile(file);
+				}
+			})
 		);
 	}
 	async getSimilarTags(content: string, fileName: string): Promise<string[]> {
@@ -150,7 +146,7 @@ export default class FileOrganizer extends Plugin {
 		// 2. Pass all the tags to GPT-3 and get the most similar tags
 		const tagNames = Object.keys(tags);
 		const uniqueTags = [...new Set(tagNames)];
-		console.log("uniqueTags", uniqueTags);
+		logMessage("uniqueTags", uniqueTags);
 
 		// Prepare the prompt for GPT-4
 		const prompt = `Given the text "${content}" (and if relevant ${fileName}), which of the following tags are the most relevant? ${uniqueTags.join(
@@ -171,7 +167,7 @@ export default class FileOrganizer extends Plugin {
 			.filter((file) => file instanceof TFolder)
 			.map((folder: TFolder) => folder.path);
 		const uniqueFolders = [...new Set(folderPaths)];
-		console.log("uniqueFolders", uniqueFolders);
+		logMessage("uniqueFolders", uniqueFolders);
 		return uniqueFolders;
 	}
 
@@ -218,7 +214,7 @@ question: is there a request by the user to append this to a document? only answ
 		if (currentFolderIndex > -1) {
 			uniqueFolders.splice(currentFolderIndex, 1);
 		}
-		console.log("uniqueFolders", uniqueFolders);
+		logMessage("uniqueFolders", uniqueFolders);
 
 		// Get the most similar folder based on the content and file name
 		const mostSimilarFolder = await useText(
@@ -230,7 +226,7 @@ question: is there a request by the user to append this to a document? only answ
 			"Please respond with the name of the most appropriate folder from the provided list. If none of the folders are suitable, respond with 'None'.",
 			this.settings.API_KEY
 		);
-		console.log("mostSimilarFolder", mostSimilarFolder);
+		logMessage("mostSimilarFolder", mostSimilarFolder);
 		new Notice(`Most similar folder: ${mostSimilarFolder}`, 3000);
 
 		// Extract the most similar folder from the response
@@ -291,14 +287,14 @@ question: is there a request by the user to append this to a document? only answ
 
 	async handleMarkdown(file: TFile) {
 		try {
-			console.log("makrdown file", file);
+			logMessage("makrdown file", file);
 			new Notice(`Processing Markdown: ${file.name}`);
 			const [newFileName, content] = await this.getContentFromMarkdown(
 				file
 			);
 
 			new Notice(`Moving file ${file.basename}`, 3000);
-			console.log(
+			logMessage(
 				"Moving file",
 				file.basename,
 				"to",
@@ -314,10 +310,10 @@ question: is there a request by the user to append this to a document? only answ
 				content,
 				file
 			);
-			console.log("after determineDestinationFolder", destinationFolder);
+			logMessage("after determineDestinationFolder", destinationFolder);
 
 			// Move to AI determined destination
-			console.log(file, destinationFolder, newFileName, file.extension);
+			logMessage(file, destinationFolder, newFileName, file.extension);
 			await this.app.vault.rename(
 				file,
 				`${destinationFolder}/${newFileName}.${file.extension}`
@@ -333,7 +329,7 @@ question: is there a request by the user to append this to a document? only answ
 					`Organized [[${newFileName}]] into ${destinationFolder}`
 				);
 			}
-			console.log("after appendToDailyNotes", destinationFolder);
+			logMessage("after appendToDailyNotes", destinationFolder);
 		} catch (error) {
 			console.error("Error processing file:", error);
 			new Notice(`Failed to process file`, 5000);
@@ -366,7 +362,18 @@ question: is there a request by the user to append this to a document? only answ
 		// Extract the most similar file from the response
 		const sanitizedFileName = mostSimilarFile.replace(/[\\:*?"<>|]/g, "");
 
-		return this.app.vault.getAbstractFileByPath(sanitizedFileName) as TFile;
+		const file = this.app.vault.getAbstractFileByPath(sanitizedFileName);
+		if (!file) {
+			throw new Error(
+				`Could not find file with path ${sanitizedFileName}`
+			);
+		}
+		if (!(file instanceof TFile)) {
+			throw new Error(
+				`File with path ${sanitizedFileName} is not a markdown file`
+			);
+		}
+		return file;
 	}
 
 	async handleAudio(file: TFile) {
@@ -375,11 +382,11 @@ question: is there a request by the user to append this to a document? only answ
 			const [humanReadableFileName, content] =
 				await this.getContentFromAudio(file);
 
-			console.log("content", content);
+			logMessage("content", content);
 			const shouldAppendToFile = await this.shouldAppendToExistingFile(
 				content
 			);
-			console.log("shouldAppend", shouldAppendToFile);
+			logMessage("shouldAppend", shouldAppendToFile);
 
 			const outputFilePath = `/${this.settings.defaultDestinationPath}/${humanReadableFileName}.md`;
 
@@ -395,7 +402,7 @@ question: is there a request by the user to append this to a document? only answ
 				`${this.settings.attachmentsPath}/${humanReadableFileName}.${file.extension}`
 			);
 			if (this.settings.useLogs) {
-				console.log("Daily Notes Plugin is loaded");
+				logMessage("Daily Notes Plugin is loaded");
 				await this.appendToDailyNotes(
 					`Transcribed [[${humanReadableFileName}]]`
 				);
@@ -403,7 +410,7 @@ question: is there a request by the user to append this to a document? only answ
 
 			if (shouldAppendToFile) {
 				const mostSimilarFile = await this.getMostSimilarFile(content);
-				console.log("mostSimilarFile", mostSimilarFile);
+				logMessage("mostSimilarFile", mostSimilarFile);
 				await this.app.vault.append(mostSimilarFile, `\n${content}`);
 				await this.appendToDailyNotes(
 					`Appended transcription to [[${mostSimilarFile.basename}]]`
@@ -447,7 +454,7 @@ question: is there a request by the user to append this to a document? only answ
 				5000
 			);
 			if (this.settings.useLogs) {
-				console.log("Daily Notes Plugin is loaded");
+				logMessage("Daily Notes Plugin is loaded");
 				await this.appendToDailyNotes(
 					`Created annotation for [[${humanReadableFileName}]]`
 				);
@@ -471,11 +478,14 @@ question: is there a request by the user to append this to a document? only answ
 		const formattedDate = moment(now).format("YYYY-MM-DD");
 		const logFilePath = `${this.settings.logFolderPath}/${formattedDate}.md`;
 
-		let logFile = this.app.vault.getAbstractFileByPath(
-			logFilePath
-		) as TFile;
+		let logFile = this.app.vault.getAbstractFileByPath(logFilePath);
 		if (!logFile) {
 			logFile = await this.app.vault.create(logFilePath, "");
+		}
+		if (!(logFile instanceof TFile)) {
+			throw new Error(
+				`File with path ${logFilePath} is not a markdown file`
+			);
 		}
 
 		const formattedTime =
@@ -517,7 +527,7 @@ question: is there a request by the user to append this to a document? only answ
 		const arrayBuffer = await this.app.vault.readBinary(file);
 		const fileContent = Buffer.from(arrayBuffer);
 		const encodedImage = fileContent.toString("base64");
-		console.log(`Encoded: ${encodedImage.substring(0, 20)}...`);
+		logMessage(`Encoded: ${encodedImage.substring(0, 20)}...`);
 
 		const processedContent = await useVision(
 			encodedImage,
@@ -584,7 +594,7 @@ class FileOrganizerSettingTab extends PluginSettingTab {
 					.setValue(this.plugin.settings.defaultDestinationPath)
 					.onChange(async (value) => {
 						const cleanedPath = cleanPath(value);
-						console.log(cleanedPath);
+						logMessage(cleanedPath);
 						this.plugin.settings.defaultDestinationPath =
 							cleanedPath;
 						await this.plugin.saveSettings();

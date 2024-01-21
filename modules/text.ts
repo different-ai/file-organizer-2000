@@ -1,3 +1,5 @@
+import { logMessage } from "../utils";
+
 async function useText(content: string, systemPrompt = "", apiKey: string) {
 	const data = {
 		model: "gpt-4-1106-preview",
@@ -28,8 +30,8 @@ async function useText(content: string, systemPrompt = "", apiKey: string) {
 		return;
 	}
 	const result = await response.json();
-	console.log(result);
-	console.log(result.choices[0].message.content);
+	logMessage(result);
+	logMessage(result.choices[0].message.content);
 	return result.choices[0].message.content.trim();
 }
 
