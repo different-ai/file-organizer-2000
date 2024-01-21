@@ -44,8 +44,6 @@ export default class FileOrganizer extends Plugin {
 		new Notice(`Looking at file ${file.basename}`, 3000);
 		await this.checkAndCreateFolders();
 		logMessage("Looking at", file);
-		if (!(file.parent?.path === this.settings.pathToWatch)) return;
-		logMessage("Will process", file);
 		this.validateAPIKey();
 		if (!file.extension) return;
 
@@ -66,9 +64,11 @@ export default class FileOrganizer extends Plugin {
 			fileToMove = await this.createFileFromContent(content);
 			await this.appendAttachment(fileToMove, file);
 		}
+		logMessage("Content", content);
 		const humandReadableFileName = await this.generateNameFromContent(
 			content
 		);
+		logMessage("Will move", fileToMove);
 
 		await this.moveContent(fileToMove, content, humandReadableFileName);
 		await this.appendSimilarTags(content, fileToMove);
@@ -182,6 +182,16 @@ export default class FileOrganizer extends Plugin {
 				}
 			},
 		});
+		this.addCommand({
+			id: "organize-file",
+			name: "Oranize Current File",
+			callback: async () => {
+				const activeFile = this.app.workspace.getActiveFile();
+				if (activeFile) {
+					await this.processFileV2(activeFile);
+				}
+			},
+		});
 		this.app.workspace.onLayoutReady(this.registerEventHandlers.bind(this));
 	}
 	async loadSettings() {
@@ -202,6 +212,7 @@ export default class FileOrganizer extends Plugin {
 	registerEventHandlers() {
 		this.registerEvent(
 			this.app.vault.on("create", (file) => {
+				if (!file.path.includes(this.settings.pathToWatch)) return;
 				if (file instanceof TFile) {
 					this.processFileV2(file);
 				}
@@ -209,6 +220,7 @@ export default class FileOrganizer extends Plugin {
 		);
 		this.registerEvent(
 			this.app.vault.on("rename", (file) => {
+				if (!file.path.includes(this.settings.pathToWatch)) return;
 				if (file instanceof TFile) {
 					this.processFileV2(file);
 				}
@@ -420,7 +432,6 @@ question: is there a request by the user to append this to a document? only answ
 		await this.app.vault.append(logFile, contentWithLink);
 	}
 
-	
 	validateAPIKey() {
 		if (!this.settings.API_KEY) {
 			throw new Error(
