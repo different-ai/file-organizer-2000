@@ -34,47 +34,127 @@ class FileOrganizerSettings {
 	useAutoAppend = false; // default value is true
 }
 
-type FileHandler = (file: TFile) => Promise<void>;
+const validAudioExtensions = ["mp3", "wav", "webm"];
+const validImageExtensions = ["png", "jpg", "jpeg", "gif", "svg"];
 
 export default class FileOrganizer extends Plugin {
 	settings: FileOrganizerSettings;
 
-	appHasDailyNotesPluginLoaded(): boolean {
-		const app = this.app;
-		// eslint-disable-next-line @typescript-eslint/no-explicit-any
-		const dailyNotesPlugin = (<any>app).internalPlugins.plugins[
-			"daily-notes"
-		];
-		if (dailyNotesPlugin && dailyNotesPlugin.enabled) {
-			return true;
-		}
-		return false;
-	}
-	async processFile(file: TFile) {
+	async processFileV2(file: TFile) {
+		new Notice(`Looking at file ${file.basename}`, 3000);
 		await this.checkAndCreateFolders();
-		const fileHandlers: Record<string, FileHandler> = {
-			md: this.handleMarkdown,
-			png: this.handleImage,
-			jpeg: this.handleImage,
-			gif: this.handleImage,
-			webp: this.handleImage,
-			jpg: this.handleImage,
-			mp3: this.handleAudio,
-			mp4: this.handleAudio,
-			mpeg: this.handleAudio,
-			mpga: this.handleAudio,
-			m4a: this.handleAudio,
-			wav: this.handleAudio,
-			webm: this.handleAudio,
-		};
 		logMessage("Looking at", file);
-		if (!(file.parent?.path === this.settings.pathToWatch)) return;
-		logMessage("Will process", file);
 		this.validateAPIKey();
-		const handler = fileHandlers[file.extension];
-		if (handler) {
-			await handler.call(this, file);
+		if (!file.extension) return;
+
+		let content = "";
+		let fileToMove = file;
+		if (file.extension === "md") {
+			content = await this.app.vault.read(file);
 		}
+		if (validImageExtensions.includes(file.extension)) {
+			content = await this.generateImageAnnotation(file);
+			await this.moveAttachment(file);
+			fileToMove = await this.createFileFromContent(content);
+			await this.appendAttachment(fileToMove, file);
+		}
+		if (validAudioExtensions.includes(file.extension)) {
+			content = await this.generateTranscriptFromAudio(file);
+			await this.moveAttachment(file);
+			fileToMove = await this.createFileFromContent(content);
+			await this.appendAttachment(fileToMove, file);
+		}
+		logMessage("Content", content);
+		const humandReadableFileName = await this.generateNameFromContent(
+			content
+		);
+		logMessage("Will move", fileToMove);
+
+		await this.moveContent(fileToMove, content, humandReadableFileName);
+		await this.appendSimilarTags(content, fileToMove);
+	}
+	async appendAttachment(processedFile: TFile, attachmentFile: TFile) {
+		logMessage("Appending attachment", attachmentFile);
+		await this.app.vault.append(
+			processedFile,
+			`![[${attachmentFile.path}]]`
+		);
+	}
+
+	async createFileFromContent(content: string) {
+		const now = new Date();
+		const formattedNow = now.toISOString().replace(/[-:.TZ]/g, "");
+		let name = formattedNow;
+		try {
+			name = await useName(content, this.settings.API_KEY);
+		} catch (error) {
+			console.error("Error processing file:", error.status);
+			new Notice("Could not set a human readable name.");
+		}
+		const safeName = formatToSafeName(name);
+
+		const outputFilePath = `/${this.settings.defaultDestinationPath}/${safeName}.md`;
+		const file = await this.app.vault.create(outputFilePath, content);
+		return file;
+	}
+	async moveContent(
+		file: TFile,
+		content: string,
+		humanReadableFileName: string
+	) {
+		const destinationFolder = await this.determineDestinationFolder(
+			content,
+			file
+		);
+		new Notice(`Moving file to ${destinationFolder}`, 3000);
+		await this.app.vault.rename(
+			file,
+			`${destinationFolder}/${humanReadableFileName}.${file.extension}`
+		);
+
+		await this.appendToCustomLogFile(
+			`Organized [[${humanReadableFileName}]] into ${destinationFolder}`
+		);
+		return file;
+	}
+
+	async moveAttachment(file: TFile) {
+		const destinationFolder = this.settings.attachmentsPath;
+		const destinationPath = `${destinationFolder}/${file.basename}`;
+		await this.app.vault.rename(file, destinationPath);
+	}
+
+	async generateNameFromContent(content: string): Promise<string> {
+		new Notice(`Generating name for ${content.substring(0, 20)}...`, 3000);
+		const name = await useName(content, this.settings.API_KEY);
+		const safeName = formatToSafeName(name);
+		new Notice(`Generated name: ${safeName}`, 3000);
+		return safeName;
+	}
+
+	async generateTranscriptFromAudio(file: TFile) {
+		new Notice(`Generating transcription for ${file.basename}`, 3000);
+		// @ts-ignore
+		const filePath = file.vault.adapter.basePath + "/" + file.path;
+
+		const transcribedText = await useAudio(filePath, this.settings.API_KEY);
+		const postProcessedText = transcribedText;
+		return postProcessedText;
+	}
+
+	async generateImageAnnotation(file: TFile) {
+		new Notice(`Generating annotation for ${file.basename}`, 3000);
+		const arrayBuffer = await this.app.vault.readBinary(file);
+		const fileContent = Buffer.from(arrayBuffer);
+		const encodedImage = fileContent.toString("base64");
+		logMessage(`Encoded: ${encodedImage.substring(0, 20)}...`);
+
+		const processedContent = await useVision(
+			encodedImage,
+			this.settings.API_KEY,
+			this.settings.customVisionPrompt // pass the custom prompt to useVision
+		);
+		return processedContent;
 	}
 	async ensureFolderExists(folderPath: string) {
 		if (!(await this.app.vault.adapter.exists(folderPath))) {
@@ -102,6 +182,16 @@ export default class FileOrganizer extends Plugin {
 				}
 			},
 		});
+		this.addCommand({
+			id: "organize-file",
+			name: "Oranize Current File",
+			callback: async () => {
+				const activeFile = this.app.workspace.getActiveFile();
+				if (activeFile) {
+					await this.processFileV2(activeFile);
+				}
+			},
+		});
 		this.app.workspace.onLayoutReady(this.registerEventHandlers.bind(this));
 	}
 	async loadSettings() {
@@ -117,30 +207,29 @@ export default class FileOrganizer extends Plugin {
 	async initializePlugin() {
 		await this.loadSettings();
 		this.addSettingTab(new FileOrganizerSettingTab(this.app, this));
-		logMessage(
-			"appHasDailyNotesPluginLoaded",
-			this.appHasDailyNotesPluginLoaded()
-		);
 	}
 
 	registerEventHandlers() {
 		this.registerEvent(
 			this.app.vault.on("create", (file) => {
+				if (!file.path.includes(this.settings.pathToWatch)) return;
 				if (file instanceof TFile) {
-					this.processFile(file);
+					this.processFileV2(file);
 				}
 			})
 		);
 		this.registerEvent(
 			this.app.vault.on("rename", (file) => {
+				if (!file.path.includes(this.settings.pathToWatch)) return;
 				if (file instanceof TFile) {
-					this.processFile(file);
+					this.processFileV2(file);
 				}
 			})
 		);
 	}
 	async getSimilarTags(content: string, fileName: string): Promise<string[]> {
 		// 1. Get all tags from the vault
+		// @ts-ignore
 		const tags = this.app.metadataCache.getTags();
 
 		// 2. Pass all the tags to GPT-3 and get the most similar tags
@@ -165,6 +254,7 @@ export default class FileOrganizer extends Plugin {
 		const allFiles = this.app.vault.getAllLoadedFiles();
 		const folderPaths = allFiles
 			.filter((file) => file instanceof TFolder)
+			// @ts-ignore
 			.map((folder: TFolder) => folder.path);
 		const uniqueFolders = [...new Set(folderPaths)];
 		logMessage("uniqueFolders", uniqueFolders);
@@ -269,81 +359,21 @@ question: is there a request by the user to append this to a document? only answ
 		// Return the determined destination folder
 		return destinationFolder;
 	}
+
 	async appendSimilarTags(content: string, file: TFile) {
 		// Get similar tags
 		const similarTags = await this.getSimilarTags(content, file.basename);
 
 		// Append similar tags
 		if (similarTags.length > 0) {
-			this.appendToDailyNotes(
+			this.appendToCustomLogFile(
 				`Added similar tags to [[${file.basename}]]`
 			);
 			await this.app.vault.append(file, `\n${similarTags.join(" ")}`);
-			new Notice(`Added similar tags to [[${file.basename}]]`, 3000);
+			new Notice(`Added similar tags to ${file.basename}`, 3000);
 			return;
 		}
 		new Notice(`No similar tags found`, 3000);
-	}
-
-	async handleMarkdown(file: TFile) {
-		try {
-			logMessage("makrdown file", file);
-			new Notice(`Processing Markdown: ${file.name}`);
-			const [newFileName, content] = await this.getContentFromMarkdown(
-				file
-			);
-
-			new Notice(`Moving file ${file.basename}`, 3000);
-			logMessage(
-				"Moving file",
-				file.basename,
-				"to",
-				`${this.settings.defaultDestinationPath}/${newFileName}.${file.extension}`
-			);
-			// Move to default destination
-			await this.app.vault.rename(
-				file,
-				`${this.settings.defaultDestinationPath}/${newFileName}.${file.extension}`
-			);
-
-			const destinationFolder = await this.determineDestinationFolder(
-				content,
-				file
-			);
-			logMessage("after determineDestinationFolder", destinationFolder);
-
-			// Move to AI determined destination
-			logMessage(file, destinationFolder, newFileName, file.extension);
-			await this.app.vault.rename(
-				file,
-				`${destinationFolder}/${newFileName}.${file.extension}`
-			);
-			// append tags
-			if (this.settings.useSimilarTags) {
-				await this.appendSimilarTags(content, file);
-			}
-
-			new Notice(`Moved ${newFileName} to "${destinationFolder}"`, 3000);
-			if (this.settings.useLogs) {
-				await this.appendToDailyNotes(
-					`Organized [[${newFileName}]] into ${destinationFolder}`
-				);
-			}
-			logMessage("after appendToDailyNotes", destinationFolder);
-		} catch (error) {
-			console.error("Error processing file:", error);
-			new Notice(`Failed to process file`, 5000);
-			new Notice(`${error.message}`, 5000);
-		}
-	}
-
-	async getContentFromMarkdown(file: TFile) {
-		const fileContent = await this.app.vault.read(file);
-
-		const name = await useName(fileContent, this.settings.API_KEY);
-		const safeName = formatToSafeName(name);
-
-		return [safeName, fileContent];
 	}
 
 	async getMostSimilarFile(content: string): Promise<TFile> {
@@ -376,104 +406,10 @@ question: is there a request by the user to append this to a document? only answ
 		return file;
 	}
 
-	async handleAudio(file: TFile) {
-		try {
-			new Notice(`Processing Audio: ${file.name}`);
-			const [humanReadableFileName, content] =
-				await this.getContentFromAudio(file);
-
-			logMessage("content", content);
-			const shouldAppendToFile = await this.shouldAppendToExistingFile(
-				content
-			);
-			logMessage("shouldAppend", shouldAppendToFile);
-
-			const outputFilePath = `/${this.settings.defaultDestinationPath}/${humanReadableFileName}.md`;
-
-			const audioLink = `![[${this.settings.attachmentsPath}/${humanReadableFileName}.${file.extension}]]`;
-
-			// Include the link in the processed content
-			const contentWithLink = `${content}\n\n${audioLink}`;
-			await this.app.vault.create(outputFilePath, contentWithLink);
-
-			new Notice(`Moving file`);
-			await this.app.vault.rename(
-				file,
-				`${this.settings.attachmentsPath}/${humanReadableFileName}.${file.extension}`
-			);
-			if (this.settings.useLogs) {
-				logMessage("Daily Notes Plugin is loaded");
-				await this.appendToDailyNotes(
-					`Transcribed [[${humanReadableFileName}]]`
-				);
-			}
-
-			if (shouldAppendToFile) {
-				const mostSimilarFile = await this.getMostSimilarFile(content);
-				logMessage("mostSimilarFile", mostSimilarFile);
-				await this.app.vault.append(mostSimilarFile, `\n${content}`);
-				await this.appendToDailyNotes(
-					`Appended transcription to [[${mostSimilarFile.basename}]]`
-				);
-			}
-			new Notice(
-				`File processed and saved as ${humanReadableFileName}`,
-				5000
-			);
-		} catch (error) {
-			console.error("Error processing file:", error);
-			new Notice(`Failed to process file`, 5000);
-			new Notice(`${error.message}`, 5000);
-		}
-	}
-
-	async handleImage(file: TFile) {
-		try {
-			new Notice(`Processing Image: ${file.name}`);
-			const [humanReadableFileName, content] =
-				await this.createMardownFromImage(file);
-
-			const outputFilePath = `/${this.settings.defaultDestinationPath}/${humanReadableFileName}.md`;
-
-			const imageLink = `![[${this.settings.attachmentsPath}/${humanReadableFileName}.${file.extension}]]`;
-
-			// Include the link in the processed content
-			const contentWithLink = `${content}\n\n${imageLink}`;
-			const annotatedFile = await this.app.vault.create(
-				outputFilePath,
-				contentWithLink
-			);
-
-			new Notice(`Moving file`);
-			await this.app.vault.rename(
-				file,
-				`${this.settings.attachmentsPath}/${humanReadableFileName}.${file.extension}`
-			);
-			new Notice(
-				`File processed and saved as ${humanReadableFileName}`,
-				5000
-			);
-			if (this.settings.useLogs) {
-				logMessage("Daily Notes Plugin is loaded");
-				await this.appendToDailyNotes(
-					`Created annotation for [[${humanReadableFileName}]]`
-				);
-			}
-			// copy file with obsidian
-			const newFile = await this.app.vault.copy(
-				annotatedFile,
-				`${this.settings.defaultDestinationPath}/${
-					annotatedFile.basename
-				}-${Date.now().toString()}.md`
-			);
-			this.handleMarkdown(newFile);
-		} catch (error) {
-			console.error("Error processing file:", error);
-			new Notice(`Failed to process file`, 5000);
-			new Notice(`${error.message}`, 5000);
-		}
-	}
 	async appendToCustomLogFile(contentToAppend: string, action = "") {
+		if (!this.settings.useLogs) {
+			return;
+		}
 		const now = new Date();
 		const formattedDate = moment(now).format("YYYY-MM-DD");
 		const logFilePath = `${this.settings.logFolderPath}/${formattedDate}.md`;
@@ -494,59 +430,6 @@ question: is there a request by the user to append this to a document? only answ
 			now.getMinutes().toString().padStart(2, "0");
 		const contentWithLink = `\n - ${formattedTime} ${contentToAppend}`;
 		await this.app.vault.append(logFile, contentWithLink);
-	}
-	// very experimental feature, will probably be removed
-	async appendToDailyNotes(contentToAppend: string, action = "") {
-		return await this.appendToCustomLogFile(contentToAppend, action);
-	}
-
-	async getContentFromAudio(file: TFile) {
-		// @ts-ignore
-		const filePath = file.vault.adapter.basePath + "/" + file.path;
-		// get absolute file path
-		// const filePath = getLinkpath(file, this.app.vault);
-
-		const transcribedText = await useAudio(filePath, this.settings.API_KEY);
-		const postProcessedText = transcribedText;
-
-		const now = new Date();
-		const formattedNow = now.toISOString().replace(/[-:.TZ]/g, "");
-		let name = formattedNow;
-		try {
-			name = await useName(postProcessedText, this.settings.API_KEY);
-		} catch (error) {
-			console.error("Error processing file:", error.status);
-			new Notice("Could not set a human readable name.");
-		}
-		const safeName = formatToSafeName(name);
-
-		// Get the path of the original audio
-		return [safeName, postProcessedText];
-	}
-	async createMardownFromImage(file) {
-		const arrayBuffer = await this.app.vault.readBinary(file);
-		const fileContent = Buffer.from(arrayBuffer);
-		const encodedImage = fileContent.toString("base64");
-		logMessage(`Encoded: ${encodedImage.substring(0, 20)}...`);
-
-		const processedContent = await useVision(
-			encodedImage,
-			this.settings.API_KEY,
-			this.settings.customVisionPrompt // pass the custom prompt to useVision
-		);
-
-		const now = new Date();
-		const formattedNow = now.toISOString().replace(/[-:.TZ]/g, "");
-		let name = formattedNow;
-		try {
-			name = await useName(processedContent, this.settings.API_KEY);
-		} catch (error) {
-			console.error("Error processing file:", error.status);
-			new Notice("Could not set a human readable name.");
-		}
-		const safeName = formatToSafeName(name);
-
-		return [safeName, processedContent];
 	}
 
 	validateAPIKey() {
@@ -633,7 +516,6 @@ class FileOrganizerSettingTab extends PluginSettingTab {
 		new Setting(containerEl)
 			.setName("Use Daily Notes Log")
 			.setDesc("Enable or disable the use of daily notes log.")
-			.setDisabled(!this.plugin.appHasDailyNotesPluginLoaded())
 			.addToggle((toggle) =>
 				toggle
 					.setValue(this.plugin.settings.useLogs)
