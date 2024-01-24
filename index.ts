@@ -15,12 +15,6 @@ import useAudio from "./modules/audio";
 import moment from "moment";
 import useText from "./modules/text";
 import { logMessage, formatToSafeName, cleanPath } from "./utils";
-console.log(
-	"Running in production mode: ",
-	process.env.NODE_ENV === "production",
-	process.env.NODE_ENV
-);
-
 class FileOrganizerSettings {
 	API_KEY = "";
 	useLogs = true;
