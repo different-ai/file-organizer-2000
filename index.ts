@@ -7,6 +7,7 @@ import {
 	File,
 	TFolder,
 	TFile,
+	TAbstractFile,
 } from "obsidian";
 import useName from "./modules/name";
 import useVision from "./modules/vision";
@@ -244,12 +245,15 @@ export default class FileOrganizer extends Plugin {
 
 		return mostSimilarTags.split(",").map((tag) => tag.trim());
 	}
+	isTFolder(file: TAbstractFile): file is TFolder {
+		return file instanceof TFolder;
+	}
+
 	getAllFolders(): string[] {
 		const allFiles = this.app.vault.getAllLoadedFiles();
 		const folderPaths = allFiles
-			.filter((file) => file instanceof TFolder)
-			// @ts-ignore
-			.map((folder: TFolder) => folder.path);
+			.filter((file) => this.isTFolder(file))
+			.map((folder) => folder.path);
 		const uniqueFolders = [...new Set(folderPaths)];
 		logMessage("uniqueFolders", uniqueFolders);
 		return uniqueFolders;
