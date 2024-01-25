@@ -163,6 +163,20 @@ export default class FileOrganizer extends Plugin {
 		this.ensureFolderExists(this.settings.logFolderPath);
 	}
 
+	async getBacklog() {
+		const allFiles = this.app.vault.getFiles();
+		const pendingFiles = allFiles.filter((file) =>
+			file.path.includes(this.settings.pathToWatch)
+		);
+		return pendingFiles;
+	}
+	async processBacklog() {
+		const pendingFiles = await this.getBacklog();
+		for (const file of pendingFiles) {
+			await this.processFileV2(file);
+		}
+	}
+
 	async onload() {
 		await this.initializePlugin();
 		// on layout ready register event handlers
@@ -188,6 +202,7 @@ export default class FileOrganizer extends Plugin {
 			},
 		});
 		this.app.workspace.onLayoutReady(this.registerEventHandlers.bind(this));
+		this.processBacklog();
 	}
 	async loadSettings() {
 		this.settings = Object.assign(
