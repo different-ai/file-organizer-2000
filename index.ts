@@ -72,7 +72,7 @@ export default class FileOrganizer extends Plugin {
 		logMessage("Appending attachment", attachmentFile);
 		await this.app.vault.append(
 			processedFile,
-			`![[${attachmentFile.path}]]`
+			`![[${attachmentFile.name}]]`
 		);
 	}
 
@@ -115,8 +115,9 @@ export default class FileOrganizer extends Plugin {
 
 	async moveAttachment(file: TFile) {
 		const destinationFolder = this.settings.attachmentsPath;
-		const destinationPath = `${destinationFolder}/${file.basename}`;
+		const destinationPath = `${destinationFolder}/${file.name}`;
 		await this.app.vault.rename(file, destinationPath);
+		this.appendToCustomLogFile(`Moved [[${file.name}]] to attachments`);
 	}
 
 	async generateNameFromContent(content: string): Promise<string> {
@@ -134,6 +135,8 @@ export default class FileOrganizer extends Plugin {
 
 		const transcribedText = await useAudio(filePath, this.settings.API_KEY);
 		const postProcessedText = transcribedText;
+		this.appendToCustomLogFile(`Generated transcription for [[${file.name}]]`);
+
 		return postProcessedText;
 	}
 
@@ -148,6 +151,9 @@ export default class FileOrganizer extends Plugin {
 			encodedImage,
 			this.settings.API_KEY,
 			this.settings.customVisionPrompt // pass the custom prompt to useVision
+		);
+		this.appendToCustomLogFile(
+			`Generated annotation for [[${file.name}]]`
 		);
 		return processedContent;
 	}
@@ -313,9 +319,12 @@ question: is there a request by the user to append this to a document? only answ
 		const uniqueFolders = this.getAllFolders();
 
 		// Remove current file folder from list of uniqueFolders
-		const currentFolderIndex = uniqueFolders.indexOf(file.parent.path);
-		if (currentFolderIndex > -1) {
-			uniqueFolders.splice(currentFolderIndex, 1);
+		// Remove current file folder from list of uniqueFolders
+		if (file.parent) {
+			const currentFolderIndex = uniqueFolders.indexOf(file.parent.path);
+			if (currentFolderIndex > -1) {
+				uniqueFolders.splice(currentFolderIndex, 1);
+			}
 		}
 		logMessage("uniqueFolders", uniqueFolders);
 
