@@ -1,21 +1,11 @@
-import {
-	Plugin,
-	Notice,
-	PluginSettingTab,
-	App,
-	Setting,
-	File,
-	TFolder,
-	TFile,
-	TAbstractFile,
-} from "obsidian";
+import { Plugin, Notice, File, TFolder, TFile, TAbstractFile } from "obsidian";
 import useName from "./modules/name";
 import useVision from "./modules/vision";
 import useAudio from "./modules/audio";
-// import usePostProcessing from "./modules/text";
 import moment from "moment";
 import useText from "./modules/text";
-import { logMessage, formatToSafeName, cleanPath } from "./utils";
+import { logMessage, formatToSafeName } from "./utils";
+import { FileOrganizerSettingTab } from "./FileOrganizerSettingTab";
 class FileOrganizerSettings {
 	API_KEY = "";
 	useLogs = true;
@@ -24,50 +14,91 @@ class FileOrganizerSettings {
 	pathToWatch = "Ava/Inbox";
 	logFolderPath = "Ava/Logs";
 	useSimilarTags = true; // default value is true
-	useAutoCreateFolders = true; // default value is true
 	customVisionPrompt = ""; // default value is an empty string
 	useAutoAppend = false; // default value is true
 }
 
 const validAudioExtensions = ["mp3", "wav", "webm"];
 const validImageExtensions = ["png", "jpg", "jpeg", "gif", "svg"];
+const validMediaExtensions = [...validAudioExtensions, ...validImageExtensions];
 
 export default class FileOrganizer extends Plugin {
 	settings: FileOrganizerSettings;
 
+	// all files in inbox will go through this function
 	async processFileV2(file: TFile) {
-		new Notice(`Looking at file ${file.basename}`, 3000);
-		await this.checkAndCreateFolders();
-		logMessage("Looking at", file);
 		this.validateAPIKey();
 		if (!file.extension) return;
 
-		let content = "";
-		let fileToMove = file;
-		if (file.extension === "md") {
-			content = await this.app.vault.read(file);
+		await this.checkAndCreateFolders();
+		const content = await this.getContentFromFile(file);
+		this.useCustomClassifier(content);
+
+		if (validMediaExtensions.includes(file.extension)) {
+			await this.handleMediaFile(file, content);
+		} else {
+			await this.handleNonMediaFile(file, content);
 		}
-		if (validImageExtensions.includes(file.extension)) {
-			content = await this.generateImageAnnotation(file);
-			await this.moveAttachment(file);
-			fileToMove = await this.createFileFromContent(content);
-			await this.appendAttachment(fileToMove, file);
-		}
-		if (validAudioExtensions.includes(file.extension)) {
-			content = await this.generateTranscriptFromAudio(file);
-			await this.moveAttachment(file);
-			fileToMove = await this.createFileFromContent(content);
-			await this.appendAttachment(fileToMove, file);
-		}
-		logMessage("Content", content);
-		const humandReadableFileName = await this.generateNameFromContent(
+	}
+	// experimental meant to extend user capabilities
+	async useCustomClassifier(content: string) {
+		const classifications = ["todos", "notes", "morning notes", "reminder"];
+		useText(
+			`Content:
+				${content} 
+				classifications:
+				${classifications.join(",")},
+				'", which of the following classifications would be the most appropriate?`,
+			"Please respond with the name of the most appropriate classification from the provided list. If none of the classifications are suitable, respond with 'None'.",
+			this.settings.API_KEY
+		);
+	}
+
+	async handleMediaFile(file: TFile, content: string) {
+		const fileToMove = await this.createFileFromContent(content);
+		await this.moveToDefaultAttachmentFolder(file);
+		await this.appendAttachment(fileToMove, file);
+		await this.moveAndTagContent(fileToMove, content);
+	}
+
+	async handleNonMediaFile(file: TFile, content: string) {
+		await this.moveAndTagContent(file, content);
+	}
+
+	async moveAndTagContent(file: TFile, content: string) {
+		const humanReadableFileName = await this.generateNameFromContent(
 			content
 		);
-		logMessage("Will move", fileToMove);
-
-		await this.moveContent(fileToMove, content, humandReadableFileName);
-		await this.appendSimilarTags(content, fileToMove);
+		const destinationFolder = await this.getAIClassifiedFolder(
+			content,
+			file
+		);
+		await this.moveContent(file, humanReadableFileName, destinationFolder);
+		await this.appendSimilarTags(content, file);
 	}
+
+	async createBackup(file: TFile) {
+		const destinationFolder = this.settings.defaultDestinationPath;
+		const destinationPath = `${destinationFolder}/${file.name}`;
+		await this.app.vault.copy(file, destinationPath);
+		this.appendToCustomLogFile(
+			`Backed Up [[${file.name}]] to ${destinationPath}`
+		);
+	}
+
+	async getContentFromFile(file: TFile): Promise<string> {
+		let content = "";
+		if (file.extension === "md") {
+			content = await this.app.vault.read(file);
+		} else if (validImageExtensions.includes(file.extension)) {
+			content = await this.generateImageAnnotation(file);
+		} else if (validAudioExtensions.includes(file.extension)) {
+			content = await this.generateTranscriptFromAudio(file);
+		}
+		return content;
+	}
+
+	// adds an attachment to a file using the ![[attachment]] syntax
 	async appendAttachment(processedFile: TFile, attachmentFile: TFile) {
 		logMessage("Appending attachment", attachmentFile);
 		await this.app.vault.append(
@@ -76,6 +107,7 @@ export default class FileOrganizer extends Plugin {
 		);
 	}
 
+	// creates a .md file with a humean readable name guessed from the content
 	async createFileFromContent(content: string) {
 		const now = new Date();
 		const formattedNow = now.toISOString().replace(/[-:.TZ]/g, "");
@@ -92,28 +124,24 @@ export default class FileOrganizer extends Plugin {
 		const file = await this.app.vault.create(outputFilePath, content);
 		return file;
 	}
+
 	async moveContent(
 		file: TFile,
-		content: string,
-		humanReadableFileName: string
+		humanReadableFileName: string,
+		destinationFolder = ""
 	) {
-		const destinationFolder = await this.determineDestinationFolder(
-			content,
-			file
-		);
 		new Notice(`Moving file to ${destinationFolder}`, 3000);
 		await this.app.vault.rename(
 			file,
 			`${destinationFolder}/${humanReadableFileName}.${file.extension}`
 		);
-
 		await this.appendToCustomLogFile(
 			`Organized [[${humanReadableFileName}]] into ${destinationFolder}`
 		);
 		return file;
 	}
 
-	async moveAttachment(file: TFile) {
+	async moveToDefaultAttachmentFolder(file: TFile) {
 		const destinationFolder = this.settings.attachmentsPath;
 		const destinationPath = `${destinationFolder}/${file.name}`;
 		await this.app.vault.rename(file, destinationPath);
@@ -135,12 +163,14 @@ export default class FileOrganizer extends Plugin {
 
 		const transcribedText = await useAudio(filePath, this.settings.API_KEY);
 		const postProcessedText = transcribedText;
-		this.appendToCustomLogFile(`Generated transcription for [[${file.name}]]`);
+		this.appendToCustomLogFile(
+			`Generated transcription for [[${file.name}]]`
+		);
 
 		return postProcessedText;
 	}
 
-	async generateImageAnnotation(file: TFile) {
+	async generateImageAnnotation(file: TFile, customPrompt?: string) {
 		new Notice(`Generating annotation for ${file.basename}`, 3000);
 		const arrayBuffer = await this.app.vault.readBinary(file);
 		const fileContent = Buffer.from(arrayBuffer);
@@ -150,11 +180,9 @@ export default class FileOrganizer extends Plugin {
 		const processedContent = await useVision(
 			encodedImage,
 			this.settings.API_KEY,
-			this.settings.customVisionPrompt // pass the custom prompt to useVision
+			customPrompt
 		);
-		this.appendToCustomLogFile(
-			`Generated annotation for [[${file.name}]]`
-		);
+		this.appendToCustomLogFile(`Generated annotation for [[${file.name}]]`);
 		return processedContent;
 	}
 	async ensureFolderExists(folderPath: string) {
@@ -182,75 +210,16 @@ export default class FileOrganizer extends Plugin {
 			await this.processFileV2(file);
 		}
 	}
-
-	async onload() {
-		await this.initializePlugin();
-		// on layout ready register event handlers
-		this.addCommand({
-			id: "append-existing-tags",
-			name: "Append Existing Tags",
-			callback: async () => {
-				const activeFile = this.app.workspace.getActiveFile();
-				if (activeFile) {
-					const fileContent = await this.app.vault.read(activeFile);
-					await this.appendSimilarTags(fileContent, activeFile);
-				}
-			},
-		});
-		this.addCommand({
-			id: "organize-file",
-			name: "Oranize Current File",
-			callback: async () => {
-				const activeFile = this.app.workspace.getActiveFile();
-				if (activeFile) {
-					await this.processFileV2(activeFile);
-				}
-			},
-		});
-		this.app.workspace.onLayoutReady(this.registerEventHandlers.bind(this));
-		this.processBacklog();
-	}
-	async loadSettings() {
-		this.settings = Object.assign(
-			{},
-			new FileOrganizerSettings(),
-			await this.loadData()
-		);
-	}
-	async saveSettings() {
-		await this.saveData(this.settings);
-	}
-	async initializePlugin() {
-		await this.loadSettings();
-		this.addSettingTab(new FileOrganizerSettingTab(this.app, this));
-	}
-
-	registerEventHandlers() {
-		this.registerEvent(
-			this.app.vault.on("create", (file) => {
-				if (!file.path.includes(this.settings.pathToWatch)) return;
-				if (file instanceof TFile) {
-					this.processFileV2(file);
-				}
-			})
-		);
-		this.registerEvent(
-			this.app.vault.on("rename", (file) => {
-				if (!file.path.includes(this.settings.pathToWatch)) return;
-				if (file instanceof TFile) {
-					this.processFileV2(file);
-				}
-			})
-		);
-	}
 	async getSimilarTags(content: string, fileName: string): Promise<string[]> {
 		// 1. Get all tags from the vault
 		// @ts-ignore
 		const tags = this.app.metadataCache.getTags();
 
+		logMessage("tags", tags);
 		// 2. Pass all the tags to GPT-3 and get the most similar tags
 		const tagNames = Object.keys(tags);
 		const uniqueTags = [...new Set(tagNames)];
+
 		logMessage("uniqueTags", uniqueTags);
 
 		// Prepare the prompt for GPT-4
@@ -264,7 +233,10 @@ export default class FileOrganizer extends Plugin {
 		);
 		// Extract the most similar tags from the response
 
-		return mostSimilarTags.split(",").map((tag) => tag.trim());
+		return mostSimilarTags
+			.split(",")
+			.map((tag: string) => tag.trim())
+			.filter((tag: string) => !content.includes(tag));
 	}
 	isTFolder(file: TAbstractFile): file is TFolder {
 		return file instanceof TFolder;
@@ -280,52 +252,19 @@ export default class FileOrganizer extends Plugin {
 		return uniqueFolders;
 	}
 
-	async shouldAppendToExistingFile(content: string): Promise<boolean> {
-		if (!this.settings.useAutoAppend) {
-			return false;
-		}
-		const shouldAppend = await useText(
-			`content: ${content}
-question: is there a request by the user to append this to a document? only answer with 'yes' or 'no'`,
-			"You pattern match requests to append text to document. The request is included within the text. Please respond with 'Yes' or 'No'.",
-			this.settings.API_KEY
-		);
-		return shouldAppend.includes("Yes");
-	}
-
-	async guessNewFolderName(
-		content: string,
-		fileName: string
-	): Promise<string> {
-		const uniqueFolders = this.getAllFolders();
-		// based on the content, the file name, and existiing folders, guess a new folder name
-		const newFolderName = await useText(
-			// prompt
-			`Based on the current folder structure of the user: ${uniqueFolders.join()}, guess a new folder name for the file "${fileName}" and its content "${content}"`,
-			// system prompt
-			"Please respond with a name for the new folder. You never guess an existing folder. Valid answers are like 'New Folder/Path 1' or 'New Folder/Path 2'.",
-			this.settings.API_KEY
-		);
-		return newFolderName;
-	}
-	async determineDestinationFolder(
-		content: string,
-		file: TFile
-	): Promise<string> {
+	async getAIClassifiedFolder(content: string, file: TFile): Promise<string> {
 		// Initialize destination folder as "None"
 		let destinationFolder = "None";
 
 		// Get all folders
-		const uniqueFolders = this.getAllFolders();
+		let uniqueFolders = this.getAllFolders()
+			// remove current file path
+			.filter((folder) => !folder.includes("Ava"))
+			.filter((folder) => folder !== file.parent?.path)
+			// remove default destination path
+			.filter((folder) => folder !== this.settings.defaultDestinationPath)
+			.filter((folder) => folder !== this.settings.attachmentsPath);
 
-		// Remove current file folder from list of uniqueFolders
-		// Remove current file folder from list of uniqueFolders
-		if (file.parent) {
-			const currentFolderIndex = uniqueFolders.indexOf(file.parent.path);
-			if (currentFolderIndex > -1) {
-				uniqueFolders.splice(currentFolderIndex, 1);
-			}
-		}
 		logMessage("uniqueFolders", uniqueFolders);
 
 		// Get the most similar folder based on the content and file name
@@ -346,27 +285,6 @@ question: is there a request by the user to append this to a document? only answ
 			/[\\:*?"<>|]/g,
 			""
 		);
-
-		// If auto-create folders is enabled and no similar folder is found
-		if (
-			this.settings.useAutoCreateFolders &&
-			sanitizedFolderName === "None"
-		) {
-			// Notify user about creating a new folder
-			new Notice(`Creating new folder`, 3000);
-
-			// Guess a new folder name based on the content and file name
-			destinationFolder = await this.guessNewFolderName(
-				content,
-				file.basename
-			);
-
-			// Notify user about the created new folder
-			new Notice(`Created new folder ${destinationFolder}`, 3000);
-
-			// Ensure the new folder exists
-			this.ensureFolderExists(destinationFolder);
-		}
 
 		// If no similar folder is found, set the destination folder as the default destination path
 		if (sanitizedFolderName === "None") {
@@ -401,9 +319,14 @@ question: is there a request by the user to append this to a document? only answ
 		new Notice(`No similar tags found`, 3000);
 	}
 
-	async getMostSimilarFile(content: string): Promise<TFile> {
+	async getMostSimilarFileByName(
+		content: string,
+		currentFile: TFile
+	): Promise<TFile> {
 		const allMarkdownFiles = this.app.vault.getMarkdownFiles();
-		const allMarkdownFilePaths = allMarkdownFiles.map((file) => file.path);
+		const allMarkdownFilePaths = allMarkdownFiles
+			.filter((file) => file.path !== currentFile.path) // Ignore the current file
+			.map((file) => file.path);
 
 		// Get the most similar file based on the content
 		const mostSimilarFile = await useText(
@@ -464,166 +387,114 @@ question: is there a request by the user to append this to a document? only answ
 			);
 		}
 	}
-}
-class FileOrganizerSettingTab extends PluginSettingTab {
-	plugin: FileOrganizer;
 
-	constructor(app: App, plugin: FileOrganizer) {
-		super(app, plugin);
-		this.plugin = plugin;
+	async appendToSimilarFile(incomingFile: TFile) {
+		try {
+			new Notice(
+				`Processing incoming file ${incomingFile.basename}`,
+				3000
+			);
+			const content = await this.getContentFromFile(incomingFile);
+			const similarFile = await this.getMostSimilarFileByName(
+				content,
+				incomingFile
+			);
+
+			if (similarFile) {
+				await this.app.vault.append(similarFile, `\n${content}`);
+				new Notice(
+					`Appended content to similar file: ${similarFile.basename}`,
+					3000
+				);
+				this.appendToCustomLogFile(
+					`Appended content from [[${incomingFile.basename}]] to similar file [[${similarFile.basename}]]`
+				);
+			} else {
+				new Notice(
+					`No similar file found for ${incomingFile.basename}`,
+					3000
+				);
+			}
+		} catch (error) {
+			console.error("Error appending to similar file:", error);
+			new Notice("Error processing incoming file.");
+		}
 	}
 
-	display(): void {
-		const { containerEl } = this;
+	// native
 
-		containerEl.empty();
+	async onload() {
+		await this.initializePlugin();
+		// on layout ready register event handlers
+		this.addCommand({
+			id: "append-existing-tags",
+			name: "Append Existing Tags",
+			callback: async () => {
+				const activeFile = this.app.workspace.getActiveFile();
+				if (activeFile) {
+					const fileContent = await this.getContentFromFile(
+						activeFile
+					);
+					await this.appendSimilarTags(fileContent, activeFile);
+				}
+			},
+		});
+		this.addCommand({
+			id: "organize-file",
+			name: "Oranize Current File",
+			callback: async () => {
+				const activeFile = this.app.workspace.getActiveFile();
+				if (activeFile) {
+					await this.processFileV2(activeFile);
+				}
+			},
+		});
 
-		new Setting(containerEl)
-			.setName("OpenAI API Key")
-			.setDesc("Enter your API Key here")
-			.addText((text) =>
-				text
-					.setPlaceholder("Enter your API Key")
-					.setValue(this.plugin.settings.API_KEY)
-					.onChange(async (value) => {
-						this.plugin.settings.API_KEY = value;
-						await this.plugin.saveSettings();
-					})
-			);
+		this.addCommand({
+			id: "append-to-similar-file",
+			name: "Append to Similar File",
+			callback: async () => {
+				const activeFile = this.app.workspace.getActiveFile();
+				if (activeFile) {
+					await this.appendToSimilarFile(activeFile);
+				}
+			},
+		});
 
-		new Setting(containerEl)
-			.setName("Inbox Folder")
-			.setDesc("Choose which folder to automatically organize files from")
-			.addText((text) =>
-				text
-					.setPlaceholder("Enter your path")
-					.setValue(this.plugin.settings.pathToWatch)
-					.onChange(async (value) => {
-						this.plugin.settings.pathToWatch = cleanPath(value);
-						await this.plugin.saveSettings();
-					})
-			);
+		this.app.workspace.onLayoutReady(this.registerEventHandlers.bind(this));
+		this.processBacklog();
+	}
+	async loadSettings() {
+		this.settings = Object.assign(
+			{},
+			new FileOrganizerSettings(),
+			await this.loadData()
+		);
+	}
+	async saveSettings() {
+		await this.saveData(this.settings);
+	}
+	async initializePlugin() {
+		await this.loadSettings();
+		this.addSettingTab(new FileOrganizerSettingTab(this.app, this));
+	}
 
-		containerEl.createEl("h2", { text: "Features" });
-
-		new Setting(containerEl)
-			.setName("Organization Logs")
-			.setDesc(
-				"Allows you to keep track of the changes made by file Organizer."
-			)
-			.addToggle((toggle) =>
-				toggle
-					.setValue(this.plugin.settings.useLogs)
-					.onChange(async (value) => {
-						this.plugin.settings.useLogs = value;
-						await this.plugin.saveSettings();
-					})
-			);
-
-		new Setting(containerEl)
-			.setName("Similar Tags")
-			.setDesc("Append similar tags to the processed file.")
-			.addToggle((toggle) =>
-				toggle
-					.setValue(this.plugin.settings.useSimilarTags)
-					.onChange(async (value) => {
-						this.plugin.settings.useSimilarTags = value;
-						await this.plugin.saveSettings();
-					})
-			);
-		new Setting(containerEl)
-			.setName("Folder Guessing")
-			.setDesc(
-				"If no similar folder is found, let File Organizer guess a new folder and create it."
-			)
-			.addToggle((toggle) =>
-				toggle
-					.setValue(this.plugin.settings.useAutoCreateFolders)
-					.onChange(async (value) => {
-						this.plugin.settings.useAutoCreateFolders = value;
-						await this.plugin.saveSettings();
-					})
-			);
-
-		containerEl.createEl("h2", { text: "Folder Configuration" });
-
-		new Setting(containerEl)
-			.setName("Attachments Folder")
-			.setDesc(
-				"Enter the path to the folder where the original images and audio will be moved."
-			)
-			.addText((text) =>
-				text
-					.setPlaceholder("Enter your path")
-					.setValue(this.plugin.settings.attachmentsPath)
-					.onChange(async (value) => {
-						// cleanup path remove leading and trailing slashes
-						this.plugin.settings.attachmentsPath = cleanPath(value);
-						await this.plugin.saveSettings();
-					})
-			);
-		new Setting(containerEl)
-			.setName("File Organizer Log Folder")
-			.setDesc("Choose a folder for Organization Logs e.g. Ava/Logs.")
-			.addText((text) =>
-				text
-					.setPlaceholder("Enter your path")
-					.setValue(this.plugin.settings.logFolderPath)
-					.onChange(async (value) => {
-						this.plugin.settings.logFolderPath = cleanPath(value);
-						await this.plugin.saveSettings();
-					})
-			);
-		new Setting(containerEl)
-			.setName("Output Folder Path")
-			.setDesc(
-				"Enter the path where you want to save the processed files. e.g. Processed/myfavoritefolder"
-			)
-			.addText((text) =>
-				text
-					.setPlaceholder("Enter your path")
-					.setValue(this.plugin.settings.defaultDestinationPath)
-					.onChange(async (value) => {
-						const cleanedPath = cleanPath(value);
-						logMessage(cleanedPath);
-						this.plugin.settings.defaultDestinationPath =
-							cleanedPath;
-						await this.plugin.saveSettings();
-					})
-			);
-
-		containerEl.createEl("h2", { text: "Experimental Features" });
-
-		new Setting(containerEl)
-			.setName("Custom Vision Prompt")
-			.setDesc("Enter your custom prompt for vision processing here")
-			.addText((text) =>
-				text
-					.setPlaceholder("Enter your custom prompt")
-					.setValue(this.plugin.settings.customVisionPrompt)
-					.onChange(async (value) => {
-						this.plugin.settings.customVisionPrompt = value;
-						await this.plugin.saveSettings();
-					})
-			);
-
-		new Setting(containerEl)
-			.setName("Experimental: Describe workfow (contact for access)")
-			.setDesc(
-				"Use words to explain how File Organizer uses GPT-4 to organize your files."
-			)
-			.setDisabled(true);
-		new Setting(containerEl)
-			.setName(
-				"Experimental: Append to Existing file (contact for access)"
-			)
-			.setDesc(
-				"Let file Organizer find the most similar file and append the content to it."
-			)
-			.setDisabled(true);
-		new Setting(containerEl)
-			.setName("Experimental: Full Auto Org (contact for access	)")
-			.setDesc("Let file Organizer work fully automatically.")
-			.setDisabled(true);
+	registerEventHandlers() {
+		this.registerEvent(
+			this.app.vault.on("create", (file) => {
+				if (!file.path.includes(this.settings.pathToWatch)) return;
+				if (file instanceof TFile) {
+					this.processFileV2(file);
+				}
+			})
+		);
+		this.registerEvent(
+			this.app.vault.on("rename", (file) => {
+				if (!file.path.includes(this.settings.pathToWatch)) return;
+				if (file instanceof TFile) {
+					this.processFileV2(file);
+				}
+			})
+		);
 	}
 }

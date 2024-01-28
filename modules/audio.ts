@@ -1,7 +1,7 @@
 import fs from "fs";
 import OpenAI from "openai";
 
-async function useAudio(filePath: string, apiKey): Promise<string> {
+async function useAudio(filePath: string, apiKey: string): Promise<string> {
 	const openai = new OpenAI({ apiKey, dangerouslyAllowBrowser: true });
 	const transcription = await openai.audio.transcriptions.create({
 		file: fs.createReadStream(filePath),
