@@ -18,15 +18,27 @@ class FileOrganizerSettings {
 	useAutoAppend = false; // default value is true
 }
 
-const validAudioExtensions = ["mp3", "wav", "webm"];
+const validAudioExtensions = ["mp3", "wav", "webm", "m4a"];
 const validImageExtensions = ["png", "jpg", "jpeg", "gif", "svg"];
 const validMediaExtensions = [...validAudioExtensions, ...validImageExtensions];
+const validTextExtensions = ["md", "txt"];
+const validExtensions = [...validMediaExtensions, ...validTextExtensions];
+
+const isValidExtension = (extension: string) => {
+	if (!validExtensions.includes(extension)) {
+		new Notice("Sorry, FileOrganizer does not support this file type.");
+		return false;
+	}
+	return true;
+};
 
 export default class FileOrganizer extends Plugin {
 	settings: FileOrganizerSettings;
 
 	// all files in inbox will go through this function
 	async processFileV2(file: TFile) {
+		new Notice(`Looking at ${file.basename}`, 3000);
+		if (!isValidExtension(file.extension)) return;
 		this.validateAPIKey();
 		if (!file.extension) return;
 
@@ -55,25 +67,32 @@ export default class FileOrganizer extends Plugin {
 	}
 
 	async handleMediaFile(file: TFile, content: string) {
-		const fileToMove = await this.createFileFromContent(content);
-		await this.moveToDefaultAttachmentFolder(file);
-		await this.appendAttachment(fileToMove, file);
-		await this.moveAndTagContent(fileToMove, content);
-	}
-
-	async handleNonMediaFile(file: TFile, content: string) {
-		await this.moveAndTagContent(file, content);
-	}
-
-	async moveAndTagContent(file: TFile, content: string) {
 		const humanReadableFileName = await this.generateNameFromContent(
 			content
 		);
+		const fileToMove = await this.createFileFromContent(content);
+		await this.moveToDefaultAttachmentFolder(file, humanReadableFileName);
+		await this.appendAttachment(fileToMove, file);
+		await this.moveAndTagContent(
+			fileToMove,
+			content,
+			humanReadableFileName
+		);
+	}
+
+	async handleNonMediaFile(file: TFile, content: string) {
+		const humanReadableFileName = await this.generateNameFromContent(
+			content
+		);
+		await this.moveAndTagContent(file, content, humanReadableFileName);
+	}
+
+	async moveAndTagContent(file: TFile, content: string, newFileName) {
 		const destinationFolder = await this.getAIClassifiedFolder(
 			content,
 			file
 		);
-		await this.moveContent(file, humanReadableFileName, destinationFolder);
+		await this.moveContent(file, newFileName, destinationFolder);
 		await this.appendSimilarTags(content, file);
 	}
 
@@ -141,11 +160,13 @@ export default class FileOrganizer extends Plugin {
 		return file;
 	}
 
-	async moveToDefaultAttachmentFolder(file: TFile) {
+	async moveToDefaultAttachmentFolder(file: TFile, newFileName: string) {
 		const destinationFolder = this.settings.attachmentsPath;
-		const destinationPath = `${destinationFolder}/${file.name}`;
+		const destinationPath = `${destinationFolder}/${newFileName}.${file.extension}`;
 		await this.app.vault.rename(file, destinationPath);
-		this.appendToCustomLogFile(`Moved [[${file.name}]] to attachments`);
+		this.appendToCustomLogFile(
+			`Moved [[${newFileName}.${file.extension}]] to attachments`
+		);
 	}
 
 	async generateNameFromContent(content: string): Promise<string> {
@@ -164,7 +185,7 @@ export default class FileOrganizer extends Plugin {
 		const transcribedText = await useAudio(filePath, this.settings.API_KEY);
 		const postProcessedText = transcribedText;
 		this.appendToCustomLogFile(
-			`Generated transcription for [[${file.name}]]`
+			`Generated transcription for [[${file.basename}.${file.extension}]`
 		);
 
 		return postProcessedText;
@@ -182,7 +203,9 @@ export default class FileOrganizer extends Plugin {
 			this.settings.API_KEY,
 			customPrompt
 		);
-		this.appendToCustomLogFile(`Generated annotation for [[${file.name}]]`);
+		this.appendToCustomLogFile(
+			`Generated annotation for [[${file.basename}.${file.extension}]]`
+		);
 		return processedContent;
 	}
 	async ensureFolderExists(folderPath: string) {
