@@ -38,9 +38,9 @@ export default class FileOrganizer extends Plugin {
 	// all files in inbox will go through this function
 	async processFileV2(file: TFile) {
 		new Notice(`Looking at ${file.basename}`, 3000);
-		if (!isValidExtension(file.extension)) return;
 		this.validateAPIKey();
 		if (!file.extension) return;
+		if (!isValidExtension(file.extension)) return;
 
 		await this.checkAndCreateFolders();
 		const content = await this.getContentFromFile(file);
@@ -185,7 +185,7 @@ export default class FileOrganizer extends Plugin {
 		const transcribedText = await useAudio(filePath, this.settings.API_KEY);
 		const postProcessedText = transcribedText;
 		this.appendToCustomLogFile(
-			`Generated transcription for [[${file.basename}.${file.extension}]`
+			`Generated transcription for [[${file.basename}.${file.extension}]]`
 		);
 
 		return postProcessedText;
