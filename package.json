@@ -1,6 +1,6 @@
 {
 	"name": "fileorganizer2000",
-	"version": "1.0.15",
+	"version": "1.0.16",
 	"description": "AI File Organizer 2000",
 	"main": "main.js",
 	"scripts": {
