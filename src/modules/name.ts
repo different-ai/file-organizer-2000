@@ -1,4 +1,5 @@
-import { logMessage } from "../utils";
+import { requestUrl } from "obsidian";
+import { logMessage } from "../../utils";
 
 async function useName(document, apiKey) {
 	const data = {
@@ -16,7 +17,8 @@ async function useName(document, apiKey) {
 		],
 	};
 
-	const response = await fetch("https://api.openai.com/v1/chat/completions", {
+	const response = await requestUrl({
+		url: "https://api.openai.com/v1/chat/completions",
 		method: "POST",
 		body: JSON.stringify(data),
 		headers: {
@@ -25,10 +27,7 @@ async function useName(document, apiKey) {
 		},
 	});
 
-	if (!response.ok) {
-		throw new Error("Error:", response.status);
-	}
-	const result = await response.json();
+	const result = await response.json;
 	logMessage(result.choices[0].message.content);
 	return result.choices[0].message.content.trim();
 }

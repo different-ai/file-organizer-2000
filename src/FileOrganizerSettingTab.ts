@@ -1,6 +1,6 @@
 import { PluginSettingTab, App, Setting } from "obsidian";
-import { logMessage, cleanPath } from "./utils";
-import FileOrganizer from ".";
+import { logMessage, cleanPath } from "../utils";
+import FileOrganizer from "./index";
 
 export class FileOrganizerSettingTab extends PluginSettingTab {
 	plugin: FileOrganizer;
@@ -16,7 +16,7 @@ export class FileOrganizerSettingTab extends PluginSettingTab {
 		containerEl.empty();
 
 		new Setting(containerEl)
-			.setName("OpenAI API Key")
+			.setName("OpenAI API key")
 			.setDesc("Enter your API Key here")
 			.addText((text) =>
 				text
@@ -41,10 +41,10 @@ export class FileOrganizerSettingTab extends PluginSettingTab {
 					})
 			);
 
-		containerEl.createEl("h2", { text: "Features" });
+		new Setting(containerEl).setName("Features").setHeading();
 
 		new Setting(containerEl)
-			.setName("Organization Logs")
+			.setName("FileOrganizer logs")
 			.setDesc(
 				"Allows you to keep track of the changes made by file Organizer."
 			)
@@ -58,7 +58,7 @@ export class FileOrganizerSettingTab extends PluginSettingTab {
 			);
 
 		new Setting(containerEl)
-			.setName("Similar Tags")
+			.setName("Similar tags")
 			.setDesc("Append similar tags to the processed file.")
 			.addToggle((toggle) =>
 				toggle
@@ -69,10 +69,9 @@ export class FileOrganizerSettingTab extends PluginSettingTab {
 					})
 			);
 
-		containerEl.createEl("h2", { text: "Folder Configuration" });
-
+		new Setting(containerEl).setName("Folder config").setHeading();
 		new Setting(containerEl)
-			.setName("Attachments Folder")
+			.setName("Attachments folder")
 			.setDesc(
 				"Enter the path to the folder where the original images and audio will be moved."
 			)
@@ -87,7 +86,7 @@ export class FileOrganizerSettingTab extends PluginSettingTab {
 					})
 			);
 		new Setting(containerEl)
-			.setName("File Organizer Log Folder")
+			.setName("File Organizer log folder")
 			.setDesc("Choose a folder for Organization Logs e.g. Ava/Logs.")
 			.addText((text) =>
 				text
@@ -99,7 +98,7 @@ export class FileOrganizerSettingTab extends PluginSettingTab {
 					})
 			);
 		new Setting(containerEl)
-			.setName("Output Folder Path")
+			.setName("Output folder path")
 			.setDesc(
 				"Enter the path where you want to save the processed files. e.g. Processed/myfavoritefolder"
 			)
@@ -116,10 +115,10 @@ export class FileOrganizerSettingTab extends PluginSettingTab {
 					})
 			);
 
-		containerEl.createEl("h2", { text: "Experimental Features" });
+		new Setting(containerEl).setName("Experimental features").setHeading();
 
 		new Setting(containerEl)
-			.setName("Custom Vision Prompt")
+			.setName("Custom vision prompt")
 			.setDesc("Enter your custom prompt for vision processing here")
 			.addText((text) =>
 				text
@@ -146,7 +145,7 @@ export class FileOrganizerSettingTab extends PluginSettingTab {
 			)
 			.setDisabled(true);
 		new Setting(containerEl)
-			.setName("Experimental: Full Auto Org (contact for access	)")
+			.setName("Experimental: Full Auto Org (contact for access)")
 			.setDesc("Let file Organizer work fully automatically.")
 			.setDisabled(true);
 	}

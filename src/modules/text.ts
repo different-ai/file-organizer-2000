@@ -1,4 +1,5 @@
-import { logMessage } from "../utils";
+import { requestUrl } from "obsidian";
+import { logMessage } from "../../utils";
 
 async function useText(content: string, systemPrompt = "", apiKey: string) {
 	const data = {
@@ -16,7 +17,8 @@ async function useText(content: string, systemPrompt = "", apiKey: string) {
 		],
 	};
 
-	const response = await fetch("https://api.openai.com/v1/chat/completions", {
+	const response = await requestUrl({
+		url: "https://api.openai.com/v1/chat/completions",
 		method: "POST",
 		body: JSON.stringify(data),
 		headers: {
@@ -24,12 +26,7 @@ async function useText(content: string, systemPrompt = "", apiKey: string) {
 			Authorization: `Bearer ${apiKey}`,
 		},
 	});
-
-	if (!response.ok) {
-		console.error("Error:", response.status);
-		return;
-	}
-	const result = await response.json();
+	const result = await response.json;
 	logMessage(result);
 	logMessage(result.choices[0].message.content);
 	return result.choices[0].message.content.trim();

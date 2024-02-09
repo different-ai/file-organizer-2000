@@ -1,18 +1,24 @@
-import { Plugin, Notice, File, TFolder, TFile, TAbstractFile } from "obsidian";
+import {
+	Plugin,
+	Notice,
+	TFolder,
+	TFile,
+	TAbstractFile,
+	moment,
+} from "obsidian";
 import useName from "./modules/name";
 import useVision from "./modules/vision";
 import useAudio from "./modules/audio";
-import moment from "moment";
 import useText from "./modules/text";
-import { logMessage, formatToSafeName } from "./utils";
+import { logMessage, formatToSafeName } from "../utils";
 import { FileOrganizerSettingTab } from "./FileOrganizerSettingTab";
 class FileOrganizerSettings {
 	API_KEY = "";
 	useLogs = true;
-	defaultDestinationPath = "Ava/Processed";
-	attachmentsPath = "Ava/Processed/Attachments";
-	pathToWatch = "Ava/Inbox";
-	logFolderPath = "Ava/Logs";
+	defaultDestinationPath = "_FileOrganizer2000/Processed";
+	attachmentsPath = "_FileOrganizer2000/Processed/Attachments";
+	pathToWatch = "_FileOrganizer2000/Inbox";
+	logFolderPath = "_FileOrganizer2000/Logs";
 	useSimilarTags = true; // default value is true
 	customVisionPrompt = ""; // default value is an empty string
 	useAutoAppend = false; // default value is true
@@ -282,11 +288,12 @@ export default class FileOrganizer extends Plugin {
 		// Get all folders
 		let uniqueFolders = this.getAllFolders()
 			// remove current file path
-			.filter((folder) => !folder.includes("Ava"))
 			.filter((folder) => folder !== file.parent?.path)
 			// remove default destination path
 			.filter((folder) => folder !== this.settings.defaultDestinationPath)
-			.filter((folder) => folder !== this.settings.attachmentsPath);
+			.filter((folder) => folder !== this.settings.attachmentsPath)
+			.filter((folder) => folder !== this.settings.logFolderPath)
+			.filter((folder) => folder !== this.settings.pathToWatch);
 
 		logMessage("uniqueFolders", uniqueFolders);
 
@@ -451,7 +458,7 @@ export default class FileOrganizer extends Plugin {
 		// on layout ready register event handlers
 		this.addCommand({
 			id: "append-existing-tags",
-			name: "Append Existing Tags",
+			name: "Append existing tags",
 			callback: async () => {
 				const activeFile = this.app.workspace.getActiveFile();
 				if (activeFile) {
@@ -464,7 +471,7 @@ export default class FileOrganizer extends Plugin {
 		});
 		this.addCommand({
 			id: "organize-file",
-			name: "Oranize Current File",
+			name: "Organize current file",
 			callback: async () => {
 				const activeFile = this.app.workspace.getActiveFile();
 				if (activeFile) {
@@ -475,7 +482,7 @@ export default class FileOrganizer extends Plugin {
 
 		this.addCommand({
 			id: "append-to-similar-file",
-			name: "Append to Similar File",
+			name: "Append to similar file",
 			callback: async () => {
 				const activeFile = this.app.workspace.getActiveFile();
 				if (activeFile) {
