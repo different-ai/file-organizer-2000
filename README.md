@@ -26,44 +26,24 @@ Simply move any of your file to the "Inbox" folder and the plugin will automatic
 
 
 
-### Move Files
-> Example shows a file being added to the "Inbox" and automatically moved to a relevant folder.
-
-https://github.com/different-ai/gpt-file-organizer/assets/11430621/f9c8ed77-828f-4a42-a382-4dd01ca17e22
+### Use cass with the iOS Shortcut (not essential)
 
 
-### Transcribe Audio
-> Example shows how FileOrganizer2000 automatically detects a new image and adds it inside `/Processed` with an annotation.
-
-https://github.com/different-ai/obsidian-file-organizer2000/assets/11430621/eaea27e6-d5ed-4e02-8722-173dea1351ba
-
-### Automatically Annotate Images
-> Example shows how FileOrganizer2000 detects a handwritten note and automatically extracts the text moves it to `/Processed` using a human understandable name.
-
-https://github.com/different-ai/obsidian-file-organizer2000/assets/11430621/364f3ad8-e1b2-46c6-a114-eee5aad0755e
-
-
-
-
-
-### Go beyond, with the iOS Shortcut (not essential)
-The iOS shortcut bellow makes it easy for you to easily work from your phone with this plugin.
-
-https://www.icloud.com/shortcuts/06915768862848fb9711f2f19b6405e2
-
-Voice Memo:
+### Transcribe a voice recording
 
 https://github.com/different-ai/file-organizer-2000/assets/11430621/7565a32f-4e39-4585-b2f6-7c0865d5345d
 
 
-Photos:
+### Take a picture and automatically annotate and store it
 
 https://github.com/different-ai/file-organizer-2000/assets/11430621/e46b87b0-ede3-4293-bca7-69cbfa8762f8
 
-From Clipboard:
 
-https://github.com/different-ai/file-organizer-2000/assets/11430621/e5c5272e-914a-4b1a-98ce-af4def60538f
 
+## Small iOS shortcut for easy access
+The iOS shortcut bellow makes it easy for you to easily work from your phone with this plugin.
+
+https://www.icloud.com/shortcuts/06915768862848fb9711f2f19b6405e2
 
 ## How It Works
 
