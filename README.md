@@ -12,6 +12,11 @@ This is an Obsidian Plugin that uses AI to keep your files organized. It trans
 - Uses OpenAI GPT Vision to extract text from images and create a markdown file with the extracted content.  
 - Supports text, audio, and images
 
+### How to install (pending obsidian store approval)
+ 
+1. Intall [brat](obsidian://show-plugin?id=obsidian42-brat) plugin from the obsidian store.
+2. Add https://github.com/different-ai/file-organizer-2000 to brat
+
 ### Quickstart
 In the plugin settings, provide your OpenAI API Key. That's it :)
 
