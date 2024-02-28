@@ -413,7 +413,7 @@ export default class FileOrganizer extends Plugin {
 	validateAPIKey() {
 		if (!this.settings.API_KEY) {
 			throw new Error(
-				"Please enter your API Key in the settings of the OCR plugin."
+				"Please enter your API Key in the settings of the FileOrganizer plugin."
 			);
 		}
 	}
@@ -506,6 +506,7 @@ export default class FileOrganizer extends Plugin {
 	}
 	async initializePlugin() {
 		await this.loadSettings();
+		this.ensureFolderExists(this.settings.pathToWatch);
 		this.addSettingTab(new FileOrganizerSettingTab(this.app, this));
 	}
 
