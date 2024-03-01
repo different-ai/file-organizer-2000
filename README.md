@@ -1,7 +1,7 @@
 # FileOrganizer2000
 
   
-This is an Obsidian Plugin that uses AI to keep your files organized. It transcribes audio, uses AI to annotate images, and automatically renames and moves new files to the most likeley folders.
+This is an Obsidian Plugin that uses AI to keep your files organized. It transcribes audio, uses AI to annotate images, and automatically renames and moves new files to the most likely folders.
 
 
 
@@ -22,7 +22,7 @@ In the plugin settings, provide your OpenAI API Key. That's it :)
 
 ## How to use
 
-Simply move any of your file to the "Inbox" folder and the plugin will automatically move it to the most likely folder.
+Simply move any of your files to the "Inbox" folder and the plugin will automatically move it to the most likely folder.
 
 
 

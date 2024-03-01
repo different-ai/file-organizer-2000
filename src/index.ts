@@ -43,19 +43,23 @@ export default class FileOrganizer extends Plugin {
 
 	// all files in inbox will go through this function
 	async processFileV2(file: TFile) {
-		new Notice(`Looking at ${file.basename}`, 3000);
-		this.validateAPIKey();
-		if (!file.extension) return;
-		if (!isValidExtension(file.extension)) return;
+		try {
+			new Notice(`Looking at ${file.basename}`, 3000);
+			this.validateAPIKey();
+			if (!file.extension) return;
+			if (!isValidExtension(file.extension)) return;
 
-		await this.checkAndCreateFolders();
-		const content = await this.getContentFromFile(file);
-		this.useCustomClassifier(content);
+			await this.checkAndCreateFolders();
+			const content = await this.getContentFromFile(file);
+			this.useCustomClassifier(content);
 
-		if (validMediaExtensions.includes(file.extension)) {
-			await this.handleMediaFile(file, content);
-		} else {
-			await this.handleNonMediaFile(file, content);
+			if (validMediaExtensions.includes(file.extension)) {
+				await this.handleMediaFile(file, content);
+			} else {
+				await this.handleNonMediaFile(file, content);
+			}
+		} catch (e) {
+			new Notice(`Error processing ${file.basename}: ${e.message}`, 3000);
 		}
 	}
 	// experimental meant to extend user capabilities
