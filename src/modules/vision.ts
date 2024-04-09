@@ -1,6 +1,6 @@
 const defaultPrompt = `Extract text from image. Write in markdown. If there's a drawing, describe it.`;
 // useVision.js
-async function useVision(encodedImage, apiKey, systemPrompt = defaultPrompt) {
+async function useVision(encodedImage, systemPrompt = defaultPrompt) {
 	const jsonPayload = {
 		model: "gpt-4-vision-preview",
 		max_tokens: 800,
@@ -23,10 +23,9 @@ async function useVision(encodedImage, apiKey, systemPrompt = defaultPrompt) {
 		],
 	};
 
-	const response = await fetch("https://api.openai.com/v1/chat/completions", {
+	const response = await fetch("http://localhost:3000/api/vision", {
 		method: "POST",
 		headers: {
-			Authorization: `Bearer ${apiKey}`,
 			"Content-Type": "application/json",
 		},
 		body: JSON.stringify(jsonPayload),

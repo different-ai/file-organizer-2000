@@ -1,7 +1,7 @@
 import { requestUrl } from "obsidian";
 import { logMessage } from "../../utils";
 
-async function useText(content: string, systemPrompt = "", apiKey: string) {
+async function useText(content: string, systemPrompt: string) {
 	const data = {
 		model: "gpt-4-1106-preview",
 		temperature: 0,
@@ -18,12 +18,11 @@ async function useText(content: string, systemPrompt = "", apiKey: string) {
 	};
 
 	const response = await requestUrl({
-		url: "https://api.openai.com/v1/chat/completions",
+		url: "http://localhost:3000/api/text",
 		method: "POST",
 		body: JSON.stringify(data),
 		headers: {
 			"Content-Type": "application/json",
-			Authorization: `Bearer ${apiKey}`,
 		},
 	});
 	const result = await response.json;

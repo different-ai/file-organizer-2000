@@ -1,6 +1,7 @@
 import { requestUrl } from "obsidian";
 import { logMessage } from "../../utils";
 
+// Generates titles for documents
 async function useName(document) {
 	const data = {
 		model: "gpt-4-1106-preview",
