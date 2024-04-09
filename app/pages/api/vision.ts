@@ -4,6 +4,15 @@ type ResponseData = {
 	message: string;
 };
 
+export const config = {
+	// increase max size
+	api: {
+		bodyParser: {
+			sizeLimit: "20mb",
+		},
+	},
+};
+
 export default async function handler(
 	req: NextApiRequest,
 	res: NextApiResponse<ResponseData>

@@ -3,6 +3,15 @@ import { NextApiRequest, NextApiResponse } from "next";
 import fs from "fs";
 import OpenAI from "openai";
 
+export const config = {
+	// increase max size
+	api: {
+		bodyParser: {
+			sizeLimit: "20mb",
+		},
+	},
+};
+
 export default async function handler(
 	req: NextApiRequest,
 	res: NextApiResponse
