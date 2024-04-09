@@ -2,47 +2,31 @@
 import { NextApiRequest, NextApiResponse } from "next";
 import fs from "fs";
 import OpenAI from "openai";
+import { tmpdir } from "os";
+import { join } from "path";
+import { promises as fsPromises } from "fs";
 
-export const config = {
-	// increase max size
-	api: {
-		bodyParser: {
-			sizeLimit: "20mb",
-		},
-	},
-};
+export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+    if (req.method === "POST") {
+        const { file } = req.body;
+        const base64Data = file.split(';base64,').pop();
+        const tempFilePath = join(tmpdir(), `upload_${Date.now()}`);
+        await fsPromises.writeFile(tempFilePath, base64Data, { encoding: 'base64' });
 
-export default async function handler(
-	req: NextApiRequest,
-	res: NextApiResponse
-) {
-	if (req.method === "OPTIONS") {
-		// headers added to allow cross origin requests
-		// Pre-flight request. Reply successfully:
-		res.setHeader("Access-Control-Allow-Origin", "*");
-		res.setHeader("Access-Control-Allow-Methods", "POST, OPTIONS");
-		res.setHeader(
-			"Access-Control-Allow-Headers",
-			"Origin, X-Requested-With, Content-Type, Accept"
-		);
-		res.statusCode = 200;
-		res.end();
-		return;
-	}
+        const apiKey = process.env.OPENAI_API_KEY;
+        const openai = new OpenAI({ apiKey, dangerouslyAllowBrowser: true });
+        const transcription = await openai.audio.transcriptions.create({
+            file: fs.createReadStream(tempFilePath),
+            model: "whisper-1",
+        });
 
-	res.setHeader("Access-Control-Allow-Origin", "*");
-	res.setHeader(
-		"Access-Control-Allow-Headers",
-		"Origin, X-Requested-With, Content-Type, Accept"
-	);
-	const filePath = req.body.filePath;
-	const apiKey = process.env.OPENAI_API_KEY;
+        // Clean up the temporary file
+        await fsPromises.unlink(tempFilePath);
 
-	const openai = new OpenAI({ apiKey, dangerouslyAllowBrowser: true });
-	const transcription = await openai.audio.transcriptions.create({
-		file: fs.createReadStream(filePath),
-		model: "whisper-1",
-	});
-
-	res.status(200).json({ text: transcription.text });
+        res.status(200).json({ text: transcription.text });
+    } else {
+        // Handle any non-POST requests
+        res.setHeader("Allow", ["POST"]);
+        res.status(405).end(`Method ${req.method} Not Allowed`);
+    }
 }
