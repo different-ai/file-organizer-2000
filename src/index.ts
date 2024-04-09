@@ -192,7 +192,7 @@ export default class FileOrganizer extends Plugin {
 		// @ts-ignore
 		const filePath = file.vault.adapter.basePath + "/" + file.path;
 
-		const transcribedText = await useAudio(filePath, this.settings.API_KEY);
+		const transcribedText = await useAudio(filePath);
 		const postProcessedText = transcribedText;
 		this.appendToCustomLogFile(
 			`Generated transcription for [[${file.basename}.${file.extension}]]`
