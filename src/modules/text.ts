@@ -16,9 +16,12 @@ async function useText(content: string, systemPrompt: string) {
 			},
 		],
 	};
+	const baseUrl = "https://file-organizer-2000.vercel.app/";
+	const endpoint = "api/text";
+	const url = `${baseUrl}/${endpoint}`;
 
 	const response = await requestUrl({
-		url: "http://localhost:3000/api/text",
+		url: url,
 		method: "POST",
 		body: JSON.stringify(data),
 		headers: {

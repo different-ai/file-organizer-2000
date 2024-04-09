@@ -22,6 +22,7 @@ class FileOrganizerSettings {
 	useSimilarTags = true; // default value is true
 	customVisionPrompt = ""; // default value is an empty string
 	useAutoAppend = false; // default value is true
+	customServerUrl = "app.fileorganizer2000.com";
 }
 
 const validAudioExtensions = ["mp3", "wav", "webm", "m4a"];
@@ -190,9 +191,12 @@ export default class FileOrganizer extends Plugin {
 	async generateTranscriptFromAudio(file: TFile) {
 		new Notice(`Generating transcription for ${file.basename}`, 3000);
 		// @ts-ignore
-		const filePath = file.vault.adapter.basePath + "/" + file.path;
+		const arrayBuffer = await this.app.vault.readBinary(file);
+		const fileContent = Buffer.from(arrayBuffer);
+		const encodedAudio = fileContent.toString("base64");
+		logMessage(`Encoded: ${encodedAudio.substring(0, 20)}...`);
 
-		const transcribedText = await useAudio(filePath);
+		const transcribedText = await useAudio(encodedAudio);
 		const postProcessedText = transcribedText;
 		this.appendToCustomLogFile(
 			`Generated transcription for [[${file.basename}.${file.extension}]]`

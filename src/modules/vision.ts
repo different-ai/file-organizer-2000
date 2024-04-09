@@ -22,8 +22,11 @@ async function useVision(encodedImage, systemPrompt = defaultPrompt) {
 			},
 		],
 	};
+	const baseUrl = "https://file-organizer-2000.vercel.app/";
+	const endpoint = "api/vision";
+	const url = `${baseUrl}/${endpoint}`;
 
-	const response = await fetch("http://localhost:3000/api/vision", {
+	const response = await fetch(url, {
 		method: "POST",
 		headers: {
 			"Content-Type": "application/json",
