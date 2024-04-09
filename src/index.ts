@@ -45,7 +45,8 @@ export default class FileOrganizer extends Plugin {
 	async processFileV2(file: TFile) {
 		try {
 			new Notice(`Looking at ${file.basename}`, 3000);
-			this.validateAPIKey();
+			// commented out for testing
+			//this.validateAPIKey();
 			if (!file.extension) return;
 			if (!isValidExtension(file.extension)) return;
 
@@ -71,8 +72,7 @@ export default class FileOrganizer extends Plugin {
 				classifications:
 				${classifications.join(",")},
 				'", which of the following classifications would be the most appropriate?`,
-			"Please respond with the name of the most appropriate classification from the provided list. If none of the classifications are suitable, respond with 'None'.",
-			this.settings.API_KEY
+			"Please respond with the name of the most appropriate classification from the provided list. If none of the classifications are suitable, respond with 'None'."
 		);
 	}
 
@@ -142,7 +142,7 @@ export default class FileOrganizer extends Plugin {
 		const formattedNow = now.toISOString().replace(/[-:.TZ]/g, "");
 		let name = formattedNow;
 		try {
-			name = await useName(content, this.settings.API_KEY);
+			name = await useName(content);
 		} catch (error) {
 			console.error("Error processing file:", error.status);
 			new Notice("Could not set a human readable name.");
@@ -181,7 +181,7 @@ export default class FileOrganizer extends Plugin {
 
 	async generateNameFromContent(content: string): Promise<string> {
 		new Notice(`Generating name for ${content.substring(0, 20)}...`, 3000);
-		const name = await useName(content, this.settings.API_KEY);
+		const name = await useName(content);
 		const safeName = formatToSafeName(name);
 		new Notice(`Generated name: ${safeName}`, 3000);
 		return safeName;
@@ -192,7 +192,7 @@ export default class FileOrganizer extends Plugin {
 		// @ts-ignore
 		const filePath = file.vault.adapter.basePath + "/" + file.path;
 
-		const transcribedText = await useAudio(filePath, this.settings.API_KEY);
+		const transcribedText = await useAudio(filePath);
 		const postProcessedText = transcribedText;
 		this.appendToCustomLogFile(
 			`Generated transcription for [[${file.basename}.${file.extension}]]`
@@ -210,7 +210,7 @@ export default class FileOrganizer extends Plugin {
 
 		const processedContent = await useVision(
 			encodedImage,
-			this.settings.API_KEY,
+
 			customPrompt
 		);
 		this.appendToCustomLogFile(
@@ -261,8 +261,7 @@ export default class FileOrganizer extends Plugin {
 		)}`;
 		const mostSimilarTags = await useText(
 			prompt,
-			"Always answer with a list of tag names from the provided list. If none of the tags are relevant, answer with an empty list.",
-			this.settings.API_KEY
+			"Always answer with a list of tag names from the provided list. If none of the tags are relevant, answer with an empty list."
 		);
 		// Extract the most similar tags from the response
 
@@ -308,8 +307,7 @@ export default class FileOrganizer extends Plugin {
 			}"), which of the following folders would be the most appropriate location for the file? Available folders: ${uniqueFolders.join(
 				", "
 			)}`,
-			"Please respond with the name of the most appropriate folder from the provided list. If none of the folders are suitable, respond with 'None'.",
-			this.settings.API_KEY
+			"Please respond with the name of the most appropriate folder from the provided list. If none of the folders are suitable, respond with 'None'."
 		);
 		logMessage("mostSimilarFolder", mostSimilarFolder);
 		new Notice(`Most similar folder: ${mostSimilarFolder}`, 3000);
@@ -367,8 +365,7 @@ export default class FileOrganizer extends Plugin {
 			`Given the request of the user to append it in a certain file in "${content}", which of the following files would match the user request the most? Available files: ${allMarkdownFilePaths.join(
 				","
 			)}`,
-			"Please only respond with the full path of the most appropriate file from the provided list.",
-			this.settings.API_KEY
+			"Please only respond with the full path of the most appropriate file from the provided list."
 		);
 
 		// Extract the most similar file from the response

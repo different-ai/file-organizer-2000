@@ -1,14 +1,14 @@
-import fs from "fs";
-import OpenAI from "openai";
-
-async function useAudio(filePath: string, apiKey: string): Promise<string> {
-	const openai = new OpenAI({ apiKey, dangerouslyAllowBrowser: true });
-	const transcription = await openai.audio.transcriptions.create({
-		file: fs.createReadStream(filePath),
-		model: "whisper-1",
+async function useAudio(filePath: string) {
+	const result = await fetch("http://localhost:3000/api/audio", {
+		method: "POST",
+		body: JSON.stringify({ filePath }),
+		headers: {
+			"Content-Type": "application/json",
+		},
 	});
-
-	return transcription.text;
+	const data = await result.json();
+	console.log("audio data", data);
+	return data.text;
 }
 
 export default useAudio;

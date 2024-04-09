@@ -1,7 +1,8 @@
 import { requestUrl } from "obsidian";
 import { logMessage } from "../../utils";
 
-async function useName(document, apiKey) {
+// Generates titles for documents
+async function useName(document) {
 	const data = {
 		model: "gpt-4-1106-preview",
 		messages: [
@@ -18,17 +19,16 @@ async function useName(document, apiKey) {
 	};
 
 	const response = await requestUrl({
-		url: "https://api.openai.com/v1/chat/completions",
+		url: "http://localhost:3000/api/name",
 		method: "POST",
 		body: JSON.stringify(data),
 		headers: {
 			"Content-Type": "application/json",
-			Authorization: `Bearer ${apiKey}`,
 		},
 	});
 
 	const result = await response.json;
-	logMessage(result.choices[0].message.content);
+	logMessage("name result", result.choices[0].message.content);
 	return result.choices[0].message.content.trim();
 }
 
