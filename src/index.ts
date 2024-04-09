@@ -142,7 +142,7 @@ export default class FileOrganizer extends Plugin {
 		const formattedNow = now.toISOString().replace(/[-:.TZ]/g, "");
 		let name = formattedNow;
 		try {
-			name = await useName(content);
+			name = await useName(content, this.settings.API_KEY);
 		} catch (error) {
 			console.error("Error processing file:", error.status);
 			new Notice("Could not set a human readable name.");
@@ -181,7 +181,7 @@ export default class FileOrganizer extends Plugin {
 
 	async generateNameFromContent(content: string): Promise<string> {
 		new Notice(`Generating name for ${content.substring(0, 20)}...`, 3000);
-		const name = await useName(content);
+		const name = await useName(content, this.settings.API_KEY);
 		const safeName = formatToSafeName(name);
 		new Notice(`Generated name: ${safeName}`, 3000);
 		return safeName;
