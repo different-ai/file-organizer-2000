@@ -12,8 +12,19 @@ This is an Obsidian Plugin that uses AI to keep your files organized. It trans
 
   
 - Automatically move files to correct folder
-- Uses OpenAI GPT Vision to extract text from images and create a markdown file with the extracted content.  
 - Supports text, audio, and images
+- Local-first LLM support (coming soon, like very soon there's already a branch)
+
+
+### Self-hosting
+
+Atm a bit complicated but we'll strive to make it simpler very soon. Great first issue if you want to get your hands dirty 😀.
+
+1. Run the next js repo inside of `./app` (`npm i && OPENAI_API_KEY=[your open ai api key] )
+2. You need to subsite the hardcoded url inside of all the `./modules` files and replace it with your localhost version.
+
+
+I know, I know this seems complicated and undcalled for. But we're taking this to the next step and that's the route that will lead us to move as fast possible.
 
 
 
@@ -45,33 +56,7 @@ The iOS shortcut bellow makes it easy for you to easily work from your phone wit
 
 https://www.icloud.com/shortcuts/06915768862848fb9711f2f19b6405e2
 
-## How It Works
 
-The FileOrganizer plugin is designed to automatically organize your files in Obsidian. Here's a simplified overview of its workflow:
-
-1. **Folder Monitoring**: The plugin watches a specific folder in your Obsidian vault, as defined in the settings. Any new or renamed files in this folder trigger the plugin's processing workflow.
-
-2. **File Detection**: When a new or renamed file is detected, the plugin identifies the file type. For example, it can distinguish between markdown, audio, and image files.
-
-3. **File Transformation**: Depending on the file type, the plugin processes the file using AI:
-
-- For an image file, the AI generates a description of the image. This description is then used to create a markdown file that includes a link to the image.
-
-4. **Renaming and Moving**: The plugin generates a human-readable name for the processed file. It then determines the appropriate destination folder for the file based on its content and moves the file to that folder.
-
-For example, if you add an image file to the watched folder, the plugin will generate a description of the image, create a markdown file with that description and a link to the image, give the markdown file a human-readable name, and move it to the appropriate folder in your Obsidian vault.
-### How to Use
-
-1. Navigate to your `.obsidian/plugins/` directory.
-2. Clone this repository in the `plugins` directory.
-3. Ensure your NodeJS version is at least v16. You can check this by running `node --version`.
-4. Install dependencies by running `npm i` or `yarn`.
-5. Start compilation in watch mode by running `npm run dev`.
-
-### Development
-
-  
-This plugin is developed using TypeScript. The main logic of the plugin is contained in index.ts, vision.ts, and name.ts. The plugin uses the Obsidian API to interact with the Obsidian app.  
 
 ## To Do
 
@@ -79,11 +64,6 @@ This plugin is developed using TypeScript. The main logic of the plugin
 - [ ] Make it easy for peopel to extend whaetever workflow.
 - [ ] Switch to OpenAI assistant API
 
-
-### Building
-
-  
-The plugin is bundled using esbuild. The configuration for esbuild is contained in esbuild.config.mjs.
 
 
 ### Notes
