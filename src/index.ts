@@ -251,7 +251,11 @@ export default class FileOrganizer extends Plugin {
 		// 1. Get all tags from the vault
 		// @ts-ignore
 		const tags = this.app.metadataCache.getTags();
-
+		// if tags is = {} return
+		if (Object.keys(tags).length === 0) {
+			logMessage("No tags found");
+			return [];
+		}
 		logMessage("tags", tags);
 		// 2. Pass all the tags to GPT-3 and get the most similar tags
 		const tagNames = Object.keys(tags);
@@ -270,6 +274,8 @@ export default class FileOrganizer extends Plugin {
 		// Extract the most similar tags from the response
 
 		return mostSimilarTags
+			// remove all special characters except # to avoid having tags item listed with - or other special characters
+			.replace(/[^a-zA-Z0-9# ]/g, "")
 			.split(",")
 			.map((tag: string) => tag.trim())
 			.filter((tag: string) => !content.includes(tag));
@@ -306,8 +312,7 @@ export default class FileOrganizer extends Plugin {
 
 		// Get the most similar folder based on the content and file name
 		const mostSimilarFolder = await useText(
-			`Given the text content "${content}" (and if the file name "${
-				file.basename
+			`Given the text content "${content}" (and if the file name "${file.basename
 			}"), which of the following folders would be the most appropriate location for the file? Available folders: ${uniqueFolders.join(
 				", "
 			)}`,
