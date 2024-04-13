@@ -3,7 +3,7 @@ const defaultPrompt = `Extract text from image. Write in markdown. If there's a 
 async function useVision(
   encodedImage,
   systemPrompt = defaultPrompt,
-  { baseUrl }
+  { baseUrl, apiKey }
 ) {
   const jsonPayload = {
     model: "gpt-4-vision-preview",
@@ -33,6 +33,7 @@ async function useVision(
     method: "POST",
     headers: {
       "Content-Type": "application/json",
+      Authorization: `Bearer ${apiKey}`,
     },
     body: JSON.stringify(jsonPayload),
   });

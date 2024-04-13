@@ -15,6 +15,20 @@ export class FileOrganizerSettingTab extends PluginSettingTab {
 
     containerEl.empty();
 
+    const apiKeySetting = new Setting(containerEl)
+      .setName("File Organizer API Key")
+      .setDesc(
+        "Enter your API Key here. Get it at https://app.fileorganizer2000.com/ "
+      )
+      .addText((text) =>
+        text
+          .setPlaceholder("Enter your API Key")
+          .setValue(this.plugin.settings.API_KEY)
+          .onChange(async (value) => {
+            this.plugin.settings.API_KEY = value;
+            await this.plugin.saveSettings();
+          })
+      );
 
     new Setting(containerEl)
       .setName("Inbox folder")
@@ -39,9 +53,11 @@ export class FileOrganizerSettingTab extends PluginSettingTab {
             this.plugin.settings.useCustomServer = value;
             await this.plugin.saveSettings();
             if (!value) {
+              apiKeySetting.settingEl.hide();
               customServerSetting.settingEl.hide();
               return;
             }
+            apiKeySetting.settingEl.show();
             customServerSetting.settingEl.show();
           })
       );

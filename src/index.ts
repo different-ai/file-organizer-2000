@@ -22,6 +22,7 @@ class FileOrganizerSettings {
   useSimilarTags = true; // default value is true
   customVisionPrompt = ""; // default value is an empty string
   useAutoAppend = false; // default value is true
+  defaultServerUrl = "https://app.fileorganizer2000.com/";
   customServerUrl = "https://file-organizer-2000.vercel.app/";
   useCustomServer = false;
 }
@@ -76,7 +77,10 @@ export default class FileOrganizer extends Plugin {
 				'", which of the following classifications would be the most appropriate?`,
       "Please respond with the name of the most appropriate classification from the provided list. If none of the classifications are suitable, respond with 'None'.",
       {
-        baseUrl: this.settings.customServerUrl,
+        baseUrl: this.settings.useCustomServer
+          ? this.settings.customServerUrl
+          : this.settings.defaultServerUrl,
+        apiKey: this.settings.API_KEY,
       }
     );
     logMessage("whatTypeOfDocument", whatTypeOfDocument);
@@ -135,7 +139,9 @@ export default class FileOrganizer extends Plugin {
     let name = formattedNow;
     try {
       name = await useName(content, {
-        baseUrl: this.settings.customServerUrl,
+        baseUrl: this.settings.useCustomServer
+          ? this.settings.customServerUrl
+          : this.settings.defaultServerUrl,
         apiKey: this.settings.API_KEY,
       });
     } catch (error) {
@@ -177,7 +183,9 @@ export default class FileOrganizer extends Plugin {
   async generateNameFromContent(content: string): Promise<string> {
     new Notice(`Generating name for ${content.substring(0, 20)}...`, 3000);
     const name = await useName(content, {
-      baseUrl: this.settings.customServerUrl,
+      baseUrl: this.settings.useCustomServer
+        ? this.settings.customServerUrl
+        : this.settings.defaultServerUrl,
       apiKey: this.settings.API_KEY,
     });
     const safeName = formatToSafeName(name);
@@ -194,7 +202,10 @@ export default class FileOrganizer extends Plugin {
     logMessage(`Encoded: ${encodedAudio.substring(0, 20)}...`);
 
     const transcribedText = await useAudio(encodedAudio, {
-      baseUrl: this.settings.customServerUrl,
+      baseUrl: this.settings.useCustomServer
+        ? this.settings.customServerUrl
+        : this.settings.defaultServerUrl,
+      apiKey: this.settings.API_KEY,
     });
     const postProcessedText = transcribedText;
     this.appendToCustomLogFile(
@@ -212,7 +223,10 @@ export default class FileOrganizer extends Plugin {
     logMessage(`Encoded: ${encodedImage.substring(0, 20)}...`);
 
     const processedContent = await useVision(encodedImage, customPrompt, {
-      baseUrl: this.settings.customServerUrl,
+      baseUrl: this.settings.useCustomServer
+        ? this.settings.customServerUrl
+        : this.settings.defaultServerUrl,
+      apiKey: this.settings.API_KEY,
     });
     this.appendToCustomLogFile(
       `Generated annotation for [[${file.basename}.${file.extension}]]`
@@ -267,7 +281,12 @@ export default class FileOrganizer extends Plugin {
     const mostSimilarTags = await useText(
       prompt,
       "Always answer with a list of tag names from the provided list. If none of the tags are relevant, answer with an empty list.",
-      { baseUrl: this.settings.customServerUrl }
+      {
+        baseUrl: this.settings.useCustomServer
+          ? this.settings.customServerUrl
+          : this.settings.defaultServerUrl,
+        apiKey: this.settings.API_KEY,
+      }
     );
     // Extract the most similar tags from the response
 
@@ -318,7 +337,12 @@ export default class FileOrganizer extends Plugin {
         ", "
       )}`,
       "Please respond with the name of the most appropriate folder from the provided list. If none of the folders are suitable, respond with 'None'.",
-      { baseUrl: this.settings.customServerUrl }
+      {
+        baseUrl: this.settings.useCustomServer
+          ? this.settings.customServerUrl
+          : this.settings.defaultServerUrl,
+        apiKey: this.settings.API_KEY,
+      }
     );
     logMessage("mostSimilarFolder", mostSimilarFolder);
     new Notice(`Most similar folder: ${mostSimilarFolder}`, 3000);
@@ -372,7 +396,12 @@ export default class FileOrganizer extends Plugin {
         ","
       )}`,
       "Please only respond with the full path of the most appropriate file from the provided list.",
-      { baseUrl: this.settings.customServerUrl }
+      {
+        baseUrl: this.settings.useCustomServer
+          ? this.settings.customServerUrl
+          : this.settings.defaultServerUrl,
+        apiKey: this.settings.API_KEY,
+      }
     );
 
     // Extract the most similar file from the response
@@ -415,6 +444,11 @@ export default class FileOrganizer extends Plugin {
   }
 
   validateAPIKey() {
+    if (this.settings.useCustomServer) {
+      // atm we assume no api auth for self hosted
+      return true;
+    }
+
     if (!this.settings.API_KEY) {
       throw new Error(
         "Please enter your API Key in the settings of the FileOrganizer plugin."

@@ -2,7 +2,7 @@ import { requestUrl } from "obsidian";
 import { logMessage } from "../../utils";
 
 // audio type of type base64
-async function useAudio(audioFileBase64: string, { baseUrl }) {
+async function useAudio(audioFileBase64: string, { baseUrl, apiKey }) {
   const endpoint = "api/audio";
   const url = `${baseUrl}/${endpoint}`;
   try {
@@ -11,6 +11,7 @@ async function useAudio(audioFileBase64: string, { baseUrl }) {
       method: "POST",
       body: JSON.stringify({ file: audioFileBase64 }),
       headers: {
+        Authorization: "Bearer " + apiKey,
         "Content-Type": "application/json",
       },
     });
