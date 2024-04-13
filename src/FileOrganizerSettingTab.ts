@@ -59,7 +59,7 @@ export class FileOrganizerSettingTab extends PluginSettingTab {
       );
 
     const customServerSetting = new Setting(containerEl)
-      .setName("Custom Server Address")
+      .setName("Self-hosted URL")
       .setDesc("Enter the address of your custom server.")
       .addText((text) =>
         text
