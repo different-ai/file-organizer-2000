@@ -1,7 +1,7 @@
 import { requestUrl } from "obsidian";
 import { logMessage } from "../../utils";
 
-async function useText(content: string, systemPrompt: string) {
+async function useText(content: string, systemPrompt: string, { baseUrl }) {
 	const data = {
 		model: "gpt-4-1106-preview",
 		temperature: 0,
@@ -16,7 +16,6 @@ async function useText(content: string, systemPrompt: string) {
 			},
 		],
 	};
-	const baseUrl = "https://file-organizer-2000.vercel.app/";
 	const endpoint = "api/text";
 	const url = `${baseUrl}/${endpoint}`;
 

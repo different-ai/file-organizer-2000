@@ -29,7 +29,7 @@ export class FileOrganizerSettingTab extends PluginSettingTab {
       );
 
     new Setting(containerEl)
-      .setName("Inbox Folder")
+      .setName("Inbox folder")
       .setDesc("Choose which folder to automatically organize files from")
       .addText((text) =>
         text
@@ -40,6 +40,40 @@ export class FileOrganizerSettingTab extends PluginSettingTab {
             await this.plugin.saveSettings();
           })
       );
+
+    new Setting(containerEl)
+      .setName("Use Self-hosted")
+      .setDesc("Toggle to use a custom server instead of the default.")
+      .addToggle((toggle) =>
+        toggle
+          .setValue(this.plugin.settings.useCustomServer)
+          .onChange(async (value) => {
+            this.plugin.settings.useCustomServer = value;
+            await this.plugin.saveSettings();
+            if (!value) {
+              customServerSetting.settingEl.hide();
+              return;
+            }
+            customServerSetting.settingEl.show();
+          })
+      );
+
+    const customServerSetting = new Setting(containerEl)
+      .setName("Custom Server Address")
+      .setDesc("Enter the address of your custom server.")
+      .addText((text) =>
+        text
+          .setPlaceholder("http://localhost:3000")
+          .setValue(this.plugin.settings.customServerUrl)
+          .onChange(async (value) => {
+            this.plugin.settings.customServerUrl = value;
+            await this.plugin.saveSettings();
+          })
+      );
+
+    if (!this.plugin.settings.useCustomServer) {
+      customServerSetting.settingEl.hide();
+    }
 
     new Setting(containerEl).setName("Features").setHeading();
 
