@@ -1,3 +1,4 @@
+import { verifyKey } from "@unkey/api";
 import type { NextApiRequest, NextApiResponse } from "next";
 
 type ResponseData = {
@@ -8,6 +9,22 @@ export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse<ResponseData>
 ) {
+  const header = req.headers.authorization;
+  if (!header) {
+    return new Response("No Authorization header", { status: 401 });
+  }
+  const token = header.replace("Bearer ", "");
+  const { result, error } = await verifyKey(token);
+
+  if (error) {
+    console.error(error.message);
+    return new Response("Internal Server Error", { status: 500 });
+  }
+
+  if (!result.valid) {
+    // do not grant access
+    return new Response("Unauthorized", { status: 401 });
+  }
   try {
     const apiKey = process.env.OPENAI_API_KEY || "";
     const model = "gpt-4-turbo";
