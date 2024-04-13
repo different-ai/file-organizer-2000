@@ -1,7 +1,5 @@
-**Requires access to GPT-4 API**
-
-
 # AI File Organizer 2000
+
 
   
 This is an Obsidian Plugin that uses AI to keep your files organized. It transcribes audio, uses AI to annotate images, and automatically renames and moves new files to the most likely folders.
