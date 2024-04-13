@@ -53,11 +53,11 @@ export class FileOrganizerSettingTab extends PluginSettingTab {
             this.plugin.settings.useCustomServer = value;
             await this.plugin.saveSettings();
             if (!value) {
-              apiKeySetting.settingEl.hide();
+              apiKeySetting.settingEl.show();
               customServerSetting.settingEl.hide();
               return;
             }
-            apiKeySetting.settingEl.show();
+            apiKeySetting.settingEl.hide();
             customServerSetting.settingEl.show();
           })
       );
