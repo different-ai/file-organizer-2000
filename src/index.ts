@@ -22,7 +22,7 @@ class FileOrganizerSettings {
   useSimilarTags = true; // default value is true
   customVisionPrompt = ""; // default value is an empty string
   useAutoAppend = false; // default value is true
-  customServerUrl = "app.fileorganizer2000.com";
+  customServerUrl = "https://file-organizer-2000.vercel.app/";
   useCustomServer = false;
 }
 
