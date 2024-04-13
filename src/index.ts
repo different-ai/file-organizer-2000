@@ -68,14 +68,18 @@ export default class FileOrganizer extends Plugin {
   // experimental meant to extend user capabilities
   async useCustomClassifier(content: string) {
     const classifications = ["todos", "notes", "morning notes", "reminder"];
-    useText(
+    const whatTypeOfDocument = useText(
       `Content:
 				${content} 
 				classifications:
 				${classifications.join(",")},
 				'", which of the following classifications would be the most appropriate?`,
-      "Please respond with the name of the most appropriate classification from the provided list. If none of the classifications are suitable, respond with 'None'."
+      "Please respond with the name of the most appropriate classification from the provided list. If none of the classifications are suitable, respond with 'None'.",
+      {
+        baseUrl: this.settings.customServerUrl,
+      }
     );
+    logMessage("whatTypeOfDocument", whatTypeOfDocument);
   }
 
   async handleMediaFile(file: TFile, content: string) {
