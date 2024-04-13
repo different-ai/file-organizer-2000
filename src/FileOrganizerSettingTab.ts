@@ -15,18 +15,6 @@ export class FileOrganizerSettingTab extends PluginSettingTab {
 
     containerEl.empty();
 
-    // new Setting(containerEl)
-    //   .setName("OpenAI API key")
-    //   .setDesc("Enter your API Key here")
-    //   .addText((text) =>
-    //     text
-    //       .setPlaceholder("Enter your API Key")
-    //       .setValue(this.plugin.settings.API_KEY)
-    //       .onChange(async (value) => {
-    //         this.plugin.settings.API_KEY = value;
-    //         await this.plugin.saveSettings();
-    //       })
-    //   );
 
     new Setting(containerEl)
       .setName("Inbox folder")
@@ -149,24 +137,6 @@ export class FileOrganizerSettingTab extends PluginSettingTab {
       );
 
     new Setting(containerEl).setName("Experimental features").setHeading();
-    new Setting(containerEl)
-      .setName("Custom Server URL")
-      .setDesc(
-        "You can run this locally by going on the File Organizer 2000 repo and following the GitHub instructions."
-      )
-      .addText((text) =>
-        text
-          .setPlaceholder("Enter your server URL")
-          .setValue(
-            this.plugin.settings.customServerUrl ||
-              "file-organizer-2000.vercel.app"
-          )
-          .onChange(async (value) => {
-            this.plugin.settings.customServerUrl = value;
-            await this.plugin.saveSettings();
-          })
-      );
-
     new Setting(containerEl)
       .setName("Custom vision prompt")
       .setDesc("Enter your custom prompt for vision processing here")
