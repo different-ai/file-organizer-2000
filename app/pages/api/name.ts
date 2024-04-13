@@ -10,6 +10,7 @@ export default async function handler(
   res: NextApiResponse<ResponseData>
 ) {
   const header = req.headers.authorization;
+  console.log("header", header);
   if (!header) {
     return new Response("No Authorization header", { status: 401 });
   }
