@@ -15,18 +15,18 @@ export class FileOrganizerSettingTab extends PluginSettingTab {
 
     containerEl.empty();
 
-    new Setting(containerEl)
-      .setName("OpenAI API key")
-      .setDesc("Enter your API Key here")
-      .addText((text) =>
-        text
-          .setPlaceholder("Enter your API Key")
-          .setValue(this.plugin.settings.API_KEY)
-          .onChange(async (value) => {
-            this.plugin.settings.API_KEY = value;
-            await this.plugin.saveSettings();
-          })
-      );
+    // new Setting(containerEl)
+    //   .setName("OpenAI API key")
+    //   .setDesc("Enter your API Key here")
+    //   .addText((text) =>
+    //     text
+    //       .setPlaceholder("Enter your API Key")
+    //       .setValue(this.plugin.settings.API_KEY)
+    //       .onChange(async (value) => {
+    //         this.plugin.settings.API_KEY = value;
+    //         await this.plugin.saveSettings();
+    //       })
+    //   );
 
     new Setting(containerEl)
       .setName("Inbox folder")
