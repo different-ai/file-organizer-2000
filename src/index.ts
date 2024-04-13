@@ -176,7 +176,10 @@ export default class FileOrganizer extends Plugin {
 
   async generateNameFromContent(content: string): Promise<string> {
     new Notice(`Generating name for ${content.substring(0, 20)}...`, 3000);
-    const name = await useName(content);
+    const name = await useName(content, {
+      baseUrl: this.settings.customServerUrl,
+      apiKey: this.settings.API_KEY,
+    });
     const safeName = formatToSafeName(name);
     new Notice(`Generated name: ${safeName}`, 3000);
     return safeName;
@@ -296,7 +299,7 @@ export default class FileOrganizer extends Plugin {
     let destinationFolder = "None";
 
     // Get all folders
-    let uniqueFolders = this.getAllFolders()
+    const uniqueFolders = this.getAllFolders()
       // remove current file path
       .filter((folder) => folder !== file.parent?.path)
       // remove default destination path
@@ -314,7 +317,8 @@ export default class FileOrganizer extends Plugin {
       }"), which of the following folders would be the most appropriate location for the file? Available folders: ${uniqueFolders.join(
         ", "
       )}`,
-      "Please respond with the name of the most appropriate folder from the provided list. If none of the folders are suitable, respond with 'None'."
+      "Please respond with the name of the most appropriate folder from the provided list. If none of the folders are suitable, respond with 'None'.",
+      { baseUrl: this.settings.customServerUrl }
     );
     logMessage("mostSimilarFolder", mostSimilarFolder);
     new Notice(`Most similar folder: ${mostSimilarFolder}`, 3000);
@@ -367,7 +371,8 @@ export default class FileOrganizer extends Plugin {
       `Given the request of the user to append it in a certain file in "${content}", which of the following files would match the user request the most? Available files: ${allMarkdownFilePaths.join(
         ","
       )}`,
-      "Please only respond with the full path of the most appropriate file from the provided list."
+      "Please only respond with the full path of the most appropriate file from the provided list.",
+      { baseUrl: this.settings.customServerUrl }
     );
 
     // Extract the most similar file from the response
