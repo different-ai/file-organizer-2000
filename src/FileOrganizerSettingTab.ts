@@ -15,6 +15,15 @@ export class FileOrganizerSettingTab extends PluginSettingTab {
 
     containerEl.empty();
 
+    const loginButton = new Setting(containerEl)
+      .setName("Login")
+      .setDesc("Click to login to File Organizer 2000")
+      .addButton((button) =>
+        button.setButtonText("Login").onClick(() => {
+          window.open("https://app.fileorganizer2000.com/", "_blank");
+        })
+      );
+
     const apiKeySetting = new Setting(containerEl)
       .setName("File Organizer API Key")
       .setDesc(
@@ -25,6 +34,7 @@ export class FileOrganizerSettingTab extends PluginSettingTab {
           .setPlaceholder("Enter your API Key")
           .setValue(this.plugin.settings.API_KEY)
           .onChange(async (value) => {
+            if (value) loginButton.settingEl.hide();
             this.plugin.settings.API_KEY = value;
             await this.plugin.saveSettings();
           })
