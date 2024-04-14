@@ -92,19 +92,24 @@ export default class FileOrganizer extends Plugin {
     const fileToMove = await this.createFileFromContent(content);
     await this.moveToDefaultAttachmentFolder(file, humanReadableFileName);
     await this.appendAttachment(fileToMove, file);
-    await this.moveAndTagContent(fileToMove, content, humanReadableFileName);
+    await this.renameTagAndOrganize(fileToMove, content, humanReadableFileName);
   }
 
   async handleNonMediaFile(file: TFile, content: string) {
     const humanReadableFileName = await this.generateNameFromContent(content);
-    await this.moveAndTagContent(file, content, humanReadableFileName);
+    await this.renameTagAndOrganize(file, content, humanReadableFileName);
   }
 
-  async moveAndTagContent(file: TFile, content: string, newFileName) {
+  async organizeFile(file: TFile, content: string) {
+    const destinationFolder = await this.getAIClassifiedFolder(content, file);
+    await this.moveContent(file, file.basename, destinationFolder);
+  }
+
+  async renameTagAndOrganize(file: TFile, content: string, fileName: string) {
     const destinationFolder = await this.getAIClassifiedFolder(content, file);
     await this.appendAlias(file, file.basename);
-    await this.moveContent(file, newFileName, destinationFolder);
     await this.appendSimilarTags(content, file);
+    await this.moveContent(file, fileName, destinationFolder);
   }
 
   async createBackup(file: TFile) {
@@ -515,12 +520,24 @@ export default class FileOrganizer extends Plugin {
       },
     });
     this.addCommand({
-      id: "organize-file",
-      name: "Organize current file",
+      id: "add-to-inbox",
+      name: "Put in inbox",
       callback: async () => {
         const activeFile = this.app.workspace.getActiveFile();
         if (activeFile) {
           await this.processFileV2(activeFile);
+        }
+      },
+    });
+
+    this.addCommand({
+      id: "organize-text-file",
+      name: "Organize text file",
+      callback: async () => {
+        const activeFile = this.app.workspace.getActiveFile();
+        if (activeFile) {
+          const fileContent = await this.getTextFromFile(activeFile);
+          await this.organizeFile(activeFile, fileContent);
         }
       },
     });
