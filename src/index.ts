@@ -22,7 +22,7 @@ class FileOrganizerSettings {
   useSimilarTags = true; // default value is true
   customVisionPrompt = ""; // default value is an empty string
   useAutoAppend = false; // default value is true
-  defaultServerUrl = "https://app.fileorganizer2000.com/";
+  defaultServerUrl = "https://app.fileorganizer2000.com";
   customServerUrl = "https://file-organizer-2000.vercel.app/";
   useCustomServer = false;
 }
@@ -49,18 +49,19 @@ export default class FileOrganizer extends Plugin {
     try {
       new Notice(`Looking at ${file.basename}`, 3000);
       // commented out for testing
-      //this.validateAPIKey();
+      this.validateAPIKey();
       if (!file.extension) return;
       if (!isValidExtension(file.extension)) return;
 
       await this.checkAndCreateFolders();
-      const content = await this.getContentFromFile(file);
-      this.useCustomClassifier(content);
+      // if it's a text file, get the content, if it's an image, get the annotation, if it's an audio file, get the transcription
+      const text = await this.getTextFromFile(file);
+      this.useCustomClassifier(text);
 
       if (validMediaExtensions.includes(file.extension)) {
-        await this.handleMediaFile(file, content);
+        await this.handleMediaFile(file, text);
       } else {
-        await this.handleNonMediaFile(file, content);
+        await this.handleNonMediaFile(file, text);
       }
     } catch (e) {
       new Notice(`Error processing ${file.basename}: ${e.message}`, 3000);
@@ -69,7 +70,7 @@ export default class FileOrganizer extends Plugin {
   // experimental meant to extend user capabilities
   async useCustomClassifier(content: string) {
     const classifications = ["todos", "notes", "morning notes", "reminder"];
-    const whatTypeOfDocument = useText(
+    const whatTypeOfDocument = await useText(
       `Content:
 				${content} 
 				classifications:
@@ -83,7 +84,7 @@ export default class FileOrganizer extends Plugin {
         apiKey: this.settings.API_KEY,
       }
     );
-    logMessage("whatTypeOfDocument", whatTypeOfDocument);
+    logMessage("This is closest to the following", whatTypeOfDocument);
   }
 
   async handleMediaFile(file: TFile, content: string) {
@@ -101,6 +102,7 @@ export default class FileOrganizer extends Plugin {
 
   async moveAndTagContent(file: TFile, content: string, newFileName) {
     const destinationFolder = await this.getAIClassifiedFolder(content, file);
+    await this.appendAlias(file, file.basename);
     await this.moveContent(file, newFileName, destinationFolder);
     await this.appendSimilarTags(content, file);
   }
@@ -114,7 +116,7 @@ export default class FileOrganizer extends Plugin {
     );
   }
 
-  async getContentFromFile(file: TFile): Promise<string> {
+  async getTextFromFile(file: TFile): Promise<string> {
     let content = "";
     if (file.extension === "md") {
       content = await this.app.vault.read(file);
@@ -130,6 +132,19 @@ export default class FileOrganizer extends Plugin {
   async appendAttachment(processedFile: TFile, attachmentFile: TFile) {
     logMessage("Appending attachment", attachmentFile);
     await this.app.vault.append(processedFile, `![[${attachmentFile.name}]]`);
+  }
+
+  async appendAlias(file: TFile, alias: string) {
+    logMessage("Appending alias", alias);
+    await this.app.fileManager.processFrontMatter(file, (frontmatter) => {
+      if (!frontmatter.hasOwnProperty("alias")) {
+        frontmatter["alias"] = [];
+      }
+      if (!Array.isArray(frontmatter["alias"])) {
+        frontmatter["alias"] = [frontmatter["alias"]];
+      }
+      frontmatter["alias"].push(alias);
+    });
   }
 
   // creates a .md file with a humean readable name guessed from the content
@@ -459,7 +474,7 @@ export default class FileOrganizer extends Plugin {
   async appendToSimilarFile(incomingFile: TFile) {
     try {
       new Notice(`Processing incoming file ${incomingFile.basename}`, 3000);
-      const content = await this.getContentFromFile(incomingFile);
+      const content = await this.getTextFromFile(incomingFile);
       const similarFile = await this.getMostSimilarFileByName(
         content,
         incomingFile
@@ -494,7 +509,7 @@ export default class FileOrganizer extends Plugin {
       callback: async () => {
         const activeFile = this.app.workspace.getActiveFile();
         if (activeFile) {
-          const fileContent = await this.getContentFromFile(activeFile);
+          const fileContent = await this.getTextFromFile(activeFile);
           await this.appendSimilarTags(fileContent, activeFile);
         }
       },
