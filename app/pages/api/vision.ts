@@ -18,7 +18,6 @@ export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse<ResponseData>
 ) {
-
   const header = req.headers.authorization;
   if (!header) {
     return new Response("No Authorization header", { status: 401 });
@@ -41,7 +40,7 @@ export default async function handler(
     const payload = req.body;
     console.log("payload text route", payload);
 
-    const model = "gpt-4-turbo";
+    const model = "gpt-4-vision-preview";
 
     const data = {
       ...payload,
