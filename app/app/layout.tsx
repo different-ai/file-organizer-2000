@@ -14,7 +14,7 @@ export default function RootLayout({
 }: {
   children: React.ReactNode;
 }) {
-  process.env.REACT_APP_SHOW_CLERK === 'true' ? (
+  process.env.ENABLE_USER_MANAGEMENT == 'true' ? (
       <ClerkProvider>
         <html lang="en">
           <body>{children}</body>
