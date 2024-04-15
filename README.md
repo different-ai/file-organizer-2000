@@ -30,12 +30,6 @@ OPENAI_API_KEY=[your open ai api key] npm run start
 <img width="707" alt="Screenshot 2024-04-13 at 07 16 21" src="https://github.com/different-ai/file-organizer-2000/assets/11430621/ca2222c9-cb8d-4d15-8459-2da4c9662f24">
 
 
-
-
-
-### Quickstart
-In the plugin settings, provide your OpenAI API Key. That's it :)
-
 ## How to use
 
 Simply move any of your files to the "Inbox" folder and the plugin will automatically move it to the most likely folder.
