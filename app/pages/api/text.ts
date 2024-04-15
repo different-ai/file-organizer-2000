@@ -9,21 +9,26 @@ export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse<ResponseData>
 ) {
-  const header = req.headers.authorization;
-  if (!header) {
-    return new Response("No Authorization header", { status: 401 });
-  }
-  const token = header.replace("Bearer ", "");
-  const { result, error } = await verifyKey(token);
+  if (process.env.ENABLE_USER_MANAGEMENT == "true") {
 
-  if (error) {
-    console.error(error.message);
-    return new Response("Internal Server Error", { status: 500 });
-  }
+    const header = req.headers.authorization;
+    if (!header) {
+      return new Response("No Authorization header", { status: 401 });
+    }
+    const token = header.replace("Bearer ", "");
+    const { result, error } = await verifyKey(token);
 
-  if (!result.valid) {
-    // do not grant access
-    return new Response("Unauthorized", { status: 401 });
+    if (error) {
+      console.error(error.message);
+      return new Response("Internal Server Error", { status: 500 });
+    }
+
+    if (!result.valid) {
+      // do not grant access
+      return res.status(401).json({ message: "Unauthorized" });
+
+      //return new Response("Unauthorized", { status: 401 });
+    }
   }
   try {
     const apiKey = process.env.OPENAI_API_KEY || "";

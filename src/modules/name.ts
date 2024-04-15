@@ -18,7 +18,7 @@ async function useName(document, { baseUrl, apiKey }) {
   };
   const endpoint = "api/name";
   const url = `${baseUrl}/${endpoint}`;
-
+  console.log(url);
   const response = await requestUrl({
     url: url,
     method: "POST",
