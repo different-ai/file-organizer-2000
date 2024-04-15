@@ -2,10 +2,10 @@ Consider Supporting this project:
 https://dub.sh/support-fo2k
 
 
+
 # AI File Organizer 2000
   
 This is an Obsidian Plugin that uses AI to keep your files organized. It transcribes audio, uses AI to annotate images, and automatically renames and moves new files to the most likely folders.
-
 
 ### Features
 
@@ -13,6 +13,12 @@ This is an Obsidian Plugin that uses AI to keep your files organized. It trans
 - Automatically move files to correct folder
 - Supports text, audio, and images
 - Local-first LLM support (coming soon, like very soon there's already a branch)
+
+
+
+## Tips and Tricks
+[![Thumbnail (2)](https://github.com/different-ai/file-organizer-2000/assets/11430621/1b2c524b-11bc-484d-9255-4699783303bf)](https://youtube.com/playlist?list=PLgRcC-DFR5jdUxbSBuNeymwYTH_FSVxio&si=I7VpzzAnY0XVQ15c)
+
 
 
 ## How to use
@@ -28,8 +34,6 @@ It takes a sec, and then renames, and organizes your file.
 ![image](https://github.com/different-ai/file-organizer-2000/assets/11430621/f9fd716f-6ada-45c4-bd59-a4efcd79b0e5)
 
 
-Some tips and tricks:
-https://youtube.com/playlist?list=PLgRcC-DFR5jdUxbSBuNeymwYTH_FSVxio&si=I7VpzzAnY0XVQ15c
 
 
 ## Self-hosting
