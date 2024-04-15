@@ -13,9 +13,12 @@ export default function Home() {
           <UnkeyElements />
         </div>
         ) :  (
+          <div className="flex flex-col items-center justify-center">
+
         <p className="text-xl mt-4">
           Just paste this URL in the plugin settings in Obsidian and you're good to go!
         </p>
+        </div>
         )}
    </div>
     </main>
