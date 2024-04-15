@@ -21,7 +21,7 @@ This is an Obsidian Plugin that uses AI to keep your files organized. It trans
 cd ./app
 npm i && npm run build
 OPENAI_API_KEY=[your open ai api key] npm run start
-`
+```
 
 2. Go inside the Settings of the plugin and enable "Self-hosted"
 
