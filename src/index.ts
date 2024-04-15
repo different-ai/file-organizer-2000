@@ -5,6 +5,7 @@ import {
   TFile,
   TAbstractFile,
   moment,
+  WorkspaceLeaf,
 } from "obsidian";
 import useName from "./modules/name";
 import useVision from "./modules/vision";
@@ -12,6 +13,7 @@ import useAudio from "./modules/audio";
 import useText from "./modules/text";
 import { logMessage, formatToSafeName } from "../utils";
 import { FileOrganizerSettingTab } from "./FileOrganizerSettingTab";
+import { ASSISTANT_VIEW_TYPE, AssistantView } from "./AssistantView";
 class FileOrganizerSettings {
   API_KEY = "";
   useLogs = true;
@@ -21,7 +23,7 @@ class FileOrganizerSettings {
   logFolderPath = "_FileOrganizer2000/Logs";
   useSimilarTags = true; // default value is true
   customVisionPrompt = ""; // default value is an empty string
-  useAutoAppend = false; // default value is true
+  useAutoAppend = false;
   defaultServerUrl = "https://app.fileorganizer2000.com";
   customServerUrl = "https://file-organizer-2000.vercel.app/";
   useCustomServer = false;
@@ -67,9 +69,16 @@ export default class FileOrganizer extends Plugin {
       new Notice(`Error processing ${file.basename}: ${e.message}`, 3000);
     }
   }
+
   // experimental meant to extend user capabilities
   async useCustomClassifier(content: string) {
-    const classifications = ["todos", "notes", "morning notes", "reminder"];
+    // const classifications = ["todos", "notes", "morning notes", "reminder"];
+    const classifications = [
+      { type: "todos", moveTo: "/todos" },
+      { type: "notes", moveTo: "/notes" },
+      { type: "morning notes", moveTo: "/morning-notes" },
+      { type: "reminder", moveTo: "/reminders" },
+    ];
     const whatTypeOfDocument = await useText(
       `Content:
 				${content} 
@@ -85,6 +94,7 @@ export default class FileOrganizer extends Plugin {
       }
     );
     logMessage("This is closest to the following", whatTypeOfDocument);
+    return whatTypeOfDocument;
   }
 
   async handleMediaFile(file: TFile, content: string) {
@@ -118,6 +128,19 @@ export default class FileOrganizer extends Plugin {
     await this.app.vault.copy(file, destinationPath);
     this.appendToCustomLogFile(
       `Backed Up [[${file.name}]] to ${destinationPath}`
+    );
+  }
+
+  async showAssistantSidebar() {
+    this.app.workspace.detachLeavesOfType(ASSISTANT_VIEW_TYPE);
+
+    await this.app.workspace.getRightLeaf(false).setViewState({
+      type: ASSISTANT_VIEW_TYPE,
+      active: true,
+    });
+
+    this.app.workspace.revealLeaf(
+      this.app.workspace.getLeavesOfType(ASSISTANT_VIEW_TYPE)[0]
     );
   }
 
@@ -507,6 +530,7 @@ export default class FileOrganizer extends Plugin {
 
   async onload() {
     await this.initializePlugin();
+
     // on layout ready register event handlers
     this.addCommand({
       id: "append-existing-tags",
@@ -519,6 +543,14 @@ export default class FileOrganizer extends Plugin {
         }
       },
     });
+    this.addCommand({
+      id: "show-assistant",
+      name: "Show Assistant",
+      callback: async () => {
+        await this.showAssistantSidebar();
+      },
+    });
+
     this.addCommand({
       id: "add-to-inbox",
       name: "Put in inbox",
@@ -570,9 +602,14 @@ export default class FileOrganizer extends Plugin {
     await this.loadSettings();
     this.ensureFolderExists(this.settings.pathToWatch);
     this.addSettingTab(new FileOrganizerSettingTab(this.app, this));
+    this.registerView(
+      ASSISTANT_VIEW_TYPE,
+      (leaf: WorkspaceLeaf) => new AssistantView(leaf, this)
+    );
   }
 
   registerEventHandlers() {
+    // inbox events
     this.registerEvent(
       this.app.vault.on("create", (file) => {
         if (!file.path.includes(this.settings.pathToWatch)) return;
