@@ -16,9 +16,15 @@ This is an Obsidian Plugin that uses AI to keep your files organized. It trans
 
 ### Self-hosting
 
+1. Run  server
+```sh
+cd ./app
+npm i && npm run build
+OPENAI_API_KEY=[your open ai api key] npm run start
+`
 
-1. Run the next js repo inside of `cd ./app` & `npm i && OPENAI_API_KEY=[your open ai api key] npm run start `)
 2. Go inside the Settings of the plugin and enable "Self-hosted"
+
 
 <img width="707" alt="Screenshot 2024-04-13 at 07 16 21" src="https://github.com/different-ai/file-organizer-2000/assets/11430621/ca2222c9-cb8d-4d15-8459-2da4c9662f24">
 
