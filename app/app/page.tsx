@@ -6,7 +6,7 @@ export default function Home() {
       <div className="flex flex-col items-center justify-center">
         <h1 className="text-4xl font-bold">Welcome to File Organizer 2000</h1>
         { process.env.ENABLE_USER_MANAGEMENT == 'true' ? ( 
-        <div>
+        <div className="flex flex-col items-center justify-center">
           <p className="text-xl mt-4">
             Just paste this inside File Organizer 2000 and you're good to go!
           </p>
@@ -17,7 +17,7 @@ export default function Home() {
           Just paste this URL in the plugin settings in Obsidian and you're good to go!
         </p>
         )}
-      </div>
+   </div>
     </main>
   );
 }
