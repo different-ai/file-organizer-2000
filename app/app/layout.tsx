@@ -14,11 +14,15 @@ export default function RootLayout({
 }: {
   children: React.ReactNode;
 }) {
-  return (
-    <ClerkProvider>
+  process.env.REACT_APP_SHOW_CLERK === 'true' ? (
+      <ClerkProvider>
+        <html lang="en">
+          <body>{children}</body>
+        </html>
+      </ClerkProvider>
+    ) : (
       <html lang="en">
-        <body>{children}</body>
+        <body></body>
       </html>
-    </ClerkProvider>
-  );
+    )
 }
