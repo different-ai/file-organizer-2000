@@ -9,25 +9,34 @@ export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse<ResponseData>
 ) {
-  const header = req.headers.authorization;
-  console.log("header", header);
-  if (!header) {
-    return new Response("No Authorization header", { status: 401 });
-  }
-  const token = header.replace("Bearer ", "");
-  const { result, error } = await verifyKey(token);
+  // if ENABLE_USER_MANAGEMENT=true in .env file, then we need to check for the Authorization header
+  if (process.env.ENABLE_USER_MANAGEMENT == "true") {
+    console.log("ENABLE_USER_MANAGEMENT", process.env.ENABLE_USER_MANAGEMENT)
 
-  if (error) {
-    console.error(error.message);
-    return new Response("Internal Server Error", { status: 500 });
-  }
+    const header = req.headers.authorization;
+    console.log("header", header);
+    if (!header) {
+      return new Response("No Authorization header", { status: 401 });
+    }
+    const token = header.replace("Bearer ", "");
+    const { result, error } = await verifyKey(token);
 
-  if (!result.valid) {
-    // do not grant access
-    return new Response("Unauthorized", { status: 401 });
+    if (error) {
+      console.error(error.message);
+      return new Response("Internal Server Error", { status: 500 });
+    }
+
+    if (!result.valid) {
+      // do not grant access
+      // 
+
+      //  return new Response("Unauthorized", { status: 401 });
+      return res.status(401).json({ message: "Unauthorized" });
+    }
   }
   try {
     const apiKey = process.env.OPENAI_API_KEY || "";
+    console.log("apiKey", apiKey)
     const model = "gpt-4-turbo";
     const data = {
       ...req.body,
