@@ -333,11 +333,13 @@ export default class FileOrganizer extends Plugin {
     );
     // Extract the most similar tags from the response
 
+    console.log("mostSimilarTags", mostSimilarTags);
     return (
       mostSimilarTags
         // remove all special characters except # to avoid having tags item listed with - or other special characters
         .replace(/[^a-zA-Z0-9# ]/g, "")
-        .split(",")
+        .split(" ")
+        // .split(",")
         .map((tag: string) => tag.trim())
         .filter((tag: string) => !content.includes(tag))
     );
