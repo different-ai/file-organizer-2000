@@ -15,15 +15,6 @@ export class FileOrganizerSettingTab extends PluginSettingTab {
 
     containerEl.empty();
 
-    const loginButton = new Setting(containerEl)
-      .setName("Login")
-      .setDesc("Click to login to File Organizer 2000")
-      .addButton((button) =>
-        button.setButtonText("Login").onClick(() => {
-          window.open("https://app.fileorganizer2000.com/", "_blank");
-        })
-      );
-
     const apiKeySetting = new Setting(containerEl)
       .setName("File Organizer API Key")
       .setDesc(
@@ -35,10 +26,21 @@ export class FileOrganizerSettingTab extends PluginSettingTab {
           .setValue(this.plugin.settings.API_KEY)
           .onChange(async (value) => {
             if (value) loginButton.settingEl.hide();
+            if (!value) loginButton.settingEl.show();
             this.plugin.settings.API_KEY = value;
             await this.plugin.saveSettings();
           })
       );
+
+    const loginButton = new Setting(containerEl)
+      .setName("Login")
+      .setDesc("Click to login to File Organizer 2000")
+      .addButton((button) =>
+        button.setButtonText("Login").onClick(() => {
+          window.open("https://app.fileorganizer2000.com/", "_blank");
+        })
+      );
+    loginButton.settingEl.hide();
 
     new Setting(containerEl)
       .setName("Inbox folder")
@@ -52,42 +54,6 @@ export class FileOrganizerSettingTab extends PluginSettingTab {
             await this.plugin.saveSettings();
           })
       );
-
-    new Setting(containerEl)
-      .setName("Use Self-hosted")
-      .setDesc("Toggle to use a custom server instead of the default.")
-      .addToggle((toggle) =>
-        toggle
-          .setValue(this.plugin.settings.useCustomServer)
-          .onChange(async (value) => {
-            this.plugin.settings.useCustomServer = value;
-            await this.plugin.saveSettings();
-            if (!value) {
-              apiKeySetting.settingEl.show();
-              customServerSetting.settingEl.hide();
-              return;
-            }
-            apiKeySetting.settingEl.hide();
-            customServerSetting.settingEl.show();
-          })
-      );
-
-    const customServerSetting = new Setting(containerEl)
-      .setName("Self-hosted URL")
-      .setDesc("Enter the address of your custom server.")
-      .addText((text) =>
-        text
-          .setPlaceholder("http://localhost:3000")
-          .setValue(this.plugin.settings.customServerUrl)
-          .onChange(async (value) => {
-            this.plugin.settings.customServerUrl = value;
-            await this.plugin.saveSettings();
-          })
-      );
-
-    if (!this.plugin.settings.useCustomServer) {
-      customServerSetting.settingEl.hide();
-    }
 
     new Setting(containerEl).setName("Features").setHeading();
 
@@ -163,6 +129,47 @@ export class FileOrganizerSettingTab extends PluginSettingTab {
       );
 
     new Setting(containerEl).setName("Experimental features").setHeading();
+
+    new Setting(containerEl)
+      .setName("Use Self-hosted")
+      .setDesc("Toggle to use a custom server instead of the default.")
+      .addToggle((toggle) =>
+        toggle
+          .setValue(this.plugin.settings.useCustomServer)
+          .onChange(async (value) => {
+            this.plugin.settings.useCustomServer = value;
+            await this.plugin.saveSettings();
+            if (!value) {
+              customServerSetting.settingEl.hide();
+              return;
+            }
+            customServerSetting.settingEl.show();
+          })
+      );
+
+    const customServerSetting = new Setting(containerEl)
+      .setName("Self-hosted URL")
+      .setDesc("Enter the address of your custom server.")
+      .addText((text) =>
+        text
+          .setPlaceholder("http://localhost:3000")
+          .setValue(this.plugin.settings.customServerUrl)
+          .onChange(async (value) => {
+            this.plugin.settings.customServerUrl = value;
+            await this.plugin.saveSettings();
+          })
+      );
+
+    customServerSetting.settingEl.hide();
+
+    if (this.plugin.settings.useCustomServer) {
+      customServerSetting.settingEl.show();
+    }
+
+    if (!this.plugin.settings.API_KEY) {
+      loginButton.settingEl.show();
+    }
+
     new Setting(containerEl)
       .setName("Custom vision prompt")
       .setDesc("Enter your custom prompt for vision processing here")
