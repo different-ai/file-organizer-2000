@@ -15,7 +15,24 @@ This is an Obsidian Plugin that uses AI to keep your files organized. It trans
 - Local-first LLM support (coming soon, like very soon there's already a branch)
 
 
-### Self-hosting
+## How to use
+
+Simply move any of your files to the "Inbox" folder and the plugin will automatically move it to the most likely folder.
+
+Place your unorganized files into `_FileOrganizer2000/Inbox`
+
+![image](https://github.com/different-ai/file-organizer-2000/assets/11430621/295038f0-170c-456e-8e0a-e89c31719b95)
+
+It takes a sec, and then renames, and organizes your file.
+
+![image](https://github.com/different-ai/file-organizer-2000/assets/11430621/f9fd716f-6ada-45c4-bd59-a4efcd79b0e5)
+
+
+Some tips and tricks:
+https://youtube.com/playlist?list=PLgRcC-DFR5jdUxbSBuNeymwYTH_FSVxio&si=I7VpzzAnY0XVQ15c
+
+
+## Self-hosting
 
 1. Run  server
 ```sh
@@ -30,25 +47,6 @@ OPENAI_API_KEY=[your open ai api key] npm run start
 <img width="707" alt="Screenshot 2024-04-13 at 07 16 21" src="https://github.com/different-ai/file-organizer-2000/assets/11430621/ca2222c9-cb8d-4d15-8459-2da4c9662f24">
 
 
-## How to use
-
-Simply move any of your files to the "Inbox" folder and the plugin will automatically move it to the most likely folder.
-
-
-
-### Use cass with the iOS Shortcut (not essential)
-
-
-### Transcribe a voice recording
-
-https://github.com/different-ai/file-organizer-2000/assets/11430621/7565a32f-4e39-4585-b2f6-7c0865d5345d
-
-
-### Take a picture and automatically annotate and store it
-
-https://github.com/different-ai/file-organizer-2000/assets/11430621/e46b87b0-ede3-4293-bca7-69cbfa8762f8
-
-
 
 ## Small iOS shortcut for easy access
 The iOS shortcut bellow makes it easy for you to easily work from your phone with this plugin.
@@ -61,7 +59,6 @@ https://www.icloud.com/shortcuts/06915768862848fb9711f2f19b6405e2
 
 - [ ] Replace GPT Vision by a local model
 - [ ] Make it easy for peopel to extend whaetever workflow.
-- [ ] Switch to OpenAI assistant API
 
 
 
