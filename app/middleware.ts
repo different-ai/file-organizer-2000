@@ -7,7 +7,7 @@ const authMiddleware = clerkAuthMiddleware({
     "/api/vision",
     "/api/audio",
     "/api/text",
-    "api/secret",
+    "/api/secret",
   ],
 });
 
