@@ -213,7 +213,7 @@ export default class FileOrganizer extends Plugin {
       `${destinationFolder}/${humanReadableFileName}.${file.extension}`
     );
     await this.appendToCustomLogFile(
-      `Organized [[${baseName}${file.extension}]] into ${destinationFolder} as [[${humanReadableFileName}.${file.extension}]]`
+      `Organized [[${baseName}.${file.extension}]] into ${destinationFolder} as [[${humanReadableFileName}.${file.extension}]]`
     );
     return file;
   }
@@ -417,9 +417,9 @@ export default class FileOrganizer extends Plugin {
     if (!this.settings.useSimilarTags) {
       return;
     }
-    console.log(file)
-    console.log('file base', file.basename)
-    console.log('file name', file.name)
+    //console.log(file)
+    //console.log('file base', file.basename)
+    // console.log('file name', file.name)
     // Get similar tags
     const similarTags = await this.getSimilarTags(content, file.basename);
 
