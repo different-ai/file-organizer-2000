@@ -73,7 +73,7 @@ export class FileOrganizerSettingTab extends PluginSettingTab {
 
     new Setting(containerEl)
       .setName("Similar tags")
-      .setDesc("Append similar tags to the processed file.")
+      .setDesc("Append similar tags to processed files.")
       .addToggle((toggle) =>
         toggle
           .setValue(this.plugin.settings.useSimilarTags)
@@ -95,7 +95,18 @@ export class FileOrganizerSettingTab extends PluginSettingTab {
             await this.plugin.saveSettings();
           })
       );
-
+    // new setting for enabling/disabling aliases 
+    new Setting(containerEl)
+      .setName("Aliases")
+      .setDesc("Append aliases to processed files.")
+      .addToggle((toggle) =>
+        toggle
+          .setValue(this.plugin.settings.useAliases)
+          .onChange(async (value) => {
+            this.plugin.settings.useAliases = value;
+            await this.plugin.saveSettings();
+          })
+      );
 
     new Setting(containerEl).setName("Folder config").setHeading();
     new Setting(containerEl)
