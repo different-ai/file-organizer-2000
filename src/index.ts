@@ -97,30 +97,32 @@ export default class FileOrganizer extends Plugin {
   }
 
   async handleMediaFile(file: TFile, content: string) {
+    const baseName = file.basename;
     const humanReadableFileName = await this.generateNameFromContent(content);
     const fileToMove = await this.createFileFromContent(content);
-    // Store the original file name for logging purposes
-    fileToMove.originalFileName = `${file.basename}.${file.extension}`; // Store the original file name as a property of file
     await this.moveToDefaultAttachmentFolder(file, humanReadableFileName);
     await this.appendAttachment(fileToMove, file);
-    await this.renameTagAndOrganize(fileToMove, content, humanReadableFileName);
+    await this.renameTagAndOrganize(fileToMove, content, humanReadableFileName, baseName);
   }
 
   async handleNonMediaFile(file: TFile, content: string) {
+    const baseName = file.basename;
     const humanReadableFileName = await this.generateNameFromContent(content);
-    await this.renameTagAndOrganize(file, content, humanReadableFileName);
+    await this.renameTagAndOrganize(file, content, humanReadableFileName, baseName);
   }
 
   async organizeFile(file: TFile, content: string) {
+    //console.log('organize file', file)
     const destinationFolder = await this.getAIClassifiedFolder(content, file);
     await this.moveContent(file, file.basename, destinationFolder);
   }
 
-  async renameTagAndOrganize(file: TFile, content: string, fileName: string) {
+  async renameTagAndOrganize(file: TFile, content: string, fileName: string, baseName: string) {
+    // console.log('renametagandorganize', fileName)
     const destinationFolder = await this.getAIClassifiedFolder(content, file);
     await this.appendAlias(file, file.basename);
-    await this.appendSimilarTags(content, file);
-    await this.moveContent(file, fileName, destinationFolder);
+    await this.appendSimilarTags(content, file, baseName);
+    await this.moveContent(file, fileName, destinationFolder, baseName);
   }
 
   async createBackup(file: TFile) {
@@ -202,16 +204,16 @@ export default class FileOrganizer extends Plugin {
   async moveContent(
     file: TFile,
     humanReadableFileName: string,
-    destinationFolder = ""
+    destinationFolder = "",
+    baseName?: string
   ) {
-    const originalFileName = `${file.originalFileName}`;
     new Notice(`Moving file to ${destinationFolder}`, 3000);
     await this.app.vault.rename(
       file,
       `${destinationFolder}/${humanReadableFileName}.${file.extension}`
     );
     await this.appendToCustomLogFile(
-      `Organized [[${originalFileName}]] into ${destinationFolder} as [[${humanReadableFileName}.${file.extension}]]`
+      `Organized [[${baseName}${file.extension}]] into ${destinationFolder} as [[${humanReadableFileName}.${file.extension}]]`
     );
     return file;
   }
@@ -411,16 +413,19 @@ export default class FileOrganizer extends Plugin {
     return destinationFolder;
   }
 
-  async appendSimilarTags(content: string, file: TFile) {
+  async appendSimilarTags(content: string, file: TFile, baseName?: string) {
     if (!this.settings.useSimilarTags) {
       return;
     }
+    console.log(file)
+    console.log('file base', file.basename)
+    console.log('file name', file.name)
     // Get similar tags
     const similarTags = await this.getSimilarTags(content, file.basename);
 
     // Append similar tags
     if (similarTags.length > 0) {
-      this.appendToCustomLogFile(`Added similar tags to [[${file.basename}]]`);
+      this.appendToCustomLogFile(`Added similar tags to [[${baseName}.${file.extension}]]`);
       await this.app.vault.append(file, `\n${similarTags.join(" ")}`);
       new Notice(`Added similar tags to ${file.basename}`, 3000);
       return;
