@@ -29,6 +29,8 @@ class FileOrganizerSettings {
   defaultServerUrl = "https://app.fileorganizer2000.com";
   customServerUrl = "https://file-organizer-2000.vercel.app/";
   useCustomServer = false;
+  useSimilarTagsInFrontmatter = false;
+  enableEarlyAccess = false;
 }
 
 const validAudioExtensions = ["mp3", "wav", "webm", "m4a"];
@@ -102,7 +104,9 @@ export default class FileOrganizer extends Plugin {
   async handleMediaFile(file: TFile, content: string) {
     const isRenameEnabled = this.settings.renameDocumentTitle;
     // only rename file if renameDocumentTitle setting is on
-    const humanReadableFileName = isRenameEnabled ? await this.generateNameFromContent(content) : file.basename
+    const humanReadableFileName = isRenameEnabled
+      ? await this.generateNameFromContent(content)
+      : file.basename;
     const fileToMove = await this.createFileFromContent(content);
     await this.moveToDefaultAttachmentFolder(file, humanReadableFileName);
     await this.appendAttachment(fileToMove, file);
@@ -112,7 +116,9 @@ export default class FileOrganizer extends Plugin {
   async handleNonMediaFile(file: TFile, content: string) {
     const isRenameEnabled = this.settings.renameDocumentTitle;
     // only rename file if renameDocumentTitle setting is on
-    const humanReadableFileName = isRenameEnabled ? await this.generateNameFromContent(content) : file.basename
+    const humanReadableFileName = isRenameEnabled
+      ? await this.generateNameFromContent(content)
+      : file.basename;
     await this.renameTagAndOrganize(file, content, humanReadableFileName);
   }
 
@@ -169,6 +175,18 @@ export default class FileOrganizer extends Plugin {
     logMessage("Appending attachment", attachmentFile);
     await this.app.vault.append(processedFile, `![[${attachmentFile.name}]]`);
   }
+  async appendToFrontMatter(file: TFile, key: string, value: string) {
+    await this.app.fileManager.processFrontMatter(file, (frontmatter) => {
+      if (!frontmatter.hasOwnProperty(key)) {
+        frontmatter[key] = value;
+        return;
+      }
+      if (!Array.isArray(frontmatter[key])) {
+        frontmatter[key] = [frontmatter[key]];
+      }
+      frontmatter[key].push(value);
+    });
+  }
 
   async appendAlias(file: TFile, alias: string) {
     if (!this.settings.useAliases) {
@@ -176,15 +194,7 @@ export default class FileOrganizer extends Plugin {
       return;
     }
     logMessage("Appending alias", alias);
-    await this.app.fileManager.processFrontMatter(file, (frontmatter) => {
-      if (!frontmatter.hasOwnProperty("alias")) {
-        frontmatter["alias"] = [];
-      }
-      if (!Array.isArray(frontmatter["alias"])) {
-        frontmatter["alias"] = [frontmatter["alias"]];
-      }
-      frontmatter["alias"].push(alias);
-    });
+    this.appendToFrontMatter(file, "alias", alias);
   }
 
   // creates a .md file with a humean readable name guessed from the content
@@ -349,16 +359,32 @@ export default class FileOrganizer extends Plugin {
     );
     // Extract the most similar tags from the response
 
-    console.log("mostSimilarTags", mostSimilarTags);
-    return (
-      mostSimilarTags
-        // remove all special characters except # to avoid having tags item listed with - or other special characters
-        .replace(/[^a-zA-Z0-9# ]/g, "")
-        .split(" ")
-        // .split(",")
-        .map((tag: string) => tag.trim())
-        .filter((tag: string) => !content.includes(tag))
-    );
+    logMessage("mostSimilarTags", mostSimilarTags);
+
+    logMessage("content", content);
+    const normalizedTags = mostSimilarTags
+      // remove all special characters except # to avoid having tags item listed with - or other special characters
+      .replace(/[^a-zA-Z0-9# ]/g, "")
+      .split(" ")
+      // add # to the beginning of the tag if it's not there
+      .map((tag: string) => (tag.startsWith("#") ? tag : `#${tag}`))
+      .map((tag: string) => tag.trim())
+      // also filter out tags that are already in the file
+      .filter((tag: string) => !content.includes(tag))
+      // this should probie replaced by this.app.fileManager.processFrontMatter
+      .filter(async (tag: string) => {
+        // Check for tag in front matter
+        const frontMatterRegex = new RegExp(
+          `^tags:\\s*\\[.*?${tag.slice(1)}.*?\\]`,
+          "m"
+        );
+        // Check for tag inline
+        const inlineTagRegex = new RegExp(`\\s${tag}(\\s|$)`);
+        return !frontMatterRegex.test(content) && !inlineTagRegex.test(content);
+      });
+
+    logMessage("normalizedTags", normalizedTags);
+    return normalizedTags;
   }
   isTFolder(file: TAbstractFile): file is TFolder {
     return file instanceof TFolder;
@@ -392,7 +418,8 @@ export default class FileOrganizer extends Plugin {
 
     // Get the most similar folder based on the content and file name
     const mostSimilarFolder = await useText(
-      `Given the text content "${content}" (and if the file name "${file.basename
+      `Given the text content "${content}" (and if the file name "${
+        file.basename
       }"), which of the following folders would be the most appropriate location for the file? Available folders: ${uniqueFolders.join(
         ", "
       )}`,
@@ -423,6 +450,14 @@ export default class FileOrganizer extends Plugin {
     // Return the determined destination folder
     return destinationFolder;
   }
+  async appendTag(file: TFile, tag: string) {
+    // Append similar tags
+    if (this.settings.useSimilarTagsInFrontmatter) {
+      await this.appendToFrontMatter(file, "tags", tag);
+      return;
+    }
+    await this.app.vault.append(file, `\n${tag}`);
+  }
 
   async appendSimilarTags(content: string, file: TFile) {
     if (!this.settings.useSimilarTags) {
@@ -431,14 +466,17 @@ export default class FileOrganizer extends Plugin {
     // Get similar tags
     const similarTags = await this.getSimilarTags(content, file.basename);
 
-    // Append similar tags
-    if (similarTags.length > 0) {
-      this.appendToCustomLogFile(`Added similar tags to [[${file.basename}]]`);
-      await this.app.vault.append(file, `\n${similarTags.join(" ")}`);
-      new Notice(`Added similar tags to ${file.basename}`, 3000);
+    if (similarTags.length === 0) {
+      new Notice(`No similar tags found`, 3000);
       return;
     }
-    new Notice(`No similar tags found`, 3000);
+    similarTags.forEach(async (tag) => {
+      await this.appendTag(file, tag);
+    });
+
+    this.appendToCustomLogFile(`Added similar tags to [[${file.basename}]]`);
+    new Notice(`Added similar tags to ${file.basename}`, 3000);
+    return;
   }
 
   async appendFok2kTag(file: TFile) {
@@ -449,7 +487,6 @@ export default class FileOrganizer extends Plugin {
     }
     // append a 'fo2k-processed' tag to the file and skip a line
     await this.app.vault.append(file, `\n\n#fo2k-processed`);
-
 
     //new Notice(`Added #fo2k-processed tag to ${file.basename}`, 3000);
   }

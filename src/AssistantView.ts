@@ -1,12 +1,6 @@
-import {
-  ItemView,
-  MarkdownPreviewView,
-  MarkdownRenderChild,
-  MarkdownView,
-  TFile,
-  WorkspaceLeaf,
-} from "obsidian";
+import { ItemView, TFile, WorkspaceLeaf, setIcon } from "obsidian";
 import FileOrganizer from ".";
+import { logMessage } from "../utils";
 
 export const ASSISTANT_VIEW_TYPE = "fo2k.assistant.sidebar";
 
@@ -15,7 +9,8 @@ export class AssistantView extends ItemView {
   private suggestionBox: HTMLElement;
   private loading: HTMLElement;
   private similarLinkBox: HTMLDivElement;
-  similarFolderBox: HTMLDivElement;
+  private similarFolderBox: HTMLDivElement;
+  private aliasSuggestionBox: HTMLDivElement; // Added for rename suggestion
 
   constructor(leaf: WorkspaceLeaf, plugin: FileOrganizer) {
     super(leaf);
@@ -44,7 +39,6 @@ export class AssistantView extends ItemView {
   };
   suggestTags = async (file: TFile, content: string) => {
     const tags = await this.plugin.getSimilarTags(content, file.basename);
-    this.loading.style.display = "block";
 
     if (tags.length > 0) {
       this.suggestionBox.empty();
@@ -65,10 +59,10 @@ export class AssistantView extends ItemView {
         child.style.cursor = "pointer";
         child.style.margin = "2px";
         child.addEventListener("click", () => {
-          if (!tag.startsWith('#')) {
+          if (!tag.startsWith("#")) {
             tag = `#${tag}`;
           }
-          this.app.vault.append(file, `\n ${tag}`);
+          this.plugin.appendTag(file, tag);
           child.remove();
         });
       });
@@ -77,23 +71,48 @@ export class AssistantView extends ItemView {
     }
     this.loading.style.display = "none";
   };
+  suggestAlias = async (file: TFile, content: string) => {
+    const suggestedName = await this.plugin.generateNameFromContent(content);
+    this.aliasSuggestionBox.empty();
+
+    this.aliasSuggestionBox.style.display = "flex";
+    this.aliasSuggestionBox.style.alignItems = "center";
+    const nameElement = this.aliasSuggestionBox.createEl("span", {
+      text: suggestedName,
+    });
+    const renameIcon = this.aliasSuggestionBox.createEl("span", {
+      cls: ["clickable-icon", "setting-editor-extra-setting-button"],
+    });
+    setIcon(renameIcon, "plus");
+
+    renameIcon.onclick = async () => {
+      logMessage("Adding alias " + suggestedName + " to " + file.basename);
+      this.plugin.appendToFrontMatter(file, "alias", suggestedName);
+    };
+    this.aliasSuggestionBox.appendChild(nameElement);
+    this.aliasSuggestionBox.appendChild(renameIcon);
+  };
 
   suggestFolders = async (file: TFile, content: string) => {
     const folder = await this.plugin.getAIClassifiedFolder(content, file);
     this.similarFolderBox.empty();
+    this.similarFolderBox.style.display = "flex";
+    this.similarFolderBox.style.alignItems = "center";
     this.similarFolderBox.appendChild(
       this.similarFolderBox.createEl("span", { text: folder })
     );
-    const addFileButton = this.similarFolderBox.createEl("button", {
+    const moveFilebutton = this.similarFolderBox.createEl("div", {
       text: "Move",
-      cls: ["mod-cta"],
+      cls: ["clickable-icon", "setting-editor-extra-setting-button"],
     });
-    addFileButton.style.cursor = "pointer";
-    addFileButton.style.margin = "8px";
-    addFileButton.onclick = () => {
+
+    setIcon(moveFilebutton, "folder-input");
+    moveFilebutton.style.cursor = "pointer";
+    moveFilebutton.style.margin = "8px";
+    moveFilebutton.onclick = () => {
       this.plugin.moveContent(file, file.basename, folder);
     };
-    this.similarFolderBox.appendChild(addFileButton);
+    this.similarFolderBox.appendChild(moveFilebutton);
   };
 
   handleFileOpen = async (file: TFile) => {
@@ -101,12 +120,22 @@ export class AssistantView extends ItemView {
     this.suggestTags(file, content);
     this.suggestLinks(file, content);
     this.suggestFolders(file, content);
+    this.suggestAlias(file, content); // Call the suggestRename method
   };
 
   initUI() {
     this.containerEl.empty();
     this.containerEl.addClass("tag-container");
-
+    if (!this.plugin.settings.enableEarlyAccess) {
+      this.containerEl.createEl("h3", {
+        text: "The AI Assistant is an early access feature currently available to supporters.",
+      });
+      const supportLink = this.containerEl.createEl("a", {
+        href: "https://dub.sh/support-fo2k",
+        text: "Support here to gain access.",
+      });
+      supportLink.setAttr("target", "_blank");
+    }
     this.containerEl.createEl("h4", {
       text: "Similar tags",
       cls: ["tree-item-self"],
@@ -128,6 +157,13 @@ export class AssistantView extends ItemView {
     this.similarFolderBox = this.containerEl.createEl("div");
     this.similarFolderBox.style.paddingLeft = "24px";
 
+    this.containerEl.createEl("h4", {
+      text: "Suggested Alias",
+      cls: ["tree-item-self"],
+    });
+    this.aliasSuggestionBox = this.containerEl.createEl("div");
+    this.aliasSuggestionBox.style.paddingLeft = "24px";
+
     this.loading = this.suggestionBox.createEl("div", {
       text: "Loading...",
     });
@@ -135,10 +171,16 @@ export class AssistantView extends ItemView {
   }
 
   async onOpen() {
+    this.containerEl.empty();
+    this.containerEl.addClass("tag-container");
     this.initUI();
 
     this.registerEvent(
       this.app.workspace.on("file-open", async (file) => {
+        if (!this.plugin.settings.enableEarlyAccess) {
+          return;
+        }
+        this.loading.style.display = "block";
         if (!file) {
           this.suggestionBox.setText("No file opened");
           this.loading.style.display = "none";

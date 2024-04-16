@@ -1,4 +1,4 @@
-import { PluginSettingTab, App, Setting } from "obsidian";
+import { PluginSettingTab, App, Setting, requestUrl, Notice } from "obsidian";
 import { logMessage, cleanPath } from "../utils";
 import FileOrganizer from "./index";
 
@@ -83,6 +83,18 @@ export class FileOrganizerSettingTab extends PluginSettingTab {
           })
       );
 
+    new Setting(containerEl)
+      .setName("Add similar tags in frontmatter")
+      .setDesc("Use frontmatter to add similar tags to processed files.")
+      .addToggle((toggle) =>
+        toggle
+          .setValue(this.plugin.settings.useSimilarTagsInFrontmatter)
+          .onChange(async (value) => {
+            this.plugin.settings.useSimilarTagsInFrontmatter = value;
+            await this.plugin.saveSettings();
+          })
+      );
+
     //toggle setting for enabling/disabling document title renaming
     new Setting(containerEl)
       .setName("Rename document title")
@@ -95,7 +107,7 @@ export class FileOrganizerSettingTab extends PluginSettingTab {
             await this.plugin.saveSettings();
           })
       );
-    // new setting for enabling/disabling aliases 
+    // new setting for enabling/disabling aliases
     new Setting(containerEl)
       .setName("Aliases")
       .setDesc("Append aliases to processed files.")
@@ -156,6 +168,41 @@ export class FileOrganizerSettingTab extends PluginSettingTab {
     new Setting(containerEl).setName("Experimental features").setHeading();
 
     new Setting(containerEl)
+    .setName("Early Access Features")
+    .setDesc("Activate Early Access Features for advanced file management capabilities.")
+    .addText((text) =>
+      text
+        .setPlaceholder("Enter access code for Early Access Features")
+        .onChange(async (value) => {
+          const jsonPayload = {
+            accessCode: value,
+          };
+          const url = `${this.plugin.settings.defaultServerUrl}/api/secret`;
+          try {
+            const response = await requestUrl({
+              url: url,
+              method: "POST",
+              body: JSON.stringify(jsonPayload),
+              headers: {
+                Authorization: `Bearer ${this.plugin.settings.API_KEY}`,
+                "Content-Type": "application/json",
+              },
+            });
+            if (response.status === 200) {
+              this.plugin.settings.enableEarlyAccess = true; // Assuming this setting enables all early access features
+              await this.plugin.saveSettings();
+              new Notice("Early Access Features Activated Successfully");
+            } else {
+              new Notice("Failed to activate Early Access Features.");
+            }
+          } catch (error) {
+            console.error("Error activating Early Access Features:", error);
+            new Notice("Error during activation process.");
+          }
+        })
+    );
+
+    new Setting(containerEl)
       .setName("Use Self-hosted")
       .setDesc("Toggle to use a custom server instead of the default.")
       .addToggle((toggle) =>
@@ -209,19 +256,18 @@ export class FileOrganizerSettingTab extends PluginSettingTab {
       );
 
     new Setting(containerEl)
-      .setName("Experimental: Describe workfow (contact for access)")
+      .setName("AI Assistant (available in early access)")
+      .setDesc("A sidebar that gives you more control in your file management.")
+      .addToggle((toggle) => toggle.setDisabled(true));
+
+    new Setting(containerEl)
+      .setName("Experimental: Describe workflow (in progress)")
       .setDesc(
         "Use words to explain how File Organizer uses GPT-4 to organize your files."
       )
       .setDisabled(true);
     new Setting(containerEl)
-      .setName("Experimental: Append to Existing file (contact for access)")
-      .setDesc(
-        "Let file Organizer find the most similar file and append the content to it."
-      )
-      .setDisabled(true);
-    new Setting(containerEl)
-      .setName("Experimental: Full Auto Org (contact for access)")
+      .setName("Experimental: Full Auto Org (in progress)")
       .setDesc("Let file Organizer work fully automatically.")
       .setDisabled(true);
   }
