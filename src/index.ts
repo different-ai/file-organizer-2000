@@ -22,6 +22,7 @@ class FileOrganizerSettings {
   pathToWatch = "_FileOrganizer2000/Inbox";
   logFolderPath = "_FileOrganizer2000/Logs";
   useSimilarTags = true; // default value is true
+  renameDocumentTitle = true; // default value is true
   useAliases = false; // default value is false
   customVisionPrompt = ""; // default value is an empty string
   useAutoAppend = false;
@@ -99,7 +100,9 @@ export default class FileOrganizer extends Plugin {
   }
 
   async handleMediaFile(file: TFile, content: string) {
-    const humanReadableFileName = await this.generateNameFromContent(content);
+    const isRenameEnabled = this.settings.renameDocumentTitle;
+    // only rename file if renameDocumentTitle setting is on
+    const humanReadableFileName = isRenameEnabled ? await this.generateNameFromContent(content) : file.basename
     const fileToMove = await this.createFileFromContent(content);
     await this.moveToDefaultAttachmentFolder(file, humanReadableFileName);
     await this.appendAttachment(fileToMove, file);
@@ -107,7 +110,9 @@ export default class FileOrganizer extends Plugin {
   }
 
   async handleNonMediaFile(file: TFile, content: string) {
-    const humanReadableFileName = await this.generateNameFromContent(content);
+    const isRenameEnabled = this.settings.renameDocumentTitle;
+    // only rename file if renameDocumentTitle setting is on
+    const humanReadableFileName = isRenameEnabled ? await this.generateNameFromContent(content) : file.basename
     await this.renameTagAndOrganize(file, content, humanReadableFileName);
   }
 
