@@ -22,6 +22,7 @@ class FileOrganizerSettings {
   pathToWatch = "_FileOrganizer2000/Inbox";
   logFolderPath = "_FileOrganizer2000/Logs";
   useSimilarTags = true; // default value is true
+  useAliases = false; // default value is false
   customVisionPrompt = ""; // default value is an empty string
   useAutoAppend = false;
   defaultServerUrl = "https://app.fileorganizer2000.com";
@@ -163,6 +164,10 @@ export default class FileOrganizer extends Plugin {
   }
 
   async appendAlias(file: TFile, alias: string) {
+    if (!this.settings.useAliases) {
+      logMessage("Not appending aliases");
+      return;
+    }
     logMessage("Appending alias", alias);
     await this.app.fileManager.processFrontMatter(file, (frontmatter) => {
       if (!frontmatter.hasOwnProperty("alias")) {
@@ -376,8 +381,7 @@ export default class FileOrganizer extends Plugin {
 
     // Get the most similar folder based on the content and file name
     const mostSimilarFolder = await useText(
-      `Given the text content "${content}" (and if the file name "${
-        file.basename
+      `Given the text content "${content}" (and if the file name "${file.basename
       }"), which of the following folders would be the most appropriate location for the file? Available folders: ${uniqueFolders.join(
         ", "
       )}`,
