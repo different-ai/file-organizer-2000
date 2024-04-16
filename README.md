@@ -53,7 +53,7 @@ OPENAI_API_KEY=[your open ai api key] npm run start
 
 
 ## Small iOS shortcut for easy access
-The iOS shortcut bellow makes it easy for you to easily work from your phone with this plugin.
+The iOS shortcut below makes it easy for you to easily work from your phone with this plugin.
 
 https://www.icloud.com/shortcuts/06915768862848fb9711f2f19b6405e2
 
@@ -62,7 +62,7 @@ https://www.icloud.com/shortcuts/06915768862848fb9711f2f19b6405e2
 ## To Do
 
 - [ ] Replace GPT Vision by a local model
-- [ ] Make it easy for peopel to extend whaetever workflow.
+- [ ] Make it easy for people to extend whatever workflow.
 
 
 
