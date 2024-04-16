@@ -32,7 +32,7 @@ class FileOrganizerSettings {
 }
 
 const validAudioExtensions = ["mp3", "wav", "webm", "m4a"];
-const validImageExtensions = ["png", "jpg", "jpeg", "gif", "svg"];
+const validImageExtensions = ["png", "jpg", "jpeg", "gif", "svg", "webp"];
 const validMediaExtensions = [...validAudioExtensions, ...validImageExtensions];
 const validTextExtensions = ["md", "txt"];
 const validExtensions = [...validMediaExtensions, ...validTextExtensions];
