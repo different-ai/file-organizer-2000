@@ -83,6 +83,20 @@ export class FileOrganizerSettingTab extends PluginSettingTab {
           })
       );
 
+    //toggle setting for enabling/disabling document title renaming
+    new Setting(containerEl)
+      .setName("Rename document title")
+      .setDesc("Rename the document title based on the content.")
+      .addToggle((toggle) =>
+        toggle
+          .setValue(this.plugin.settings.renameDocumentTitle)
+          .onChange(async (value) => {
+            this.plugin.settings.renameDocumentTitle = value;
+            await this.plugin.saveSettings();
+          })
+      );
+
+
     new Setting(containerEl).setName("Folder config").setHeading();
     new Setting(containerEl)
       .setName("Attachments folder")
