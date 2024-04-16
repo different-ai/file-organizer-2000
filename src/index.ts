@@ -69,7 +69,6 @@ export default class FileOrganizer extends Plugin {
       new Notice(`Error processing ${file.basename}: ${e.message}`, 3000);
     }
   }
-
   // experimental meant to extend user capabilities
   async useCustomClassifier(content: string) {
     // const classifications = ["todos", "notes", "morning notes", "reminder"];
@@ -100,6 +99,8 @@ export default class FileOrganizer extends Plugin {
   async handleMediaFile(file: TFile, content: string) {
     const humanReadableFileName = await this.generateNameFromContent(content);
     const fileToMove = await this.createFileFromContent(content);
+    // Store the original file name for logging purposes
+    fileToMove.originalFileName = `${file.basename}.${file.extension}`; // Store the original file name as a property of file
     await this.moveToDefaultAttachmentFolder(file, humanReadableFileName);
     await this.appendAttachment(fileToMove, file);
     await this.renameTagAndOrganize(fileToMove, content, humanReadableFileName);
@@ -203,13 +204,14 @@ export default class FileOrganizer extends Plugin {
     humanReadableFileName: string,
     destinationFolder = ""
   ) {
+    const originalFileName = `${file.originalFileName}`;
     new Notice(`Moving file to ${destinationFolder}`, 3000);
     await this.app.vault.rename(
       file,
       `${destinationFolder}/${humanReadableFileName}.${file.extension}`
     );
     await this.appendToCustomLogFile(
-      `Organized [[${humanReadableFileName}]] into ${destinationFolder}`
+      `Organized [[${originalFileName}]] into ${destinationFolder} as [[${humanReadableFileName}.${file.extension}]]`
     );
     return file;
   }
@@ -217,9 +219,10 @@ export default class FileOrganizer extends Plugin {
   async moveToDefaultAttachmentFolder(file: TFile, newFileName: string) {
     const destinationFolder = this.settings.attachmentsPath;
     const destinationPath = `${destinationFolder}/${newFileName}.${file.extension}`;
+    const originalFileName = `${file.basename}.${file.extension}`;
     await this.app.vault.rename(file, destinationPath);
     this.appendToCustomLogFile(
-      `Moved [[${newFileName}.${file.extension}]] to attachments`
+      `Moved [[${originalFileName}]] to attachments`
     );
   }
 
@@ -376,8 +379,7 @@ export default class FileOrganizer extends Plugin {
 
     // Get the most similar folder based on the content and file name
     const mostSimilarFolder = await useText(
-      `Given the text content "${content}" (and if the file name "${
-        file.basename
+      `Given the text content "${content}" (and if the file name "${file.basename
       }"), which of the following folders would be the most appropriate location for the file? Available folders: ${uniqueFolders.join(
         ", "
       )}`,
