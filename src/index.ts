@@ -30,7 +30,7 @@ class FileOrganizerSettings {
 }
 
 const validAudioExtensions = ["mp3", "wav", "webm", "m4a"];
-const validImageExtensions = ["png", "jpg", "jpeg", "gif", "svg"];
+const validImageExtensions = ["png", "jpg", "jpeg", "gif", "svg", "webp"];
 const validMediaExtensions = [...validAudioExtensions, ...validImageExtensions];
 const validTextExtensions = ["md", "txt"];
 const validExtensions = [...validMediaExtensions, ...validTextExtensions];
@@ -376,8 +376,7 @@ export default class FileOrganizer extends Plugin {
 
     // Get the most similar folder based on the content and file name
     const mostSimilarFolder = await useText(
-      `Given the text content "${content}" (and if the file name "${
-        file.basename
+      `Given the text content "${content}" (and if the file name "${file.basename
       }"), which of the following folders would be the most appropriate location for the file? Available folders: ${uniqueFolders.join(
         ", "
       )}`,
