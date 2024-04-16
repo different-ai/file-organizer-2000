@@ -120,6 +120,8 @@ export default class FileOrganizer extends Plugin {
     await this.appendAlias(file, file.basename);
     await this.appendSimilarTags(content, file);
     await this.moveContent(file, fileName, destinationFolder);
+    // add processed tag to file
+    await this.appendFok2kTag(file);
   }
 
   async createBackup(file: TFile) {
@@ -310,6 +312,10 @@ export default class FileOrganizer extends Plugin {
       logMessage("No tags found");
       return [];
     }
+    // if fo2k-processed tag is found, remove it from list. Prevents duplicate tags
+    if (tags["#fo2k-processed"]) {
+      delete tags["#fo2k-processed"];
+    }
     logMessage("tags", tags);
     // 2. Pass all the tags to GPT-3 and get the most similar tags
     const tagNames = Object.keys(tags);
@@ -376,8 +382,7 @@ export default class FileOrganizer extends Plugin {
 
     // Get the most similar folder based on the content and file name
     const mostSimilarFolder = await useText(
-      `Given the text content "${content}" (and if the file name "${
-        file.basename
+      `Given the text content "${content}" (and if the file name "${file.basename
       }"), which of the following folders would be the most appropriate location for the file? Available folders: ${uniqueFolders.join(
         ", "
       )}`,
@@ -424,6 +429,19 @@ export default class FileOrganizer extends Plugin {
       return;
     }
     new Notice(`No similar tags found`, 3000);
+  }
+
+  async appendFok2kTag(file: TFile) {
+    // check if the file already has the tag
+    const content = await this.app.vault.cachedRead(file);
+    if (content.includes("#fo2k-processed")) {
+      return;
+    }
+    // append a 'fo2k-processed' tag to the file and skip a line
+    await this.app.vault.append(file, `\n\n#fo2k-processed`);
+
+
+    //new Notice(`Added #fo2k-processed tag to ${file.basename}`, 3000);
   }
 
   async getMostSimilarFileByName(
