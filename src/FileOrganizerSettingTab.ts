@@ -168,39 +168,45 @@ export class FileOrganizerSettingTab extends PluginSettingTab {
     new Setting(containerEl).setName("Experimental features").setHeading();
 
     new Setting(containerEl)
-    .setName("Early Access Features")
-    .setDesc("Activate Early Access Features for advanced file management capabilities.")
-    .addText((text) =>
-      text
-        .setPlaceholder("Enter access code for Early Access Features")
-        .onChange(async (value) => {
-          const jsonPayload = {
-            accessCode: value,
-          };
-          const url = `${this.plugin.settings.defaultServerUrl}/api/secret`;
-          try {
-            const response = await requestUrl({
-              url: url,
-              method: "POST",
-              body: JSON.stringify(jsonPayload),
-              headers: {
-                Authorization: `Bearer ${this.plugin.settings.API_KEY}`,
-                "Content-Type": "application/json",
-              },
-            });
-            if (response.status === 200) {
-              this.plugin.settings.enableEarlyAccess = true; // Assuming this setting enables all early access features
-              await this.plugin.saveSettings();
-              new Notice("Early Access Features Activated Successfully");
-            } else {
-              new Notice("Failed to activate Early Access Features.");
+      .setName("Early access features")
+      .setDesc(
+        "Activate early access features. Go to https://dub.sh/2000 to support."
+      )
+      .addText((text) =>
+        text
+          .setPlaceholder("Enter access code for Early Access Features")
+          .setValue(this.plugin.settings.earlyAccessCode)
+          .onChange(async (value) => {
+            const jsonPayload = {
+              code: value,
+            };
+            const url = `${this.plugin.settings.defaultServerUrl}/api/secret`;
+            try {
+              const response = await requestUrl({
+                url: url,
+                method: "POST",
+                body: JSON.stringify(jsonPayload),
+                headers: {
+                  Authorization: `Bearer ${this.plugin.settings.API_KEY}`,
+                  "Content-Type": "application/json",
+                },
+              });
+              logMessage(response);
+
+              if (response.status === 200) {
+                this.plugin.settings.earlyAccessCode = value;
+                this.plugin.settings.enableEarlyAccess = true; // Assuming this setting enables all early access features
+                await this.plugin.saveSettings();
+                new Notice("Early Access Features Activated Successfully");
+              } else {
+                new Notice("Failed to activate Early Access Features.");
+              }
+            } catch (error) {
+              console.error("Error activating Early Access Features:", error);
+              new Notice("Error during activation process.");
             }
-          } catch (error) {
-            console.error("Error activating Early Access Features:", error);
-            new Notice("Error during activation process.");
-          }
-        })
-    );
+          })
+      );
 
     new Setting(containerEl)
       .setName("Use Self-hosted")

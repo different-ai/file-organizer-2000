@@ -31,6 +31,7 @@ class FileOrganizerSettings {
   useCustomServer = false;
   useSimilarTagsInFrontmatter = false;
   enableEarlyAccess = false;
+  earlyAccessCode = "";
 }
 
 const validAudioExtensions = ["mp3", "wav", "webm", "m4a"];
