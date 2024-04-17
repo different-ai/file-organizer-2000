@@ -22,7 +22,19 @@ const UnkeyElements = () => {
       setKey(res.key?.key ?? "");
     }
   }
-
+  const [loading, setLoading] = useState(false);
+  // Show loading state in UI while key is being generated
+  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    setLoading(true);
+    try {
+      await onCreate(new FormData(event.target as HTMLFormElement));
+    } catch (error) {
+      console.error(error);
+    } finally {
+      setLoading(false);
+    }
+  };
   return (
     <div className="mt-8">
       <Card className="w-[350px]">
@@ -32,22 +44,16 @@ const UnkeyElements = () => {
             Create your API key so you can interact with our API.
           </CardDescription>
         </CardHeader>
-        <form action={onCreate}>
-          <CardContent>
-            <div className="grid items-center w-full gap-4">
-              <div className="flex flex-col space-y-1.5">
-                <Label htmlFor="name">API Key Name</Label>
-                <Input name="name" placeholder="My Awesome API " />
-              </div>
-            </div>
-          </CardContent>
+        <form action={onCreate} onSubmit={handleSubmit}>
+  
           <CardFooter className="flex justify-between">
-            <Button type="submit">Create Key</Button>
-          </CardFooter>
+          <Button type="submit" disabled={loading}>
+      {loading ?  'Generating Key...' : 'Create Key'}       </Button>     </CardFooter>
         </form>
       </Card>
       {key && key.length > 0 && (
-        <>
+        <>      
+
           <Card className="w-[350px] mt-8">
             <CardHeader>
               <CardTitle>API Key</CardTitle>
