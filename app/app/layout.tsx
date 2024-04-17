@@ -15,10 +15,16 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <ClerkProvider>
+    process.env.ENABLE_USER_MANAGEMENT == 'true' ? (
+      <ClerkProvider>
+        <html lang="en">
+          <body>{children}</body>
+        </html>
+      </ClerkProvider>
+    ) : (
       <html lang="en">
         <body>{children}</body>
       </html>
-    </ClerkProvider>
+    )
   );
 }
