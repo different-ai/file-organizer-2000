@@ -9,7 +9,7 @@
 5. Once you have your API key, copy & paste it into the plugin Options in the "Enter your API Key" field.
 6. That's it. Now, in your vault within the Obsidian app, move a file into the dedicated Inbox folder. See the magic?!
 
-## Self-hosted (requires some technical skills & an external OpenAI API key with credits)
+## Self-hosted (requires technical skills & an external OpenAI API key with credits)
 
 1. Clone [the repo](https://github.com/different-ai/file-organizer-2000) into the `.obsidian/plugins/` folder within your vault.
 2. Get yourself an OpenAI API key and purchase a minimum of $5 credit.
