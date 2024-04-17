@@ -109,6 +109,9 @@ export default class FileOrganizer extends Plugin {
       ? await this.generateNameFromContent(content)
       : file.basename;
     const fileToMove = await this.createFileFromContent(content);
+    this.appendToCustomLogFile(
+      `Generated annotation for [[${fileToMove.basename}]]`
+    );
     await this.moveToDefaultAttachmentFolder(file, humanReadableFileName);
     await this.appendAttachment(fileToMove, file);
     await this.renameTagAndOrganize(fileToMove, content, humanReadableFileName);
@@ -133,8 +136,6 @@ export default class FileOrganizer extends Plugin {
     await this.appendAlias(file, file.basename);
     await this.appendSimilarTags(content, file);
     await this.moveContent(file, fileName, destinationFolder);
-    // add processed tag to file
-    await this.appendFok2kTag(file);
   }
 
   async createBackup(file: TFile) {
@@ -274,10 +275,6 @@ export default class FileOrganizer extends Plugin {
       apiKey: this.settings.API_KEY,
     });
     const postProcessedText = transcribedText;
-    this.appendToCustomLogFile(
-      `Generated transcription for [[${file.basename}.${file.extension}]]`
-    );
-
     return postProcessedText;
   }
 
@@ -294,9 +291,7 @@ export default class FileOrganizer extends Plugin {
         : this.settings.defaultServerUrl,
       apiKey: this.settings.API_KEY,
     });
-    this.appendToCustomLogFile(
-      `Generated annotation for [[${file.basename}.${file.extension}]]`
-    );
+
     return processedContent;
   }
   async ensureFolderExists(folderPath: string) {

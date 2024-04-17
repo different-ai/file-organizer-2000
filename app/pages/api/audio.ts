@@ -24,25 +24,25 @@ export default async function handler(
   if (process.env.ENABLE_USER_MANAGEMENT == "true") {
     const header = req.headers.authorization;
     if (!header) {
-      return new Response("No Authorization header", { status: 401 });
+      return res.status(401).json({ message: "No Authorization header" });
     }
     const token = header.replace("Bearer ", "");
     const { result, error } = await verifyKey(token);
 
     if (error) {
       console.error(error.message);
-      return new Response("Internal Server Error", { status: 500 });
+      return res.status(500).json({ message: "Internal Server Error" });
     }
 
     if (!result.valid) {
       // do not grant access
-      return new Response("Unauthorized", { status: 401 });
+      return res.status(401).json({ message: "Unauthorized" });
     }
   }
   if (req.method === "POST") {
     const { file } = req.body;
     const base64Data = file.split(";base64,").pop();
-    const tempFilePath = join(tmpdir(), `upload_${Date.now()}.mp3`);
+    const tempFilePath = join(tmpdir(), `upload_${Date.now()}.m4a`);
     await fsPromises.writeFile(tempFilePath, base64Data, {
       encoding: "base64",
     });
