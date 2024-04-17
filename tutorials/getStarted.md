@@ -17,4 +17,4 @@
 4. Go to community plugins in your Obsidian app and click the refresh icon under "Installed plugins". AI File Organizer should now appear. Enable it. 
 5. Go to plugin Options and enable Use Self-Hosted under Experimental features
 6. Paste <http://localhost:3000/> into the URL input below.
-7. That's it. You made it. Now, access your vault within the Obsidian app, and  move a file into the dedicated Inbox folder. See the magic?!
+7. That's it. You made it! Now, access your vault within the Obsidian app, and  move a file into the dedicated Inbox folder. See the magic?!
