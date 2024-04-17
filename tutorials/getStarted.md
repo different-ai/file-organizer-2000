@@ -2,12 +2,12 @@
 
 ## Cloud-hosted
   
-1. Install the plugin & enable it.
+1. Install & enable the plugin.
 2. Go to plugin Options and click on the "Login" button.
-3. Create an account.
-4. You'll be redirected to a screen with button to generate an API key.
-5. Once you have your API key, copy & paste it into the plugin settings in the "Enter your API Key" field.
-6. That's it. Now, in your vault, move a file into the dedicated Inbox folder and see the magic!
+3. Sign up.
+4. You'll then be redirected to a screen with button to generate an API key.
+5. Once you have your API key, copy & paste it into the plugin Options in the "Enter your API Key" field.
+6. That's it. Now, in your vault within the Obsidian app, move a file into the dedicated Inbox folder. See the magic?!
 
 ## Self-hosted (requires some technical skills & an external OpenAI API key with credits)
 
@@ -17,4 +17,4 @@
 4. Go to community plugins in your Obsidian app and click the refresh icon under "Installed plugins". AI File Organizer should now appear. Enable it. 
 5. Go to plugin Options and enable Use Self-Hosted under Experimental features
 6. Paste <http://localhost:3000/> into the URL input below.
-7. That's it. You made it. Now, in your vault,  move a file into the dedicated Inbox folder and see the magic!
+7. That's it. You made it. Now, access your vault within the Obsidian app, and  move a file into the dedicated Inbox folder. See the magic?!
