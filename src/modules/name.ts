@@ -3,7 +3,7 @@ import { logMessage } from "../../utils";
 
 async function useName(document, { baseUrl, apiKey }) {
   const data = {
-    model: "gpt-3.5-turbo-0125",
+    model: "gpt-3.5-turbo",
     messages: [
       {
         role: "system",
