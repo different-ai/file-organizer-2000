@@ -4,7 +4,8 @@
 
 2. Move your item(s) into the dedicated `FileOrganizer2000/Inbox` as seen in the screenshot below.
 
-    **Pre-processed file**  
+    **Pre-processed file:**
+
     ![Pre-processed file](images/pre_processed_file.png)
 
 3. Give it some time to process. Usually, it takes less than a second for a text file. Audio or Image files may take longer.
