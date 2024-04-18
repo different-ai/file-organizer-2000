@@ -38,12 +38,25 @@ It takes a sec, and then renames, and organizes your file.
 
 ## Self-hosting
 
-1. Run  server
-```sh
-cd ./app
-npm i && npm run build
-OPENAI_API_KEY=[your open ai api key] npm run start
-```
+1. Run the server
+
+    For Linux/macOS:
+    ```sh
+    cd ./app
+    npm i && npm run build
+    OPENAI_API_KEY=[your open ai api key] npm run start
+    ```
+    Replace `[your open ai api key]` with your actual OpenAI API key.
+
+    For Windows (PowerShell):
+    ```sh
+    cd .\app
+    npm i; npm run build
+    $env:OPENAI_API_KEY="your open ai api key"; npm run start
+    ```
+    Replace `your open ai api key` with your actual OpenAI API key.
+
+
 
 2. Go inside the Settings of the plugin and enable "Self-hosted"
 
