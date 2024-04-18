@@ -3,7 +3,7 @@ import { logMessage } from "../../utils";
 
 async function useName(document, { baseUrl, apiKey }) {
   const data = {
-    model: "gpt-4-1106-preview",
+    model: "gpt-3.5-turbo",
     messages: [
       {
         role: "system",
@@ -16,9 +16,9 @@ async function useName(document, { baseUrl, apiKey }) {
       },
     ],
   };
+  logMessage("Using gpt-3.5-turbo-0125");
   const endpoint = "api/name";
   const url = `${baseUrl}/${endpoint}`;
-  console.log(url);
   const response = await requestUrl({
     url: url,
     method: "POST",

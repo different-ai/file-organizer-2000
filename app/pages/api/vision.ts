@@ -42,7 +42,7 @@ export default async function handler(
     const payload = req.body;
     console.log("payload text route", payload);
 
-    const model = "gpt-4-vision-preview";
+    const model = "gpt-4-turbo";
 
     const data = {
       ...payload,
