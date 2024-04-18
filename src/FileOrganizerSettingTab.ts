@@ -177,35 +177,38 @@ export class FileOrganizerSettingTab extends PluginSettingTab {
           .setPlaceholder("Enter access code for Early Access Features")
           .setValue(this.plugin.settings.earlyAccessCode)
           .onChange(async (value) => {
-            if (value.length === 8) {
-              const jsonPayload = {
-                code: value,
-              };
-              const url = `${this.plugin.settings.defaultServerUrl}/api/secret`;
-              try {
-                const response = await requestUrl({
-                  url: url,
-                  method: "POST",
-                  body: JSON.stringify(jsonPayload),
-                  headers: {
-                    Authorization: `Bearer ${this.plugin.settings.API_KEY}`,
-                    "Content-Type": "application/json",
-                  },
-                });
-                logMessage(response);
+                       if (value.length !== 8) {
+              return;
+            }
+            const jsonPayload = {
+              code: value,
+            };
+            const url = `${this.plugin.settings.defaultServerUrl}/api/secret`;
+            try {
+              const response = await requestUrl({
+                url: url,
+                method: "POST",
+                body: JSON.stringify(jsonPayload),
+                headers: {
+                  Authorization: `Bearer ${this.plugin.settings.API_KEY}`,
+                  "Content-Type": "application/json",
+                },
+              });
+              logMessage(response);
 
-                if (response.status === 200) {
-                  this.plugin.settings.earlyAccessCode = value;
-                  this.plugin.settings.enableEarlyAccess = true; // Assuming this setting enables all early access features
-                  await this.plugin.saveSettings();
-                  new Notice("Early Access Features Activated Successfully");
-                } else {
-                  new Notice("Failed to activate Early Access Features.");
-                }
-              } catch (error) {
-                console.error("Error activating Early Access Features:", error);
-                new Notice("Error during activation process.");
+              if (response.status !== 200) {
+                new Notice("Failed to activate Early Access Features.");
+                return;
               }
+              this.plugin.settings.earlyAccessCode = value;
+              this.plugin.settings.enableEarlyAccess = true; // Assuming this setting enables all early access features
+              await this.plugin.saveSettings();
+              new Notice("Early Access Features Activated Successfully");
+            } catch (error) {
+              console.error("Error activating Early Access Features:", error);
+              new Notice("Error during activation process.");
+            }
+
             }
           })
       );
