@@ -52,26 +52,51 @@ export default class FileOrganizer extends Plugin {
   settings: FileOrganizerSettings;
 
   // all files in inbox will go through this function
-  async processFileV2(file: TFile) {
+  async processFileV2(originalFile: TFile) {
     try {
-      new Notice(`Looking at ${file.basename}`, 3000);
-      // commented out for testing
+      new Notice(`Looking at ${originalFile.basename}`, 3000);
       this.validateAPIKey();
-      if (!file.extension) return;
-      if (!isValidExtension(file.extension)) return;
+      if (!originalFile.extension || !isValidExtension(originalFile.extension))
+        return;
 
       await this.checkAndCreateFolders();
-      // if it's a text file, get the content, if it's an image, get the annotation, if it's an audio file, get the transcription
-      const text = await this.getTextFromFile(file);
-      this.useCustomClassifier(text);
+      const text = await this.getTextFromFile(originalFile); // Correctly obtaining text from the file
 
-      if (validMediaExtensions.includes(file.extension)) {
-        await this.handleMediaFile(file, text);
+      const isRenameEnabled = this.settings.renameDocumentTitle;
+      // Use 'text' instead of 'content' which was incorrectly referenced
+      const humanReadableFileName = isRenameEnabled
+        ? await this.generateNameFromContent(text) // Corrected to use 'text'
+        : originalFile.basename;
+
+      if (validMediaExtensions.includes(originalFile.extension)) {
+        // Media file handling logic
+        const annotatedContent = await this.createFileFromContent(text);
+        this.appendToCustomLogFile(
+          `Generated annotation for [[${annotatedContent.basename}]]`
+        );
+        await this.moveToDefaultAttachmentFolder(
+          originalFile,
+          humanReadableFileName
+        );
+        await this.appendAttachment(annotatedContent, originalFile);
+        await this.renameTagAndOrganize(
+          annotatedContent,
+          text,
+          humanReadableFileName
+        );
       } else {
-        await this.handleNonMediaFile(file, text);
+        // Non-media file handling logic
+        await this.renameTagAndOrganize(
+          originalFile,
+          text,
+          humanReadableFileName
+        );
       }
     } catch (e) {
-      new Notice(`Error processing ${file.basename}: ${e.message}`, 3000);
+      new Notice(
+        `Error processing ${originalFile.basename}: ${e.message}`,
+        3000
+      );
     }
   }
 
@@ -328,10 +353,7 @@ export default class FileOrganizer extends Plugin {
       logMessage("No tags found");
       return [];
     }
-    // if fo2k-processed tag is found, remove it from list. Prevents duplicate tags
-    if (tags["#fo2k-processed"]) {
-      delete tags["#fo2k-processed"];
-    }
+
     logMessage("tags", tags);
     // 2. Pass all the tags to GPT-3 and get the most similar tags
     const tagNames = Object.keys(tags);
@@ -473,18 +495,6 @@ export default class FileOrganizer extends Plugin {
     this.appendToCustomLogFile(`Added similar tags to [[${file.basename}]]`);
     new Notice(`Added similar tags to ${file.basename}`, 3000);
     return;
-  }
-
-  async appendFok2kTag(file: TFile) {
-    // check if the file already has the tag
-    const content = await this.app.vault.cachedRead(file);
-    if (content.includes("#fo2k-processed")) {
-      return;
-    }
-    // append a 'fo2k-processed' tag to the file and skip a line
-    await this.app.vault.append(file, `\n\n#fo2k-processed`);
-
-    //new Notice(`Added #fo2k-processed tag to ${file.basename}`, 3000);
   }
 
   async getMostSimilarFileByName(
