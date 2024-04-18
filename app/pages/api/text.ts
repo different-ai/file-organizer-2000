@@ -31,7 +31,7 @@ export default async function handler(
   try {
     const apiKey = process.env.OPENAI_API_KEY || "";
 
-    const model = "gpt-4-turbo";
+    const model = "gpt-3.5-turbo-0125";
     const data = {
       ...req.body,
       model,
