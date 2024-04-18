@@ -18,7 +18,7 @@
 
     † *if enabled in plugins options*
 
-    ***Processed file:**
+    **Processed file:**
 
     ![Processed file](images/processed_file.png)  
 
