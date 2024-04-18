@@ -5,7 +5,8 @@
 
 2. Move your item(s) into the dedicated `FileOrganizer2000/Inbox` as seen in the screenshot below.
 
-  TODO: ADD IMAGE IN NEXT COMMIT ![[Screenshot 2024-04-17 at 5.52.55 PM.png]]
+Pre-processed file:
+![  Pre-processed file](images/pre_processed_file.png)
 
 3. Give it some time to process. Usually less than a second for a text file. Audio or Image files may take longer.
 
@@ -13,14 +14,14 @@
 
    I.  Rename the document title º
    II.  Add tags if there are any connections with your other tagged  files º
-   III.  Move your file to the most appropriate folder. If no appropriate folder has been identified, the file move to the `FileOrganizer2000/Processed` 
+   III.  Move your file to the most appropriate folder. If no appropriate folder has been identified, the file moves to the `FileOrganizer2000/Processed` folder.
 
    º if enabled in plugins options
-   
-  TODO: ADD IMAGE IN NEXT COMMIT  ![[Screenshot 2024-04-17 at 6.53.04 PM.png]] 
-   
-   
-   Good to know:
+
+ Processed file:
+   ![Processed file](images/processed_file.png)
+
+ Good to know:
 
 - For audio files: a text transcription will be added to the processed document.
 - For image files: annotations will be added to the processed document
