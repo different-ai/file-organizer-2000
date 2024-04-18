@@ -5,23 +5,23 @@
 
 2. Move your item(s) into the dedicated `FileOrganizer2000/Inbox` as seen in the screenshot below.
 
-Pre-processed file:
+*Pre-processed file*
 ![  Pre-processed file](images/pre_processed_file.png)
 
 3. Give it some time to process. Usually less than a second for a text file. Audio or Image files may take longer.
 
 4. Fo2k will then perform three key actions with the help of AI:
 
-   I.  Rename the document title º
-   II.  Add tags if there are any connections with your other tagged  files º
-   III.  Move your file to the most appropriate folder. If no appropriate folder has been identified, the file moves to the `FileOrganizer2000/Processed` folder.
+I.  Rename the document title º  
+II.  Add tags if there are any connections with your other tagged files º  
+III.  Move your file to the most appropriate folder. If no appropriate folder has been identified, the file moves to the `FileOrganizer2000/Processed` folder.  
 
-   º if enabled in plugins options
+º if enabled in plugins options
 
-Processed file:
-![Processed file](images/processed_file.png)
+*Processed file:*  
+![Processed file](images/processed_file.png)  
 
- Good to know:
+**Good to know:**
 
 - For audio files: a text transcription will be added to the processed document.
 - For image files: annotations will be added to the processed document
