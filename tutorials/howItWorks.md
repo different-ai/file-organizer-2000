@@ -18,8 +18,8 @@ Pre-processed file:
 
    º if enabled in plugins options
 
- Processed file:
-   ![Processed file](images/processed_file.png)
+Processed file:
+![Processed file](images/processed_file.png)
 
  Good to know:
 
