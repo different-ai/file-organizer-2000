@@ -6,6 +6,7 @@ import {
   TAbstractFile,
   moment,
   WorkspaceLeaf,
+  getLinkpath,
 } from "obsidian";
 import useName from "./modules/name";
 import useVision from "./modules/vision";
@@ -127,30 +128,6 @@ export default class FileOrganizer extends Plugin {
     return whatTypeOfDocument;
   }
 
-  async handleMediaFile(file: TFile, content: string) {
-    const isRenameEnabled = this.settings.renameDocumentTitle;
-    // only rename file if renameDocumentTitle setting is on
-    const humanReadableFileName = isRenameEnabled
-      ? await this.generateNameFromContent(content)
-      : file.basename;
-    const fileToMove = await this.createFileFromContent(content);
-    this.appendToCustomLogFile(
-      `Generated annotation for [[${fileToMove.basename}]]`
-    );
-    await this.moveToDefaultAttachmentFolder(file, humanReadableFileName);
-    await this.appendAttachment(fileToMove, file);
-    await this.renameTagAndOrganize(fileToMove, content, humanReadableFileName);
-  }
-
-  async handleNonMediaFile(file: TFile, content: string) {
-    const isRenameEnabled = this.settings.renameDocumentTitle;
-    // only rename file if renameDocumentTitle setting is on
-    const humanReadableFileName = isRenameEnabled
-      ? await this.generateNameFromContent(content)
-      : file.basename;
-    await this.renameTagAndOrganize(file, content, humanReadableFileName);
-  }
-
   async organizeFile(file: TFile, content: string) {
     const destinationFolder = await this.getAIClassifiedFolder(content, file);
     await this.moveContent(file, file.basename, destinationFolder);
@@ -159,8 +136,8 @@ export default class FileOrganizer extends Plugin {
   async renameTagAndOrganize(file: TFile, content: string, fileName: string) {
     const destinationFolder = await this.getAIClassifiedFolder(content, file);
     await this.appendAlias(file, file.basename);
-    await this.appendSimilarTags(content, file);
     await this.moveContent(file, fileName, destinationFolder);
+    await this.appendSimilarTags(content, file);
   }
 
   async createBackup(file: TFile) {
@@ -267,7 +244,7 @@ export default class FileOrganizer extends Plugin {
     const destinationFolder = this.settings.attachmentsPath;
     const destinationPath = `${destinationFolder}/${newFileName}.${file.extension}`;
     await this.app.vault.rename(file, destinationPath);
-    this.appendToCustomLogFile(
+    await this.appendToCustomLogFile(
       `Moved [[${newFileName}.${file.extension}]] to attachments`
     );
   }
@@ -492,7 +469,9 @@ export default class FileOrganizer extends Plugin {
       await this.appendTag(file, tag);
     });
 
-    this.appendToCustomLogFile(`Added similar tags to [[${file.basename}]]`);
+    await this.appendToCustomLogFile(
+      `Added similar tags to [[${file.basename}]]`
+    );
     new Notice(`Added similar tags to ${file.basename}`, 3000);
     return;
   }
