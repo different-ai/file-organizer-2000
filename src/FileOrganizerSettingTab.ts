@@ -158,12 +158,10 @@ export class FileOrganizerSettingTab extends PluginSettingTab {
           .setPlaceholder("Enter your path")
           .setValue(this.plugin.settings.defaultDestinationPath)
           .onChange(async (value) => {
-
             const cleanedPath = cleanPath(value);
             logMessage(cleanedPath);
             this.plugin.settings.defaultDestinationPath = cleanedPath;
             await this.plugin.saveSettings();
-
           })
       );
 
@@ -179,8 +177,11 @@ export class FileOrganizerSettingTab extends PluginSettingTab {
           .setPlaceholder("Enter access code for Early Access Features")
           .setValue(this.plugin.settings.earlyAccessCode)
           .onChange(async (value) => {
+            console.error("runs on change for early access code activation lvl 1");
+            console.error(value.length);
+            console.error(value);
             if (value.length === 8) {
-              console.log("runs early access code activation");
+              console.error("runs on change early access code activation 2");
               const jsonPayload = {
                 code: value,
               };
