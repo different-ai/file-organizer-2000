@@ -177,11 +177,7 @@ export class FileOrganizerSettingTab extends PluginSettingTab {
           .setPlaceholder("Enter access code for Early Access Features")
           .setValue(this.plugin.settings.earlyAccessCode)
           .onChange(async (value) => {
-            console.error("runs on change for early access code activation lvl 1");
-            console.error(value.length);
-            console.error(value);
             if (value.length === 8) {
-              console.error("runs on change early access code activation 2");
               const jsonPayload = {
                 code: value,
               };
