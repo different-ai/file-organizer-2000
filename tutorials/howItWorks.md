@@ -4,7 +4,7 @@
 
 2. Move your item(s) into the dedicated `FileOrganizer2000/Inbox` as seen in the screenshot below.
 
-    *Pre-processed file*  
+    **Pre-processed file**  
     ![Pre-processed file](images/pre_processed_file.png)
 
 3. Give it some time to process. Usually, it takes less than a second for a text file. Audio or Image files may take longer.
@@ -15,9 +15,9 @@
     II. Add tags if there are any connections with your other tagged files †  
     III. Move your file to the most appropriate folder. If no appropriate folder has been identified, the file moves to the `FileOrganizer2000/Processed` folder.  
 
-    † if enabled in plugins options
+    † *if enabled in plugins options*
 
-    *Processed file:*  
+    ***Processed file:**  
     ![Processed file](images/processed_file.png)  
 
 **Good to Know:**
