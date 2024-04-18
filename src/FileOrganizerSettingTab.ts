@@ -208,8 +208,6 @@ export class FileOrganizerSettingTab extends PluginSettingTab {
               console.error("Error activating Early Access Features:", error);
               new Notice("Error during activation process.");
             }
-
-            }
           })
       );
 
