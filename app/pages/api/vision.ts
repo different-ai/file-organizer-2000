@@ -1,5 +1,6 @@
 import { verifyKey } from "@unkey/api";
 import type { NextApiRequest, NextApiResponse } from "next";
+import PosthogClient from "../../lib/posthog";
 
 type ResponseData = {
   message: string;
@@ -27,6 +28,15 @@ export default async function handler(
     const token = header.replace("Bearer ", "");
     const { result, error } = await verifyKey(token);
 
+    const client = PosthogClient();
+
+    if (client && result?.ownerId) {
+      client.capture({
+        distinctId: result?.ownerId,
+        event: "call-api",
+        properties: { endpoint: "vision" },
+      });
+    }
     if (error) {
       console.error(error.message);
       return res.status(500).json({ message: "Internal Server Error" });

@@ -6,6 +6,7 @@ import { tmpdir } from "os";
 import { join } from "path";
 import { promises as fsPromises } from "fs";
 import { verifyKey } from "@unkey/api";
+import PosthogClient from "../../lib/posthog";
 
 export const config = {
   api: {
@@ -29,6 +30,16 @@ export default async function handler(
     const token = header.replace("Bearer ", "");
     const { result, error } = await verifyKey(token);
 
+
+    const client = PosthogClient();
+
+    if (client && result?.ownerId) {
+      client.capture({
+        distinctId: result?.ownerId,
+        event: "call-api",
+        properties: { endpoint: "audio" },
+      });
+    }
     if (error) {
       console.error(error.message);
       return res.status(500).json({ message: "Internal Server Error" });
