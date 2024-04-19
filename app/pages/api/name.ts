@@ -1,5 +1,6 @@
 import { verifyKey } from "@unkey/api";
 import type { NextApiRequest, NextApiResponse } from "next";
+import PosthogClient from "../../lib/posthog";
 
 type ResponseData = {
   message: string;
@@ -11,7 +12,7 @@ export default async function handler(
 ) {
   // if ENABLE_USER_MANAGEMENT=true in .env file, then we need to check for the Authorization header
   if (process.env.ENABLE_USER_MANAGEMENT == "true") {
-    console.log("ENABLE_USER_MANAGEMENT", process.env.ENABLE_USER_MANAGEMENT)
+    console.log("ENABLE_USER_MANAGEMENT", process.env.ENABLE_USER_MANAGEMENT);
 
     const header = req.headers.authorization;
     console.log("header", header);
@@ -20,6 +21,16 @@ export default async function handler(
     }
     const token = header.replace("Bearer ", "");
     const { result, error } = await verifyKey(token);
+
+    const client = PosthogClient();
+
+    if (client && result?.ownerId) {
+      client.capture({
+        distinctId: result?.ownerId,
+        event: "call-api",
+        properties: { endpoint: "name" },
+      });
+    }
 
     if (error) {
       console.error(error.message);
@@ -32,7 +43,7 @@ export default async function handler(
   }
   try {
     const apiKey = process.env.OPENAI_API_KEY || "";
-    console.log("apiKey", apiKey)
+    console.log("apiKey", apiKey);
     const model = "gpt-3.5-turbo";
     const data = {
       ...req.body,

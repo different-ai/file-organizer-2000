@@ -26,6 +26,7 @@
     "next": "13.5.4",
     "openai": "^4.33.1",
     "postcss": "8.4.31",
+    "posthog-node": "^4.0.0",
     "react": "18.2.0",
     "react-dom": "18.2.0",
     "tailwind-merge": "^1.14.0",
