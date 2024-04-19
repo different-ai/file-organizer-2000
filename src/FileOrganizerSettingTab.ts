@@ -5,6 +5,27 @@ import FileOrganizer from "./index";
 export class FileOrganizerSettingTab extends PluginSettingTab {
   plugin: FileOrganizer;
 
+  private async sendSecretApiRequest(jsonPayload: {
+    code: string;
+  }): Promise<any> {
+    const url = `${this.plugin.settings.defaultServerUrl}/api/secret`;
+    try {
+      const response = await requestUrl({
+        url: url,
+        method: "POST",
+        body: JSON.stringify(jsonPayload),
+        headers: {
+          Authorization: `Bearer ${this.plugin.settings.API_KEY}`,
+          "Content-Type": "application/json",
+        },
+      });
+      return response;
+    } catch (error) {
+      console.error("Error sending secret API request:", error);
+      throw error; // Rethrow to handle it outside this function if needed
+    }
+  }
+
   constructor(app: App, plugin: FileOrganizer) {
     super(app, plugin);
     this.plugin = plugin;
@@ -194,8 +215,8 @@ export class FileOrganizerSettingTab extends PluginSettingTab {
             const jsonPayload = {
               code: value,
             };
-            const url = `${this.plugin.settings.defaultServerUrl}/api/secret`;
             try {
+              const url = `${this.plugin.settings.defaultServerUrl}/api/secret`;
               const response = await requestUrl({
                 url: url,
                 method: "POST",
@@ -233,9 +254,11 @@ export class FileOrganizerSettingTab extends PluginSettingTab {
             await this.plugin.saveSettings();
             if (!value) {
               customServerSetting.settingEl.hide();
+              this.plugin.settings.enableEarlyAccess = false;
               return;
             }
             customServerSetting.settingEl.show();
+            this.plugin.settings.enableEarlyAccess = true;
           })
       );
 
@@ -278,7 +301,6 @@ export class FileOrganizerSettingTab extends PluginSettingTab {
     new Setting(containerEl)
       .setName("AI Assistant (available in early access)")
       .setDesc("A sidebar that gives you more control in your file management.")
-      .addToggle((toggle) => toggle.setDisabled(true));
 
     new Setting(containerEl)
       .setName("Experimental: Describe workflow (in progress)")
