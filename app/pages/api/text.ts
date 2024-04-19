@@ -24,7 +24,7 @@ export default async function handler(
     if (client && result?.ownerId) {
       client.capture({
         distinctId: result?.ownerId,
-        event: "text-api",
+        event: "call-api",
         properties: { endpoint: "text" },
       });
     }
