@@ -119,6 +119,17 @@ export class FileOrganizerSettingTab extends PluginSettingTab {
             await this.plugin.saveSettings();
           })
       );
+    new Setting(containerEl)
+      .setName("Processed File Tag")
+      .setDesc("Specify the tag to be added to processed files.")
+      .addToggle((toggle) =>
+        toggle
+          .setValue(this.plugin.settings.processedTag)
+          .onChange(async (value) => {
+            this.plugin.settings.processedTag = value;
+            await this.plugin.saveSettings();
+          })
+      );
 
     new Setting(containerEl).setName("Folder config").setHeading();
     new Setting(containerEl)
@@ -177,7 +188,7 @@ export class FileOrganizerSettingTab extends PluginSettingTab {
           .setPlaceholder("Enter access code for Early Access Features")
           .setValue(this.plugin.settings.earlyAccessCode)
           .onChange(async (value) => {
-                       if (value.length !== 8) {
+            if (value.length !== 8) {
               return;
             }
             const jsonPayload = {

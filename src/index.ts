@@ -33,6 +33,7 @@ class FileOrganizerSettings {
   useSimilarTagsInFrontmatter = false;
   enableEarlyAccess = false;
   earlyAccessCode = "";
+  processedTag = false;
 }
 
 const validAudioExtensions = ["mp3", "wav", "webm", "m4a"];
@@ -71,20 +72,21 @@ export default class FileOrganizer extends Plugin {
 
       if (validMediaExtensions.includes(originalFile.extension)) {
         // Media file handling logic
-        const annotatedContent = await this.createFileFromContent(text);
+        const annotatedFile = await this.createFileFromContent(text);
         this.appendToCustomLogFile(
-          `Generated annotation for [[${annotatedContent.basename}]]`
+          `Generated annotation for [[${annotatedFile.basename}]]`
         );
         await this.moveToDefaultAttachmentFolder(
           originalFile,
           humanReadableFileName
         );
-        await this.appendAttachment(annotatedContent, originalFile);
+        await this.appendAttachment(annotatedFile, originalFile);
         await this.renameTagAndOrganize(
-          annotatedContent,
+          annotatedFile,
           text,
           humanReadableFileName
         );
+        await this.tagAsProcessed(annotatedFile);
       } else {
         // Non-media file handling logic
         await this.renameTagAndOrganize(
@@ -92,6 +94,7 @@ export default class FileOrganizer extends Plugin {
           text,
           humanReadableFileName
         );
+        await this.tagAsProcessed(originalFile);
       }
     } catch (e) {
       new Notice(
@@ -101,11 +104,22 @@ export default class FileOrganizer extends Plugin {
     }
   }
 
+  // we use this to keep track if we have already processed a file vs not
+  // to indicate it to our users (aka they won't need to send it to inbox again)
+  async tagAsProcessed(file: TFile) {
+    if (!this.settings.processedTag) {
+      return;
+    }
+    const tag = "#fo2k";
+    this.appendTag(file, tag);
+  }
+
   // experimental meant to extend user capabilities
   async useCustomClassifier(content: string) {
     // const classifications = ["todos", "notes", "morning notes", "reminder"];
     const classifications = [
       { type: "todos", moveTo: "/todos" },
+      
       { type: "notes", moveTo: "/notes" },
       { type: "morning notes", moveTo: "/morning-notes" },
       { type: "reminder", moveTo: "/reminders" },
