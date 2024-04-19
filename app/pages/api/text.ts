@@ -1,6 +1,6 @@
 import { verifyKey } from "@unkey/api";
 import type { NextApiRequest, NextApiResponse } from "next";
-
+import PosthogClient from "../../lib/posthog";
 type ResponseData = {
   message: string;
 };
@@ -17,6 +17,18 @@ export default async function handler(
     }
     const token = header.replace("Bearer ", "");
     const { result, error } = await verifyKey(token);
+
+
+    const client = PosthogClient();
+
+    if (client && result?.ownerId) {
+      client.capture({
+        distinctId: result?.ownerId,
+        event: "text-api",
+        properties: { endpoint: "text" },
+      });
+    }
+
 
     if (error) {
       console.error(error.message);
