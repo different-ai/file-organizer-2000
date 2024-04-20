@@ -1,4 +1,3 @@
-import { verifyKey } from "@unkey/api";
 import { type ClassValue, clsx } from "clsx";
 import { twMerge } from "tailwind-merge";
 
