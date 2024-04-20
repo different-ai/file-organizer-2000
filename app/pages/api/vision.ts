@@ -43,7 +43,6 @@ export default async function handler(
     }
 
     if (!result.valid) {
-      // do not grant access
       return res.status(401).json({ message: "Unauthorized" });
     }
   }

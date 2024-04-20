@@ -23,7 +23,7 @@
     "eslint": "8.51.0",
     "eslint-config-next": "13.5.4",
     "lucide-react": "^0.287.0",
-    "next": "13.5.4",
+    "next": "^14.2.2",
     "openai": "^4.33.1",
     "postcss": "8.4.31",
     "posthog-node": "^4.0.0",

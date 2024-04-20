@@ -14,7 +14,7 @@ import { Label } from "@/components/ui/label";
 import { useState } from "react";
 import { create } from "./create";
 
-const UnkeyElements = () => {
+const APIKEYForm = () => {
   const [key, setKey] = useState<string>("");
   async function onCreate(formData: FormData) {
     const res = await create(formData);
@@ -38,22 +38,21 @@ const UnkeyElements = () => {
   return (
     <div className="mt-8">
       <Card className="w-[350px]">
-        <CardHeader>
-          <CardTitle>Create API Key</CardTitle>
-          <CardDescription>
-            Create your API key so you can interact with our API.
-          </CardDescription>
-        </CardHeader>
+        <CardHeader></CardHeader>
         <form action={onCreate} onSubmit={handleSubmit}>
-  
           <CardFooter className="flex justify-between">
-          <Button type="submit" disabled={loading}>
-      {loading ?  'Generating Key...' : 'Create Key'}       </Button>     </CardFooter>
+            <Button type="submit" disabled={loading} className="w-full mt-4">
+              {loading ? "Generating Key..." : "Create Key"}{" "}
+            </Button>{" "}
+          </CardFooter>
+          <CardDescription>
+            You'll need it to unlock File Organizer 2000 in your plugin
+            settings.
+          </CardDescription>
         </form>
       </Card>
       {key && key.length > 0 && (
-        <>      
-
+        <>
           <Card className="w-[350px] mt-8">
             <CardHeader>
               <CardTitle>API Key</CardTitle>
@@ -76,4 +75,4 @@ const UnkeyElements = () => {
   );
 };
 
-export { UnkeyElements };
+export { APIKEYForm as UnkeyElements };
