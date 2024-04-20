@@ -40,16 +40,28 @@ export default async function handler(
       return res.status(401).json({ message: "Unauthorized" });
     }
   }
+
   try {
     const apiKey = process.env.OPENAI_API_KEY || "";
+    // Converting to boolean; returns true if USE_OLLAMA=true
+    const useOllama = process.env.USE_OLLAMA !== 'false'
+    console.log("useOllama text", useOllama);
+    console.log(typeof useOllama)
+    const config = useOllama
+      ? { model: "dolphin-mistral", url: "http://localhost:11434/v1/chat/completions" }
+      : { model: "gpt-3.5-turbo", url: "https://api.openai.com/v1/chat/completions" };
 
-    const model = "gpt-3.5-turbo";
     const data = {
       ...req.body,
-      model,
+      model: config.model,
     };
 
-    const response = await fetch("https://api.openai.com/v1/chat/completions", {
+
+    console.log("text config", config);
+
+
+
+    const response = await fetch(config.url, {
       method: "POST",
       body: JSON.stringify(data),
       headers: {

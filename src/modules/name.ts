@@ -17,6 +17,7 @@ async function useName(document, { baseUrl, apiKey }) {
   };
   const endpoint = "api/name";
   const url = `${baseUrl}/${endpoint}`;
+  logMessage('log url', url);
   const response = await requestUrl({
     url: url,
     method: "POST",
@@ -28,7 +29,7 @@ async function useName(document, { baseUrl, apiKey }) {
   });
 
   const result = await response.json;
-  logMessage(result.choices[0].message.content);
+  logMessage('name result', result.choices[0].message.content);
   return result.choices[0].message.content.trim();
 }
 

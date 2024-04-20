@@ -41,15 +41,24 @@ export default async function handler(
       return res.status(401).json({ message: "Unauthorized" });
     }
   }
+
+
   try {
     const apiKey = process.env.OPENAI_API_KEY || "";
-    console.log("apiKey", apiKey);
-    const model = "gpt-3.5-turbo";
+    // Converting to boolean; returns true if USE_OLLAMA=true
+    const useOllama = process.env.USE_OLLAMA !== 'false'
+    console.log("useOllama name", useOllama);
+    const config = useOllama
+      ? { model: "dolphin-mistral", url: "http://localhost:11434/v1/chat/completions" }
+      : { model: "gpt-3.5-turbo", url: "https://api.openai.com/v1/chat/completions" };
+
+    console.log("config", config);
     const data = {
       ...req.body,
-      model,
+      model: config.model,
     };
-    const response = await fetch("https://api.openai.com/v1/chat/completions", {
+
+    const response = await fetch(config.url, {
       method: "POST",
       body: JSON.stringify(data),
       headers: {
@@ -58,7 +67,6 @@ export default async function handler(
       },
     });
     if (response.status === 401) {
-      console.log("Invalid API key");
       return res.status(401).json({ message: "Invalid API key" });
     }
     const result = await response.json();
