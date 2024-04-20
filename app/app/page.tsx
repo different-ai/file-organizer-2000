@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { UnkeyElements } from "./keys/client";
 import { Button } from "@/components/ui/button";
 
@@ -55,10 +56,12 @@ export default function Home() {
                 Get the latest version of File Organizer 2000 to keep your files
                 organized.
               </p>
-              <Button>Download</Button>
-              <p className="text-sm text-gray-500 dark:text-gray-400 mt-4">
-                Requires Obsidian to be installed.
-              </p>
+              <Link href="https://app.fileorganizer2000.com/">
+                <Button>Download</Button>
+                <p className="text-sm text-gray-500 dark:text-gray-400 mt-4">
+                  Requires Obsidian to be installed.
+                </p>
+              </Link>
             </div>
           </div>
         </div>
