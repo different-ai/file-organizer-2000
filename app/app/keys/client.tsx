@@ -54,16 +54,9 @@ const APIKEYForm = () => {
       {key && key.length > 0 && (
         <>
           <Card className="w-[350px] mt-8">
-            <CardHeader>
-              <CardTitle>API Key</CardTitle>
-              <CardDescription>
-                Here is your API key. Paste it inside File Organizer 2000
-              </CardDescription>
-            </CardHeader>
             <CardContent>
               <div className="grid items-center w-full gap-4">
                 <div className="flex flex-col space-y-1.5">
-                  <Label htmlFor="name">API Key</Label>
                   <Input name="name" value={key} />
                 </div>
               </div>
