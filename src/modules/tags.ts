@@ -1,14 +1,14 @@
 import { requestUrl } from "obsidian";
 import { logMessage } from "../../utils";
 
-async function useName(document, { baseUrl, apiKey }) {
+async function predictTags(content: string, tags: string, { baseUrl, apiKey }) {
   const data = {
-    // move model to plugin settings
-    document: document,
+    document: content,
+    tags: tags,
   };
-  const endpoint = "api/name";
+  const endpoint = "api/tags";
   const url = `${baseUrl}/${endpoint}`;
-  logMessage("log url", url);
+
   const response = await requestUrl({
     url: url,
     method: "POST",
@@ -18,10 +18,9 @@ async function useName(document, { baseUrl, apiKey }) {
       Authorization: `Bearer ${apiKey}`,
     },
   });
-
   const result = await response.json;
-  logMessage("name result", result.choices[0].message.content);
+  logMessage(result.choices[0].message.content);
   return result.choices[0].message.content.trim();
 }
 
-export default useName;
+export default predictTags;

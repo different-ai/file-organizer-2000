@@ -28,6 +28,7 @@ export class AssistantView extends ItemView {
     return "pencil";
   }
   suggestLinks = async (file: TFile, content: string) => {
+    return;
     const links = await this.plugin.getMostSimilarFileByName(content, file);
     this.similarLinkBox.empty();
 
@@ -37,41 +38,53 @@ export class AssistantView extends ItemView {
     };
     this.similarLinkBox.appendChild(child);
   };
+  // private createLoadingIndicator(): HTMLElement {
+  //   const loading = document.createElement("div");
+  //   loading.textContent = "Loading...";
+  //   loading.style.display = "none"; // Hidden by default
+  //   return loading;
+  // }
+
   suggestTags = async (file: TFile, content: string) => {
     const tags = await this.plugin.getSimilarTags(content, file.basename);
-
-    if (tags.length > 0) {
-      this.suggestionBox.empty();
-      tags.forEach((tag) => {
-        const child = this.suggestionBox.appendChild(
-          this.suggestionBox.createEl("span", {
-            cls: [
-              "cursor-pointer",
-              "cm-hashtag",
-              "cm-hashtag-begin",
-              "cm-meta",
-              "cm-tag",
-              "cm-hashtag-end",
-            ],
-            text: tag,
-          })
-        );
-        child.style.cursor = "pointer";
-        child.style.margin = "2px";
-        child.addEventListener("click", () => {
-          if (!tag.startsWith("#")) {
-            tag = `#${tag}`;
-          }
-          this.plugin.appendTag(file, tag);
-          child.remove();
+    this.suggestionBox.empty();
+    try {
+      if (tags.length > 0) {
+        tags.forEach((tag) => {
+          const child = this.suggestionBox.appendChild(
+            this.suggestionBox.createEl("span", {
+              cls: [
+                "cursor-pointer",
+                "cm-hashtag",
+                "cm-hashtag-begin",
+                "cm-meta",
+                "cm-tag",
+                "cm-hashtag-end",
+              ],
+              text: tag,
+            })
+          );
+          child.style.cursor = "pointer";
+          child.style.margin = "2px";
+          child.addEventListener("click", () => {
+            if (!tag.startsWith("#")) {
+              tag = `#${tag}`;
+            }
+            this.plugin.appendTag(file, tag);
+            child.remove();
+          });
         });
-      });
-    } else {
-      this.suggestionBox.setText("No suggestions");
+      } else {
+        this.suggestionBox.setText("No suggestions");
+      }
+    } catch (e) {
+      this.suggestionBox.setText("There was an error");
+    } finally {
+      loader.remove();
     }
-    this.loading.style.display = "none";
   };
   suggestAlias = async (file: TFile, content: string) => {
+    return;
     const suggestedName = await this.plugin.generateNameFromContent(content);
     this.aliasSuggestionBox.empty();
 
@@ -94,6 +107,7 @@ export class AssistantView extends ItemView {
   };
 
   suggestFolders = async (file: TFile, content: string) => {
+    return;
     const folder = await this.plugin.getAIClassifiedFolder(content, file);
     this.similarFolderBox.empty();
     this.similarFolderBox.style.display = "flex";

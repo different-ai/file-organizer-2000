@@ -15,6 +15,7 @@ import useText from "./modules/text";
 import { logMessage, formatToSafeName } from "../utils";
 import { FileOrganizerSettingTab } from "./FileOrganizerSettingTab";
 import { ASSISTANT_VIEW_TYPE, AssistantView } from "./AssistantView";
+import fetchTags, { getMostSimilarTags } from "./modules/tags";
 class FileOrganizerSettings {
   API_KEY = "";
   useLogs = true;
@@ -119,7 +120,7 @@ export default class FileOrganizer extends Plugin {
     // const classifications = ["todos", "notes", "morning notes", "reminder"];
     const classifications = [
       { type: "todos", moveTo: "/todos" },
-      
+
       { type: "notes", moveTo: "/notes" },
       { type: "morning notes", moveTo: "/morning-notes" },
       { type: "reminder", moveTo: "/reminders" },
@@ -353,28 +354,22 @@ export default class FileOrganizer extends Plugin {
     logMessage("uniqueTags", uniqueTags);
 
     // Prepare the prompt for GPT-4
-    const prompt = `Given the text "${content}" (and if relevant ${fileName}), which of the following tags are the most relevant? ${uniqueTags.join(
-      ", "
-    )}`;
-    const mostSimilarTags = await useText(
-      prompt,
-      "Always answer with a list of tag names from the provided list. If none of the tags are relevant, answer with an empty list.",
-      {
-        baseUrl: this.settings.useCustomServer
-          ? this.settings.customServerUrl
-          : this.settings.defaultServerUrl,
-        apiKey: this.settings.API_KEY,
-      }
-    );
+    const mostSimilarTags = await fetchTags(content, uniqueTags.join(" "), {
+      baseUrl: this.settings.useCustomServer
+        ? this.settings.customServerUrl
+        : this.settings.defaultServerUrl,
+      apiKey: this.settings.API_KEY,
+    });
+
     // Extract the most similar tags from the response
 
     logMessage("mostSimilarTags", mostSimilarTags);
 
-    logMessage("content", content);
     const normalizedTags = mostSimilarTags
-      // remove all special characters except # to avoid having tags item listed with - or other special characters
-      .replace(/[^a-zA-Z0-9# ]/g, "")
+      .replace(/,/g, " ")
       .split(" ")
+      // repalce all comas with empty string
+      .map((tag: string) => tag.replace(",", ""))
       // add # to the beginning of the tag if it's not there
       .map((tag: string) => (tag.startsWith("#") ? tag : `#${tag}`))
       .map((tag: string) => tag.trim())
