@@ -30,6 +30,17 @@ const generateConfig = (
     // todo
     "dolphin-mistral": {
       url: "http://localhost:11434/v1/chat/completions",
+      messages: [
+        {
+          role: "system",
+          content:
+            "You are a helpful assistant. You only answer short (less than 30 chars titles). You do not use any special character just text. Use something very specific to the content not a generic title.",
+        },
+        {
+          role: "user",
+          content: "Give a title to this document: \n " + document,
+        },
+      ],
     },
     llama3: {
       url: "http://localhost:11434/v1/chat/completions",
@@ -57,14 +68,14 @@ export default async function handler(
     const apiKey = process.env.OPENAI_API_KEY || "";
     // Converting to boolean; returns true if USE_OLLAMA=true
     const useOllama = process.env.USE_OLLAMA === "true";
-    const model = useOllama ? "llama3" : "gpt-3.5-turbo";
+    const model = useOllama ? "dolphin-mistral" : "gpt-3.5-turbo";
     const config = useOllama
       ? generateConfig(req.body.document, model)
       : generateConfig(req.body.document, model);
     console.log("config", config);
     const data = {
-      model, 
-      ...config.messages,
+      model,
+      messages: [...config.messages],
     };
 
     const response = await fetch(config.url, {
@@ -78,8 +89,9 @@ export default async function handler(
     if (response.status === 401) {
       return res.status(401).json({ message: "Invalid API key" });
     }
+
     const result = await response.json();
-    console.log("result", result);
+    console.log("result name", result);
     res.status(200).json(result);
   } catch (error) {
     console.error(error);

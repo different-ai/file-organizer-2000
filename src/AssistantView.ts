@@ -79,12 +79,9 @@ export class AssistantView extends ItemView {
       }
     } catch (e) {
       this.suggestionBox.setText("There was an error");
-    } finally {
-      loader.remove();
     }
   };
   suggestAlias = async (file: TFile, content: string) => {
-    return;
     const suggestedName = await this.plugin.generateNameFromContent(content);
     this.aliasSuggestionBox.empty();
 
@@ -107,7 +104,6 @@ export class AssistantView extends ItemView {
   };
 
   suggestFolders = async (file: TFile, content: string) => {
-    return;
     const folder = await this.plugin.getAIClassifiedFolder(content, file);
     this.similarFolderBox.empty();
     this.similarFolderBox.style.display = "flex";
