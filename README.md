@@ -1,6 +1,8 @@
 Consider Supporting this project:
 https://dub.sh/support-fo2k
 
+Having more supporters means we can serve you better, and faster!
+
 
 
 # AI File Organizer 2000
