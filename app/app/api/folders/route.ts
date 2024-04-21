@@ -1,5 +1,4 @@
-const generateConfig = (document: string, tags: string, model) => {
-  console.log("getto tags", tags);
+const generateConfig = (document: string, folders: string[], model) => {
   const config = {
     "gpt-3.5-turbo": {
       url: "https://api.openai.com/v1/chat/completions",
@@ -7,45 +6,39 @@ const generateConfig = (document: string, tags: string, model) => {
         {
           role: "system",
           content:
-            "Always answer with a list of tag names from the provided list. If none of the tags are relevant, answer with an empty list.",
+            "Always answer with the name of the most appropriate folder from the provided list. If none of the folders are suitable, answer with 'None'.",
         },
         {
           role: "user",
-          content: `Given the text "${document}", which of the following tags are the most relevant?
-          ${tags}
-          `,
+          content: `Given the text "${document}", which of the following folders would be the most appropriate location for the file? Available folders: ${folders}`,
         },
       ],
     },
-    // todo
     "dolphin-mistral": {
       url: "http://localhost:11434/v1/chat/completions",
       messages: [
         {
           role: "system",
           content:
-            "Always answer with a list of top 5 tag names from the provided list. If none of the tags are relevant, answer with an empty list.",
+            "Always answer with the name of the most appropriate folder from the provided list. If none of the folders are suitable, answer with 'None'.",
         },
         {
           role: "user",
-          content: `Given the text "${document}"  , which of the following tags are the most relevant? ${tags}`,
+          content: `Given the text "${document}", which of the following folders would be the most appropriate location for the file? Available folders: ${folders}`,
         },
       ],
     },
-    // status: slow and unreliable for tags
     llama3: {
       url: "http://localhost:11434/v1/chat/completions",
       messages: [
         {
           role: "system",
           content:
-            "Always answer with a list of tag names from the provided list. If none of the tags are relevant, answer with an empty list.",
+            "Always answer with the name of the most appropriate folder from the provided list. If none of the folders are suitable, answer with 'None'.",
         },
         {
           role: "user",
-          content: `Given the text "${document}", which of the following tags are the most relevant?
-          ${tags}
-          `,
+          content: `Given the text "${document}", which of the following folders would be the most appropriate location for the file? Available folders: ${folders}`,
         },
       ],
     },
@@ -54,17 +47,16 @@ const generateConfig = (document: string, tags: string, model) => {
 };
 
 export async function POST(request: Request) {
-  console.log("received post on tags route");
+  console.log("received post on folders route");
   try {
     const apiKey = process.env.OPENAI_API_KEY || "";
     const useOllama = process.env.USE_OLLAMA === "true";
-    // Converting to boolean; returns true if USE_OLLAMA=true
     const requestBody = await request.json();
     const model = useOllama ? "dolphin-mistral" : "gpt-3.5-turbo";
 
     const config = generateConfig(
       requestBody.document,
-      requestBody.tags,
+      requestBody.folders.join(", "),
       model
     );
 
@@ -73,7 +65,7 @@ export async function POST(request: Request) {
       messages: [...config.messages],
     };
 
-    console.log("tag data", data);
+    console.log("folder data", data);
     const response = await fetch(config.url, {
       method: "POST",
       body: JSON.stringify(data),
@@ -89,7 +81,7 @@ export async function POST(request: Request) {
       });
     }
     const result = await response.json();
-    console.log("result from tags", result);
+    console.log("result from folders", result);
     return new Response(JSON.stringify(result), {
       status: 200,
       headers: { "Content-Type": "application/json" },

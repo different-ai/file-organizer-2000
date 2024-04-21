@@ -1,26 +1,29 @@
 import { requestUrl } from "obsidian";
 import { logMessage } from "../../utils";
 
-async function predictFolder(
+async function predictMostSimilarFile(
   content: string,
-  folders: string[],
+  allMarkdownFilePaths: string[],
   { baseUrl, apiKey }
 ) {
-  const endpoint = "api/folders";
+  const endpoint = "api/files";
   const url = `${baseUrl}/${endpoint}`;
 
   const response = await requestUrl({
     url: url,
     method: "POST",
-    body: JSON.stringify({ document: content, folders: folders }),
+    body: JSON.stringify({
+      document: content,
+      filePaths: allMarkdownFilePaths,
+    }),
     headers: {
       "Content-Type": "application/json",
       Authorization: `Bearer ${apiKey}`,
     },
   });
   const result = await response.json;
-  logMessage(result.choices[0].message.content);
+  logMessage(`Most similar file path: ${result.choices[0].message.content}`);
   return result.choices[0].message.content.trim();
 }
 
-export default predictFolder;
+export default predictMostSimilarFile;

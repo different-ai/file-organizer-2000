@@ -1,5 +1,5 @@
-const generateConfig = (document: string, tags: string, model) => {
-  console.log("getto tags", tags);
+const generateConfig = (document: string, filePaths: string, model: string) => {
+  console.log("generateConfig", filePaths);
   const config = {
     "gpt-3.5-turbo": {
       url: "https://api.openai.com/v1/chat/completions",
@@ -7,45 +7,37 @@ const generateConfig = (document: string, tags: string, model) => {
         {
           role: "system",
           content:
-            "Always answer with a list of tag names from the provided list. If none of the tags are relevant, answer with an empty list.",
+            "Always answer with the full path of the most appropriate file from the provided list. If none of the files are suitable, answer with 'None'.",
         },
         {
           role: "user",
-          content: `Given the text "${document}", which of the following tags are the most relevant?
-          ${tags}
-          `,
+          content: `Given the document: "${document}", which of the following files best matches the user's request? Available files: ${filePaths}`,
         },
       ],
     },
-    // todo
     "dolphin-mistral": {
       url: "http://localhost:11434/v1/chat/completions",
       messages: [
         {
-          role: "system",
-          content:
-            "Always answer with a list of top 5 tag names from the provided list. If none of the tags are relevant, answer with an empty list.",
+          role: "assistant",
+          content: `Always answer full filename. Example Answer: "folder/subfolder/file.md"`,
         },
         {
           role: "user",
-          content: `Given the text "${document}"  , which of the following tags are the most relevant? ${tags}`,
+          content: `
+          document: "${document}",
+          files: "${filePaths}",
+          
+          identify the most relevant file. If none are suitable, respond with 'None'.`,
         },
       ],
     },
-    // status: slow and unreliable for tags
     llama3: {
       url: "http://localhost:11434/v1/chat/completions",
       messages: [
         {
-          role: "system",
-          content:
-            "Always answer with a list of tag names from the provided list. If none of the tags are relevant, answer with an empty list.",
-        },
-        {
           role: "user",
-          content: `Given the text "${document}", which of the following tags are the most relevant?
-          ${tags}
-          `,
+          content: `Based on the document: "${document}", identify the most relevant file. If none are suitable, respond with 'None'.`,
         },
       ],
     },
@@ -54,17 +46,16 @@ const generateConfig = (document: string, tags: string, model) => {
 };
 
 export async function POST(request: Request) {
-  console.log("received post on tags route");
+  console.log("received post on files route");
   try {
     const apiKey = process.env.OPENAI_API_KEY || "";
     const useOllama = process.env.USE_OLLAMA === "true";
-    // Converting to boolean; returns true if USE_OLLAMA=true
     const requestBody = await request.json();
     const model = useOllama ? "dolphin-mistral" : "gpt-3.5-turbo";
 
     const config = generateConfig(
       requestBody.document,
-      requestBody.tags,
+      requestBody.filePaths.join(", "),
       model
     );
 
@@ -73,7 +64,7 @@ export async function POST(request: Request) {
       messages: [...config.messages],
     };
 
-    console.log("tag data", data);
+    console.log("file data", data);
     const response = await fetch(config.url, {
       method: "POST",
       body: JSON.stringify(data),
@@ -82,14 +73,9 @@ export async function POST(request: Request) {
         Authorization: `Bearer ${apiKey}`,
       },
     });
-    if (response.status === 401) {
-      return new Response(JSON.stringify({ message: "Invalid API key" }), {
-        status: 401,
-        headers: { "Content-Type": "application/json" },
-      });
-    }
+
     const result = await response.json();
-    console.log("result from tags", result);
+    console.log("magic", result.choices[0].message.content);
     return new Response(JSON.stringify(result), {
       status: 200,
       headers: { "Content-Type": "application/json" },

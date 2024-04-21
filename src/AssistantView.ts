@@ -28,9 +28,8 @@ export class AssistantView extends ItemView {
     return "pencil";
   }
   suggestLinks = async (file: TFile, content: string) => {
-    return;
-    const links = await this.plugin.getMostSimilarFileByName(content, file);
     this.similarLinkBox.empty();
+    const links = await this.plugin.getMostSimilarFileByName(content, file);
 
     const child = this.similarLinkBox.createEl("a", { text: links.basename });
     child.onclick = () => {
@@ -38,12 +37,6 @@ export class AssistantView extends ItemView {
     };
     this.similarLinkBox.appendChild(child);
   };
-  // private createLoadingIndicator(): HTMLElement {
-  //   const loading = document.createElement("div");
-  //   loading.textContent = "Loading...";
-  //   loading.style.display = "none"; // Hidden by default
-  //   return loading;
-  // }
 
   suggestTags = async (file: TFile, content: string) => {
     const tags = await this.plugin.getSimilarTags(content, file.basename);

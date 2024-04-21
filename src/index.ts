@@ -6,7 +6,6 @@ import {
   TAbstractFile,
   moment,
   WorkspaceLeaf,
-  getLinkpath,
 } from "obsidian";
 import useName from "./modules/name";
 import useVision from "./modules/vision";
@@ -15,7 +14,9 @@ import useText from "./modules/text";
 import { logMessage, formatToSafeName } from "../utils";
 import { FileOrganizerSettingTab } from "./FileOrganizerSettingTab";
 import { ASSISTANT_VIEW_TYPE, AssistantView } from "./AssistantView";
-import fetchTags, { getMostSimilarTags } from "./modules/tags";
+import fetchTags from "./modules/tags";
+import predictFolder from "./modules/folder";
+import predictMostSimilarFile from "./modules/file";
 class FileOrganizerSettings {
   API_KEY = "";
   useLogs = true;
@@ -364,28 +365,15 @@ export default class FileOrganizer extends Plugin {
     // Extract the most similar tags from the response
 
     logMessage("mostSimilarTags", mostSimilarTags);
-
+    // sample1 mostSimilarTags  "[#dao, #communityfirst, #questions, #research, #integration, #blockchain]"
+    // sample2 mostSimilarTags string "#blockchain #crypto #tokenops #smart-contracts #startup"
+    // normalize string to array of tags [dao, communityfirst, questions, research, integration, blockchain]
     const normalizedTags = mostSimilarTags
-      .replace(/,/g, " ")
-      .split(" ")
-      // repalce all comas with empty string
-      .map((tag: string) => tag.replace(",", ""))
-      // add # to the beginning of the tag if it's not there
-      .map((tag: string) => (tag.startsWith("#") ? tag : `#${tag}`))
-      .map((tag: string) => tag.trim())
-      // also filter out tags that are already in the file
-      .filter((tag: string) => !content.includes(tag))
-      // this should probie replaced by this.app.fileManager.processFrontMatter
-      .filter(async (tag: string) => {
-        // Check for tag in front matter
-        const frontMatterRegex = new RegExp(
-          `^tags:\\s*\\[.*?${tag.slice(1)}.*?\\]`,
-          "m"
-        );
-        // Check for tag inline
-        const inlineTagRegex = new RegExp(`\\s${tag}(\\s|$)`);
-        return !frontMatterRegex.test(content) && !inlineTagRegex.test(content);
-      });
+      .replace(/^\[|\]$/g, "")
+      .split(/[\s,]+/)
+      .map((tag) => tag.replace(/^#/, ""))
+      .map((tag) => tag.replace(/['"]+/g, ""))
+      .filter((tag) => tag !== "");
 
     logMessage("normalizedTags", normalizedTags);
     return normalizedTags;
@@ -421,20 +409,13 @@ export default class FileOrganizer extends Plugin {
     logMessage("uniqueFolders", uniqueFolders);
 
     // Get the most similar folder based on the content and file name
-    const mostSimilarFolder = await useText(
-      `Given the text content "${content}" (and if the file name "${
-        file.basename
-      }"), which of the following folders would be the most appropriate location for the file? Available folders: ${uniqueFolders.join(
-        ", "
-      )}`,
-      "Please respond with the name of the most appropriate folder from the provided list. If none of the folders are suitable, respond with 'None'.",
-      {
-        baseUrl: this.settings.useCustomServer
-          ? this.settings.customServerUrl
-          : this.settings.defaultServerUrl,
-        apiKey: this.settings.API_KEY,
-      }
-    );
+
+    const mostSimilarFolder = await predictFolder(content, uniqueFolders, {
+      baseUrl: this.settings.useCustomServer
+        ? this.settings.customServerUrl
+        : this.settings.defaultServerUrl,
+      apiKey: this.settings.API_KEY,
+    });
     logMessage("mostSimilarFolder", mostSimilarFolder);
     new Notice(`Most similar folder: ${mostSimilarFolder}`, 3000);
 
@@ -460,7 +441,9 @@ export default class FileOrganizer extends Plugin {
       await this.appendToFrontMatter(file, "tags", tag);
       return;
     }
-    await this.app.vault.append(file, `\n${tag}`);
+    // add # in front of tag if it doesn't exist
+    const sanitizedTag = tag.startsWith("#") ? tag : `#${tag}`;
+    await this.app.vault.append(file, `\n${sanitizedTag}`);
   }
 
   async appendSimilarTags(content: string, file: TFile) {
@@ -495,11 +478,9 @@ export default class FileOrganizer extends Plugin {
       .map((file) => file.path);
 
     // Get the most similar file based on the content
-    const mostSimilarFile = await useText(
-      `Given the request of the user to append it in a certain file in "${content}", which of the following files would match the user request the most? Available files: ${allMarkdownFilePaths.join(
-        ","
-      )}`,
-      "Please only respond with the full path of the most appropriate file from the provided list.",
+    const mostSimilarFile = await predictMostSimilarFile(
+      content,
+      allMarkdownFilePaths,
       {
         baseUrl: this.settings.useCustomServer
           ? this.settings.customServerUrl
