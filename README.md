@@ -65,7 +65,9 @@ It takes a sec, and then renames, and organizes your file.
 
 <img width="707" alt="Screenshot 2024-04-13 at 07 16 21" src="https://github.com/different-ai/file-organizer-2000/assets/11430621/ca2222c9-cb8d-4d15-8459-2da4c9662f24">
 
+## Community
 
+Join the [discord server](https://discord.gg/KSdyURjP) for more.
 
 ## Small iOS shortcut for easy access
 The iOS shortcut below makes it easy for you to easily work from your phone with this plugin.
