@@ -1,3 +1,6 @@
+---
+alias: Monitor Comparison
+---
 Dell P series
 
 Dell U series
