@@ -1,0 +1,5 @@
+
+Austria 
+Britain
+Prussia 
+Russia
