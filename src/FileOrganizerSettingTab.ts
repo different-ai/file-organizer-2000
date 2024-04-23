@@ -286,21 +286,10 @@ export class FileOrganizerSettingTab extends PluginSettingTab {
     }
 
     new Setting(containerEl)
-      .setName("Custom vision prompt")
-      .setDesc("Enter your custom prompt for vision processing here")
-      .addText((text) =>
-        text
-          .setPlaceholder("Enter your custom prompt")
-          .setValue(this.plugin.settings.customVisionPrompt)
-          .onChange(async (value) => {
-            this.plugin.settings.customVisionPrompt = value;
-            await this.plugin.saveSettings();
-          })
-      );
-
-    new Setting(containerEl)
       .setName("AI Assistant (available in early access)")
-      .setDesc("A sidebar that gives you more control in your file management.")
+      .setDesc(
+        "A sidebar that gives you more control in your file management."
+      );
 
     new Setting(containerEl)
       .setName("Experimental: Describe workflow (in progress)")
@@ -312,5 +301,36 @@ export class FileOrganizerSettingTab extends PluginSettingTab {
       .setName("Experimental: Full Auto Org (in progress)")
       .setDesc("Let file Organizer work fully automatically.")
       .setDisabled(true);
+
+    new Setting(containerEl)
+      .setName("Custom Formatting (early access only works for supporters)")
+      .setHeading();
+
+    // Add these new settings to the display() method
+    new Setting(containerEl)
+      .setName("Document Type")
+      .setDesc("Enter the document type for AI formatting (e.g., 'workout')")
+      .addText((text) =>
+        text
+          .setPlaceholder("Enter document type")
+          .setValue(this.plugin.settings.documentType)
+          .onChange(async (value) => {
+            this.plugin.settings.documentType = value;
+            await this.plugin.saveSettings();
+          })
+      );
+
+    new Setting(containerEl)
+      .setName("Formatting Instruction")
+      .setDesc("Enter the formatting instructions for AI formatting")
+      .addTextArea((text) =>
+        text
+          .setPlaceholder("Enter formatting instructions")
+          .setValue(this.plugin.settings.formattingInstruction)
+          .onChange(async (value) => {
+            this.plugin.settings.formattingInstruction = value;
+            await this.plugin.saveSettings();
+          })
+      );
   }
 }

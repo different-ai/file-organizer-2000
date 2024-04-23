@@ -26,7 +26,6 @@ class FileOrganizerSettings {
   useSimilarTags = true; // default value is true
   renameDocumentTitle = true; // default value is true
   useAliases = false; // default value is false
-  customVisionPrompt = ""; // default value is an empty string
   useAutoAppend = false;
   defaultServerUrl = "https://app.fileorganizer2000.com";
   customServerUrl = "https://file-organizer-2000.vercel.app/";
@@ -35,6 +34,9 @@ class FileOrganizerSettings {
   enableEarlyAccess = false;
   earlyAccessCode = "";
   processedTag = false;
+  // will be removed just for testing phase
+  documentType = "";
+  formattingInstruction = "";
 }
 
 const validAudioExtensions = ["mp3", "wav", "webm", "m4a"];
@@ -120,21 +122,51 @@ export default class FileOrganizer extends Plugin {
     this.appendTag(file, tag);
   }
 
-  // experimental meant to extend user capabilities
+  /* experimental below until further notice */
+  // Add this new method to the class
+  async aiFormat() {
+    const activeFile = this.app.workspace.getActiveFile();
+    if (activeFile) {
+      const fileContent = await this.app.vault.read(activeFile);
+      const currentDocumentType = await this.useCustomClassifier(fileContent);
+      logMessage("documentType", currentDocumentType);
+      logMessage("settings.documentType", this.settings.documentType);
+      if (
+        currentDocumentType.toLowerCase() ===
+        this.settings.documentType.toLowerCase()
+      ) {
+        const formattedContent = await useText(
+          fileContent,
+          this.settings.formattingInstruction,
+          {
+            baseUrl: this.settings.useCustomServer
+              ? this.settings.customServerUrl
+              : this.settings.defaultServerUrl,
+            apiKey: this.settings.API_KEY,
+          }
+        );
+        await this.app.vault.modify(activeFile, formattedContent);
+      }
+    }
+  }
+
+  // Modify the useCustomClassifier method
   async useCustomClassifier(content: string) {
-    // const classifications = ["todos", "notes", "morning notes", "reminder"];
     const classifications = [
       { type: "todos", moveTo: "/todos" },
       { type: "notes", moveTo: "/notes" },
       { type: "morning notes", moveTo: "/morning-notes" },
       { type: "reminder", moveTo: "/reminders" },
+      { type: this.settings.documentType, moveTo: "" }, // Add the custom document type
     ];
+    const prompt = `Content:
+    ${content}
+    classifications:
+    ${classifications.map((c) => c.type).join(", ")}
+    Which of the following classifications would be the most appropriate for the given content?`;
+
     const whatTypeOfDocument = await useText(
-      `Content:
-				${content} 
-				classifications:
-				${classifications.join(",")},
-				'", which of the following classifications would be the most appropriate?`,
+      prompt,
       "Please respond with the name of the most appropriate classification from the provided list. If none of the classifications are suitable, respond with 'None'.",
       {
         baseUrl: this.settings.useCustomServer
@@ -143,9 +175,10 @@ export default class FileOrganizer extends Plugin {
         apiKey: this.settings.API_KEY,
       }
     );
-    logMessage("This is closest to the following", whatTypeOfDocument);
+
     return whatTypeOfDocument;
   }
+  /* experimental above until further notice */
 
   async organizeFile(file: TFile, content: string) {
     const destinationFolder = await this.getAIClassifiedFolder(content, file);
@@ -517,6 +550,23 @@ export default class FileOrganizer extends Plugin {
 
   async onload() {
     await this.initializePlugin();
+
+    // add commands
+    // Add this new command to the onload() method
+    this.addCommand({
+      id: "ai-format",
+      name: "AI Format",
+      callback: async () => {
+        if (!this.settings.enableEarlyAccess) {
+          new Notice(
+            "This feature is only available for early access supporters",
+            3000
+          );
+          return;
+        }
+        await this.aiFormat();
+      },
+    });
 
     // on layout ready register event handlers
     this.addCommand({
