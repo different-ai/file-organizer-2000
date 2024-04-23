@@ -29,27 +29,14 @@ export class AssistantView extends ItemView {
     return "pencil";
   }
   displayTitle = async (file: TFile) => {
-    const title = file.name
+    const title = file.basename;
     this.selectedFileBox.empty();
 
     const titleElement = this.selectedFileBox.createEl("span", { text: title });
     titleElement.style.fontSize = "1rem";
-    titleElement.style.color = "var(--text-accent)";
     this.selectedFileBox.appendChild(titleElement);
-
-
-  }
-  suggestLinks = async (file: TFile, content: string) => {
-    const links = await this.plugin.getMostSimilarFileByName(content, file);
-    this.similarLinkBox.empty();
-
-    const child = this.similarLinkBox.createEl("a", { text: links.basename });
-    child.onclick = () => {
-      this.app.workspace.openLinkText(links.path, "", true);
-    };
-    child.style.fontSize = "1rem";
-    this.similarLinkBox.appendChild(child);
   };
+
   suggestTags = async (file: TFile, content: string) => {
     const tags = await this.plugin.getSimilarTags(content, file.basename);
 
@@ -71,7 +58,7 @@ export class AssistantView extends ItemView {
         );
         child.style.cursor = "pointer";
         child.style.margin = "2px";
-        // first child margin 0 
+        // first child margin 0
         if (tags.indexOf(tag) === 0) {
           child.style.margin = "0px";
         }
@@ -143,13 +130,11 @@ export class AssistantView extends ItemView {
   };
 
   handleFileOpen = async (file: TFile) => {
+    this.displayTitle(file);
     const content = await this.plugin.getTextFromFile(file);
-    this.displayTitle(file)
     this.suggestTags(file, content);
-    //this.suggestLinks(file, content);
     this.suggestFolders(file, content);
     this.suggestAlias(file, content); // Call the suggestRename method
-
   };
 
   initUI() {
@@ -167,36 +152,26 @@ export class AssistantView extends ItemView {
       });
       supportLink.setAttr("target", "_blank");
     }
-
-    this.containerEl.createEl("h1", {
-      text: "Fo2K Assistant ✨",
-      cls: ["heading"]
-    }).style.cssText = "padding-left: 24px; padding-top: 24px;";
-
-
-
-
     const createHeader = (text) => {
-      const header = this.containerEl.createEl("h5", { text });
+      const header = this.containerEl.createEl("h6", { text });
       header.style.paddingLeft = "24px";
       return header;
     };
 
     // add a header mentioning the selected file name
-    createHeader("File");
+    createHeader("Looking at");
     this.selectedFileBox = this.containerEl.createEl("div");
     this.selectedFileBox.style.paddingLeft = "24px";
 
-    createHeader("Add Tags");
+    createHeader("Similar tags");
     this.suggestionBox = this.containerEl.createEl("div");
     this.suggestionBox.style.paddingLeft = "24px";
 
-
-    createHeader("Add Alias");
+    createHeader("Suggested alias");
     this.aliasSuggestionBox = this.containerEl.createEl("div");
     this.aliasSuggestionBox.style.paddingLeft = "24px";
 
-    createHeader("Move to to Folder");
+    createHeader("Suggested folder");
     this.similarFolderBox = this.containerEl.createEl("div");
     this.similarFolderBox.style.paddingLeft = "24px";
 
@@ -213,15 +188,16 @@ export class AssistantView extends ItemView {
 
     this.registerEvent(
       this.app.workspace.on("file-open", async (file) => {
-
         // Get the AI assistant sidebar
-        const aiAssistantSidebar = document.querySelector('.assistant-container') as HTMLElement;
+        const aiAssistantSidebar = document.querySelector(
+          ".assistant-container"
+        ) as HTMLElement;
 
         // Hide the AI assistant sidebar for 500ms
         if (aiAssistantSidebar) {
-          aiAssistantSidebar.style.display = 'none';
+          aiAssistantSidebar.style.display = "none";
           setTimeout(() => {
-            aiAssistantSidebar.style.display = '';
+            aiAssistantSidebar.style.display = "";
           }, 500);
         }
 
