@@ -7,6 +7,7 @@ import {
   moment,
   WorkspaceLeaf,
   getLinkpath,
+  requestUrl,
 } from "obsidian";
 import useName from "./modules/name";
 import useVision from "./modules/vision";
@@ -356,48 +357,29 @@ export default class FileOrganizer extends Plugin {
 
     logMessage("uniqueTags", uniqueTags);
 
-    // Prepare the prompt for GPT-4
-    const prompt = `Given the text "${content}" (and if relevant ${fileName}), which of the following tags are the most relevant? ${uniqueTags.join(
-      ", "
-    )}`;
-    const mostSimilarTags = await useText(
-      prompt,
-      "Always answer with a list of tag names from the provided list. If none of the tags are relevant, answer with an empty list.",
-      {
-        baseUrl: this.settings.useCustomServer
+    const data = {
+      content,
+      fileName,
+      tags: uniqueTags,
+    };
+
+    const response = await requestUrl({
+      url: `${
+        this.settings.useCustomServer
           ? this.settings.customServerUrl
-          : this.settings.defaultServerUrl,
-        apiKey: this.settings.API_KEY,
-      }
-    );
-    // Extract the most similar tags from the response
+          : this.settings.defaultServerUrl
+      }/api/tagging`,
+      method: "POST",
+      body: JSON.stringify(data),
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${this.settings.API_KEY}`,
+      },
+    });
 
-    logMessage("mostSimilarTags", mostSimilarTags);
-
-    logMessage("content", content);
-    const normalizedTags = mostSimilarTags
-      // remove all special characters except # to avoid having tags item listed with - or other special characters
-      .replace(/[^a-zA-Z0-9# ]/g, "")
-      .split(" ")
-      // add # to the beginning of the tag if it's not there
-      .map((tag: string) => (tag.startsWith("#") ? tag : `#${tag}`))
-      .map((tag: string) => tag.trim())
-      // also filter out tags that are already in the file
-      .filter((tag: string) => !content.includes(tag))
-      // this should probie replaced by this.app.fileManager.processFrontMatter
-      .filter(async (tag: string) => {
-        // Check for tag in front matter
-        const frontMatterRegex = new RegExp(
-          `^tags:\\s*\\[.*?${tag.slice(1)}.*?\\]`,
-          "m"
-        );
-        // Check for tag inline
-        const inlineTagRegex = new RegExp(`\\s${tag}(\\s|$)`);
-        return !frontMatterRegex.test(content) && !inlineTagRegex.test(content);
-      });
-
-    logMessage("normalizedTags", normalizedTags);
-    return normalizedTags;
+    const result = await response.json;
+    console.log(result, "test");
+    return result.tags;
   }
   isTFolder(file: TAbstractFile): file is TFolder {
     return file instanceof TFolder;
@@ -431,7 +413,8 @@ export default class FileOrganizer extends Plugin {
 
     // Get the most similar folder based on the content and file name
     const mostSimilarFolder = await useText(
-      `Given the text content "${content}" (and if the file name "${file.basename
+      `Given the text content "${content}" (and if the file name "${
+        file.basename
       }"), which of the following folders would be the most appropriate location for the file? Available folders: ${uniqueFolders.join(
         ", "
       )}`,
@@ -443,7 +426,7 @@ export default class FileOrganizer extends Plugin {
         apiKey: this.settings.API_KEY,
       }
     );
-    logMessage("mostSimilarFolder", mostSimilarFolder)
+    logMessage("mostSimilarFolder", mostSimilarFolder);
     // Extract the most similar folder from the response
     const sanitizedFolderName = mostSimilarFolder.replace(/[\\:*?"<>|]/g, "");
 
