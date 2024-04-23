@@ -561,17 +561,6 @@ export default class FileOrganizer extends Plugin {
       },
     });
 
-    this.addCommand({
-      id: "append-to-similar-file",
-      name: "Append to similar file",
-      callback: async () => {
-        const activeFile = this.app.workspace.getActiveFile();
-        if (activeFile) {
-          await this.appendToSimilarFile(activeFile);
-        }
-      },
-    });
-
     this.app.workspace.onLayoutReady(this.registerEventHandlers.bind(this));
     this.processBacklog();
   }
