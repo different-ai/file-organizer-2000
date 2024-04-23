@@ -1,6 +1,4 @@
-import { verifyKey } from "@unkey/api";
 import type { NextApiRequest, NextApiResponse } from "next";
-import PosthogClient from "../../lib/posthog";
 
 type ResponseData = {
   message: string;
@@ -10,40 +8,10 @@ export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse<ResponseData>
 ) {
+  console.log("should work");
   // if ENABLE_USER_MANAGEMENT=true in .env file, then we need to check for the Authorization header
-  if (process.env.ENABLE_USER_MANAGEMENT == "true") {
-    console.log("ENABLE_USER_MANAGEMENT", process.env.ENABLE_USER_MANAGEMENT);
-
-    const header = req.headers.authorization;
-    console.log("header", header);
-    if (!header) {
-      return res.status(401).json({ message: "No Authorization header" });
-    }
-    const token = header.replace("Bearer ", "");
-    const { result, error } = await verifyKey(token);
-
-    const client = PosthogClient();
-
-    if (client && result?.ownerId) {
-      client.capture({
-        distinctId: result?.ownerId,
-        event: "call-api",
-        properties: { endpoint: "name" },
-      });
-    }
-
-    if (error) {
-      console.error(error.message);
-      return res.status(500).json({ message: "Internal Server Error" });
-    }
-
-    if (!result.valid) {
-      return res.status(401).json({ message: "Unauthorized" });
-    }
-  }
   try {
     const apiKey = process.env.OPENAI_API_KEY || "";
-    console.log("apiKey", apiKey);
     const model = "gpt-3.5-turbo";
     const data = {
       ...req.body,
@@ -58,7 +26,7 @@ export default async function handler(
       },
     });
     if (response.status === 401) {
-      console.log("Invalid API key");
+      console.log("Invalid OpenAI API key");
       return res.status(401).json({ message: "Invalid API key" });
     }
     const result = await response.json();
