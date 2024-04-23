@@ -44,7 +44,7 @@ export default async function middleware(
       client.capture({
         distinctId: result?.ownerId,
         event: "call-api",
-        properties: { endpoint: req.nextUrl.pathname.replace("/", "") },
+        properties: { endpoint: req.nextUrl.pathname.replace("/api/", "") },
       });
     }
   }
