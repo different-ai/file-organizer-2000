@@ -476,44 +476,6 @@ export default class FileOrganizer extends Plugin {
     return;
   }
 
-  async getMostSimilarFileByName(
-    content: string,
-    currentFile: TFile
-  ): Promise<TFile> {
-    const allMarkdownFiles = this.app.vault.getMarkdownFiles();
-    const allMarkdownFilePaths = allMarkdownFiles
-      .filter((file) => file.path !== currentFile.path) // Ignore the current file
-      .map((file) => file.path);
-
-    // Get the most similar file based on the content
-    const mostSimilarFile = await useText(
-      `Given the request of the user to append it in a certain file in "${content}", which of the following files would match the user request the most? Available files: ${allMarkdownFilePaths.join(
-        ","
-      )}`,
-      "Please only respond with the full path of the most appropriate file from the provided list.",
-      {
-        baseUrl: this.settings.useCustomServer
-          ? this.settings.customServerUrl
-          : this.settings.defaultServerUrl,
-        apiKey: this.settings.API_KEY,
-      }
-    );
-
-    // Extract the most similar file from the response
-    const sanitizedFileName = mostSimilarFile.replace(/[\\:*?"<>|]/g, "");
-
-    const file = this.app.vault.getAbstractFileByPath(sanitizedFileName);
-    if (!file) {
-      throw new Error(`Could not find file with path ${sanitizedFileName}`);
-    }
-    if (!(file instanceof TFile)) {
-      throw new Error(
-        `File with path ${sanitizedFileName} is not a markdown file`
-      );
-    }
-    return file;
-  }
-
   async appendToCustomLogFile(contentToAppend: string, action = "") {
     if (!this.settings.useLogs) {
       return;
@@ -548,33 +510,6 @@ export default class FileOrganizer extends Plugin {
       throw new Error(
         "Please enter your API Key in the settings of the FileOrganizer plugin."
       );
-    }
-  }
-
-  async appendToSimilarFile(incomingFile: TFile) {
-    try {
-      new Notice(`Processing incoming file ${incomingFile.basename}`, 3000);
-      const content = await this.getTextFromFile(incomingFile);
-      const similarFile = await this.getMostSimilarFileByName(
-        content,
-        incomingFile
-      );
-
-      if (similarFile) {
-        await this.app.vault.append(similarFile, `\n${content}`);
-        new Notice(
-          `Appended content to similar file: ${similarFile.basename}`,
-          3000
-        );
-        this.appendToCustomLogFile(
-          `Appended content from [[${incomingFile.basename}]] to similar file [[${similarFile.basename}]]`
-        );
-      } else {
-        new Notice(`No similar file found for ${incomingFile.basename}`, 3000);
-      }
-    } catch (error) {
-      console.error("Error appending to similar file:", error);
-      new Notice("Error processing incoming file.");
     }
   }
 
