@@ -38,7 +38,6 @@ export class AssistantView extends ItemView {
     this.selectedFileBox.appendChild(titleElement);
 
 
-
   }
   suggestLinks = async (file: TFile, content: string) => {
     const links = await this.plugin.getMostSimilarFileByName(content, file);
