@@ -28,8 +28,8 @@ export class AssistantView extends ItemView {
   getIcon(): string {
     return "pencil";
   }
-  displayTitle = (file: TFile) => {
-    const title = file.basename;
+  displayTitle = async (file: TFile) => {
+    const title = file.name
     this.selectedFileBox.empty();
 
     const titleElement = this.selectedFileBox.createEl("span", { text: title });
@@ -37,8 +37,7 @@ export class AssistantView extends ItemView {
     titleElement.style.color = "var(--text-accent)";
     this.selectedFileBox.appendChild(titleElement);
 
-    // this.selectedFile.createEl("p", { text: title });
-    // this.selectedFile.style.color = "var(--text-accent)";
+
 
   }
   suggestLinks = async (file: TFile, content: string) => {
@@ -175,9 +174,6 @@ export class AssistantView extends ItemView {
       cls: ["heading"]
     }).style.cssText = "padding-left: 24px; padding-top: 24px;";
 
-    // this.containerEl.createEl("p", {
-    //   text: "Click on any of the suggestions below to apply them to the current file.",
-    // }).style.paddingLeft = "24px";
 
 
 
@@ -196,9 +192,6 @@ export class AssistantView extends ItemView {
     this.suggestionBox = this.containerEl.createEl("div");
     this.suggestionBox.style.paddingLeft = "24px";
 
-    // createHeader("Most similar link:");
-    // this.similarLinkBox = this.containerEl.createEl("div");
-    // this.similarLinkBox.style.paddingLeft = "24px";
 
     createHeader("Add Alias");
     this.aliasSuggestionBox = this.containerEl.createEl("div");
@@ -225,7 +218,7 @@ export class AssistantView extends ItemView {
         // Get the AI assistant sidebar
         const aiAssistantSidebar = document.querySelector('.assistant-container') as HTMLElement;
 
-        // Hide the AI assistant sidebar for one second
+        // Hide the AI assistant sidebar for 500ms
         if (aiAssistantSidebar) {
           aiAssistantSidebar.style.display = 'none';
           setTimeout(() => {
@@ -237,8 +230,6 @@ export class AssistantView extends ItemView {
           return;
         }
         this.loading.style.display = "block";
-        // hide entire body, not just b
-
         if (!file) {
           this.suggestionBox.setText("No file opened");
           this.loading.style.display = "none";
