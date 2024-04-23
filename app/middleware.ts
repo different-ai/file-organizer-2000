@@ -1,6 +1,7 @@
 import { authMiddleware as clerkAuthMiddleware } from "@clerk/nextjs";
 import { verifyKey } from "@unkey/api";
 import { NextFetchEvent, NextRequest } from "next/server";
+import PostHogClient from "./lib/posthog";
 
 const authMiddleware = clerkAuthMiddleware({
   publicRoutes: [
@@ -9,6 +10,7 @@ const authMiddleware = clerkAuthMiddleware({
     "/api/audio",
     "/api/text",
     "/api/secret",
+    "/api/tagging",
   ],
 });
 
@@ -36,6 +38,14 @@ export default async function middleware(
     }
     if (!result.valid) {
       return new Response("Unauthorized", { status: 401 });
+    }
+    const client = PostHogClient();
+    if (client && result?.ownerId) {
+      client.capture({
+        distinctId: result?.ownerId,
+        event: "call-api",
+        properties: { endpoint: req.nextUrl.pathname.replace("/", "") },
+      });
     }
   }
   if (process.env.ENABLE_USER_MANAGEMENT == "true") {
