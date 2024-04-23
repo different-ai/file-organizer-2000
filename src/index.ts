@@ -65,11 +65,16 @@ export default class FileOrganizer extends Plugin {
       const text = await this.getTextFromFile(originalFile); // Correctly obtaining text from the file
 
       const isRenameEnabled = this.settings.renameDocumentTitle;
+      if (isRenameEnabled) {
+        new Notice(`Generating name for ${text.substring(0, 20)}...`, 3000);
+      }
       // Use 'text' instead of 'content' which was incorrectly referenced
       const humanReadableFileName = isRenameEnabled
         ? await this.generateNameFromContent(text) // Corrected to use 'text'
         : originalFile.basename;
-
+      if (isRenameEnabled) {
+        new Notice(`Generated name: ${humanReadableFileName}`, 3000);
+      }
       if (validMediaExtensions.includes(originalFile.extension)) {
         // Media file handling logic
         const annotatedFile = await this.createFileFromContent(text);
@@ -119,7 +124,6 @@ export default class FileOrganizer extends Plugin {
     // const classifications = ["todos", "notes", "morning notes", "reminder"];
     const classifications = [
       { type: "todos", moveTo: "/todos" },
-      
       { type: "notes", moveTo: "/notes" },
       { type: "morning notes", moveTo: "/morning-notes" },
       { type: "reminder", moveTo: "/reminders" },
@@ -144,11 +148,13 @@ export default class FileOrganizer extends Plugin {
 
   async organizeFile(file: TFile, content: string) {
     const destinationFolder = await this.getAIClassifiedFolder(content, file);
+    new Notice(`Most similar folder: ${destinationFolder}`, 3000);
     await this.moveContent(file, file.basename, destinationFolder);
   }
 
   async renameTagAndOrganize(file: TFile, content: string, fileName: string) {
     const destinationFolder = await this.getAIClassifiedFolder(content, file);
+    new Notice(`Most similar folder: ${destinationFolder}`, 3000);
     await this.appendAlias(file, file.basename);
     await this.moveContent(file, fileName, destinationFolder);
     await this.appendSimilarTags(content, file);
@@ -264,7 +270,6 @@ export default class FileOrganizer extends Plugin {
   }
 
   async generateNameFromContent(content: string): Promise<string> {
-    new Notice(`Generating name for ${content.substring(0, 20)}...`, 3000);
     const name = await useName(content, {
       baseUrl: this.settings.useCustomServer
         ? this.settings.customServerUrl
@@ -272,7 +277,6 @@ export default class FileOrganizer extends Plugin {
       apiKey: this.settings.API_KEY,
     });
     const safeName = formatToSafeName(name);
-    new Notice(`Generated name: ${safeName}`, 3000);
     return safeName;
   }
 
@@ -427,8 +431,7 @@ export default class FileOrganizer extends Plugin {
 
     // Get the most similar folder based on the content and file name
     const mostSimilarFolder = await useText(
-      `Given the text content "${content}" (and if the file name "${
-        file.basename
+      `Given the text content "${content}" (and if the file name "${file.basename
       }"), which of the following folders would be the most appropriate location for the file? Available folders: ${uniqueFolders.join(
         ", "
       )}`,
@@ -440,9 +443,7 @@ export default class FileOrganizer extends Plugin {
         apiKey: this.settings.API_KEY,
       }
     );
-    logMessage("mostSimilarFolder", mostSimilarFolder);
-    new Notice(`Most similar folder: ${mostSimilarFolder}`, 3000);
-
+    logMessage("mostSimilarFolder", mostSimilarFolder)
     // Extract the most similar folder from the response
     const sanitizedFolderName = mostSimilarFolder.replace(/[\\:*?"<>|]/g, "");
 
