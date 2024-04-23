@@ -56,12 +56,12 @@ export default function Home() {
                 Get the latest version of File Organizer 2000 to keep your files
                 organized.
               </p>
-              <Link href="https://app.fileorganizer2000.com/">
+              <a href="obsidian://show-plugin?id=fileorganizer2000">
                 <Button>Download</Button>
-                <p className="text-sm text-gray-500 dark:text-gray-400 mt-4">
-                  Requires Obsidian to be installed.
-                </p>
-              </Link>
+              </a>
+              <p className="text-sm text-gray-500 dark:text-gray-400 mt-4">
+                Requires Obsidian to be installed.
+              </p>
             </div>
           </div>
         </div>
