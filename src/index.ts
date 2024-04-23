@@ -411,38 +411,40 @@ export default class FileOrganizer extends Plugin {
 
     logMessage("uniqueFolders", uniqueFolders);
 
-    // Get the most similar folder based on the content and file name
-    const mostSimilarFolder = await useText(
-      `Given the text content "${content}" (and if the file name "${
-        file.basename
-      }"), which of the following folders would be the most appropriate location for the file? Available folders: ${uniqueFolders.join(
-        ", "
-      )}`,
-      "Please respond with the name of the most appropriate folder from the provided list. If none of the folders are suitable, respond with 'None'.",
-      {
-        baseUrl: this.settings.useCustomServer
-          ? this.settings.customServerUrl
-          : this.settings.defaultServerUrl,
-        apiKey: this.settings.API_KEY,
-      }
-    );
-    logMessage("mostSimilarFolder", mostSimilarFolder);
-    // Extract the most similar folder from the response
-    const sanitizedFolderName = mostSimilarFolder.replace(/[\\:*?"<>|]/g, "");
+    const data = {
+      content,
+      fileName: file.basename,
+      folders: uniqueFolders,
+    };
 
-    // If no similar folder is found, set the destination folder as the default destination path
+    const response = await requestUrl({
+      url: `${
+        this.settings.useCustomServer
+          ? this.settings.customServerUrl
+          : this.settings.defaultServerUrl
+      }/api/folders`,
+      method: "POST",
+      body: JSON.stringify(data),
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${this.settings.API_KEY}`,
+      },
+    });
+
+    const result = await response.json;
+    const sanitizedFolderName = result.folder.replace(/[\\:*?"<>|]/g, "");
+
     if (sanitizedFolderName === "None") {
       destinationFolder = this.settings.defaultDestinationPath;
     }
 
-    // If a similar folder is found, set the destination folder as the most similar folder
     if (sanitizedFolderName !== "None") {
       destinationFolder = sanitizedFolderName;
     }
 
-    // Return the determined destination folder
     return destinationFolder;
   }
+
   async appendTag(file: TFile, tag: string) {
     // Append similar tags
     if (this.settings.useSimilarTagsInFrontmatter) {

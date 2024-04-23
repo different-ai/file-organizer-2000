@@ -4,14 +4,7 @@ import { NextFetchEvent, NextRequest } from "next/server";
 import PostHogClient from "./lib/posthog";
 
 const authMiddleware = clerkAuthMiddleware({
-  publicRoutes: [
-    "/api/name",
-    "/api/vision",
-    "/api/audio",
-    "/api/text",
-    "/api/secret",
-    "/api/tagging",
-  ],
+  publicRoutes: (req) => req.url.includes("/api"),
 });
 
 // only use authMiddleware if ENABLE_USER_MANAGEMENT is true, i.e. if user wishes to self host
