@@ -1,10 +1,14 @@
-## Currently available for early access users only.
+# The Assistant Sidebar
+
+Currently available for early access users only.
 
 The assistant sidebar is meant to give you more control in terms of how your file is processed. Instead of moving your file to Inbox, the sidebar will include suggestions for you to choose from.
 
+![alt text](images/assistant_sidebar.png)
+
 But first, you'll need to follow these two steps to enable the feature:
 
-1. Go to experimental features in the plugin settings and add your early access code 
+1. Go to experimental features in the plugin settings and add your early access code
 2. Go to the Hotkeys section in the main settings and search for `AI File Organizer 2000: Show Assistant`. Then, simply assign a keyboard command.
 
 Now for the actual functionality all you need to do is:
