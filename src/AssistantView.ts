@@ -130,11 +130,24 @@ export class AssistantView extends ItemView {
   };
 
   handleFileOpen = async (file: TFile) => {
+    // Get the AI assistant sidebar
+    const aiAssistantSidebar = document.querySelector(".assistant-container") as HTMLElement;
+
+    // Hide the AI assistant sidebar
+    if (aiAssistantSidebar) {
+      aiAssistantSidebar.style.display = "none";
+    }
+
     this.displayTitle(file);
     const content = await this.plugin.getTextFromFile(file);
     this.suggestTags(file, content);
     this.suggestFolders(file, content);
-    this.suggestAlias(file, content); // Call the suggestRename method
+    await this.suggestAlias(file, content); // Call the suggestRename method
+
+    // Show the AI assistant sidebar
+    if (aiAssistantSidebar) {
+      aiAssistantSidebar.style.display = "";
+    }
   };
 
   initUI() {
@@ -188,18 +201,18 @@ export class AssistantView extends ItemView {
 
     this.registerEvent(
       this.app.workspace.on("file-open", async (file) => {
-        // Get the AI assistant sidebar
-        const aiAssistantSidebar = document.querySelector(
-          ".assistant-container"
-        ) as HTMLElement;
+        // // Get the AI assistant sidebar
+        // const aiAssistantSidebar = document.querySelector(
+        //   ".assistant-container"
+        // ) as HTMLElement;
 
-        // Hide the AI assistant sidebar for 500ms
-        if (aiAssistantSidebar) {
-          aiAssistantSidebar.style.display = "none";
-          setTimeout(() => {
-            aiAssistantSidebar.style.display = "";
-          }, 500);
-        }
+        // // Hide the AI assistant sidebar for 500ms
+        // if (aiAssistantSidebar) {
+        //   aiAssistantSidebar.style.display = "none";
+        //   setTimeout(() => {
+        //     aiAssistantSidebar.style.display = "";
+        //   }, 500);
+        // }
 
         if (!this.plugin.settings.enableEarlyAccess) {
           return;
