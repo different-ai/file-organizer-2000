@@ -1,5 +1,6 @@
 import {
   ButtonComponent,
+  EventRef,
   ItemView,
   TFile,
   WorkspaceLeaf,
@@ -140,6 +141,8 @@ export class AssistantView extends ItemView {
   };
 
   handleFileOpen = async (file: TFile | null) => {
+    this.containerEl.empty();
+    this.initUI();
     if (!this.plugin.settings.enableEarlyAccess) {
       return;
     }
@@ -149,8 +152,11 @@ export class AssistantView extends ItemView {
       this.loading.style.display = "none";
       return;
     }
-    if (!file.path.endsWith(".md")) {
-      this.suggestionBox.setText("Only markdown files are supported");
+    if (!file.extension.includes("md")) {
+      this.containerEl.empty();
+      this.containerEl.createEl("h5", {
+        text: "The AI Assistant only works with markdown files.",
+      });
       this.loading.style.display = "none";
       return;
     }
