@@ -1,4 +1,10 @@
-import { ItemView, TFile, WorkspaceLeaf, setIcon } from "obsidian";
+import {
+  ButtonComponent,
+  ItemView,
+  TFile,
+  WorkspaceLeaf,
+  setIcon,
+} from "obsidian";
 import FileOrganizer from ".";
 import { logMessage } from "../utils";
 
@@ -9,9 +15,9 @@ export class AssistantView extends ItemView {
   private selectedFileBox: HTMLElement;
   private suggestionBox: HTMLElement;
   private loading: HTMLElement;
-  private similarLinkBox: HTMLDivElement;
   private similarFolderBox: HTMLDivElement;
   private aliasSuggestionBox: HTMLDivElement; // Added for rename suggestion
+  private classificationBox: HTMLDivElement;
 
   constructor(leaf: WorkspaceLeaf, plugin: FileOrganizer) {
     super(leaf);
@@ -135,6 +141,39 @@ export class AssistantView extends ItemView {
     this.suggestTags(file, content);
     this.suggestFolders(file, content);
     this.suggestAlias(file, content); // Call the suggestRename method
+    await this.displayClassification(file, content);
+  };
+
+  async displayClassification(file: TFile, content: string) {
+    logMessage("Checking document type");
+    const classification = await this.plugin.useCustomClassifier(
+      content,
+      file.basename
+    );
+    logMessage("Current document type: " + classification?.type);
+
+    this.classificationBox.empty();
+    this.classificationBox.style.display = "flex";
+    this.classificationBox.style.alignItems = "center";
+
+    const typeElement = this.classificationBox.createEl("span", {
+      text: classification?.type,
+    });
+
+    typeElement.style.fontSize = "1rem";
+
+    if (classification) {
+      new ButtonComponent(this.classificationBox)
+        .setButtonText("Change")
+        .onClick(async () => {
+          await this.plugin.formatContent(file, content, classification);
+        });
+    }
+  }
+  createHeader = (text) => {
+    const header = this.containerEl.createEl("h6", { text });
+    header.style.paddingLeft = "24px";
+    return header;
   };
 
   initUI() {
@@ -152,28 +191,27 @@ export class AssistantView extends ItemView {
       });
       supportLink.setAttr("target", "_blank");
     }
-    const createHeader = (text) => {
-      const header = this.containerEl.createEl("h6", { text });
-      header.style.paddingLeft = "24px";
-      return header;
-    };
 
     // add a header mentioning the selected file name
-    createHeader("Looking at");
+    this.createHeader("Looking at");
     this.selectedFileBox = this.containerEl.createEl("div");
     this.selectedFileBox.style.paddingLeft = "24px";
 
-    createHeader("Similar tags");
+    this.createHeader("Similar tags");
     this.suggestionBox = this.containerEl.createEl("div");
     this.suggestionBox.style.paddingLeft = "24px";
 
-    createHeader("Suggested alias");
+    this.createHeader("Suggested alias");
     this.aliasSuggestionBox = this.containerEl.createEl("div");
     this.aliasSuggestionBox.style.paddingLeft = "24px";
 
-    createHeader("Suggested folder");
+    this.createHeader("Suggested folder");
     this.similarFolderBox = this.containerEl.createEl("div");
     this.similarFolderBox.style.paddingLeft = "24px";
+
+    this.createHeader("Looks like a");
+    this.classificationBox = this.containerEl.createEl("div");
+    this.classificationBox.style.paddingLeft = "24px";
 
     this.loading = this.suggestionBox.createEl("div", {
       text: "Loading...",

@@ -34,9 +34,8 @@ class FileOrganizerSettings {
   enableEarlyAccess = false;
   earlyAccessCode = "";
   processedTag = false;
-  // will be removed just for testing phase
-  documentType = "";
-  formattingInstruction = "";
+  // new formatting
+  templatePaths = "_FileOrganizer2000/Templates";
 }
 
 const validAudioExtensions = ["mp3", "wav", "webm", "m4a"];
@@ -122,48 +121,45 @@ export default class FileOrganizer extends Plugin {
     this.appendTag(file, tag);
   }
 
-  /* experimental below until further notice */
-  // Add this new method to the class
-  async aiFormat() {
-    const activeFile = this.app.workspace.getActiveFile();
-    if (activeFile) {
-      const fileContent = await this.app.vault.read(activeFile);
-      const currentDocumentType = await this.useCustomClassifier(fileContent);
-      logMessage("documentType", currentDocumentType);
-      logMessage("settings.documentType", this.settings.documentType);
-      if (
-        currentDocumentType.toLowerCase() ===
-        this.settings.documentType.toLowerCase()
-      ) {
-        const formattedContent = await useText(
-          fileContent,
-          this.settings.formattingInstruction,
-          {
-            baseUrl: this.settings.useCustomServer
-              ? this.settings.customServerUrl
-              : this.settings.defaultServerUrl,
-            apiKey: this.settings.API_KEY,
-          }
-        );
-        await this.app.vault.modify(activeFile, formattedContent);
-      }
+  async getClassifications(): Promise<
+    { type: string; formattingInstruction: string }[]
+  > {
+    const templateFolder = this.app.vault.getAbstractFileByPath(
+      this.settings.templatePaths
+    );
+
+    if (!templateFolder || !(templateFolder instanceof TFolder)) {
+      console.error("Template folder not found or is not a valid folder.");
+      return [];
     }
+
+    const templateFiles: TFile[] = templateFolder.children.filter(
+      (file) => file instanceof TFile
+    ) as TFile[];
+
+    const classifications = await Promise.all(
+      templateFiles.map(async (file) => ({
+        type: file.basename,
+        formattingInstruction: await this.app.vault.read(file),
+      }))
+    );
+
+    return classifications;
   }
 
-  // Modify the useCustomClassifier method
-  async useCustomClassifier(content: string) {
-    const classifications = [
-      { type: "todos", moveTo: "/todos" },
-      { type: "notes", moveTo: "/notes" },
-      { type: "morning notes", moveTo: "/morning-notes" },
-      { type: "reminder", moveTo: "/reminders" },
-      { type: this.settings.documentType, moveTo: "" }, // Add the custom document type
-    ];
-    const prompt = `Content:
-    ${content}
-    classifications:
-    ${classifications.map((c) => c.type).join(", ")}
-    Which of the following classifications would be the most appropriate for the given content?`;
+  async useCustomClassifier(
+    content: string,
+    name: string
+  ): Promise<{ type: string; formattingInstruction: string } | null> {
+    const classifications = await this.getClassifications();
+    logMessage("classifications", classifications);
+
+    const prompt = `Name: ${name}
+  Content:
+  ${content}
+  classifications:${classifications.map((c) => c.type).join(", ")}
+Which of the following classifications would 
+  be the most appropriate for the given content?`;
 
     const whatTypeOfDocument = await useText(
       prompt,
@@ -175,8 +171,31 @@ export default class FileOrganizer extends Plugin {
         apiKey: this.settings.API_KEY,
       }
     );
+    logMessage("whatTypeOfDocument", whatTypeOfDocument);
 
-    return whatTypeOfDocument;
+    const selectedClassification = classifications.find(
+      (c) => c.type.toLowerCase() === whatTypeOfDocument.toLowerCase()
+    );
+
+    return selectedClassification || null;
+  }
+
+  async formatContent(
+    file: TFile,
+    fileContent: string,
+    selectedClassification: { type: string; formattingInstruction: string }
+  ) {
+    const formattedContent = await useText(
+      fileContent,
+      selectedClassification.formattingInstruction,
+      {
+        baseUrl: this.settings.useCustomServer
+          ? this.settings.customServerUrl
+          : this.settings.defaultServerUrl,
+        apiKey: this.settings.API_KEY,
+      }
+    );
+    await this.app.vault.modify(file, formattedContent);
   }
   /* experimental above until further notice */
 
@@ -358,6 +377,7 @@ export default class FileOrganizer extends Plugin {
     this.ensureFolderExists(this.settings.defaultDestinationPath);
     this.ensureFolderExists(this.settings.attachmentsPath);
     this.ensureFolderExists(this.settings.logFolderPath);
+    this.ensureFolderExists(this.settings.templatePaths);
   }
 
   async getBacklog() {
@@ -551,23 +571,6 @@ export default class FileOrganizer extends Plugin {
   async onload() {
     await this.initializePlugin();
 
-    // add commands
-    // Add this new command to the onload() method
-    this.addCommand({
-      id: "ai-format",
-      name: "AI Format",
-      callback: async () => {
-        if (!this.settings.enableEarlyAccess) {
-          new Notice(
-            "This feature is only available for early access supporters",
-            3000
-          );
-          return;
-        }
-        await this.aiFormat();
-      },
-    });
-
     // on layout ready register event handlers
     this.addCommand({
       id: "append-existing-tags",
@@ -580,10 +583,18 @@ export default class FileOrganizer extends Plugin {
         }
       },
     });
+
     this.addCommand({
       id: "show-assistant",
       name: "Show Assistant",
       callback: async () => {
+        if (!this.settings.enableEarlyAccess) {
+          new Notice(
+            "This feature is only available for early access supporters",
+            3000
+          );
+          return;
+        }
         await this.showAssistantSidebar();
       },
     });
@@ -626,7 +637,7 @@ export default class FileOrganizer extends Plugin {
   }
   async initializePlugin() {
     await this.loadSettings();
-    this.ensureFolderExists(this.settings.pathToWatch);
+    await this.checkAndCreateFolders();
     this.addSettingTab(new FileOrganizerSettingTab(this.app, this));
     this.registerView(
       ASSISTANT_VIEW_TYPE,
