@@ -20,6 +20,25 @@ export class AssistantView extends ItemView {
     this.plugin = plugin;
   }
 
+
+
+  createLoadingOverlay() {
+    // Create a loading overlay and add it to the container
+    this.loadingOverlay = this.containerEl.createEl("div", { attr: { class: "loading-overlay" } });
+    this.loadingOverlay.style.display = "none"; // Hide it initially
+
+    // Create a loading spinner and add it to the overlay
+    this.loadingIcon = this.loadingOverlay.createEl("div", { attr: { class: "spinner" } });
+  }
+
+  showLoadingOverlay() {
+    this.loadingOverlay.style.display = "flex";
+  }
+
+  hideLoadingOverlay() {
+    this.loadingOverlay.style.display = "none";
+  }
+
   getDisplayText(): string {
     return "Assistant";
   }
@@ -132,22 +151,6 @@ export class AssistantView extends ItemView {
   };
 
 
-  createLoadingOverlay() {
-    // Create a loading overlay and add it to the container
-    this.loadingOverlay = this.containerEl.createEl("div", { attr: { class: "loading-overlay" } });
-    this.loadingOverlay.style.display = "none"; // Hide it initially
-
-    // Create a loading spinner and add it to the overlay
-    this.loadingIcon = this.loadingOverlay.createEl("div", { attr: { class: "spinner" } });
-  }
-
-  showLoadingOverlay() {
-    this.loadingOverlay.style.display = "flex";
-  }
-
-  hideLoadingOverlay() {
-    this.loadingOverlay.style.display = "none";
-  }
 
   handleFileOpen = async (file: TFile) => {
     // Show the loading overlay
