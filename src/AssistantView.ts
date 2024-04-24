@@ -12,6 +12,8 @@ export class AssistantView extends ItemView {
   private similarLinkBox: HTMLDivElement;
   private similarFolderBox: HTMLDivElement;
   private aliasSuggestionBox: HTMLDivElement; // Added for rename suggestion
+  loadingOverlay: HTMLElement
+  loadingIcon: HTMLElement; // Add the loadingIcon property
 
   constructor(leaf: WorkspaceLeaf, plugin: FileOrganizer) {
     super(leaf);
@@ -129,30 +131,30 @@ export class AssistantView extends ItemView {
     this.similarFolderBox.appendChild(moveFilebutton);
   };
 
+
   handleFileOpen = async (file: TFile) => {
-    // Get the AI assistant sidebar
-    const aiAssistantSidebar = document.querySelector(".assistant-container") as HTMLElement;
-
-    // Hide the AI assistant sidebar
-    if (aiAssistantSidebar) {
-      aiAssistantSidebar.style.display = "none";
-    }
-
+    // Show the loading overlay
+    this.loadingOverlay.style.display = "flex";
     this.displayTitle(file);
     const content = await this.plugin.getTextFromFile(file);
     this.suggestTags(file, content);
     this.suggestFolders(file, content);
     await this.suggestAlias(file, content); // Call the suggestRename method
 
-    // Show the AI assistant sidebar
-    if (aiAssistantSidebar) {
-      aiAssistantSidebar.style.display = "";
-    }
+    this.loadingOverlay.style.display = "none";
   };
 
   initUI() {
     this.containerEl.empty();
     this.containerEl.addClass("assistant-container");
+
+
+    // Create a loading overlay and add it to the container
+    this.loadingOverlay = this.containerEl.createEl("div", { attr: { class: "loading-overlay" } });
+    this.loadingOverlay.style.display = "none"; // Hide it initially
+
+    // Create a loading spinner and add it to the overlay
+    this.loadingIcon = this.loadingOverlay.createEl("div", { attr: { class: "spinner" } });
 
     if (!this.plugin.settings.enableEarlyAccess) {
       this.containerEl.createEl("h5", {
@@ -197,14 +199,17 @@ export class AssistantView extends ItemView {
   async onOpen() {
     this.containerEl.empty();
     this.containerEl.addClass("assistant-container");
+
+    // Create a loading icon and add it to the container
+    this.loadingIcon = this.containerEl.createEl("div", { attr: { id: "loading-icon" } });
+    this.loadingIcon.style.display = "none"; // Hide it initially
+
     this.initUI();
 
     this.registerEvent(
       this.app.workspace.on("file-open", async (file) => {
-        // // Get the AI assistant sidebar
-        // const aiAssistantSidebar = document.querySelector(
-        //   ".assistant-container"
-        // ) as HTMLElement;
+
+
 
         // // Hide the AI assistant sidebar for 500ms
         // if (aiAssistantSidebar) {

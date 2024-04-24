@@ -5,4 +5,39 @@ available in the app when your plugin is enabled.
 
 If your plugin does not need CSS, delete this file.
 
-*/
+*/ 
+
+ /*loading overlay + spinners for sidebar */ 
+.loading-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    /* base obsidian background color */
+    background: var(--background-primary-alt);
+    opacity: 1;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+  }
+.spinner {
+    width: 48px;
+    height: 48px;
+    border: 5px solid var(--color-purple);
+    border-bottom-color: transparent;
+    border-radius: 50%;
+    display: inline-block;
+    box-sizing: border-box;
+    animation: rotation 1s linear infinite;
+    }
+
+    @keyframes rotation {
+    0% {
+        transform: rotate(0deg);
+    }
+    100% {
+        transform: rotate(360deg);
+    }
+    } 
