@@ -36,7 +36,7 @@ export class FileOrganizerSettingTab extends PluginSettingTab {
 
     containerEl.empty();
 
-    const apiKeySetting = new Setting(containerEl)
+    new Setting(containerEl)
       .setName("File Organizer API Key")
       .setDesc(
         "Enter your API Key here. Get it at https://app.fileorganizer2000.com/ "
@@ -306,31 +306,12 @@ export class FileOrganizerSettingTab extends PluginSettingTab {
       .setName("Custom Formatting (early access only works for supporters)")
       .setHeading();
 
-    // Add these new settings to the display() method
+    // Information section about the new method of specifying document type and accessing it via the AI sidebar
     new Setting(containerEl)
-      .setName("Document Type")
-      .setDesc("Enter the document type for AI formatting (e.g., 'workout')")
-      .addText((text) =>
-        text
-          .setPlaceholder("Enter document type")
-          .setValue(this.plugin.settings.documentType)
-          .onChange(async (value) => {
-            this.plugin.settings.documentType = value;
-            await this.plugin.saveSettings();
-          })
-      );
-
-    new Setting(containerEl)
-      .setName("Formatting Instruction")
-      .setDesc("Enter the formatting instructions for AI formatting")
-      .addTextArea((text) =>
-        text
-          .setPlaceholder("Enter formatting instructions")
-          .setValue(this.plugin.settings.formattingInstruction)
-          .onChange(async (value) => {
-            this.plugin.settings.formattingInstruction = value;
-            await this.plugin.saveSettings();
-          })
-      );
+      .setName("Document Type Configuration")
+      .setDesc(
+        "To specify the document type for AI formatting, please add a file inside the template folder of File Organizer. Each file should be named according to the document type it represents (e.g., 'workout'). The content of each file should be the prompt that will be applied to the formatting. Additionally, you can access and manage these document types directly through the AI sidebar in the application."
+      )
+      .setDisabled(true);
   }
 }
