@@ -18,6 +18,7 @@ export class AssistantView extends ItemView {
   private similarFolderBox: HTMLDivElement;
   private aliasSuggestionBox: HTMLDivElement; // Added for rename suggestion
   private classificationBox: HTMLDivElement;
+  private fileOpenEventRef: EventRef;
 
   constructor(leaf: WorkspaceLeaf, plugin: FileOrganizer) {
     super(leaf);
@@ -31,9 +32,11 @@ export class AssistantView extends ItemView {
   getViewType(): string {
     return ASSISTANT_VIEW_TYPE;
   }
+
   getIcon(): string {
     return "pencil";
   }
+
   displayTitle = async (file: TFile) => {
     const title = file.basename;
     this.selectedFileBox.empty();
@@ -83,6 +86,7 @@ export class AssistantView extends ItemView {
     }
     this.loading.style.display = "none";
   };
+
   suggestAlias = async (file: TFile, content: string) => {
     const suggestedName = await this.plugin.generateNameFromContent(content);
     this.aliasSuggestionBox.empty();
@@ -135,13 +139,43 @@ export class AssistantView extends ItemView {
     this.similarFolderBox.appendChild(moveFilebutton);
   };
 
-  handleFileOpen = async (file: TFile) => {
+  handleFileOpen = async (file: TFile | null) => {
+    if (!this.plugin.settings.enableEarlyAccess) {
+      return;
+    }
+    this.loading.style.display = "block";
+    if (!file) {
+      this.suggestionBox.setText("No file opened");
+      this.loading.style.display = "none";
+      return;
+    }
+    if (!file.path.endsWith(".md")) {
+      this.suggestionBox.setText("Only markdown files are supported");
+      this.loading.style.display = "none";
+      return;
+    }
+
+    // Get the AI assistant sidebar
+    const aiAssistantSidebar = document.querySelector(
+      ".assistant-container"
+    ) as HTMLElement;
+
+    // Hide the AI assistant sidebar
+    if (aiAssistantSidebar) {
+      aiAssistantSidebar.style.display = "none";
+    }
+
     this.displayTitle(file);
     const content = await this.plugin.getTextFromFile(file);
     this.suggestTags(file, content);
     this.suggestFolders(file, content);
-    this.suggestAlias(file, content); // Call the suggestRename method
+    await this.suggestAlias(file, content); // Call the suggestRename method
     await this.displayClassification(file, content);
+
+    // Show the AI assistant sidebar
+    if (aiAssistantSidebar) {
+      aiAssistantSidebar.style.display = "";
+    }
   };
 
   async displayClassification(file: TFile, content: string) {
@@ -170,6 +204,7 @@ export class AssistantView extends ItemView {
         });
     }
   }
+
   createHeader = (text) => {
     const header = this.containerEl.createEl("h6", { text });
     header.style.paddingLeft = "24px";
@@ -222,38 +257,20 @@ export class AssistantView extends ItemView {
   async onOpen() {
     this.containerEl.empty();
     this.containerEl.addClass("assistant-container");
+    this.handleFileOpen(this.app.workspace.getActiveFile());
+
     this.initUI();
 
-    this.registerEvent(
+    this.fileOpenEventRef = this.registerEvent(
       this.app.workspace.on("file-open", async (file) => {
-        // Get the AI assistant sidebar
-        const aiAssistantSidebar = document.querySelector(
-          ".assistant-container"
-        ) as HTMLElement;
-
-        // Hide the AI assistant sidebar for 500ms
-        if (aiAssistantSidebar) {
-          aiAssistantSidebar.style.display = "none";
-          setTimeout(() => {
-            aiAssistantSidebar.style.display = "";
-          }, 500);
-        }
-
-        if (!this.plugin.settings.enableEarlyAccess) {
-          return;
-        }
-        this.loading.style.display = "block";
-        if (!file) {
-          this.suggestionBox.setText("No file opened");
-          this.loading.style.display = "none";
-          return;
-        }
         this.handleFileOpen(file);
       })
     );
   }
 
   async onClose() {
-    // Nothing to clean up.
+    if (this.fileOpenEventRef) {
+      this.app.workspace.offref(this.fileOpenEventRef);
+    }
   }
 }
