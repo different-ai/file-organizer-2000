@@ -132,6 +132,23 @@ export class AssistantView extends ItemView {
   };
 
 
+  createLoadingOverlay() {
+    // Create a loading overlay and add it to the container
+    this.loadingOverlay = this.containerEl.createEl("div", { attr: { class: "loading-overlay" } });
+    this.loadingOverlay.style.display = "none"; // Hide it initially
+
+    // Create a loading spinner and add it to the overlay
+    this.loadingIcon = this.loadingOverlay.createEl("div", { attr: { class: "spinner" } });
+  }
+
+  showLoadingOverlay() {
+    this.loadingOverlay.style.display = "flex";
+  }
+
+  hideLoadingOverlay() {
+    this.loadingOverlay.style.display = "none";
+  }
+
   handleFileOpen = async (file: TFile) => {
     // Show the loading overlay
     this.loadingOverlay.style.display = "flex";
@@ -149,12 +166,7 @@ export class AssistantView extends ItemView {
     this.containerEl.addClass("assistant-container");
 
 
-    // Create a loading overlay and add it to the container
-    this.loadingOverlay = this.containerEl.createEl("div", { attr: { class: "loading-overlay" } });
-    this.loadingOverlay.style.display = "none"; // Hide it initially
-
-    // Create a loading spinner and add it to the overlay
-    this.loadingIcon = this.loadingOverlay.createEl("div", { attr: { class: "spinner" } });
+    this.createLoadingOverlay();    // Create a loading spinner and add it to the overlay
 
     if (!this.plugin.settings.enableEarlyAccess) {
       this.containerEl.createEl("h5", {
@@ -209,23 +221,13 @@ export class AssistantView extends ItemView {
     this.registerEvent(
       this.app.workspace.on("file-open", async (file) => {
 
-
-
-        // // Hide the AI assistant sidebar for 500ms
-        // if (aiAssistantSidebar) {
-        //   aiAssistantSidebar.style.display = "none";
-        //   setTimeout(() => {
-        //     aiAssistantSidebar.style.display = "";
-        //   }, 500);
-        // }
-
         if (!this.plugin.settings.enableEarlyAccess) {
           return;
         }
-        this.loading.style.display = "block";
+        this.showLoadingOverlay();
         if (!file) {
           this.suggestionBox.setText("No file opened");
-          this.loading.style.display = "none";
+          this.hideLoadingOverlay();
           return;
         }
         this.handleFileOpen(file);
