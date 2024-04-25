@@ -1,5 +1,5 @@
 "use server";
-import { auth } from "@clerk/nextjs";
+import { auth } from "@clerk/nextjs/server";
 import { Unkey } from "@unkey/api";
 export async function create(formData: FormData) {
   "use server";
