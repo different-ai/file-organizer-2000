@@ -266,12 +266,11 @@ export class AssistantView extends ItemView {
     this.handleFileOpen(this.app.workspace.getActiveFile());
 
     this.initUI();
+    this.fileOpenEventRef = this.app.workspace.on("file-open", async (file) => {
+      this.handleFileOpen(file);
+    });
 
-    this.fileOpenEventRef = this.registerEvent(
-      this.app.workspace.on("file-open", async (file) => {
-        this.handleFileOpen(file);
-      })
-    );
+    this.registerEvent(this.fileOpenEventRef);
   }
 
   async onClose() {
