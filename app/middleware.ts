@@ -8,6 +8,8 @@ export default authMiddleware({
     if (!auth.userId && !auth.isPublicRoute) {
       return redirectToSignIn({ returnBackUrl: req.url });
     }
+
+      console.log(auth.sessionClaims.publicMetadata)
     if (
       auth.userId &&
       req.nextUrl.pathname === '/members' &&
