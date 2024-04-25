@@ -42,7 +42,7 @@ export async function POST(req: NextRequest) {
       console.log(`User ID: ${session.metadata?.userId}`);
       console.log(session.status);
       console.log(session.payment_status);
-      clerkClient.users.updateUserMetadata(
+      await clerkClient.users.updateUserMetadata(
         event.data.object.metadata?.userId as string,
         {
           publicMetadata: {
@@ -53,6 +53,7 @@ export async function POST(req: NextRequest) {
           },
         }
       );
+      console.log("metadata updated");
       break;
     }
     default:
