@@ -10,6 +10,8 @@ import PostHogClient from "./lib/posthog";
 const isApiRoute = createRouteMatcher(["/api(.*)"]);
 const isAuthRoute = createRouteMatcher(["/(.*)"]);
 
+console.log("ENABLE_USER_MANAGEMENT", process.env.ENABLE_USER_MANAGEMENT);
+
 export default clerkMiddleware(async (auth, req) => {
   // do not run auth middleware if user management is disabled
   if (!process.env.ENABLE_USER_MANAGEMENT) {
@@ -36,7 +38,9 @@ export default clerkMiddleware(async (auth, req) => {
       // get user from api key
       const user = await clerkClient.users.getUser(result.ownerId);
       // check if customer or not
+      //@ts-ignore
       const isCustomer = user?.publicMetadata?.stripe?.status === "complete";
+      console.log("isCustomer", isCustomer);
 
       client.capture({
         distinctId: result?.ownerId,
