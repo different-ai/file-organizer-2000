@@ -40,6 +40,8 @@ export async function POST(req: NextRequest) {
       console.log(`Payment successful for session ID: ${session.id}`);
       // print user id
       console.log(`User ID: ${session.metadata?.userId}`);
+      console.log(session.status);
+      console.log(session.payment_status);
       clerkClient.users.updateUserMetadata(
         event.data.object.metadata?.userId as string,
         {
