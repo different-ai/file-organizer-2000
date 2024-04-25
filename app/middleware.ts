@@ -62,7 +62,12 @@ export default clerkMiddleware(async (auth, req) => {
   if (isWebhookRoute(req)) {
     return NextResponse.next();
   }
-  if (isCheckoutApiRoute(req)) auth().protect();
+  console.log("req.url", req.url);
+  if (isCheckoutApiRoute(req)) {
+    auth().protect();
+    return NextResponse.next();
+  }
+  console.log("req.url2", req.url);
 
   if (isApiRoute(req)) {
     try {
