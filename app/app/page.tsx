@@ -1,3 +1,4 @@
+import CheckoutButton from "@/components/ui/CheckoutButton";
 import { UnkeyElements } from "./keys/client";
 import { Button } from "@/components/ui/button";
 
@@ -26,6 +27,8 @@ export default function Home() {
   return (
     <div className="flex min-h-screen flex-col bg-gray-100 dark:bg-gray-900">
       <header className="flex items-center justify-between bg-white px-6 py-4 shadow dark:bg-gray-800">
+      <CheckoutButton />
+
         {/* Header content */}
       </header>
       <main className="flex-1 px-6 py-8">
