@@ -23,6 +23,7 @@ async function findSubscription(email, priceId) {
   const customer = subscription.customer;
   console.log("customer", customer);
 
+  // @ts-ignore
   if (customer.email === email) {
     return subscription;
   }
@@ -74,6 +75,7 @@ export async function POST(request: Request) {
   // Check if the user is a customer
   // @ts-ignore
   const isCustomer =
+    // @ts-ignore
     user?.publicMetadata?.stripe?.status === "complete" ||
     subscription?.status === "active";
   console.log("isCustomer", isCustomer, userId);
