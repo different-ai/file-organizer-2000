@@ -29,7 +29,7 @@ export async function POST(req: NextRequest) {
   }
   if (event === undefined) throw new Error(`event is undefined`);
   switch (event.type) {
-    case 'checkout.session.completed':
+    case 'checkout.session.completed': {
       const session = event.data.object;
       console.log(`Payment successful for session ID: ${session.id}`);
       clerkClient.users.updateUserMetadata(event.data.object.metadata?.userId as string, {
@@ -41,6 +41,7 @@ export async function POST(req: NextRequest) {
         },
       });
       break;
+    }
     default:
       console.warn(`Unhandled event type: ${event.type}`);
   }
