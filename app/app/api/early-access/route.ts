@@ -5,30 +5,20 @@ import Stripe from "stripe";
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY as string, {
   apiVersion: "2024-04-10",
 });
+async function findCustomerByEmail(email: string) {
+  console.log("Searching for customer with email:", email);
 
-async function findSubscription(email, priceId) {
-  console.log(email, priceId);
-  const subscriptions = await stripe.subscriptions.list({
-    limit: 1,
-    expand: ["data.customer"],
-    price: priceId,
+  const customers = await stripe.customers.search({
+    query: `email:"${email}"`,
   });
-  console.log("subscriptions", subscriptions);
 
-  if (subscriptions.data.length === 0) {
+  console.log("Customers found:", customers);
+
+  if (customers.data.length === 0) {
     return null;
   }
 
-  const subscription = subscriptions.data[0];
-  const customer = subscription.customer;
-  console.log("customer", customer);
-
-  // @ts-ignore
-  if (customer.email === email) {
-    return subscription;
-  }
-
-  return null;
+  return customers.data[0];
 }
 
 export async function POST(request: Request) {
@@ -66,18 +56,18 @@ export async function POST(request: Request) {
 
   // Get the user object from Clerk
   const user = await clerkClient.users.getUser(userId);
-  const subscription = await findSubscription(
-    user.emailAddresses[0].emailAddress,
-    process.env.NEXT_PUBLIC_STRIPE_MONTHLY_PRICE_ID as string
+  const customer = await findCustomerByEmail(
+    user.emailAddresses[0].emailAddress
   );
-
-  console.log("subscription status", subscription?.status);
-  // Check if the user is a customer
-  // @ts-ignore
+  console.log("customer", customer);
   const isCustomer =
+    (customer !== null &&
+      customer.subscriptions.data.some(
+        (subscription) => subscription.status === "active"
+      )) ||
     // @ts-ignore
-    user?.publicMetadata?.stripe?.status === "complete" ||
-    subscription?.status === "active";
+    user.publicMetadata?.stripe?.status === "complete";
+
   console.log("isCustomer", isCustomer, userId);
 
   return new Response(JSON.stringify({ isCustomer }), {
