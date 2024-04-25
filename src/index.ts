@@ -647,22 +647,28 @@ Which of the following classifications would
   }
 
   async checkForEarlyAccess() {
-    const response = await requestUrl({
-      url: `${
-        this.settings.useCustomServer
-          ? this.settings.customServerUrl
-          : this.settings.defaultServerUrl
-      }/api/early-access`,
-      method: "POST",
-      body: JSON.stringify({ code: this.settings.earlyAccessCode }),
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${this.settings.API_KEY}`,
-      },
-    });
+    try {
+      const response = await requestUrl({
+        url: `${
+          this.settings.useCustomServer
+            ? this.settings.customServerUrl
+            : this.settings.defaultServerUrl
+        }/api/early-access`,
+        method: "POST",
+        body: JSON.stringify({ code: this.settings.earlyAccessCode }),
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${this.settings.API_KEY}`,
+        },
+      });
 
-    const result = await response.json;
-    return result.isCustomer;
+      const result = await response.json;
+      return result.isCustomer;
+    } catch (e) {
+      new Notice("Error checking for early access", 3000);
+      console.error("Error checking for early access", e);
+      return false;
+    }
   }
 
   registerEventHandlers() {
