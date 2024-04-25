@@ -1,6 +1,6 @@
 # The Assistant Sidebar
 
-Currently available for early access users only.
+Currently available for early access users only. [Early Access Support link](https://buy.stripe.com/3cs29sdqY7QadeU147) 
 
 The assistant sidebar is meant to give you more control in terms of how your file is processed. Instead of moving your file to Inbox, the sidebar will include suggestions for you to choose from.
 
