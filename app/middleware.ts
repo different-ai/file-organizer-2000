@@ -10,6 +10,7 @@ export default authMiddleware({
     if (
       auth.userId &&
       req.nextUrl.pathname === '/members' &&
+      // @ts-ignore
       auth.sessionClaims.publicMetadata?.stripe?.payment !== 'paid'
     ) {
       return NextResponse.redirect(new URL('/', req.url));
@@ -17,6 +18,7 @@ export default authMiddleware({
     if (
       auth.userId &&
       req.nextUrl.pathname === '/members' &&
+      // @ts-ignore
       auth.sessionClaims.publicMetadata?.stripe?.payment === 'paid'
     ) {
       return NextResponse.next();
