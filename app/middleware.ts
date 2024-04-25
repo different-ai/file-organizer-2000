@@ -1,41 +1,20 @@
-import { authMiddleware, redirectToSignIn } from "@clerk/nextjs";
+import { clerkMiddleware, createRouteMatcher } from "@clerk/nextjs/server";
 import { NextResponse } from "next/server";
 
-export default authMiddleware({
-  publicRoutes: (req) => req.url.includes("/api"),
-  afterAuth: async (auth, req) => {
-    console.log("in after auth");
-    if (!auth.userId && !auth.isPublicRoute) {
-      return redirectToSignIn({ returnBackUrl: req.url });
-    }
+const isPublicRoute = createRouteMatcher(["/api(.*)"]);
+const isAuthRoute = createRouteMatcher(["/"]);
 
-    console.log(auth.userId);
-    console.log("auth claim", auth.sessionClaims);
-    console.log("auth claim", auth.sessionClaims?.publicMetadata);
-    if (
-      auth.userId &&
-      req.nextUrl.pathname === "/members" &&
-      // @ts-ignore
-      auth.sessionClaims.publicMetadata?.stripe?.payment !== "paid"
-    ) {
-      return NextResponse.redirect(new URL("/", req.url));
-    }
-    console.log("new");
-    if (
-      auth.userId &&
-      req.nextUrl.pathname === "/members" &&
-      // @ts-ignore
-      auth.sessionClaims.publicMetadata?.stripe?.payment === "paid"
-    ) {
-      return NextResponse.next();
-    }
-    console.log("members");
-    if (auth.userId && req.nextUrl.pathname !== "/members") {
-      return NextResponse.next();
-    }
-    if (auth.isPublicRoute) {
-      console.log(" is public route");
-      return NextResponse.next();
-    }
-  },
+export default clerkMiddleware((auth, req) => {
+  console.log(auth().sessionClaims);
+  console.log(auth().actor);
+  if (isPublicRoute(req)) {
+    return NextResponse.next();
+  }
+  if (isAuthRoute(req)) auth().protect();
+
+  return NextResponse.next();
 });
+
+export const config = {
+  matcher: ["/((?!.*\\..*|_next).*)", "/", "/(api|trpc)(.*)"],
+};
