@@ -8,6 +8,7 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY as string, {
 const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET as string;
 
 export async function POST(req: NextRequest) {
+  console.log('hitting webhook')
   if (req === null) throw new Error(`Missing userId or request`, { cause: { req } });
   const stripeSignature = req.headers.get('stripe-signature');
   if (stripeSignature === null) throw new Error('stripeSignature is null');

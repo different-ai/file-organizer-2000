@@ -3,7 +3,6 @@ import { NextResponse } from 'next/server';
 
 export default authMiddleware({
     publicRoutes: (req) => req.url.includes("/api"),
-    
   afterAuth: async (auth, req) => {
     console.log('in after auth')
     if (!auth.userId && !auth.isPublicRoute) {
@@ -31,6 +30,7 @@ export default authMiddleware({
       return NextResponse.next();
     }
     if (auth.isPublicRoute) {
+      console.log(' is public route')
       return NextResponse.next();
     }
   },
