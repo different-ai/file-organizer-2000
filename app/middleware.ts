@@ -9,7 +9,7 @@ export default authMiddleware({
       return redirectToSignIn({ returnBackUrl: req.url });
     }
 
-      console.log(auth.sessionClaims.publicMetadata)
+      console.log('auth claim',auth.sessionClaims.publicMetadata)
     if (
       auth.userId &&
       req.nextUrl.pathname === '/members' &&
