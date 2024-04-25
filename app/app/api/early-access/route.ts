@@ -10,6 +10,7 @@ async function findCustomerByEmail(email: string) {
 
   const customers = await stripe.customers.search({
     query: `email:"${email}"`,
+    expand: ["subscriptions"],
   });
 
   console.log("Customers found:", customers);
