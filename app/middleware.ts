@@ -11,7 +11,7 @@ export default authMiddleware({
 
     console.log(auth.userId);
     console.log("auth claim", auth.sessionClaims);
-    console.log("auth claim", auth.sessionClaims.publicMetadata);
+    console.log("auth claim", auth.sessionClaims?.publicMetadata);
     if (
       auth.userId &&
       req.nextUrl.pathname === "/members" &&
