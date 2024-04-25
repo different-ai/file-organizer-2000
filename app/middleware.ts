@@ -2,7 +2,7 @@ import { authMiddleware, redirectToSignIn } from '@clerk/nextjs';
 import { NextResponse } from 'next/server';
 
 export default authMiddleware({
-  publicRoutes: ['/', '/api/(.*)'],
+  publicRoutes: ['/api/*'],
   afterAuth: async (auth, req) => {
     if (!auth.userId && !auth.isPublicRoute) {
       return redirectToSignIn({ returnBackUrl: req.url });
