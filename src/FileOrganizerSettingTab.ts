@@ -201,21 +201,27 @@ export class FileOrganizerSettingTab extends PluginSettingTab {
         toggle
           .setValue(this.plugin.settings.enableEarlyAccess)
           .onChange(async (value) => {
-            const isCustomer = await this.plugin.checkForEarlyAccess();
-            if (!isCustomer) {
+            new Notice("Checking for early access...");
+            if (!value) {
               this.plugin.settings.enableEarlyAccess = false;
-              new Notice(
-                "You need to be a supporter to enable Early Access Features."
-              );
+              await this.plugin.saveSettings();
               return;
             }
-            this.plugin.settings.enableEarlyAccess = value;
-            await this.plugin.saveSettings();
-            new Notice(
-              `Early Access Features have been ${
-                value ? "enabled" : "disabled"
-              }.`
-            );
+
+            const isCustomer = await this.plugin.checkForEarlyAccess();
+
+            if (!isCustomer) {
+              new Notice(
+                "You need to be a supporter to enable Early Access Features.",
+                6000
+              );
+              toggle.setValue(false);
+              return;
+            }
+
+            this.plugin.settings.enableEarlyAccess = true;
+            new Notice("Early Access Features enabled.");
+            return;
           })
       );
 
