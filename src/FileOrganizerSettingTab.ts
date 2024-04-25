@@ -1,30 +1,16 @@
-import { PluginSettingTab, App, Setting, requestUrl, Notice } from "obsidian";
+import {
+  PluginSettingTab,
+  App,
+  Setting,
+  requestUrl,
+  Notice,
+  ButtonComponent,
+} from "obsidian";
 import { logMessage, cleanPath } from "../utils";
 import FileOrganizer from "./index";
 
 export class FileOrganizerSettingTab extends PluginSettingTab {
   plugin: FileOrganizer;
-
-  private async sendSecretApiRequest(jsonPayload: {
-    code: string;
-  }): Promise<any> {
-    const url = `${this.plugin.settings.defaultServerUrl}/api/secret`;
-    try {
-      const response = await requestUrl({
-        url: url,
-        method: "POST",
-        body: JSON.stringify(jsonPayload),
-        headers: {
-          Authorization: `Bearer ${this.plugin.settings.API_KEY}`,
-          "Content-Type": "application/json",
-        },
-      });
-      return response;
-    } catch (error) {
-      console.error("Error sending secret API request:", error);
-      throw error; // Rethrow to handle it outside this function if needed
-    }
-  }
 
   constructor(app: App, plugin: FileOrganizer) {
     super(app, plugin);
@@ -199,47 +185,37 @@ export class FileOrganizerSettingTab extends PluginSettingTab {
 
     new Setting(containerEl).setName("Experimental features").setHeading();
 
+    new ButtonComponent(containerEl)
+      .setButtonText("Become an Early Supporter")
+      .setCta()
+      .onClick(() => {
+        window.open("https://app.fileorganizer2000.com/", "_blank");
+      });
+
     new Setting(containerEl)
-      .setName("Early access features")
+      .setName("Enable Early Access")
       .setDesc(
-        "Activate early access features. Go to https://dub.sh/2000 to support."
+        "Enable early access to new features. You need to be a supporter to enable this."
       )
-      .addText((text) =>
-        text
-          .setPlaceholder("Enter access code for Early Access Features")
-          .setValue(this.plugin.settings.earlyAccessCode)
+      .addToggle((toggle) =>
+        toggle
+          .setValue(this.plugin.settings.enableEarlyAccess)
           .onChange(async (value) => {
-            if (value.length !== 8) {
+            const isCustomer = await this.plugin.checkForEarlyAccess();
+            if (!isCustomer) {
+              this.plugin.settings.enableEarlyAccess = false;
+              new Notice(
+                "You need to be a supporter to enable Early Access Features."
+              );
               return;
             }
-            const jsonPayload = {
-              code: value,
-            };
-            try {
-              const url = `${this.plugin.settings.defaultServerUrl}/api/secret`;
-              const response = await requestUrl({
-                url: url,
-                method: "POST",
-                body: JSON.stringify(jsonPayload),
-                headers: {
-                  Authorization: `Bearer ${this.plugin.settings.API_KEY}`,
-                  "Content-Type": "application/json",
-                },
-              });
-              logMessage(response);
-
-              if (response.status !== 200) {
-                new Notice("Failed to activate Early Access Features.");
-                return;
-              }
-              this.plugin.settings.earlyAccessCode = value;
-              this.plugin.settings.enableEarlyAccess = true; // Assuming this setting enables all early access features
-              await this.plugin.saveSettings();
-              new Notice("Early Access Features Activated Successfully");
-            } catch (error) {
-              console.error("Error activating Early Access Features:", error);
-              new Notice("Error during activation process.");
-            }
+            this.plugin.settings.enableEarlyAccess = value;
+            await this.plugin.saveSettings();
+            new Notice(
+              `Early Access Features have been ${
+                value ? "enabled" : "disabled"
+              }.`
+            );
           })
       );
 
@@ -254,11 +230,9 @@ export class FileOrganizerSettingTab extends PluginSettingTab {
             await this.plugin.saveSettings();
             if (!value) {
               customServerSetting.settingEl.hide();
-              this.plugin.settings.enableEarlyAccess = false;
               return;
             }
             customServerSetting.settingEl.show();
-            this.plugin.settings.enableEarlyAccess = true;
           })
       );
 

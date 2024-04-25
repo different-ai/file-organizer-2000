@@ -635,6 +635,7 @@ Which of the following classifications would
   async saveSettings() {
     await this.saveData(this.settings);
   }
+
   async initializePlugin() {
     await this.loadSettings();
     await this.checkAndCreateFolders();
@@ -643,6 +644,25 @@ Which of the following classifications would
       ASSISTANT_VIEW_TYPE,
       (leaf: WorkspaceLeaf) => new AssistantView(leaf, this)
     );
+  }
+
+  async checkForEarlyAccess() {
+    const response = await requestUrl({
+      url: `${
+        this.settings.useCustomServer
+          ? this.settings.customServerUrl
+          : this.settings.defaultServerUrl
+      }/api/early-access`,
+      method: "POST",
+      body: JSON.stringify({ code: this.settings.earlyAccessCode }),
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${this.settings.API_KEY}`,
+      },
+    });
+
+    const result = await response.json;
+    return result.isCustomer;
   }
 
   registerEventHandlers() {
