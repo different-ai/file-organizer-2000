@@ -1,6 +1,7 @@
 import CheckoutButton from "@/components/ui/CheckoutButton";
 import { UnkeyElements } from "./keys/client";
 import { Button } from "@/components/ui/button";
+import { clerkClient } from "@clerk/nextjs/server";
 
 function DownloadIcon(props) {
   return (
@@ -24,11 +25,17 @@ function DownloadIcon(props) {
 }
 
 export default function Home() {
+
   return (
     <div className="flex min-h-screen flex-col bg-gray-100 dark:bg-gray-900">
       <header className="flex items-center justify-between bg-white px-6 py-4 shadow dark:bg-gray-800">
-      <CheckoutButton />
-
+        {process.env.ENABLE_USER_MANAGEMENT == "true" ? (
+          <div className="ml-auto">
+            <CheckoutButton />
+          </div>
+        ) : (
+          <></>
+        )}
         {/* Header content */}
       </header>
       <main className="flex-1 px-6 py-8">

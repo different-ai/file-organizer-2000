@@ -1,22 +1,26 @@
-'use client'
-import { useState } from 'react';
-import { loadStripe } from '@stripe/stripe-js';
+"use client";
+import { useState } from "react";
+import { loadStripe } from "@stripe/stripe-js";
+import { Button } from "./button";
+import { useUser } from "@clerk/nextjs";
 
-const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY as string);
+const stripePromise = loadStripe(
+  process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY as string
+);
 
 export default function CheckoutButton() {
   const [loading, setLoading] = useState(false);
-
+  const { user, isLoaded } = useUser();
   const handleCheckout = async () => {
     setLoading(true);
 
-    const response = await fetch('/api/create-checkout-session', {
-      method: 'POST',
+    const response = await fetch("/api/create-checkout-session", {
+      method: "POST",
       headers: {
-        'Content-Type': 'application/json',
+        "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        unit_amount: 1000, // $10.00
+        unit_amount: 1499, // $14.99
         quantity: 1,
       }),
     });
@@ -28,10 +32,17 @@ export default function CheckoutButton() {
 
     setLoading(false);
   };
+  if (!isLoaded) {
+    return <Button disabled>Loading...</Button>;
+  }
+  //@ts-ignore
+  if (user?.publicMetadata.stripe?.status === "complete") {
+    return <Button>Thank you for your support!</Button>;
+  }
 
   return (
-    <button onClick={handleCheckout} disabled={loading}>
-      {loading ? 'Processing...' : 'Become a Member'}
-    </button>
+    <Button onClick={handleCheckout} disabled={loading}>
+      {loading ? "Processing..." : "Get access to early features"}
+    </Button>
   );
 }
