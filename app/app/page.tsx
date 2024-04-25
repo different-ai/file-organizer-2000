@@ -25,7 +25,6 @@ function DownloadIcon(props) {
 }
 
 export default function Home() {
-
   return (
     <div className="flex min-h-screen flex-col bg-gray-100 dark:bg-gray-900">
       <header className="flex items-center justify-between bg-white px-6 py-4 shadow dark:bg-gray-800">
@@ -77,7 +76,7 @@ export default function Home() {
       </main>
       <footer className="bg-white px-6 py-4 shadow dark:bg-gray-800">
         <div className="mx-auto max-w-3xl text-center text-gray-500 dark:text-gray-400">
-          © 2024 File Organizer 2000. All rights reserved.
+          © 2024 File Organizer 2000
         </div>
       </footer>
     </div>

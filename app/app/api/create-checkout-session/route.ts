@@ -8,30 +8,25 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY as string, {
 
 export async function POST(req: NextRequest) {
   const { userId } = auth();
-  const { unit_amount, quantity } = await req.json();
+  const { priceId } = await req.json();
 
   try {
+    console.log("Creating checkout session for user", userId);
     const session = await stripe.checkout.sessions.create({
-      payment_method_types: ["card"],
       line_items: [
         {
-          price_data: {
-            currency: "usd",
-            product_data: {
-              name: "Membership",
-            },
-            unit_amount,
-          },
-          quantity,
+          price: priceId,
+          quantity: 1,
         },
       ],
       metadata: {
         userId,
       },
-      mode: "payment",
+      mode: "subscription",
       success_url: `${req.headers.get("origin")}/members`,
       cancel_url: `${req.headers.get("origin")}/`,
     });
+    console.log("Checkout session created:", session.id);
 
     return NextResponse.json({ session }, { status: 200 });
   } catch (error) {

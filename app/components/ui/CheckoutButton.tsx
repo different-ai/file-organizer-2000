@@ -20,8 +20,7 @@ export default function CheckoutButton() {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        unit_amount: 1499, // $14.99
-        quantity: 1,
+        priceId: process.env.NEXT_PUBLIC_STRIPE_MONTHLY_PRICE_ID,
       }),
     });
 
