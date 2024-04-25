@@ -4,6 +4,7 @@ import { NextResponse } from 'next/server';
 export default authMiddleware({
   publicRoutes: ['/api/*'],
   afterAuth: async (auth, req) => {
+    console.log('in after auth')
     if (!auth.userId && !auth.isPublicRoute) {
       return redirectToSignIn({ returnBackUrl: req.url });
     }
@@ -15,6 +16,7 @@ export default authMiddleware({
     ) {
       return NextResponse.redirect(new URL('/', req.url));
     }
+    console.log('new')
     if (
       auth.userId &&
       req.nextUrl.pathname === '/members' &&
@@ -23,6 +25,7 @@ export default authMiddleware({
     ) {
       return NextResponse.next();
     }
+    console.log('members')
     if (auth.userId && req.nextUrl.pathname !== '/members') {
       return NextResponse.next();
     }
