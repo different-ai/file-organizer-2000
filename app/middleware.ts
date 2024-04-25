@@ -66,7 +66,9 @@ export default clerkMiddleware(async (auth, req) => {
 
   if (isApiRoute(req)) {
     try {
-      const { userId, isCustomer } = await handleAuthorization(req);
+      const { userId, isCustomer, response } = await handleAuthorization(req);
+      if (response) return response;
+
       handleLogging(req, userId, isCustomer);
       return NextResponse.next();
     } catch (error) {
