@@ -16,6 +16,7 @@ import useText from "./modules/text";
 import { logMessage, formatToSafeName } from "../utils";
 import { FileOrganizerSettingTab } from "./FileOrganizerSettingTab";
 import { ASSISTANT_VIEW_TYPE, AssistantView } from "./AssistantView";
+import { log } from "console";
 class FileOrganizerSettings {
   API_KEY = "";
   useLogs = true;
@@ -36,6 +37,7 @@ class FileOrganizerSettings {
   processedTag = false;
   // new formatting
   templatePaths = "_FileOrganizer2000/Templates";
+  aiTemplateFormatting = false;
 }
 
 const validAudioExtensions = ["mp3", "wav", "webm", "m4a"];
@@ -77,8 +79,9 @@ export default class FileOrganizer extends Plugin {
       if (isRenameEnabled) {
         new Notice(`Generated name: ${humanReadableFileName}`, 3000);
       }
+      // If file is not text --> media file handling logic
       if (validMediaExtensions.includes(originalFile.extension)) {
-        // Media file handling logic
+
         const annotatedFile = await this.createFileFromContent(text);
         this.appendToCustomLogFile(
           `Generated annotation for [[${annotatedFile.basename}]]`
@@ -101,6 +104,12 @@ export default class FileOrganizer extends Plugin {
           text,
           humanReadableFileName
         );
+        // format document following template instructions
+        const classification = await this.useCustomClassifier(text, originalFile.basename)
+        logMessage("classification", classification);
+        if (classification) {
+          await this.formatContent(originalFile, text, classification);
+        }
         await this.tagAsProcessed(originalFile);
       }
     } catch (e) {
@@ -151,15 +160,19 @@ export default class FileOrganizer extends Plugin {
     content: string,
     name: string
   ): Promise<{ type: string; formattingInstruction: string } | null> {
+    if (!this.settings.aiTemplateFormatting) {
+      logMessage("AI Template Formatting is disabled");
+      return null;
+    }
     const classifications = await this.getClassifications();
     logMessage("classifications", classifications);
 
     const prompt = `Name: ${name}
-  Content:
-  ${content}
-  classifications:${classifications.map((c) => c.type).join(", ")}
-Which of the following classifications would 
-  be the most appropriate for the given content?`;
+          Content:
+          ${content}
+          classifications:${classifications.map((c) => c.type).join(", ")}
+        Which of the following classifications would 
+          be the most appropriate for the given content?`;
 
     const whatTypeOfDocument = await useText(
       prompt,
@@ -417,11 +430,10 @@ Which of the following classifications would
     };
 
     const response = await requestUrl({
-      url: `${
-        this.settings.useCustomServer
-          ? this.settings.customServerUrl
-          : this.settings.defaultServerUrl
-      }/api/tagging`,
+      url: `${this.settings.useCustomServer
+        ? this.settings.customServerUrl
+        : this.settings.defaultServerUrl
+        }/api/tagging`,
       method: "POST",
       body: JSON.stringify(data),
       headers: {
@@ -471,11 +483,10 @@ Which of the following classifications would
     };
 
     const response = await requestUrl({
-      url: `${
-        this.settings.useCustomServer
-          ? this.settings.customServerUrl
-          : this.settings.defaultServerUrl
-      }/api/folders`,
+      url: `${this.settings.useCustomServer
+        ? this.settings.customServerUrl
+        : this.settings.defaultServerUrl
+        }/api/folders`,
       method: "POST",
       body: JSON.stringify(data),
       headers: {
@@ -649,11 +660,10 @@ Which of the following classifications would
   async checkForEarlyAccess() {
     try {
       const response = await requestUrl({
-        url: `${
-          this.settings.useCustomServer
-            ? this.settings.customServerUrl
-            : this.settings.defaultServerUrl
-        }/api/early-access`,
+        url: `${this.settings.useCustomServer
+          ? this.settings.customServerUrl
+          : this.settings.defaultServerUrl
+          }/api/early-access`,
         method: "POST",
         body: JSON.stringify({ code: this.settings.earlyAccessCode }),
         headers: {

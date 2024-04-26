@@ -128,12 +128,23 @@ export class FileOrganizerSettingTab extends PluginSettingTab {
       );
     new Setting(containerEl)
       .setName("Processed File Tag")
-      .setDesc("Specify the tag to be added to processed files.")
+      .setDesc("Adds a fo2k tag to processed files.")
       .addToggle((toggle) =>
         toggle
           .setValue(this.plugin.settings.processedTag)
           .onChange(async (value) => {
             this.plugin.settings.processedTag = value;
+            await this.plugin.saveSettings();
+          })
+      );
+    new Setting(containerEl)
+      .setName("Apply AI Template Formatting")
+      .setDesc("Automatically format your documents using your AI templates (when applicable) during file processing.")
+      .addToggle((toggle) =>
+        toggle
+          .setValue(this.plugin.settings.aiTemplateFormatting)
+          .onChange(async (value) => {
+            this.plugin.settings.aiTemplateFormatting = value;
             await this.plugin.saveSettings();
           })
       );
