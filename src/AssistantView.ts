@@ -156,6 +156,7 @@ export class AssistantView extends ItemView {
       this.containerEl.empty();
       this.containerEl.createEl("h5", {
         text: "The AI Assistant only works with markdown files.",
+        cls: "sidebar-message",
       });
       this.loading.style.display = "none";
       return;
