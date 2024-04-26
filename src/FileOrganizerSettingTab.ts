@@ -194,6 +194,12 @@ export class FileOrganizerSettingTab extends PluginSettingTab {
         window.open("https://app.fileorganizer2000.com/", "_blank");
       });
 
+
+
+
+    // Define a variable to hold the reference to the AI Template Formatting toggle
+    let aiTemplateFormattingToggle;
+
     new Setting(containerEl)
       .setName("Enable Early Access")
       .setDesc(
@@ -205,6 +211,10 @@ export class FileOrganizerSettingTab extends PluginSettingTab {
           .onChange(async (value) => {
             if (!value) {
               this.plugin.settings.enableEarlyAccess = false;
+              this.plugin.settings.aiTemplateFormatting = false;
+              if (aiTemplateFormattingToggle) {
+                aiTemplateFormattingToggle.setValue(false); // Update the toggle UI
+              }
               await this.plugin.saveSettings();
               return;
             }
@@ -226,11 +236,11 @@ export class FileOrganizerSettingTab extends PluginSettingTab {
           })
       );
 
-
     new Setting(containerEl)
       .setName("Apply AI Template Formatting (early access only)")
       .setDesc("Automatically format your documents using your AI templates (when applicable) during file processing.")
       .addToggle((toggle) => {
+        aiTemplateFormattingToggle = toggle; // Store the reference to the toggle
         toggle.setValue(this.plugin.settings.aiTemplateFormatting);
         toggle.onChange(async (value) => {
           const enableEarlyAccess = this.plugin.settings.enableEarlyAccess;
