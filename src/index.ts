@@ -106,8 +106,8 @@ export default class FileOrganizer extends Plugin {
         );
         // format document following template instructions
         const classification = await this.useCustomClassifier(text, originalFile.basename)
-        logMessage("classification", classification);
-        if (classification) {
+        if (classification && this.settings.aiTemplateFormatting == true) {
+          logMessage("formatting document", classification);
           await this.formatContent(originalFile, text, classification);
         }
         await this.tagAsProcessed(originalFile);
@@ -160,10 +160,6 @@ export default class FileOrganizer extends Plugin {
     content: string,
     name: string
   ): Promise<{ type: string; formattingInstruction: string } | null> {
-    if (!this.settings.aiTemplateFormatting) {
-      logMessage("AI Template Formatting is disabled");
-      return null;
-    }
     const classifications = await this.getClassifications();
     logMessage("classifications", classifications);
 
@@ -673,11 +669,12 @@ export default class FileOrganizer extends Plugin {
       });
 
       const result = await response.json;
-      return true
+      return result.isCustomer;
     } catch (e) {
       new Notice("Error checking for early access", 3000);
       console.error("Error checking for early access", e);
-      return true;
+      return false;
+
     }
   }
 
