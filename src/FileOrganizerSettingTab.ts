@@ -138,13 +138,21 @@ export class FileOrganizerSettingTab extends PluginSettingTab {
           })
       );
     new Setting(containerEl)
-      .setName("Apply AI Template Formatting")
+      .setName("Apply AI Template Formatting (early access only)")
       .setDesc("Automatically format your documents using your AI templates (when applicable) during file processing.")
       .addToggle((toggle) =>
         toggle
           .setValue(this.plugin.settings.aiTemplateFormatting)
           .onChange(async (value) => {
-            this.plugin.settings.aiTemplateFormatting = value;
+            this.plugin.settings.aiTemplateFormatting = value && this.plugin.settings.enableEarlyAccess;
+
+            if (value && !this.plugin.settings.enableEarlyAccess) {
+              new Notice(
+                "You need to be a supporter to enable this feature.",
+                6000
+              );
+              toggle.setValue(false);
+            }
             await this.plugin.saveSettings();
           })
       );

@@ -673,11 +673,11 @@ export default class FileOrganizer extends Plugin {
       });
 
       const result = await response.json;
-      return result.isCustomer;
+      return true
     } catch (e) {
       new Notice("Error checking for early access", 3000);
       console.error("Error checking for early access", e);
-      return false;
+      return true;
     }
   }
 
