@@ -6,3 +6,9 @@ available in the app when your plugin is enabled.
 If your plugin does not need CSS, delete this file.
 
 */
+
+
+.settings-cta-button {
+    margin-top: 0.5rem;
+    margin-bottom: 1rem;
+}

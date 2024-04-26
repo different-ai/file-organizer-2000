@@ -187,6 +187,7 @@ export class FileOrganizerSettingTab extends PluginSettingTab {
 
     new ButtonComponent(containerEl)
       .setButtonText("Become an Early Supporter")
+      .setClass("settings-cta-button")
       .setCta()
       .onClick(() => {
         window.open("https://app.fileorganizer2000.com/", "_blank");
