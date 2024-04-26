@@ -36,7 +36,7 @@ export default function CheckoutButton() {
   }
   //@ts-ignore
   if (user?.publicMetadata.stripe?.status === "complete") {
-    return <Button>Thank you for your support!</Button>;
+    return <Button variant="secondary">Thank you for your support!</Button>;
   }
 
   return (

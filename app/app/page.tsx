@@ -1,9 +1,63 @@
 import CheckoutButton from "@/components/ui/CheckoutButton";
 import { UnkeyElements } from "./keys/client";
 import { Button } from "@/components/ui/button";
-import { clerkClient } from "@clerk/nextjs/server";
+/**
+ * v0 by Vercel.
+ * @see https://v0.dev/t/F1suC5Yr6GV
+ * Documentation: https://v0.dev/docs#integrating-generated-code-into-your-nextjs-app
+ */
 
-function DownloadIcon(props) {
+export default function Component() {
+  return (
+    <div className="flex flex-col items-center justify-center min-h-screen bg-white py-12 px-4 sm:px-6 lg:px-8">
+      <div className="space-y-8">
+        <div className="text-center flex flex-col justiy-center items-center">
+          <h2 className="text-3xl font-extrabold">
+            Welcome to File Organizer 2000
+          </h2>
+          {process.env.ENABLE_USER_MANAGEMENT == "true" ? (
+                <UnkeyElements />
+              ) : (
+                <p className="text-gray-500 dark:text-gray-400">
+                  Just paste this URL in the plugin settings in Obsidian and
+                  you're good to go!
+                </p>
+              )}
+        </div>
+        <div className="text-center">
+          <ArrowDownIcon className="mx-auto h-12 w-12 text-gray-400" />
+
+          <h2 className="mt-6 text-3xl font-extrabold">
+            Download File Organizer 2000
+          </h2>
+          <p className="mt-2 mb-6 text-sm text-gray-600">
+            Get the latest version of File Organizer 2000 to keep your files
+            organized.
+          </p>
+          <a href="obsidian://show-plugin?id=fileorganizer2000">
+            <Button className="w-full max-w-xs">Download</Button>
+          </a>
+          <p className="mt-2 text-sm text-gray-600">
+            Requires Obsidian to be installed.
+          </p>
+        </div>
+      </div>
+      {process.env.ENABLE_USER_MANAGEMENT == "true" ? (
+          <div className="ml-auto absolute top-4 right-4">
+            <CheckoutButton />
+          </div>
+        ) : (
+          <></>
+        )}
+      {/* <Button className="absolute top-4 right-4" variant="secondary">
+        Get access to early features
+
+      </Button> */}
+    </div>
+  );
+}
+
+function ArrowDownIcon(props) {
   return (
     <svg
       {...props}
@@ -17,68 +71,8 @@ function DownloadIcon(props) {
       strokeLinecap="round"
       strokeLinejoin="round"
     >
-      <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
-      <polyline points="7 10 12 15 17 10" />
-      <line x1="12" x2="12" y1="15" y2="3" />
+      <path d="M12 5v14" />
+      <path d="m19 12-7 7-7-7" />
     </svg>
-  );
-}
-
-export default function Home() {
-  return (
-    <div className="flex min-h-screen flex-col bg-gray-100 dark:bg-gray-900">
-      <header className="flex items-center justify-between bg-white px-6 py-4 shadow dark:bg-gray-800">
-        {process.env.ENABLE_USER_MANAGEMENT == "true" ? (
-          <div className="ml-auto">
-            <CheckoutButton />
-          </div>
-        ) : (
-          <></>
-        )}
-        {/* Header content */}
-      </header>
-      <main className="flex-1 px-6 py-8">
-        <div className="mx-auto max-w-3xl space-y-8">
-          <div className="rounded-lg bg-white border border-gray-200 p-6 dark:bg-gray-800 dark:border-gray-700">
-            <div className="flex flex-col items-center justify-center space-y-4">
-              <h2 className="text-2xl font-semibold text-gray-800 dark:text-gray-200">
-                Welcome to File Organizer 2000
-              </h2>
-              {process.env.ENABLE_USER_MANAGEMENT == "true" ? (
-                <UnkeyElements />
-              ) : (
-                <p className="text-gray-500 dark:text-gray-400">
-                  Just paste this URL in the plugin settings in Obsidian and
-                  you're good to go!
-                </p>
-              )}
-            </div>
-          </div>
-          <div className="rounded-lg bg-white border border-gray-200 p-6 dark:bg-gray-800 dark:border-gray-700">
-            <div className="flex flex-col items-center justify-center space-y-4">
-              <DownloadIcon className="h-12 w-12 text-gray-600 dark:text-gray-400" />
-              <h2 className="text-2xl font-semibold text-gray-800 dark:text-gray-200">
-                Download File Organizer 2000
-              </h2>
-              <p className="text-gray-500 dark:text-gray-400">
-                Get the latest version of File Organizer 2000 to keep your files
-                organized.
-              </p>
-              <a href="obsidian://show-plugin?id=fileorganizer2000">
-                <Button>Download</Button>
-              </a>
-              <p className="text-sm text-gray-500 dark:text-gray-400 mt-4">
-                Requires Obsidian to be installed.
-              </p>
-            </div>
-          </div>
-        </div>
-      </main>
-      <footer className="bg-white px-6 py-4 shadow dark:bg-gray-800">
-        <div className="mx-auto max-w-3xl text-center text-gray-500 dark:text-gray-400">
-          © 2024 File Organizer 2000
-        </div>
-      </footer>
-    </div>
   );
 }
