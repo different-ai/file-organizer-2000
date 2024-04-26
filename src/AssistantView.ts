@@ -206,7 +206,7 @@ export class AssistantView extends ItemView {
     if (classification) {
       new ButtonComponent(this.classificationBox)
         .setClass('sidebar-format-button')
-        .setButtonText("Format")
+        .setButtonText("Apply Template")
         .onClick(async () => {
           await this.plugin.formatContent(file, content, classification);
         });
