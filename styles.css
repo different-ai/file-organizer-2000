@@ -16,3 +16,6 @@ If your plugin does not need CSS, delete this file.
 .sidebar-message {
     margin: var(--size-4-12);
 }
+.sidebar-format-button {
+    margin-left: var(--size-4-2);
+}
