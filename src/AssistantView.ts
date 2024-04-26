@@ -200,12 +200,13 @@ export class AssistantView extends ItemView {
     const typeElement = this.classificationBox.createEl("span", {
       text: classification?.type,
     });
-
+    typeElement.style.color = "var(--text-accent)";
     typeElement.style.fontSize = "1rem";
 
     if (classification) {
       new ButtonComponent(this.classificationBox)
-        .setButtonText("Change")
+        .setClass('sidebar-format-button')
+        .setButtonText("Format")
         .onClick(async () => {
           await this.plugin.formatContent(file, content, classification);
         });
