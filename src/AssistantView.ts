@@ -233,27 +233,28 @@ export class AssistantView extends ItemView {
       });
       supportLink.setAttr("target", "_blank");
     }
+    if (this.plugin.settings.enableEarlyAccess) {
+      // add a header mentioning the selected file name
+      this.createHeader("Looking at");
+      this.selectedFileBox = this.containerEl.createEl("div");
 
-    // add a header mentioning the selected file name
-    this.createHeader("Looking at");
-    this.selectedFileBox = this.containerEl.createEl("div");
+      this.createHeader("Similar tags");
+      this.suggestionBox = this.containerEl.createEl("div");
 
-    this.createHeader("Similar tags");
-    this.suggestionBox = this.containerEl.createEl("div");
+      this.createHeader("Suggested alias");
+      this.aliasSuggestionBox = this.containerEl.createEl("div");
 
-    this.createHeader("Suggested alias");
-    this.aliasSuggestionBox = this.containerEl.createEl("div");
+      this.createHeader("Suggested folder");
+      this.similarFolderBox = this.containerEl.createEl("div");
 
-    this.createHeader("Suggested folder");
-    this.similarFolderBox = this.containerEl.createEl("div");
+      this.createHeader("Looks like a");
+      this.classificationBox = this.containerEl.createEl("div");
 
-    this.createHeader("Looks like a");
-    this.classificationBox = this.containerEl.createEl("div");
-
-    this.loading = this.suggestionBox.createEl("div", {
-      text: "Loading...",
-    });
-    this.loading.style.display = "none";
+      this.loading = this.suggestionBox.createEl("div", {
+        text: "Loading...",
+      });
+      this.loading.style.display = "none";
+    }
   }
 
   async onOpen() {
