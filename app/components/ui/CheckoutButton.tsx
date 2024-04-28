@@ -36,7 +36,20 @@ export default function CheckoutButton() {
   }
   //@ts-ignore
   if (user?.publicMetadata.stripe?.status === "complete") {
-    return <Button variant="secondary">Thank you for your support!</Button>;
+    return (
+      <div>
+        <Button variant="secondary">Thank you for your support!</Button>
+        <Button
+          variant="link"
+          onClick={() =>
+            (window.location.href =
+              process.env.NEXT_PUBLIC_STRIPE_CUSTOMER_PORTAL_URL)
+          }
+        >
+          Manage Account
+        </Button>
+      </div>
+    );
   }
 
   return (
