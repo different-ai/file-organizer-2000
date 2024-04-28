@@ -37,6 +37,7 @@ class FileOrganizerSettings {
   // new formatting
   templatePaths = "_FileOrganizer2000/Templates";
   transcribeEmbeddedAudio = false;
+  enableDocumentClassification = false;
 }
 
 const validAudioExtensions = ["mp3", "wav", "webm", "m4a"];
@@ -61,55 +62,72 @@ export default class FileOrganizer extends Plugin {
     try {
       new Notice(`Looking at ${originalFile.basename}`, 3000);
       this.validateAPIKey();
-      if (!originalFile.extension || !isValidExtension(originalFile.extension))
+
+      if (
+        !originalFile.extension ||
+        !isValidExtension(originalFile.extension)
+      ) {
         return;
+      }
 
       await this.checkAndCreateFolders();
-      const text = await this.getTextFromFile(originalFile); // Correctly obtaining text from the file
+      const text = await this.getTextFromFile(originalFile);
 
       const isRenameEnabled = this.settings.renameDocumentTitle;
       if (isRenameEnabled) {
         new Notice(`Generating name for ${text.substring(0, 20)}...`, 3000);
       }
-      // Use 'text' instead of 'content' which was incorrectly referenced
+
       const humanReadableFileName = isRenameEnabled
-        ? await this.generateNameFromContent(text) // Corrected to use 'text'
+        ? await this.generateNameFromContent(text)
         : originalFile.basename;
+
       if (isRenameEnabled) {
         new Notice(`Generated name: ${humanReadableFileName}`, 3000);
       }
 
+      let processedFile = originalFile;
+
       if (validMediaExtensions.includes(originalFile.extension)) {
-        // Media file handling logic
         const annotatedFile = await this.createFileFromContent(text);
         this.appendToCustomLogFile(
           `Generated annotation for [[${annotatedFile.basename}]]`
         );
+
         await this.moveToDefaultAttachmentFolder(
           originalFile,
           humanReadableFileName
         );
         await this.appendAttachment(annotatedFile, originalFile);
-        await this.renameTagAndOrganize(
-          annotatedFile,
-          text,
-          humanReadableFileName
-        );
-        await this.tagAsProcessed(annotatedFile);
-      } else {
-        // Non-media file handling logic
-        await this.renameTagAndOrganize(
-          originalFile,
-          text,
-          humanReadableFileName
-        );
-        await this.tagAsProcessed(originalFile);
+        processedFile = annotatedFile;
       }
+
+      if (this.settings.enableDocumentClassification) {
+        await this.classifyAndFormatDocument(processedFile, text);
+      }
+
+      await this.renameTagAndOrganize(
+        processedFile,
+        text,
+        humanReadableFileName
+      );
+      await this.tagAsProcessed(processedFile);
     } catch (e) {
       new Notice(
         `Error processing ${originalFile.basename}: ${e.message}`,
         3000
       );
+    }
+  }
+
+  async classifyAndFormatDocument(file: TFile, content: string) {
+    const classification = await this.useCustomClassifier(
+      content,
+      file.basename
+    );
+
+    if (classification) {
+      await this.formatContent(file, content, classification);
     }
   }
 

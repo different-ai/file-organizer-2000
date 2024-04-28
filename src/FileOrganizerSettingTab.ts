@@ -285,13 +285,29 @@ export class FileOrganizerSettingTab extends PluginSettingTab {
     new Setting(containerEl)
       .setName("Transcribe Embedded Audio")
       .setDesc(
-        "Automatically transcribe audio files embedded in the current document."
+        "This features automatically add transcriptions inside your files where you record a fresh audio recording or drop a audio file."
       )
       .addToggle((toggle) =>
         toggle
           .setValue(this.plugin.settings.transcribeEmbeddedAudio)
           .onChange(async (value) => {
-            this.plugin.settings.transcribeEmbeddedAudio = value;
+            // value is false than disable
+            if (!value) {
+              this.plugin.settings.transcribeEmbeddedAudio = false;
+              await this.plugin.saveSettings();
+              return;
+            }
+            // value is true but early access is not enabled
+            // show notice and set value to false
+            if (!this.plugin.settings.enableEarlyAccess) {
+              new Notice(
+                "You need to be a supporter to enable this feature.",
+                6000
+              );
+              toggle.setValue(false);
+              return;
+            }
+            this.plugin.settings.transcribeEmbeddedAudio = true;
             await this.plugin.saveSettings();
           })
       );
@@ -299,6 +315,31 @@ export class FileOrganizerSettingTab extends PluginSettingTab {
     new Setting(containerEl)
       .setName("Custom Formatting (early access only works for supporters)")
       .setHeading();
+
+    new Setting(containerEl)
+      .setName("Enable Document Classification")
+      .setDesc("Automatically classify and format documents in the inbox.")
+      .addToggle((toggle) =>
+        toggle
+          .setValue(this.plugin.settings.enableDocumentClassification)
+          .onChange(async (value) => {
+            if (!value) {
+              this.plugin.settings.enableDocumentClassification = false;
+              await this.plugin.saveSettings();
+              return;
+            }
+            if (!this.plugin.settings.enableEarlyAccess) {
+              new Notice(
+                "You need to be a supporter to enable this feature.",
+                6000
+              );
+              toggle.setValue(false);
+              return;
+            }
+            this.plugin.settings.enableDocumentClassification = value;
+            await this.plugin.saveSettings();
+          })
+      );
 
     // Information section about the new method of specifying document type and accessing it via the AI sidebar
     new Setting(containerEl)
