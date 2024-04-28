@@ -283,6 +283,20 @@ export class FileOrganizerSettingTab extends PluginSettingTab {
       .setDisabled(true);
 
     new Setting(containerEl)
+      .setName("Transcribe Embedded Audio")
+      .setDesc(
+        "Automatically transcribe audio files embedded in the current document."
+      )
+      .addToggle((toggle) =>
+        toggle
+          .setValue(this.plugin.settings.transcribeEmbeddedAudio)
+          .onChange(async (value) => {
+            this.plugin.settings.transcribeEmbeddedAudio = value;
+            await this.plugin.saveSettings();
+          })
+      );
+
+    new Setting(containerEl)
       .setName("Custom Formatting (early access only works for supporters)")
       .setHeading();
 

@@ -36,6 +36,7 @@ class FileOrganizerSettings {
   processedTag = false;
   // new formatting
   templatePaths = "_FileOrganizer2000/Templates";
+  transcribeEmbeddedAudio = false;
 }
 
 const validAudioExtensions = ["mp3", "wav", "webm", "m4a"];
@@ -707,6 +708,7 @@ Which of the following classifications would
     // audio append events
     this.registerEvent(
       this.app.vault.on("create", async (file) => {
+        if (!this.settings.transcribeEmbeddedAudio) return;
         const activeFile = this.app.workspace.getActiveFile();
         if (
           activeFile &&
