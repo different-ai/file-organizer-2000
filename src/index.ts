@@ -77,6 +77,7 @@ export default class FileOrganizer extends Plugin {
       if (isRenameEnabled) {
         new Notice(`Generated name: ${humanReadableFileName}`, 3000);
       }
+
       if (validMediaExtensions.includes(originalFile.extension)) {
         // Media file handling logic
         const annotatedFile = await this.createFileFromContent(text);
@@ -670,8 +671,53 @@ Which of the following classifications would
       return false;
     }
   }
+  async processEmbeddedAudioFile(audioFile: TFile, parentFile: TFile) {
+    try {
+      const transcript = await this.generateTranscriptFromAudio(audioFile);
+      await this.appendTranscriptToActiveFile(
+        parentFile,
+        audioFile.basename,
+        transcript
+      );
+      new Notice(
+        `Generated transcript for ${audioFile.basename} and appended to ${parentFile.basename}`,
+        3000
+      );
+    } catch (error) {
+      console.error(
+        `Error processing embedded audio file ${audioFile.basename}:`,
+        error
+      );
+      new Notice(
+        `Error processing embedded audio file ${audioFile.basename}`,
+        3000
+      );
+    }
+  }
+  async appendTranscriptToActiveFile(
+    parentFile: TFile,
+    audioFileName: string,
+    transcript: string
+  ) {
+    const transcriptBlock = `\n\n## Transcript for ${audioFileName}\n\n${transcript}`;
+    await this.app.vault.append(parentFile, transcriptBlock);
+  }
 
   registerEventHandlers() {
+    // audio append events
+    this.registerEvent(
+      this.app.vault.on("create", async (file) => {
+        const activeFile = this.app.workspace.getActiveFile();
+        if (
+          activeFile &&
+          file instanceof TFile &&
+          validAudioExtensions.includes(file.extension)
+        ) {
+          await this.processEmbeddedAudioFile(file, activeFile);
+        }
+      })
+    );
+
     // inbox events
     this.registerEvent(
       this.app.vault.on("create", (file) => {
