@@ -7,7 +7,12 @@ If your plugin does not need CSS, delete this file.
 
 */
 
+.assistant-container {
 
+    padding-left: var(--size-4-8);
+    padding-right: var(--size-4-8);
+    padding-top: var(--size-4-4);
+}
 .settings-cta-button {
     margin-top: var(--size-4-2);
     margin-bottom: var(--size-4-4);

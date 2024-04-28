@@ -215,7 +215,6 @@ export class AssistantView extends ItemView {
 
   createHeader = (text) => {
     const header = this.containerEl.createEl("h6", { text });
-    header.style.paddingLeft = "24px";
     return header;
   };
 
@@ -238,23 +237,18 @@ export class AssistantView extends ItemView {
     // add a header mentioning the selected file name
     this.createHeader("Looking at");
     this.selectedFileBox = this.containerEl.createEl("div");
-    this.selectedFileBox.style.paddingLeft = "24px";
 
     this.createHeader("Similar tags");
     this.suggestionBox = this.containerEl.createEl("div");
-    this.suggestionBox.style.paddingLeft = "24px";
 
     this.createHeader("Suggested alias");
     this.aliasSuggestionBox = this.containerEl.createEl("div");
-    this.aliasSuggestionBox.style.paddingLeft = "24px";
 
     this.createHeader("Suggested folder");
     this.similarFolderBox = this.containerEl.createEl("div");
-    this.similarFolderBox.style.paddingLeft = "24px";
 
     this.createHeader("Looks like a");
     this.classificationBox = this.containerEl.createEl("div");
-    this.classificationBox.style.paddingLeft = "24px";
 
     this.loading = this.suggestionBox.createEl("div", {
       text: "Loading...",
