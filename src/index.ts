@@ -24,7 +24,7 @@ class FileOrganizerSettings {
   pathToWatch = "_FileOrganizer2000/Inbox";
   logFolderPath = "_FileOrganizer2000/Logs";
   useSimilarTags = true; // default value is true
-  renameDocumentTitle = true; // default value is true
+  renameDocumentTitle = false; // default value is true
   useAliases = false; // default value is false
   useAutoAppend = false;
   defaultServerUrl = "https://app.fileorganizer2000.com";
