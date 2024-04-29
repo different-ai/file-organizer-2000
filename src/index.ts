@@ -417,10 +417,11 @@ Which of the following classifications would
     };
 
     const response = await requestUrl({
-      url: `${this.settings.useCustomServer
-        ? this.settings.customServerUrl
-        : this.settings.defaultServerUrl
-        }/api/tagging`,
+      url: `${
+        this.settings.useCustomServer
+          ? this.settings.customServerUrl
+          : this.settings.defaultServerUrl
+      }/api/tagging`,
       method: "POST",
       body: JSON.stringify(data),
       headers: {
@@ -470,10 +471,11 @@ Which of the following classifications would
     };
 
     const response = await requestUrl({
-      url: `${this.settings.useCustomServer
-        ? this.settings.customServerUrl
-        : this.settings.defaultServerUrl
-        }/api/folders`,
+      url: `${
+        this.settings.useCustomServer
+          ? this.settings.customServerUrl
+          : this.settings.defaultServerUrl
+      }/api/folders`,
       method: "POST",
       body: JSON.stringify(data),
       headers: {
@@ -647,10 +649,11 @@ Which of the following classifications would
   async checkForEarlyAccess() {
     try {
       const response = await requestUrl({
-        url: `${this.settings.useCustomServer
+        url: `${
+          this.settings.useCustomServer
             ? this.settings.customServerUrl
             : this.settings.defaultServerUrl
-          }/api/early-access`,
+        }/api/early-access`,
         method: "POST",
         body: JSON.stringify({ code: this.settings.earlyAccessCode }),
         headers: {
