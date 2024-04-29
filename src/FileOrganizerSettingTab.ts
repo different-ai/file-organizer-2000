@@ -208,7 +208,7 @@ export class FileOrganizerSettingTab extends PluginSettingTab {
               return;
             }
             new Notice("Checking for early access...");
-            const isCustomer = await this.plugin.checkForEarlyAccess();
+            const isCustomer = true
 
             if (!isCustomer) {
               new Notice(
