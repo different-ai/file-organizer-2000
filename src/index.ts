@@ -322,7 +322,7 @@ Which of the following classifications would
     humanReadableFileName: string,
     destinationFolder = ""
   ) {
-    new Notice(`Moving file to ${destinationFolder}`, 3000);
+    new Notice(`Moving file to ${destinationFolder} folder`, 3000);
     await this.app.vault.rename(
       file,
       `${destinationFolder}/${humanReadableFileName}.${file.extension}`
@@ -500,7 +500,7 @@ Which of the following classifications would
       body: JSON.stringify(data),
       headers: {
         "Content-Type": "application/json",
-        Authorization: `Bearer ${this.settings.API_KEY}`,
+        Authorization: `Bearer ${this.settings.API_KEY} `,
       },
     });
 
