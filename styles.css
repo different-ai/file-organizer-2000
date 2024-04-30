@@ -8,19 +8,23 @@ If your plugin does not need CSS, delete this file.
 */
 
 .assistant-container {
-    padding-left: var(--size-4-8);
-    padding-right: var(--size-4-8);
-    padding-top: var(--size-4-4);
+  padding-left: var(--size-4-8);
+  padding-right: var(--size-4-8);
+  padding-top: var(--size-4-4);
 }
 
 .settings-cta-button {
-    margin-top: var(--size-4-2);
-    margin-bottom: var(--size-4-4);
+  margin-top: var(--size-4-2);
+  margin-bottom: var(--size-4-4);
 }
 
 .sidebar-message {
-    margin: var(--size-4-12);
+  margin: var(--size-4-12);
 }
 .sidebar-format-button {
-    margin-left: var(--size-4-2);
+  margin-left: var(--size-4-2);
+}
+.settings-tutorial-button {
+  margin-top: var(--size-4-4);
+  margin-bottom: var(--size-4-4);
 }

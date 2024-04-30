@@ -5,6 +5,7 @@ import {
   requestUrl,
   Notice,
   ButtonComponent,
+  TFile,
 } from "obsidian";
 import { logMessage, cleanPath } from "../utils";
 import FileOrganizer from "./index";
@@ -61,6 +62,18 @@ export class FileOrganizerSettingTab extends PluginSettingTab {
             await this.plugin.saveSettings();
           })
       );
+    // make button inside a setting container
+
+    new ButtonComponent(containerEl)
+      .setButtonText("Tutorial")
+      .setClass("settings-tutorial-button")
+      .onClick(async () => {
+        // open a gitub link to the raw markdown tutorial
+        window.open(
+          "https://github.com/different-ai/file-organizer-2000/blob/master/tutorials/howItWorks.md",
+          "_blank"
+        );
+      });
 
     new Setting(containerEl).setName("Features").setHeading();
 
