@@ -15,6 +15,7 @@ This is an Obsidian Plugin that uses AI to keep your files organized. It trans
 - Automatically move files to correct folder
 - Supports text, audio, and images
 - Local-first LLM support (coming soon, like very soon there's already a branch)
+<img width="1749" alt="Screenshot 2024-04-30 at 14 05 30" src="https://github.com/different-ai/file-organizer-2000/assets/11430621/2e2cdf14-c6d0-4fd0-8e02-268928ad7ef3">
 
 
 
