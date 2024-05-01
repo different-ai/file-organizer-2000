@@ -3,7 +3,6 @@ import { logMessage } from "../../utils";
 
 async function classifier(
   content: { name: string; content: string; classifications: any[] },
-  systemPrompt: string,
   { baseUrl, apiKey }
 ) {
   const data = {
@@ -11,7 +10,7 @@ async function classifier(
     messages: [
       {
         role: "system",
-        content: systemPrompt,
+        content: "", // assigned server side
       },
       {
         role: "user",

@@ -25,14 +25,15 @@ export default async function handler(
 
     // replace the content with the fullPrompt
     req.body.messages[1].content = fullPrompt;
-    console.log("req.body", req.body);
 
-    console.log("promptData", promptData);
+    const systemPrompt =
+      "Please respond with the name of the most appropriate classification from the provided list. If none of the classifications are suitable, respond with 'None'.";
+    // replace the content with systemPrompt
+    req.body.messages[0].content = systemPrompt;
     const data = {
       ...req.body,
       model,
     };
-    console.log("data2", JSON.stringify(data));
     const response = await fetch("https://api.openai.com/v1/chat/completions", {
       method: "POST",
       body: JSON.stringify(data),

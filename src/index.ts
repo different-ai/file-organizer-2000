@@ -177,16 +177,12 @@ export default class FileOrganizer extends Plugin {
 
     const promptData = { name, content, classifications };
 
-    const whatTypeOfDocument = await classifier(
-      promptData,
-      "Please respond with the name of the most appropriate classification from the provided list. If none of the classifications are suitable, respond with 'None'.",
-      {
-        baseUrl: this.settings.useCustomServer
-          ? this.settings.customServerUrl
-          : this.settings.defaultServerUrl,
-        apiKey: this.settings.API_KEY,
-      }
-    );
+    const whatTypeOfDocument = await classifier(promptData, {
+      baseUrl: this.settings.useCustomServer
+        ? this.settings.customServerUrl
+        : this.settings.defaultServerUrl,
+      apiKey: this.settings.API_KEY,
+    });
     logMessage("whatTypeOfDocument", whatTypeOfDocument);
 
     const selectedClassification = classifications.find(
