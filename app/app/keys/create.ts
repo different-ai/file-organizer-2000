@@ -25,7 +25,7 @@ export async function create(formData: FormData) {
       ?.status === "complete";
 
   // Set the refill amount based on the user's subscription status
-  const refillAmount = isPaidUser ? 10000 : 500;
+  const refillAmount = isPaidUser ? 15000 : 500;
 
   const key = await unkey.keys.create({
     name: name,
