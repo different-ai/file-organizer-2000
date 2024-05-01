@@ -1,7 +1,7 @@
 import { requestUrl } from "obsidian";
 import { logMessage } from "../../utils";
 
-async function useText(
+async function applyTemplate(
   content: string,
   systemPrompt: string,
   { baseUrl, apiKey }
@@ -19,7 +19,7 @@ async function useText(
       },
     ],
   };
-  const endpoint = "api/text";
+  const endpoint = "api/applyTemplate";
   const url = `${baseUrl}/${endpoint}`;
 
   const response = await requestUrl({
@@ -37,4 +37,4 @@ async function useText(
   return result.choices[0].message.content.trim();
 }
 
-export default useText;
+export default applyTemplate;

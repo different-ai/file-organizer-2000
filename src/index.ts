@@ -12,7 +12,7 @@ import {
 import useName from "./modules/name";
 import useVision from "./modules/vision";
 import useAudio from "./modules/audio";
-import useText from "./modules/text";
+import applyTemplate from "./modules/applyTemplate";
 import classifier from "./modules/classifier";
 import { logMessage, formatToSafeName } from "../utils";
 import { FileOrganizerSettingTab } from "./FileOrganizerSettingTab";
@@ -197,7 +197,7 @@ export default class FileOrganizer extends Plugin {
     fileContent: string,
     selectedClassification: { type: string; formattingInstruction: string }
   ) {
-    const formattedContent = await useText(
+    const formattedContent = await applyTemplate(
       fileContent,
       selectedClassification.formattingInstruction,
       {

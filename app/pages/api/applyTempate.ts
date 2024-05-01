@@ -8,12 +8,6 @@ export default async function handler(
   res: NextApiResponse<ResponseData>
 ) {
   try {
-
-      console.log("Invalid API key");
-      return res.status(401).json({ message: "Invalid API key" });
-    
-    
-    console.log("apiKey", "hello");
     const apiKey = process.env.OPENAI_API_KEY || "";
 
     const model = "gpt-4-turbo";
@@ -21,7 +15,6 @@ export default async function handler(
       ...req.body,
       model,
     };
-
     const response = await fetch("https://api.openai.com/v1/chat/completions", {
       method: "POST",
       body: JSON.stringify(data),
@@ -38,7 +31,6 @@ export default async function handler(
       });
     }
 
- 
     const result = await response.json();
     res.status(200).json(result);
   } catch (error) {
