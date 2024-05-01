@@ -9,14 +9,12 @@ export default async function handler(
 ) {
   try {
 
-      console.log("Invalid API key");
-      return res.status(401).json({ message: "Invalid API key" });
     
     
     console.log("apiKey", "hello");
     const apiKey = process.env.OPENAI_API_KEY || "";
 
-    const model = "gpt-4-turbo";
+    const model = "gpt-3.5-turbo";
     const data = {
       ...req.body,
       model,
