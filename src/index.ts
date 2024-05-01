@@ -113,10 +113,9 @@ export default class FileOrganizer extends Plugin {
       );
       await this.tagAsProcessed(processedFile);
     } catch (e) {
-      new Notice(
-        `Error processing ${originalFile.basename}: ${e.message}`,
-        3000
-      );
+      new Notice(`Error processing ${originalFile.basename}`, 3000);
+      new Notice(e.message, 6000);
+      console.error(e);
     }
   }
 
@@ -225,6 +224,7 @@ Which of the following classifications would
     await this.moveContent(file, file.basename, destinationFolder);
   }
 
+  // let's unpack this into processFileV2
   async renameTagAndOrganize(file: TFile, content: string, fileName: string) {
     const destinationFolder = await this.getAIClassifiedFolder(content, file);
     new Notice(`Most similar folder: ${destinationFolder}`, 3000);
