@@ -54,6 +54,27 @@ const isValidExtension = (extension: string) => {
   return true;
 };
 
+// move to utils later
+// @ts-ignore
+export async function makeApiRequest<T>(
+  requestFn: () => Promise<T>
+): Promise<T> {
+  try {
+    return await requestFn();
+  } catch (error) {
+    if (error.status === 429) {
+      new Notice(
+        "You have run out of credits. Please upgrade your plan.",
+        6000
+      );
+    } else {
+      new Notice("An error occurred while processing the request.", 6000);
+      console.error("API request error:", error);
+    }
+    throw error;
+  }
+}
+
 export default class FileOrganizer extends Plugin {
   settings: FileOrganizerSettings;
 
@@ -436,19 +457,21 @@ Which of the following classifications would
       tags: uniqueTags,
     };
 
-    const response = await requestUrl({
-      url: `${
-        this.settings.useCustomServer
-          ? this.settings.customServerUrl
-          : this.settings.defaultServerUrl
-      }/api/tagging`,
-      method: "POST",
-      body: JSON.stringify(data),
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${this.settings.API_KEY}`,
-      },
-    });
+    const response = await makeApiRequest(() =>
+      requestUrl({
+        url: `${
+          this.settings.useCustomServer
+            ? this.settings.customServerUrl
+            : this.settings.defaultServerUrl
+        }/api/tagging`,
+        method: "POST",
+        body: JSON.stringify(data),
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${this.settings.API_KEY}`,
+        },
+      })
+    );
 
     const result = await response.json;
     console.log(result, "test");
@@ -490,19 +513,21 @@ Which of the following classifications would
       folders: uniqueFolders,
     };
 
-    const response = await requestUrl({
-      url: `${
-        this.settings.useCustomServer
-          ? this.settings.customServerUrl
-          : this.settings.defaultServerUrl
-      }/api/folders`,
-      method: "POST",
-      body: JSON.stringify(data),
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${this.settings.API_KEY} `,
-      },
-    });
+    const response = await makeApiRequest(() =>
+      requestUrl({
+        url: `${
+          this.settings.useCustomServer
+            ? this.settings.customServerUrl
+            : this.settings.defaultServerUrl
+        }/api/folders`,
+        method: "POST",
+        body: JSON.stringify(data),
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${this.settings.API_KEY} `,
+        },
+      })
+    );
 
     const result = await response.json;
     const sanitizedFolderName = result.folder.replace(/[\\:*?"<>|]/g, "");
@@ -668,19 +693,21 @@ Which of the following classifications would
 
   async checkForEarlyAccess() {
     try {
-      const response = await requestUrl({
-        url: `${
-          this.settings.useCustomServer
-            ? this.settings.customServerUrl
-            : this.settings.defaultServerUrl
-        }/api/early-access`,
-        method: "POST",
-        body: JSON.stringify({ code: this.settings.earlyAccessCode }),
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${this.settings.API_KEY}`,
-        },
-      });
+      const response = await makeApiRequest(() =>
+        requestUrl({
+          url: `${
+            this.settings.useCustomServer
+              ? this.settings.customServerUrl
+              : this.settings.defaultServerUrl
+          }/api/early-access`,
+          method: "POST",
+          body: JSON.stringify({ code: this.settings.earlyAccessCode }),
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${this.settings.API_KEY}`,
+          },
+        })
+      );
 
       const result = await response.json;
       return result.isCustomer;

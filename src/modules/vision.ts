@@ -1,4 +1,5 @@
 import { requestUrl } from "obsidian";
+import { makeApiRequest } from "..";
 
 const defaultPrompt = `Extract text from image. Write in markdown. If there's a drawing, describe it.`;
 // useVision.js
@@ -33,8 +34,8 @@ async function useVision(
     : baseUrl;
   const url = `${sanitizedBaseUrl}/${endpoint}`;
 
-
-  const response = await requestUrl({
+  const response = await makeApiRequest(() =>
+  requestUrl({
     url: url,
     method: "POST",
     body: JSON.stringify(jsonPayload),
@@ -42,7 +43,8 @@ async function useVision(
       "Content-Type": "application/json",
       Authorization: `Bearer ${apiKey}`,
     },
-  });
+  })
+);
   const result = await response.json;
 
   return result.choices[0].message.content;

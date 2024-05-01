@@ -1,5 +1,6 @@
 import { requestUrl } from "obsidian";
 import { logMessage } from "../../utils";
+import { makeApiRequest } from "..";
 
 async function useText(
   content: string,
@@ -22,7 +23,8 @@ async function useText(
   const endpoint = "api/text";
   const url = `${baseUrl}/${endpoint}`;
 
-  const response = await requestUrl({
+  const response = await makeApiRequest(() =>
+  requestUrl({
     url: url,
     method: "POST",
     body: JSON.stringify(data),
@@ -30,7 +32,8 @@ async function useText(
       "Content-Type": "application/json",
       Authorization: `Bearer ${apiKey}`,
     },
-  });
+  })
+);
   const result = await response.json;
   logMessage(result);
   logMessage(result.choices[0].message.content);

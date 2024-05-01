@@ -1,5 +1,6 @@
 import { requestUrl } from "obsidian";
 import { logMessage } from "../../utils";
+import { makeApiRequest } from "..";
 
 async function useName(document, { baseUrl, apiKey }) {
   const data = {
@@ -17,7 +18,8 @@ async function useName(document, { baseUrl, apiKey }) {
   };
   const endpoint = "api/name";
   const url = `${baseUrl}/${endpoint}`;
-  const response = await requestUrl({
+  const response = await makeApiRequest(() =>
+  requestUrl({
     url: url,
     method: "POST",
     body: JSON.stringify(data),
@@ -25,7 +27,8 @@ async function useName(document, { baseUrl, apiKey }) {
       "Content-Type": "application/json",
       Authorization: `Bearer ${apiKey}`,
     },
-  });
+  })
+);
 
   const result = await response.json;
   logMessage(result.choices[0].message.content);
