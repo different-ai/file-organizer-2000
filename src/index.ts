@@ -13,6 +13,7 @@ import useName from "./modules/name";
 import useVision from "./modules/vision";
 import useAudio from "./modules/audio";
 import useText from "./modules/text";
+import classifier from "./modules/classifier";
 import { logMessage, formatToSafeName } from "../utils";
 import { FileOrganizerSettingTab } from "./FileOrganizerSettingTab";
 import { ASSISTANT_VIEW_TYPE, AssistantView } from "./AssistantView";
@@ -174,15 +175,10 @@ export default class FileOrganizer extends Plugin {
     const classifications = await this.getClassifications();
     logMessage("classifications", classifications);
 
-    const prompt = `Name: ${name}
-  Content:
-  ${content}
-  classifications:${classifications.map((c) => c.type).join(", ")}
-Which of the following classifications would 
-  be the most appropriate for the given content?`;
+    const promptData = { name, content, classifications };
 
-    const whatTypeOfDocument = await useText(
-      prompt,
+    const whatTypeOfDocument = await classifier(
+      promptData,
       "Please respond with the name of the most appropriate classification from the provided list. If none of the classifications are suitable, respond with 'None'.",
       {
         baseUrl: this.settings.useCustomServer
