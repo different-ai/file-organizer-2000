@@ -8,6 +8,11 @@ export default async function handler(
   res: NextApiResponse<ResponseData>
 ) {
   try {
+  if (response.status === 401) {
+      console.log("Invalid API key");
+      return res.status(401).json({ message: "Invalid API key" });
+    }
+    
     console.log("apiKey", "hello");
     const apiKey = process.env.OPENAI_API_KEY || "";
 
@@ -33,10 +38,7 @@ export default async function handler(
       });
     }
 
-    if (response.status === 401) {
-      console.log("Invalid API key");
-      return res.status(401).json({ message: "Invalid API key" });
-    }
+ 
     const result = await response.json();
     res.status(200).json(result);
   } catch (error) {
