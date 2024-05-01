@@ -4,7 +4,7 @@ import {
   createRouteMatcher,
 } from "@clerk/nextjs/server";
 import { verifyKey } from "@unkey/api";
-import { NextResponse } from "next/server";
+import { NextFetchEvent, NextRequest, NextResponse } from "next/server";
 import PostHogClient from "./lib/posthog";
 
 const isApiRoute = createRouteMatcher(["/api(.*)"]);
@@ -12,7 +12,11 @@ const isAuthRoute = createRouteMatcher(["/(.*)"]);
 const isCheckoutApiRoute = createRouteMatcher(["/api/create-checkout-session"]);
 const isWebhookRoute = createRouteMatcher(["/api/webhook"]);
 
-console.log("ENABLE_USER_MANAGEMENT", process.env.ENABLE_USER_MANAGEMENT);
+console.log(
+  "ENABLE_USER_MANAGEMENT",
+  process.env.ENABLE_USER_MANAGEMENT,
+  "middleware"
+);
 
 async function handleAuthorization(req) {
   const header = req.headers.get("authorization");
@@ -54,37 +58,51 @@ async function handleLogging(req, userId, isCustomer) {
   }
 }
 
-export default clerkMiddleware(async (auth, req) => {
-  // do not run auth middleware if user management is disabled
-  if (!process.env.ENABLE_USER_MANAGEMENT) {
-    return NextResponse.next();
+export default async function middleware(
+  req: NextRequest,
+  event: NextFetchEvent
+) {
+  console.log(
+    "ENABLE_USER_MANAGEMENT",
+    process.env.ENABLE_USER_MANAGEMENT,
+    "bird"
+  );
+  if (process.env.ENABLE_USER_MANAGEMENT === "true") {
+    return userManagementMiddleware()(req, event);
   }
-  if (isWebhookRoute(req)) {
-    return NextResponse.next();
-  }
-  console.log("req.url", req.url);
-  if (isCheckoutApiRoute(req)) {
-    auth().protect();
-    return NextResponse.next();
-  }
-  console.log("req.url2", req.url);
-
-  if (isApiRoute(req)) {
-    try {
-      const { userId, isCustomer, response } = await handleAuthorization(req);
-      if (response) return response;
-
-      handleLogging(req, userId, isCustomer);
-      return NextResponse.next();
-    } catch (error) {
-      return new Response("Unauthorized Internal", { status: 401 });
-    }
-  }
-
-  if (isAuthRoute(req)) auth().protect();
-
   return NextResponse.next();
-});
+}
+
+const userManagementMiddleware = () =>
+  clerkMiddleware(async (auth, req) => {
+    // do not run auth middleware if user management is disabled
+    if (process.env.ENABLE_USER_MANAGEMENT !== "true") {
+      return NextResponse.next();
+    }
+    if (isWebhookRoute(req)) {
+      return NextResponse.next();
+    }
+    if (isCheckoutApiRoute(req)) {
+      auth().protect();
+      return NextResponse.next();
+    }
+
+    if (isApiRoute(req)) {
+      try {
+        const { userId, isCustomer, response } = await handleAuthorization(req);
+        if (response) return response;
+
+        handleLogging(req, userId, isCustomer);
+        return NextResponse.next();
+      } catch (error) {
+        return new Response("Unauthorized Internal", { status: 401 });
+      }
+    }
+
+    if (isAuthRoute(req)) auth().protect();
+
+    return NextResponse.next();
+  });
 
 export const config = {
   matcher: ["/((?!.*\\..*|_next).*)", "/", "/(api|trpc)(.*)"],
