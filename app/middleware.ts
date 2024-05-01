@@ -75,10 +75,7 @@ export default async function middleware(
 
 const userManagementMiddleware = () =>
   clerkMiddleware(async (auth, req) => {
-    // do not run auth middleware if user management is disabled
-    if (process.env.ENABLE_USER_MANAGEMENT !== "true") {
-      return NextResponse.next();
-    }
+
     if (isWebhookRoute(req)) {
       return NextResponse.next();
     }
