@@ -21,6 +21,7 @@ console.log(
 async function handleAuthorization(req) {
   const header = req.headers.get("authorization");
   if (!header) {
+    console.error("No Authorization header");
     return {
       response: new Response("No Authorization header", { status: 401 }),
     };
