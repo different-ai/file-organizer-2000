@@ -68,6 +68,7 @@ async function handleLogging(
   reamining: number
 ) {
   const user = await clerkClient.users.getUser(userId);
+  console.log("user", user);
   const client = PostHogClient();
   if (client && userId) {
     // client.identify({
@@ -84,7 +85,7 @@ async function handleLogging(
         endpoint: req.nextUrl.pathname.replace("/api/", ""),
         isCustomer,
         remaining: reamining,
-        email: user.emailAddresses[0]?.emailAddress,
+        email: user?.emailAddresses[0]?.emailAddress,
       },
     });
   }
