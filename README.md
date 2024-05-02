@@ -47,7 +47,7 @@ It takes a sec, and then renames, and organizes your file.
     ```sh
     cd ./app
     npm i && npm run build
-    OPENAI_API_KEY=[your open ai api key] ENABLE_USER_MANAGEMENT=false npm run start
+    OPENAI_API_KEY=[your open ai api key] npm run start
     ```
     Replace `[your open ai api key]` with your actual OpenAI API key.
 
@@ -55,7 +55,7 @@ It takes a sec, and then renames, and organizes your file.
     ```sh
     cd .\app
     npm i; npm run build
-    $env:OPENAI_API_KEY="your open ai api key"; $env:ENABLE_USER_MANAGEMENT=$false; npm run start
+    $env:OPENAI_API_KEY="your open ai api key"; npm run start
     ```
     Replace `your open ai api key` with your actual OpenAI API key.
 
