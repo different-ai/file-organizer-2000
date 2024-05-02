@@ -279,7 +279,7 @@ export class FileOrganizerSettingTab extends PluginSettingTab {
     }
 
     new Setting(containerEl)
-      .setName("AI Assistant (available in early access)")
+      .setName("AI Assistant (new)")
       .setDesc(
         "A sidebar that gives you more control in your file management."
       );
