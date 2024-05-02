@@ -12,7 +12,7 @@ export default async function handler(
   // if ENABLE_USER_MANAGEMENT=true in .env file, then we need to check for the Authorization header
   try {
     const apiKey = process.env.OPENAI_API_KEY || "";
-    const model = "gpt-3.5-turbo";
+    const model = "gpt-4-turbo";
     const data = {
       ...req.body,
       model,
