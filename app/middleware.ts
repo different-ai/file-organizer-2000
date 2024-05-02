@@ -38,6 +38,7 @@ async function handleAuthorization(req) {
   // check if customer or not
   //@ts-ignore
   const isCustomer = user?.publicMetadata?.stripe?.status === "complete";
+  console.log("before logging");
   handleLogging(req, result.ownerId, isCustomer, result.remaining);
 
   if (result.remaining <= 0) {
@@ -67,9 +68,11 @@ async function handleLogging(
   isCustomer: boolean,
   reamining: number
 ) {
+  console.log("inside of handleLogging");
   const user = await clerkClient.users.getUser(userId);
   console.log("user", user);
   const client = PostHogClient();
+  console.log("client", client);
   if (client && userId) {
     // client.identify({
     //   distinctId: userId,
