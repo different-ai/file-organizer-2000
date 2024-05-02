@@ -68,7 +68,7 @@ It takes a sec, and then renames, and organizes your file.
 
 ## Community
 
-Join the [discord server](https://discord.gg/KSdyURjP) for more.
+Join the [discord server](https://discord.gg/udQnCRFyus) for more.
 
 ## Small iOS shortcut for easy access
 The iOS shortcut below makes it easy for you to easily work from your phone with this plugin.
