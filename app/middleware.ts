@@ -70,12 +70,12 @@ async function handleLogging(
   const user = await clerkClient.users.getUser(userId);
   const client = PostHogClient();
   if (client && userId) {
-    client.identify({
-      distinctId: userId,
-      properties: {
-        email: user.emailAddresses[0]?.emailAddress,
-      },
-    });
+    // client.identify({
+    //   distinctId: userId,
+    //   properties: {
+    //     email: user.emailAddresses[0]?.emailAddress,
+    //   },
+    // });
 
     client.capture({
       distinctId: userId,
@@ -84,6 +84,7 @@ async function handleLogging(
         endpoint: req.nextUrl.pathname.replace("/api/", ""),
         isCustomer,
         remaining: reamining,
+        email: user.emailAddresses[0]?.emailAddress,
       },
     });
   }

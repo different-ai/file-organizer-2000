@@ -17,7 +17,6 @@ export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse<ResponseData>
 ) {
-  // if ENABLE_USER_MANAGEMENT=true in .env file, then we need to check for the Authorization header
   try {
     const apiKey = process.env.OPENAI_API_KEY || "";
     const payload = req.body;
