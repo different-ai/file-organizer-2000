@@ -32,6 +32,14 @@ async function handleAuthorization(req) {
     console.error(error.message);
     return { response: new Response("Internal Server Error", { status: 500 }) };
   }
+
+  // get user from api key
+  const user = await clerkClient.users.getUser(result.ownerId);
+  // check if customer or not
+  //@ts-ignore
+  const isCustomer = user?.publicMetadata?.stripe?.status === "complete";
+  handleLogging(req, result.ownerId, isCustomer, result.remaining);
+
   if (result.remaining <= 0) {
     return {
       response: new Response("No remaining credits", {
@@ -47,11 +55,6 @@ async function handleAuthorization(req) {
     };
   }
 
-  // get user from api key
-  const user = await clerkClient.users.getUser(result.ownerId);
-  // check if customer or not
-  //@ts-ignore
-  const isCustomer = user?.publicMetadata?.stripe?.status === "complete";
   console.log("isCustomer", isCustomer);
   console.log("result", result);
 
@@ -117,7 +120,6 @@ const userManagementMiddleware = () =>
           await handleAuthorization(req);
         if (response) return response;
 
-        handleLogging(req, userId, isCustomer, remaining);
         return NextResponse.next();
       } catch (error) {
         return new Response("Unauthorized Internal", { status: 401 });
