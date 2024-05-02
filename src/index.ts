@@ -633,13 +633,6 @@ Which of the following classifications would
       id: "show-assistant",
       name: "Show Assistant",
       callback: async () => {
-        if (!this.settings.enableEarlyAccess) {
-          new Notice(
-            "This feature is only available for early access supporters",
-            3000
-          );
-          return;
-        }
         await this.showAssistantSidebar();
       },
     });

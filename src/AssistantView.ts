@@ -143,9 +143,7 @@ export class AssistantView extends ItemView {
   handleFileOpen = async (file: TFile | null) => {
     this.containerEl.empty();
     this.initUI();
-    if (!this.plugin.settings.enableEarlyAccess) {
-      return;
-    }
+
     this.loading.style.display = "block";
     if (!file) {
       this.suggestionBox.setText("No file opened");
@@ -205,7 +203,7 @@ export class AssistantView extends ItemView {
 
     if (classification) {
       new ButtonComponent(this.classificationBox)
-        .setClass('sidebar-format-button')
+        .setClass("sidebar-format-button")
         .setButtonText("Apply Template")
         .onClick(async () => {
           await this.plugin.formatContent(file, content, classification);
@@ -222,39 +220,26 @@ export class AssistantView extends ItemView {
     this.containerEl.empty();
     this.containerEl.addClass("assistant-container");
 
-    if (!this.plugin.settings.enableEarlyAccess) {
-      this.containerEl.createEl("h5", {
-        text: "The AI Assistant is an early access feature currently available to supporters.",
-      });
+    // add a header mentioning the selected file name
+    this.createHeader("Looking at");
+    this.selectedFileBox = this.containerEl.createEl("div");
 
-      const supportLink = this.containerEl.createEl("a", {
-        href: "https://dub.sh/support-fo2k",
-        text: "Support here to gain access.",
-      });
-      supportLink.setAttr("target", "_blank");
-    }
-    if (this.plugin.settings.enableEarlyAccess) {
-      // add a header mentioning the selected file name
-      this.createHeader("Looking at");
-      this.selectedFileBox = this.containerEl.createEl("div");
+    this.createHeader("Similar tags");
+    this.suggestionBox = this.containerEl.createEl("div");
 
-      this.createHeader("Similar tags");
-      this.suggestionBox = this.containerEl.createEl("div");
+    this.createHeader("Suggested alias");
+    this.aliasSuggestionBox = this.containerEl.createEl("div");
 
-      this.createHeader("Suggested alias");
-      this.aliasSuggestionBox = this.containerEl.createEl("div");
+    this.createHeader("Suggested folder");
+    this.similarFolderBox = this.containerEl.createEl("div");
 
-      this.createHeader("Suggested folder");
-      this.similarFolderBox = this.containerEl.createEl("div");
+    this.createHeader("Looks like a");
+    this.classificationBox = this.containerEl.createEl("div");
 
-      this.createHeader("Looks like a");
-      this.classificationBox = this.containerEl.createEl("div");
-
-      this.loading = this.suggestionBox.createEl("div", {
-        text: "Loading...",
-      });
-      this.loading.style.display = "none";
-    }
+    this.loading = this.suggestionBox.createEl("div", {
+      text: "Loading...",
+    });
+    this.loading.style.display = "none";
   }
 
   async onOpen() {
