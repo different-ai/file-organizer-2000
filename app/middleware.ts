@@ -39,7 +39,7 @@ async function handleAuthorization(req) {
   //@ts-ignore
   const isCustomer = user?.publicMetadata?.stripe?.status === "complete";
   console.log("before logging");
-  handleLogging(req, result.ownerId, isCustomer, result.remaining);
+  await handleLogging(req, result.ownerId, isCustomer, result.remaining);
 
   if (result.remaining <= 0) {
     return {
