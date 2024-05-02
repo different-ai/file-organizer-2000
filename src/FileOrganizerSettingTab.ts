@@ -279,17 +279,11 @@ export class FileOrganizerSettingTab extends PluginSettingTab {
     }
 
     new Setting(containerEl)
-      .setName("AI Assistant (new)")
+      .setName("AI Assistant")
       .setDesc(
-        "A sidebar that gives you more control in your file management."
+        "A sidebar that gives you more control in your file management. Open command pallette and search for 'AI Assistant' to open."
       );
 
-    new Setting(containerEl)
-      .setName("Experimental: Describe workflow (in progress)")
-      .setDesc(
-        "Use words to explain how File Organizer uses GPT-4 to organize your files."
-      )
-      .setDisabled(true);
     new Setting(containerEl)
       .setName("Experimental: Full Auto Org (in progress)")
       .setDesc("Let file Organizer work fully automatically.")
@@ -310,6 +304,15 @@ export class FileOrganizerSettingTab extends PluginSettingTab {
               await this.plugin.saveSettings();
               return;
             }
+            if (!this.plugin.settings.enableEarlyAccess) {
+              new Notice(
+                "You need to be a supporter to enable this feature.",
+                6000
+              );
+              toggle.setValue(false);
+              return;
+            }
+
             // value is true but early access is not enabled
             // show notice and set value to false
             if (!this.plugin.settings.enableEarlyAccess) {
@@ -325,9 +328,7 @@ export class FileOrganizerSettingTab extends PluginSettingTab {
           })
       );
 
-    new Setting(containerEl)
-      .setName("Custom Formatting (early access only works for supporters)")
-      .setHeading();
+    new Setting(containerEl).setName("Custom Formatting").setHeading();
 
     new Setting(containerEl)
       .setName("Enable Document Classification")
