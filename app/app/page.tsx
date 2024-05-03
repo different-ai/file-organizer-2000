@@ -1,6 +1,7 @@
 import CheckoutButton from "@/components/ui/CheckoutButton";
 import { UnkeyElements } from "./keys/client";
 import { Button } from "@/components/ui/button";
+import { SignOutButton } from "@clerk/nextjs";
 /**
  * v0 by Vercel.
  * @see https://v0.dev/t/F1suC5Yr6GV
@@ -16,13 +17,13 @@ export default function Component() {
             Welcome to File Organizer 2000
           </h2>
           {process.env.ENABLE_USER_MANAGEMENT == "true" ? (
-                <UnkeyElements />
-              ) : (
-                <p className="text-gray-500 dark:text-gray-400">
-                  Just paste this URL in the plugin settings in Obsidian and
-                  you're good to go!
-                </p>
-              )}
+            <UnkeyElements />
+          ) : (
+            <p className="text-gray-500 dark:text-gray-400">
+              Just paste this URL in the plugin settings in Obsidian and you're
+              good to go!
+            </p>
+          )}
         </div>
         <div className="text-center">
           <ArrowDownIcon className="mx-auto h-12 w-12 text-gray-400" />
@@ -43,12 +44,13 @@ export default function Component() {
         </div>
       </div>
       {process.env.ENABLE_USER_MANAGEMENT == "true" ? (
-          <div className="ml-auto absolute top-4 right-4">
-            <CheckoutButton />
-          </div>
-        ) : (
-          <></>
-        )}
+        <div className="ml-auto absolute top-4 right-4">
+          <CheckoutButton />
+          <SignOutButton />
+        </div>
+      ) : (
+        <></>
+      )}
       {/* <Button className="absolute top-4 right-4" variant="secondary">
         Get access to early features
 

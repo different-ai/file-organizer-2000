@@ -54,7 +54,7 @@ export default function CheckoutButton() {
 
   return (
     <Button onClick={handleCheckout} disabled={loading}>
-      {loading ? "Processing..." : "Get access to early features"}
+      {loading ? "Processing..." : "Upgrade"}
     </Button>
   );
 }
