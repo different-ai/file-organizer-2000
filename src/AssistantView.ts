@@ -143,6 +143,11 @@ export class AssistantView extends ItemView {
   };
 
   handleFileOpen = async (file: TFile | null) => {
+    const rightSplit = this.app.workspace.rightSplit;
+    logMessage(rightSplit, "rightSplit");
+
+    if (rightSplit.collapsed) return;
+
     this.containerEl.empty();
     this.initUI();
 

@@ -20,12 +20,13 @@ And the following files:
 
 ${files.map((file: { name: string }) => `File: ${file.name}\n`).join("\n\n")}
 
-Which 10 files are the most similar to the active file based on their content? Respond with a list of the 10 most similar file names, one per line.`;
+Which 10 files are the most similar to the active file based on their content? Respond with a list of the 1-10 most similar file names, one per line. If none are similar, respond with "none".`;
 
     const { object } = await generateObject({
       model,
       schema: z.object({
-        similarFiles: z.array(z.string()),
+
+        similarFiles: z.array(z.string().nullable()).min(1).max(10),
       }),
       prompt: prompt,
     });
