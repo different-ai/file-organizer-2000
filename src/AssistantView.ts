@@ -151,6 +151,16 @@ export class AssistantView extends ItemView {
 
   handleFileOpen = async (file: TFile | null) => {
     this.containerEl.empty();
+    const templatePath = this.plugin.settings.templatePaths;
+
+    if (file && file.path.includes(templatePath)) {
+      // Template detected; disable the sidebar
+      this.containerEl.createEl("h5", {
+        text: "This is a template file. Sidebar disabled.",
+        cls: "sidebar-message",
+      });
+      return;
+    }
     this.initUI();
 
     this.loading.style.display = "block";
