@@ -45,7 +45,8 @@ const APIKEYForm = () => {
   };
 
   const { user, isLoaded } = useUser();
-  const isPaidUser = user?.publicMetadata.stripe?.status === "complete";
+  // @ts-ignore
+  const isPaidUser = user?.publicMetadata.stripe?.status  === "complete" ;
 
   return (
     <div className="mt-8">
