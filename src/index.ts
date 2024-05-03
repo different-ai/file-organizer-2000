@@ -6,10 +6,8 @@ import {
   TAbstractFile,
   moment,
   WorkspaceLeaf,
-  getLinkpath,
   requestUrl,
 } from "obsidian";
-import useName from "./modules/name";
 import useVision from "./modules/vision";
 import useAudio from "./modules/audio";
 import useText from "./modules/text";
@@ -321,12 +319,7 @@ Which of the following classifications would
     const formattedNow = now.toISOString().replace(/[-:.TZ]/g, "");
     let name = formattedNow;
     try {
-      name = await useName(content, {
-        baseUrl: this.settings.useCustomServer
-          ? this.settings.customServerUrl
-          : this.settings.defaultServerUrl,
-        apiKey: this.settings.API_KEY,
-      });
+      name = await this.generateNameFromContent(content);
     } catch (error) {
       console.error("Error processing file:", error.status);
       new Notice("Could not set a human readable name.");
