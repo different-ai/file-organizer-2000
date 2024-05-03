@@ -116,7 +116,16 @@ export class AssistantView extends ItemView {
   };
 
   suggestFolders = async (file: TFile, content: string) => {
-    const folder = await this.plugin.getAIClassifiedFolder(content, file);
+    const templatePath = this.plugin.settings.templatePaths;
+    const folders = await this.plugin.getAllFolders();
+    // Exclude template folder path
+    const filteredFolders = folders.filter((folder) => folder !== templatePath);
+    const folder = await this.plugin.getAIClassifiedFolder(
+      content,
+      file,
+      filteredFolders
+    );
+
     this.similarFolderBox.empty();
     this.similarFolderBox.style.display = "flex";
     this.similarFolderBox.style.alignItems = "center";

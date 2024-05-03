@@ -491,12 +491,17 @@ Which of the following classifications would
     return uniqueFolders;
   }
 
-  async getAIClassifiedFolder(content: string, file: TFile): Promise<string> {
+  async getAIClassifiedFolder(
+    content: string,
+    file: TFile,
+    filteredFolders?: string[]
+  ): Promise<string> {
     // Initialize destination folder as "None"
     let destinationFolder = "None";
 
-    // Get all folders
-    const uniqueFolders = this.getAllFolders()
+    // Filter out unwanted folders if there are any
+    const uniqueFolders = filteredFolders || this.getAllFolders();
+    uniqueFolders
       // remove current file path
       .filter((folder) => folder !== file.parent?.path)
       // remove default destination path
