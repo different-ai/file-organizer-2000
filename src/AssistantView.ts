@@ -20,6 +20,7 @@ export class AssistantView extends ItemView {
   private aliasSuggestionBox: HTMLDivElement; // Added for rename suggestion
   private classificationBox: HTMLDivElement;
   private fileOpenEventRef: EventRef;
+  private similarFilesBox: HTMLDivElement;
 
   constructor(leaf: WorkspaceLeaf, plugin: FileOrganizer) {
     super(leaf);
@@ -174,12 +175,42 @@ export class AssistantView extends ItemView {
     const content = await this.plugin.getTextFromFile(file);
     this.suggestTags(file, content);
     this.suggestFolders(file, content);
+    this.displaySimilarFiles(file);
     await this.suggestAlias(file, content); // Call the suggestRename method
     await this.displayClassification(file, content);
 
     // Show the AI assistant sidebar
     if (aiAssistantSidebar) {
       aiAssistantSidebar.style.display = "";
+    }
+  };
+  displaySimilarFiles = async (file: TFile) => {
+    const similarFiles = await this.plugin.getSimilarFiles(file);
+    this.similarFilesBox.empty();
+    logMessage("Similar files: " + similarFiles);
+
+    if (similarFiles.length > 0) {
+      similarFiles.forEach((similarFile) => {
+        const fileElement = this.similarFilesBox.createEl("div", {
+          text: similarFile,
+          cls: "similar-file",
+        });
+        fileElement.style.cursor = "pointer";
+        fileElement.style.marginBottom = "5px";
+        // should be blue
+        fileElement.style.color = "var(--text-accent)";
+        fileElement.addEventListener("click", () => {
+          // get path from name
+          // get abstract file path
+          const file = this.app.vault.getAbstractFileByPath(similarFile);
+          // open file
+          if (!(file instanceof TFile)) return;
+          this.app.workspace.openLinkText(file.path, "", true);
+        });
+      });
+    } else {
+      this.similarFilesBox.setText("No similar files found");
+      this.similarFilesBox.style.color = "var(--text-accent)";
     }
   };
 
@@ -235,6 +266,9 @@ export class AssistantView extends ItemView {
 
     this.createHeader("Looks like a");
     this.classificationBox = this.containerEl.createEl("div");
+
+    this.createHeader("Similar files");
+    this.similarFilesBox = this.containerEl.createEl("div");
 
     this.loading = this.suggestionBox.createEl("div", {
       text: "Loading...",

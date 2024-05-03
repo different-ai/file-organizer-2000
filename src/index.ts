@@ -354,6 +354,48 @@ Which of the following classifications would
     return file;
   }
 
+  async getSimilarFiles(fileToCheck: TFile): Promise<string[]> {
+    if (!fileToCheck) {
+      console.log("No active file found.");
+      return [];
+    }
+
+    const activeFileContent = await this.app.vault.read(fileToCheck);
+    logMessage("activeFileContent", activeFileContent);
+    const allFiles = this.app.vault.getMarkdownFiles();
+    const fileContents = await Promise.all(
+      allFiles.map(async (file) => ({
+        name: file.basename,
+        // skiping content for now
+        // content: await this.app.vault.read(file),
+      }))
+    );
+
+    const data = {
+      activeFileContent,
+      files: fileContents,
+    };
+
+    const response = await makeApiRequest(() =>
+      requestUrl({
+        url: `${
+          this.settings.useCustomServer
+            ? this.settings.customServerUrl
+            : this.settings.defaultServerUrl
+        }/api/relationships`,
+        method: "POST",
+        body: JSON.stringify(data),
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${this.settings.API_KEY}`,
+        },
+      })
+    );
+
+    const result = await response.json;
+    return result.similarFiles;
+  }
+
   async moveToDefaultAttachmentFolder(file: TFile, newFileName: string) {
     const destinationFolder = this.settings.attachmentsPath;
     const destinationPath = `${destinationFolder}/${newFileName}.${file.extension}`;
@@ -615,6 +657,22 @@ Which of the following classifications would
 
   async onload() {
     await this.initializePlugin();
+
+    // add commands
+    this.addCommand({
+      id: "find-similar-files",
+      name: "Find Similar Files",
+      callback: async () => {
+        const activeFile = this.app.workspace.getActiveFile();
+        if (!activeFile) {
+          console.log("No active file found.");
+          return;
+        }
+        const similarFiles = await this.getSimilarFiles(activeFile);
+        console.log("Most similar files:", similarFiles);
+        // Display the similar files in the UI or perform further actions
+      },
+    });
 
     // on layout ready register event handlers
     this.addCommand({
