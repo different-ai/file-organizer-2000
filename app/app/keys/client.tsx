@@ -20,7 +20,9 @@ const APIKEYForm = () => {
   const [key, setKey] = useState<string>("");
   async function onCreate(formData: FormData) {
     const res = await create(formData);
+    // @ts-ignore
     if (res?.error) {
+      // @ts-ignore
       alert(res.error);
       return;
     }
