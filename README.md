@@ -1,3 +1,5 @@
+We ship daily - try to keep F02k version up to date
+
 Consider Supporting this project:
 https://dub.sh/support-fo2k
 
