@@ -145,15 +145,14 @@ export class AssistantView extends ItemView {
     this.initUI();
 
     const rightSplit = this.app.workspace.rightSplit;
-    if (rightSplit instanceof WorkspaceSidedock) {
-      //check if sidebar is collapsed
-      if (rightSplit.collapsed) {
-        logMessage("Sidebar collapsed - not firing APIs");
-        // dont call APIs if sidebar is closed
-        return;
-      }
-      logMessage("The right split is OPEN - fire APIs");
+    //check if sidebar is collapsed
+    if (rightSplit instanceof WorkspaceSidedock && rightSplit.collapsed) {
+      logMessage("Sidebar collapsed - not firing APIs");
+      // dont call APIs if sidebar is closed
+      return;
     }
+
+    logMessage("The right split is OPEN - fire APIs");
     this.loading.style.display = "block";
     if (!file) {
       this.suggestionBox.setText("No file opened");
