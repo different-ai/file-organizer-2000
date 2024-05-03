@@ -157,6 +157,28 @@ export class AssistantView extends ItemView {
       this.loading.style.display = "none";
       return;
     }
+
+    // make this about all the settings path files
+    // if one of settings.xPath then show the message
+    const settingsPaths = [
+      this.plugin.settings.pathToWatch,
+      this.plugin.settings.defaultDestinationPath,
+      this.plugin.settings.attachmentsPath,
+      this.plugin.settings.logFolderPath,
+      this.plugin.settings.templatePaths,
+    ];
+    const isInSettingsPath = settingsPaths.some((path) =>
+      file.path.includes(path)
+    );
+    if (isInSettingsPath) {
+      this.containerEl.empty();
+      this.containerEl.createEl("h5", {
+        text: "This is is part of an ignored folder in FileOrganizer. Sidebar disabled.",
+        cls: "sidebar-message",
+      });
+      return;
+    }
+
     if (!file.extension.includes("md")) {
       this.containerEl.empty();
       this.containerEl.createEl("h5", {
