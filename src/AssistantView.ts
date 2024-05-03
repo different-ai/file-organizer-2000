@@ -4,6 +4,7 @@ import {
   ItemView,
   TFile,
   WorkspaceLeaf,
+  getLinkpath,
   setIcon,
 } from "obsidian";
 import FileOrganizer from ".";
@@ -187,25 +188,32 @@ export class AssistantView extends ItemView {
   displaySimilarFiles = async (file: TFile) => {
     const similarFiles = await this.plugin.getSimilarFiles(file);
     this.similarFilesBox.empty();
-    logMessage("Similar files: " + similarFiles);
+    logMessage(similarFiles);
 
     if (similarFiles.length > 0) {
       similarFiles.forEach((similarFile) => {
         const fileElement = this.similarFilesBox.createEl("div", {
-          text: similarFile,
           cls: "similar-file",
         });
+
+        const linkElement = fileElement.createEl("a", {
+          text: similarFile,
+        });
+
+        // make a block
+        fileElement.style.display = "block";
         fileElement.style.cursor = "pointer";
         fileElement.style.marginBottom = "5px";
+
         // should be blue
-        fileElement.style.color = "var(--text-accent)";
-        fileElement.addEventListener("click", () => {
-          // get path from name
-          // get abstract file path
-          const file = this.app.vault.getAbstractFileByPath(similarFile);
-          // open file
-          if (!(file instanceof TFile)) return;
-          this.app.workspace.openLinkText(file.path, "", true);
+        linkElement.style.color = "var(--text-accent)";
+
+        const path = getLinkpath(similarFile);
+        logMessage(path);
+
+        linkElement.addEventListener("click", (event) => {
+          event.preventDefault();
+          this.app.workspace.openLinkText(path, "/", false);
         });
       });
     } else {

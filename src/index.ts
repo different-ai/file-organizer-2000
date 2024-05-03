@@ -365,7 +365,7 @@ Which of the following classifications would
     const allFiles = this.app.vault.getMarkdownFiles();
     const fileContents = await Promise.all(
       allFiles.map(async (file) => ({
-        name: file.basename,
+        name: file.path,
         // skiping content for now
         // content: await this.app.vault.read(file),
       }))
@@ -406,13 +406,24 @@ Which of the following classifications would
   }
 
   async generateNameFromContent(content: string): Promise<string> {
-    const name = await useName(content, {
-      baseUrl: this.settings.useCustomServer
-        ? this.settings.customServerUrl
-        : this.settings.defaultServerUrl,
-      apiKey: this.settings.API_KEY,
-    });
-    const safeName = formatToSafeName(name);
+    const response = await makeApiRequest(() =>
+      requestUrl({
+        url: `${
+          this.settings.useCustomServer
+            ? this.settings.customServerUrl
+            : this.settings.defaultServerUrl
+        }/api/name`,
+        method: "POST",
+        body: JSON.stringify({ document: content }),
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${this.settings.API_KEY}`,
+        },
+      })
+    );
+
+    const data = await response.json;
+    const safeName = formatToSafeName(data.name);
     return safeName;
   }
 
@@ -566,20 +577,17 @@ Which of the following classifications would
         body: JSON.stringify(data),
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${this.settings.API_KEY} `,
+          Authorization: `Bearer ${this.settings.API_KEY}`,
         },
       })
     );
 
     const result = await response.json;
-    const sanitizedFolderName = result.folder.replace(/[\\:*?"<>|]/g, "");
 
-    if (sanitizedFolderName === "None") {
+    if (result.folder === "None") {
       destinationFolder = this.settings.defaultDestinationPath;
-    }
-
-    if (sanitizedFolderName !== "None") {
-      destinationFolder = sanitizedFolderName;
+    } else {
+      destinationFolder = result.folder;
     }
 
     return destinationFolder;
