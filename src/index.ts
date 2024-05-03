@@ -386,7 +386,16 @@ Which of the following classifications would
     );
 
     const result = await response.json;
-    return result.similarFiles;
+    const similarFiles = result.similarFiles
+      .filter((file: string) => !file.includes(this.settings.pathToWatch))
+      .filter(
+        (file: string) => !file.includes(this.settings.defaultDestinationPath)
+      )
+      .filter((file: string) => !file.includes(this.settings.attachmentsPath))
+      .filter((file: string) => !file.includes(this.settings.logFolderPath))
+      .filter((file: string) => !file.includes(this.settings.templatePaths));
+
+    return similarFiles;
   }
 
   async moveToDefaultAttachmentFolder(file: TFile, newFileName: string) {
