@@ -4,6 +4,7 @@ import {
   ItemView,
   TFile,
   WorkspaceLeaf,
+  WorkspaceSidedock,
   setIcon,
 } from "obsidian";
 import FileOrganizer from ".";
@@ -20,7 +21,6 @@ export class AssistantView extends ItemView {
   private aliasSuggestionBox: HTMLDivElement; // Added for rename suggestion
   private classificationBox: HTMLDivElement;
   private fileOpenEventRef: EventRef;
-
   constructor(leaf: WorkspaceLeaf, plugin: FileOrganizer) {
     super(leaf);
     this.plugin = plugin;
@@ -144,6 +144,16 @@ export class AssistantView extends ItemView {
     this.containerEl.empty();
     this.initUI();
 
+    const rightSplit = this.app.workspace.rightSplit;
+    if (rightSplit instanceof WorkspaceSidedock) {
+      //check if sidebar is collapsed
+      if (rightSplit.collapsed) {
+        logMessage("Sidebar collapsed - not firing APIs");
+        // dont call APIs if sidebar is closed
+        return;
+      }
+      logMessage("The right split is OPEN - fire APIs");
+    }
     this.loading.style.display = "block";
     if (!file) {
       this.suggestionBox.setText("No file opened");
@@ -245,6 +255,11 @@ export class AssistantView extends ItemView {
   async onOpen() {
     this.containerEl.empty();
     this.containerEl.addClass("assistant-container");
+    // expand the sidebar; needed for rightSplit.collapsed trigger correctly upon opening AI Assistant with command
+    const rightSplit = this.app.workspace.rightSplit;
+    if (rightSplit instanceof WorkspaceSidedock) {
+      rightSplit.expand();
+    }
     this.handleFileOpen(this.app.workspace.getActiveFile());
 
     this.initUI();
