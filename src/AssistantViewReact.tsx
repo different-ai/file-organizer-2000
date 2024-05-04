@@ -90,13 +90,21 @@ const AliasSuggestionBox: React.FC<{
           {alias && (
             <>
               <span className="alias">{alias}</span>
-              <button
+              {/* <button
                 className="add-alias-button"
                 onClick={() =>
                   plugin.appendToFrontMatter(file!, "alias", alias)
                 }
               >
                 Add
+              </button> */}
+              <button
+                className="rename-alias-button"
+                onClick={() => {
+                  plugin.moveContent(file!, alias);
+                }}
+              >
+                Rename File
               </button>
             </>
           )}
