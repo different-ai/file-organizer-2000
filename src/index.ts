@@ -561,7 +561,8 @@ Which of the following classifications would
       .filter((folder) => folder !== this.settings.defaultDestinationPath)
       .filter((folder) => folder !== this.settings.attachmentsPath)
       .filter((folder) => folder !== this.settings.logFolderPath)
-      .filter((folder) => folder !== this.settings.pathToWatch);
+      .filter((folder) => folder !== this.settings.pathToWatch)
+      .filter((folder) => folder !== this.settings.templatePaths);
 
     logMessage("uniqueFolders", uniqueFolders);
 

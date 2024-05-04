@@ -246,7 +246,8 @@ export const AssistantView: React.FC<AssistantViewProps> = ({ plugin }) => {
   const [noteContent, setNoteContent] = React.useState<string>("");
 
   React.useEffect(() => {
-    const onFileOpen = async (file: TFile | null) => {
+    const onFileOpen = async () => {
+      const file = plugin.app.workspace.getActiveFile();
       if (!file || !file.path) {
         setActiveFile(null);
         setNoteContent("");
@@ -275,7 +276,7 @@ export const AssistantView: React.FC<AssistantViewProps> = ({ plugin }) => {
     };
 
     const fileOpenEventRef = plugin.app.workspace.on("file-open", onFileOpen);
-    onFileOpen(plugin.app.workspace.getActiveFile());
+    onFileOpen();
 
     return () => {
       plugin.app.workspace.offref(fileOpenEventRef);
