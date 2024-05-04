@@ -13,7 +13,7 @@ import useAudio from "./modules/audio";
 import useText from "./modules/text";
 import { logMessage, formatToSafeName } from "../utils";
 import { FileOrganizerSettingTab } from "./FileOrganizerSettingTab";
-import { ASSISTANT_VIEW_TYPE, AssistantView } from "./AssistantView";
+import { ASSISTANT_VIEW_TYPE, AssistantView, AssistantViewWrapper } from "./AssistantView";
 class FileOrganizerSettings {
   API_KEY = "";
   useLogs = true;
@@ -36,6 +36,9 @@ class FileOrganizerSettings {
   templatePaths = "_FileOrganizer2000/Templates";
   transcribeEmbeddedAudio = false;
   enableDocumentClassification = false;
+
+  OPENAI_API_KEY = "";
+
 }
 
 const validAudioExtensions = ["mp3", "wav", "webm", "m4a"];
@@ -650,18 +653,18 @@ Which of the following classifications would
     await this.app.vault.append(logFile, contentWithLink);
   }
 
-  validateAPIKey() {
-    if (this.settings.useCustomServer) {
-      // atm we assume no api auth for self hosted
-      return true;
-    }
-
-    if (!this.settings.API_KEY) {
-      throw new Error(
-        "Please enter your API Key in the settings of the FileOrganizer plugin."
-      );
-    }
+validateAPIKey() {
+  if (this.settings.useCustomServer) {
+    // atm we assume no api auth for self hosted
+    return true;
   }
+
+  if (!this.settings.API_KEY && !this.settings.OPENAI_API_KEY) {
+    throw new Error(
+      "Please enter your API Key or OpenAI API Key in the settings of the FileOrganizer plugin."
+    );
+  }
+}
 
   // native
 
@@ -748,7 +751,7 @@ Which of the following classifications would
     this.addSettingTab(new FileOrganizerSettingTab(this.app, this));
     this.registerView(
       ASSISTANT_VIEW_TYPE,
-      (leaf: WorkspaceLeaf) => new AssistantView(leaf, this)
+      (leaf: WorkspaceLeaf) => new AssistantViewWrapper(leaf, this)
     );
   }
 
