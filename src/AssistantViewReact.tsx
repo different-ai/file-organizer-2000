@@ -126,8 +126,6 @@ const SimilarFolderBox: React.FC<{
     suggestFolder();
   }, [file, content]);
 
-  if (!folder) return null;
-
   return (
     <div className="assistant-section folder-section">
       <SectionHeader text="Suggested folder" icon="📁" />
@@ -167,8 +165,6 @@ const SimilarFilesBox: React.FC<{
     fetchSimilarFiles();
   }, [file]);
 
-  if (!files) return null;
-
   return (
     <div className="assistant-section files-section">
       <SectionHeader text="Similar files" icon="📄" />
@@ -176,22 +172,23 @@ const SimilarFilesBox: React.FC<{
         <div>Loading...</div>
       ) : (
         <div className="files-container">
-          {files.map((file, index) => (
-            <div key={index} className="file">
-              <a
-                href="#"
-                onClick={() => {
-                  const path = plugin.app.metadataCache.getFirstLinkpathDest(
-                    file,
-                    ""
-                  );
-                  plugin.app.workspace.openLinkText(path, "/", false);
-                }}
-              >
-                {file.replace(".md", "")}
-              </a>
-            </div>
-          ))}
+          {files &&
+            files.map((file, index) => (
+              <div key={index} className="file">
+                <a
+                  href="#"
+                  onClick={() => {
+                    const path = plugin.app.metadataCache.getFirstLinkpathDest(
+                      file,
+                      ""
+                    );
+                    plugin.app.workspace.openLinkText(path, "/", false);
+                  }}
+                >
+                  {file.replace(".md", "")}
+                </a>
+              </div>
+            ))}
         </div>
       )}
     </div>
