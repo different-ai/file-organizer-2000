@@ -28,6 +28,7 @@ const SimilarTags: React.FC<{
   React.useEffect(() => {
     const suggestTags = async () => {
       if (!file || !content) return;
+      setSuggestions(null);
       setLoading(true);
       const tags = await plugin.getSimilarTags(content, file.basename);
       setSuggestions(tags);
@@ -70,6 +71,7 @@ const AliasSuggestionBox: React.FC<{
   React.useEffect(() => {
     const suggestAlias = async () => {
       if (!file || !content) return;
+      setAlias(null);
       setLoading(true);
       const suggestedAlias = await plugin.generateNameFromContent(content);
       setAlias(suggestedAlias);
@@ -115,6 +117,7 @@ const SimilarFolderBox: React.FC<{
   React.useEffect(() => {
     const suggestFolder = async () => {
       if (!file || !content) return;
+      setFolder(null);
       setLoading(true);
       const suggestedFolder = await plugin.getAIClassifiedFolder(content, file);
       setFolder(suggestedFolder);
@@ -155,6 +158,7 @@ const SimilarFilesBox: React.FC<{
   React.useEffect(() => {
     const fetchSimilarFiles = async () => {
       if (!file) return;
+      setFiles(null);
       setLoading(true);
       const similarFiles = await plugin.getSimilarFiles(file);
       setFiles(similarFiles);
@@ -212,6 +216,7 @@ const ClassificationBox: React.FC<{
   React.useEffect(() => {
     const fetchClassification = async () => {
       if (!file || !content) return;
+      setClassification(null);
       setLoading(true);
       const result = await plugin.useCustomClassifier(content, file.basename);
       setClassification(result);
