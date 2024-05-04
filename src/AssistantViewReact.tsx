@@ -17,7 +17,7 @@ const SectionHeader: React.FC<{ text: string; icon?: string }> = ({
   </h6>
 );
 
-const SuggestionBox: React.FC<{
+const SimilarTags: React.FC<{
   plugin: FileOrganizer;
   file: TFile | null;
   content: string;
@@ -36,23 +36,25 @@ const SuggestionBox: React.FC<{
     suggestTags();
   }, [file, content]);
 
-  if (loading) return <div>Loading...</div>;
-  if (!suggestions) return null;
-
   return (
     <div className="assistant-section tags-section">
       <SectionHeader text="Similar tags" icon="🏷️" />
-      <div className="tags-container">
-        {suggestions.map((tag, index) => (
-          <span
-            key={index}
-            className="tag"
-            onClick={() => plugin.appendTag(file!, tag)}
-          >
-            {tag}
-          </span>
-        ))}
-      </div>
+      {loading ? (
+        <div>Loading...</div>
+      ) : (
+        <div className="tags-container">
+          {suggestions &&
+            suggestions.map((tag, index) => (
+              <span
+                key={index}
+                className="tag"
+                onClick={() => plugin.appendTag(file!, tag)}
+              >
+                {tag}
+              </span>
+            ))}
+        </div>
+      )}
     </div>
   );
 };
@@ -76,23 +78,28 @@ const AliasSuggestionBox: React.FC<{
     suggestAlias();
   }, [file, content]);
 
-  if (loading) return <div>Loading...</div>;
-  if (!alias) return null;
-
   return (
     <div className="assistant-section alias-section">
       <SectionHeader text="Suggested alias" icon="💡" />
-      <div className="alias-container">
-        <span className="alias">{alias}</span>
-        <button
-          className="add-alias-button"
-          onClick={() =>
-            plugin.appendToFrontMatter(file!, "alias", alias)
-          }
-        >
-          Add
-        </button>
-      </div>
+      {loading ? (
+        <div>Loading...</div>
+      ) : (
+        <div className="alias-container">
+          {alias && (
+            <>
+              <span className="alias">{alias}</span>
+              <button
+                className="add-alias-button"
+                onClick={() =>
+                  plugin.appendToFrontMatter(file!, "alias", alias)
+                }
+              >
+                Add
+              </button>
+            </>
+          )}
+        </div>
+      )}
     </div>
   );
 };
@@ -109,33 +116,31 @@ const SimilarFolderBox: React.FC<{
     const suggestFolder = async () => {
       if (!file || !content) return;
       setLoading(true);
-      const suggestedFolder = await plugin.getAIClassifiedFolder(
-        content,
-        file
-      );
+      const suggestedFolder = await plugin.getAIClassifiedFolder(content, file);
       setFolder(suggestedFolder);
       setLoading(false);
     };
     suggestFolder();
   }, [file, content]);
 
-  if (loading) return <div>Loading...</div>;
   if (!folder) return null;
 
   return (
     <div className="assistant-section folder-section">
       <SectionHeader text="Suggested folder" icon="📁" />
-      <div className="folder-container">
-        <span className="folder">{folder}</span>
-        <button
-          className="move-note-button"
-          onClick={() =>
-            plugin.moveContent(file!, file!.basename, folder)
-          }
-        >
-          Move
-        </button>
-      </div>
+      {loading ? (
+        <div>Loading...</div>
+      ) : (
+        <div className="folder-container">
+          <span className="folder">{folder}</span>
+          <button
+            className="move-note-button"
+            onClick={() => plugin.moveContent(file!, file!.basename, folder)}
+          >
+            Move
+          </button>
+        </div>
+      )}
     </div>
   );
 };
@@ -158,31 +163,33 @@ const SimilarFilesBox: React.FC<{
     fetchSimilarFiles();
   }, [file]);
 
-  if (loading) return <div>Loading...</div>;
   if (!files) return null;
 
   return (
     <div className="assistant-section files-section">
       <SectionHeader text="Similar files" icon="📄" />
-      <div className="files-container">
-        {files.map((file, index) => (
-          <div key={index} className="file">
-            <a
-              href="#"
-              onClick={() => {
-                const path =
-                  plugin.app.metadataCache.getFirstLinkpathDest(
+      {loading ? (
+        <div>Loading...</div>
+      ) : (
+        <div className="files-container">
+          {files.map((file, index) => (
+            <div key={index} className="file">
+              <a
+                href="#"
+                onClick={() => {
+                  const path = plugin.app.metadataCache.getFirstLinkpathDest(
                     file,
                     ""
                   );
-                plugin.app.workspace.openLinkText(path, "/", false);
-              }}
-            >
-              {file.replace(".md", "")}
-            </a>
-          </div>
-        ))}
-      </div>
+                  plugin.app.workspace.openLinkText(path, "/", false);
+                }}
+              >
+                {file.replace(".md", "")}
+              </a>
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 };
@@ -213,7 +220,6 @@ const ClassificationBox: React.FC<{
     fetchClassification();
   }, [file, content]);
 
-  if (loading) return <div>Loading...</div>; 
   if (!classification) return null;
 
   return (
@@ -236,7 +242,7 @@ const ClassificationBox: React.FC<{
 export const AssistantView: React.FC<AssistantViewProps> = ({ plugin }) => {
   const [activeFile, setActiveFile] = React.useState<TFile | null>(null);
   const [noteContent, setNoteContent] = React.useState<string>("");
-  
+
   React.useEffect(() => {
     const onFileOpen = async (file: TFile | null) => {
       if (!file || !file.path) {
@@ -252,7 +258,9 @@ export const AssistantView: React.FC<AssistantViewProps> = ({ plugin }) => {
         plugin.settings.logFolderPath,
         plugin.settings.templatePaths,
       ];
-      const isInSettingsPath = settingsPaths.some((path) => file.path.includes(path));
+      const isInSettingsPath = settingsPaths.some((path) =>
+        file.path.includes(path)
+      );
       if (isInSettingsPath) {
         setActiveFile(null);
         setNoteContent("");
@@ -264,35 +272,33 @@ export const AssistantView: React.FC<AssistantViewProps> = ({ plugin }) => {
       setNoteContent(content);
     };
 
-    const fileOpenEventRef = plugin.app.workspace.on(
-      "file-open", 
-      onFileOpen
-    );
-    
+    const fileOpenEventRef = plugin.app.workspace.on("file-open", onFileOpen);
+    onFileOpen(plugin.app.workspace.getActiveFile());
+
     return () => {
       plugin.app.workspace.offref(fileOpenEventRef);
     };
   }, []);
-  
+
   if (!activeFile) {
-    return <div className="assistant-placeholder">Open a file to see AI suggestions</div>;
+    return (
+      <div className="assistant-placeholder">
+        Open a file to see AI suggestions
+      </div>
+    );
   }
 
   return (
     <div className="assistant-container">
       <SectionHeader text="Looking at" icon="👀" />
       <div className="active-note-title">{activeFile.basename}</div>
-      
+
       <ClassificationBox
         plugin={plugin}
         file={activeFile}
         content={noteContent}
       />
-      <SuggestionBox 
-        plugin={plugin} 
-        file={activeFile} 
-        content={noteContent} 
-      />
+      <SimilarTags plugin={plugin} file={activeFile} content={noteContent} />
       <AliasSuggestionBox
         plugin={plugin}
         file={activeFile}
