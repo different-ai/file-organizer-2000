@@ -7,16 +7,270 @@ interface AssistantViewProps {
   plugin: FileOrganizer;
 }
 
+const SuggestionBox: React.FC<{
+  plugin: FileOrganizer;
+  file: TFile | null;
+  content: string;
+}> = ({ plugin, file, content }) => {
+  const [suggestionBox, setSuggestionBox] = React.useState<JSX.Element | null>(
+    null
+  );
+  const [loading, setLoading] = React.useState<boolean>(false);
+
+  React.useEffect(() => {
+    const suggestTags = async () => {
+      if (!file || !content) return;
+      setLoading(true);
+      const tags = await plugin.getSimilarTags(content, file.basename);
+      if (tags.length > 0) {
+        const tagsElement = tags.map((tag, index) => (
+          <span
+            key={index}
+            className="cursor-pointer cm-hashtag cm-hashtag-begin cm-meta cm-tag cm-hashtag-end"
+            style={{
+              cursor: "pointer",
+              margin: index === 0 ? "0px" : "2px",
+              fontSize: "1rem",
+            }}
+            onClick={() => {
+              const normalizedTag = tag.startsWith("#") ? tag : `#${tag}`;
+              plugin.appendTag(file, normalizedTag);
+              setSuggestionBox((prevTags) =>
+                prevTags!.filter((t) => t !== normalizedTag)
+              );
+            }}
+          >
+            {tag}
+          </span>
+        ));
+        setSuggestionBox(tagsElement);
+      } else {
+        setSuggestionBox(<span>No suggestions</span>);
+      }
+      setLoading(false);
+    };
+    suggestTags();
+  }, [file, content]);
+
+  return (
+    <>
+      <h6>Similar tags</h6>
+      {loading ? <div>Loading...</div> : <div>{suggestionBox}</div>}
+    </>
+  );
+};
+
+const AliasSuggestionBox: React.FC<{
+  plugin: FileOrganizer;
+  file: TFile | null;
+  content: string;
+}> = ({ plugin, file, content }) => {
+  const [aliasSuggestionBox, setAliasSuggestionBox] =
+    React.useState<JSX.Element | null>(null);
+  const [loading, setLoading] = React.useState<boolean>(false);
+
+  React.useEffect(() => {
+    const suggestAlias = async () => {
+      if (!file || !content) return;
+      setLoading(true);
+      const suggestedName = await plugin.generateNameFromContent(content);
+      setAliasSuggestionBox(
+        <>
+          <span style={{ fontSize: "1rem", color: "var(--text-accent)" }}>
+            {suggestedName}
+          </span>
+          <span
+            className="clickable-icon setting-editor-extra-setting-button"
+            style={{ cursor: "pointer", margin: "5px" }}
+            onClick={async () => {
+              logMessage(
+                "Adding alias " + suggestedName + " to " + file.basename
+              );
+              await plugin.appendToFrontMatter(file, "alias", suggestedName);
+            }}
+          >
+            +
+          </span>
+        </>
+      );
+      setLoading(false);
+    };
+    suggestAlias();
+  }, [file, content]);
+
+  return (
+    <>
+      <h6>Suggested alias</h6>
+      {loading ? <div>Loading...</div> : <div>{aliasSuggestionBox}</div>}
+    </>
+  );
+};
+
+const SimilarFolderBox: React.FC<{
+  plugin: FileOrganizer;
+  file: TFile | null;
+  content: string;
+}> = ({ plugin, file, content }) => {
+  const [similarFolderBox, setSimilarFolderBox] =
+    React.useState<JSX.Element | null>(null);
+  const [loading, setLoading] = React.useState<boolean>(false);
+
+  React.useEffect(() => {
+    const suggestFolders = async () => {
+      if (!file || !content) return;
+      setLoading(true);
+      const folder = await plugin.getAIClassifiedFolder(content, file);
+      setSimilarFolderBox(
+        <div style={{ display: "flex", alignItems: "center" }}>
+          <span>{folder}</span>
+          <div
+            className="clickable-icon setting-editor-extra-setting-button"
+            style={{ cursor: "pointer", margin: "5px" }}
+            onClick={() => {
+              plugin.moveContent(file, file.basename, folder);
+            }}
+          >
+            Move
+          </div>
+        </div>
+      );
+      setLoading(false);
+    };
+    suggestFolders();
+  }, [file, content]);
+
+  return (
+    <>
+      <h6>Suggested folder</h6>
+      {loading ? <div>Loading...</div> : <div>{similarFolderBox}</div>}
+    </>
+  );
+};
+
+const SimilarFilesBox: React.FC<{
+  plugin: FileOrganizer;
+  file: TFile | null;
+}> = ({ plugin, file }) => {
+  const [similarFilesBox, setSimilarFilesBox] =
+    React.useState<JSX.Element | null>(null);
+  const [loading, setLoading] = React.useState<boolean>(false);
+
+  React.useEffect(() => {
+    const displaySimilarFiles = async () => {
+      if (!file) return;
+      setLoading(true);
+      const similarFiles = await plugin.getSimilarFiles(file);
+      logMessage(similarFiles);
+
+      if (similarFiles.length > 0) {
+        const filesElement = similarFiles.map((similarFile, index) => (
+          <div
+            key={index}
+            className="similar-file"
+            style={{ marginBottom: "5px" }}
+          >
+            <a
+              style={{
+                color: "var(--text-accent)",
+                cursor: "pointer",
+                //   remove underline
+                textDecoration: "none",
+              }}
+              onClick={(event) => {
+                event.preventDefault();
+                const path = plugin.app.metadataCache.getFirstLinkpathDest(
+                  similarFile,
+                  ""
+                );
+                logMessage(path);
+                plugin.app.workspace.openLinkText(path, "/", false);
+              }}
+            >
+              {similarFile.replace(".md", "")}
+            </a>
+          </div>
+        ));
+        setSimilarFilesBox(<>{filesElement}</>);
+      } else {
+        setSimilarFilesBox(<span>No similar files found</span>);
+      }
+      setLoading(false);
+    };
+    displaySimilarFiles();
+  }, [file]);
+
+  return (
+    <>
+      <h6>Similar files</h6>
+      {loading ? <div>Loading...</div> : <div>{similarFilesBox}</div>}
+    </>
+  );
+};
+// src/types.ts
+export interface Classification {
+  type: string;
+  formattingInstructions: string;
+}
+
+const ClassificationBox: React.FC<{
+  plugin: FileOrganizer;
+  file: TFile | null;
+  content: string;
+}> = ({ plugin, file, content }) => {
+  const [classification, setClassification] =
+    React.useState<Classification | null>(null);
+  const [loading, setLoading] = React.useState<boolean>(false);
+  const [buttonLoading, setButtonLoading] = React.useState<boolean>(false);
+
+  React.useEffect(() => {
+    const fetchClassification = async () => {
+      if (!file || !content) return;
+
+      setLoading(true);
+      logMessage("Checking document type");
+
+      const result = await plugin.useCustomClassifier(content, file.basename);
+      setClassification(result);
+
+      logMessage("Current document type: " + result?.type);
+      setLoading(false);
+    };
+
+    fetchClassification();
+  }, [file, content]);
+
+  if (!file) return null;
+  if (file.extension !== "md") return null;
+
+  return (
+    <>
+      {loading ? (
+        <div>Loading...</div>
+      ) : (
+        classification && (
+          <button
+            className="sidebar-format-button"
+            disabled={buttonLoading}
+            onClick={async () => {
+              setButtonLoading(true);
+              await plugin.formatContent(file, content, classification);
+              setButtonLoading(false);
+            }}
+          >
+            {buttonLoading
+              ? "Applying template..."
+              : `Apply ${classification.type} template`}
+          </button>
+        )
+      )}
+    </>
+  );
+};
+
 export const AssistantView: React.FC<AssistantViewProps> = ({ plugin }) => {
   const [selectedFile, setSelectedFile] = React.useState<TFile | null>(null);
-  const [suggestionBox, setSuggestionBox] = React.useState<string>("");
+  const [content, setContent] = React.useState<string>("");
   const [loading, setLoading] = React.useState<boolean>(false);
-  const [similarFolderBox, setSimilarFolderBox] = React.useState<string>("");
-  const [aliasSuggestionBox, setAliasSuggestionBox] =
-    React.useState<string>("");
-  const [classificationBox, setClassificationBox] = React.useState<string>("");
-  const [similarFilesBox, setSimilarFilesBox] = React.useState<string[]>([]);
-  logMessage("AssistantView", plugin);
 
   React.useEffect(() => {
     const handleFileOpen = async (file: TFile | null) => {
@@ -25,10 +279,10 @@ export const AssistantView: React.FC<AssistantViewProps> = ({ plugin }) => {
 
       if (rightSplit.collapsed) return;
 
-      
       setLoading(true);
       if (!file) {
-        setSuggestionBox("No file opened");
+        setSelectedFile(null);
+        setContent("");
         setLoading(false);
         return;
       }
@@ -44,38 +298,22 @@ export const AssistantView: React.FC<AssistantViewProps> = ({ plugin }) => {
         file.path.includes(path)
       );
       if (isInSettingsPath) {
-        setSuggestionBox(
-          "This is is part of an ignored folder in FileOrganizer. Sidebar disabled."
-        );
+        setSelectedFile(null);
+        setContent("");
         setLoading(false);
         return;
       }
 
       if (!file.extension.includes("md")) {
-        setSuggestionBox("The AI Assistant only works with markdown files.");
+        setSelectedFile(null);
+        setContent("");
         setLoading(false);
         return;
       }
 
-      const aiAssistantSidebar = document.querySelector(
-        ".assistant-container"
-      ) as HTMLElement;
-
-      if (aiAssistantSidebar) {
-        aiAssistantSidebar.style.display = "none";
-      }
-
-      await displayTitle(file);
+      setSelectedFile(file);
       const content = await plugin.getTextFromFile(file);
-      await suggestTags(file, content);
-      await suggestFolders(file, content);
-      await displaySimilarFiles(file);
-      await suggestAlias(file, content);
-      await displayClassification(file, content);
-
-      if (aiAssistantSidebar) {
-        aiAssistantSidebar.style.display = "";
-      }
+      setContent(content);
       setLoading(false);
     };
 
@@ -89,166 +327,40 @@ export const AssistantView: React.FC<AssistantViewProps> = ({ plugin }) => {
     };
   }, []);
 
-  const displayTitle = async (file: TFile) => {
-    const title = file.basename;
-    setSelectedFile(file);
-  };
-
-  const suggestTags = async (file: TFile, content: string) => {
-    const tags = await plugin.getSimilarTags(content, file.basename);
-
-    if (tags.length > 0) {
-      const tagsElement = tags.map((tag, index) => (
-        <span
-          key={index}
-          className="cursor-pointer cm-hashtag cm-hashtag-begin cm-meta cm-tag cm-hashtag-end"
-          style={{
-            cursor: "pointer",
-            margin: index === 0 ? "0px" : "2px",
-            fontSize: "1rem",
-          }}
-          onClick={() => {
-            const normalizedTag = tag.startsWith("#") ? tag : `#${tag}`;
-            plugin.appendTag(file, normalizedTag);
-            setSuggestionBox((prevTags) =>
-              prevTags.filter((t) => t !== normalizedTag)
-            );
-          }}
-        >
-          {tag}
-        </span>
-      ));
-      setSuggestionBox(tagsElement);
-    } else {
-      setSuggestionBox("No suggestions");
-    }
-  };
-
-  const suggestAlias = async (file: TFile, content: string) => {
-    const suggestedName = await plugin.generateNameFromContent(content);
-    setAliasSuggestionBox(
-      <>
-        <span style={{ fontSize: "1rem", color: "var(--text-accent)" }}>
-          {suggestedName}
-        </span>
-        <span
-          className="clickable-icon setting-editor-extra-setting-button"
-          style={{ cursor: "pointer", margin: "5px" }}
-          onClick={async () => {
-            logMessage(
-              "Adding alias " + suggestedName + " to " + file.basename
-            );
-            await plugin.appendToFrontMatter(file, "alias", suggestedName);
-          }}
-        >
-          +
-        </span>
-      </>
-    );
-  };
-
-  const suggestFolders = async (file: TFile, content: string) => {
-    const folder = await plugin.getAIClassifiedFolder(content, file);
-    setSimilarFolderBox(
-      <>
-        <span>{folder}</span>
-        <div
-          className="clickable-icon setting-editor-extra-setting-button"
-          style={{ cursor: "pointer", margin: "5px" }}
-          onClick={() => {
-            plugin.moveContent(file, file.basename, folder);
-          }}
-        >
-          Move
-        </div>
-      </>
-    );
-  };
-
-  const displaySimilarFiles = async (file: TFile) => {
-    const similarFiles = await plugin.getSimilarFiles(file);
-    logMessage(similarFiles);
-
-    if (similarFiles.length > 0) {
-      const filesElement = similarFiles.map((similarFile, index) => (
-        <div
-          key={index}
-          className="similar-file"
-          style={{ marginBottom: "5px" }}
-        >
-          <a
-            style={{ color: "var(--text-accent)", cursor: "pointer" }}
-            onClick={(event) => {
-              event.preventDefault();
-              const path = plugin.app.metadataCache.getFirstLinkpathDest(
-                similarFile,
-                ""
-              );
-              logMessage(path);
-              plugin.app.workspace.openLinkText(path, "/", false);
-            }}
-          >
-            {similarFile}
-          </a>
-        </div>
-      ));
-      setSimilarFilesBox(filesElement);
-    } else {
-      setSimilarFilesBox(["No similar files found"]);
-    }
-  };
-
-  const displayClassification = async (file: TFile, content: string) => {
-    logMessage("Checking document type");
-    const classification = await plugin.useCustomClassifier(
-      content,
-      file.basename
-    );
-    logMessage("Current document type: " + classification?.type);
-
-    if (classification) {
-      setClassificationBox(
-        <>
-          <span style={{ color: "var(--text-accent)", fontSize: "1rem" }}>
-            {classification.type}
-          </span>
-          <button
-            className="sidebar-format-button"
-            onClick={async () => {
-              await plugin.formatContent(file, content, classification);
-            }}
-          >
-            Apply Template
-          </button>
-        </>
-      );
-    } else {
-      setClassificationBox("");
-    }
-  };
-
   return (
     <div className="assistant-container">
       <h6>Looking at</h6>
       <div>{selectedFile?.basename}</div>
 
-      <h6>Similar tags</h6>
+      {loading ? (
+        <div>Loading...</div>
+      ) : (
+        <>
+          <SuggestionBox
+            plugin={plugin}
+            file={selectedFile}
+            content={content}
+          />
+          <AliasSuggestionBox
+            plugin={plugin}
+            file={selectedFile}
+            content={content}
+          />
 
-      <div>{suggestionBox}</div>
+          <SimilarFolderBox
+            plugin={plugin}
+            file={selectedFile}
+            content={content}
+          />
 
-      <h6>Suggested alias</h6>
-      <div>{aliasSuggestionBox}</div>
-
-      <h6>Suggested folder</h6>
-      <div>{similarFolderBox}</div>
-
-      {/* <h6>Looks like </h6>
-      <div>{classificationBox}</div>
- */}
-      <h6>Similar files</h6>
-      <div>{similarFilesBox}</div>
-
-      {loading && <div>Loading...</div>}
+          <SimilarFilesBox plugin={plugin} file={selectedFile} />
+          <ClassificationBox
+            plugin={plugin}
+            file={selectedFile}
+            content={content}
+          />
+        </>
+      )}
     </div>
   );
 };
