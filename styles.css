@@ -8,23 +8,94 @@ If your plugin does not need CSS, delete this file.
 */
 
 .assistant-container {
-  padding-left: var(--size-4-8);
-  padding-right: var(--size-4-8);
-  padding-top: var(--size-4-4);
+  padding: 1rem;
 }
 
-.settings-cta-button {
-  margin-top: var(--size-4-2);
-  margin-bottom: var(--size-4-4);
+.assistant-placeholder {
+  color: var(--text-muted);
+  font-style: italic;
 }
 
-.sidebar-message {
-  margin: var(--size-4-12);
+.assistant-section {
+  margin-bottom: 1.5rem;
 }
-.sidebar-format-button {
-  margin-left: var(--size-4-2);
+
+.assistant-section-header {
+  margin-bottom: 0.5rem;
+  font-size: 1rem;
+  color: var(--text-normal);
+  display: flex;
+  align-items: center;
 }
-.settings-tutorial-button {
-  margin-top: var(--size-4-4);
-  margin-bottom: var(--size-4-4);
+
+.assistant-section-icon {
+  margin-right: 0.5rem;
+}
+
+.active-note-title {
+  font-size: 1.1rem;
+  color: var(--text-accent);
+  margin-bottom: 1rem;
+}
+
+.tags-container {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem;
+}
+
+.tag {
+  background: var(--background-secondary);
+  border-radius: 0.25rem;
+  padding: 0.25rem 0.5rem;
+  font-size: 0.9rem;
+  color: var(--text-normal);
+  cursor: pointer;
+}
+
+.tag:hover {
+  background: var(--background-secondary-alt);
+}
+
+.alias-container, .folder-container {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.alias, .folder {
+  font-size: 1rem;
+  color: var(--text-normal);
+}
+
+
+
+.add-alias-button, .move-note-button, .format-button {
+  background: white; 
+  color: var(--text-normal);
+  /* border: 1px solid var(--background-modifier-border); */
+  /* border-radius: 0.25rem; */
+  padding: 0.25rem 0.5rem;
+  cursor: pointer;
+}
+
+.add-alias-button:hover, .move-note-button:hover, .format-button:hover {
+  background: var(--interactive-accent);
+  color: white;
+  border-color: var(--interactive-accent);
+}
+
+.files-container {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.file a {
+  color: var(--text-accent);
+  text-decoration: none;
+}
+
+.file a:hover {
+  text-decoration: underline;
 }
