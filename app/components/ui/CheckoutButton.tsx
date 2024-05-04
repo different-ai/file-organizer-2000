@@ -34,23 +34,7 @@ export default function CheckoutButton() {
   if (!isLoaded) {
     return <Button disabled>Loading...</Button>;
   }
-  //@ts-ignore
-  if (user?.publicMetadata.stripe?.status === "complete") {
-    return (
-      <div>
-        <Button variant="secondary">Thank you for your support!</Button>
-        <Button
-          variant="link"
-          onClick={() =>
-            (window.location.href =
-              process.env.NEXT_PUBLIC_STRIPE_CUSTOMER_PORTAL_URL)
-          }
-        >
-          Manage Account
-        </Button>
-      </div>
-    );
-  }
+
 
   return (
     <Button onClick={handleCheckout} disabled={loading}>

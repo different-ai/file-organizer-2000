@@ -206,6 +206,7 @@ const SimilarFilesBox: React.FC<{
     </>
   );
 };
+
 // src/types.ts
 export interface Classification {
   type: string;
