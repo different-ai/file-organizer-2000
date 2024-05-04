@@ -242,29 +242,23 @@ const ClassificationBox: React.FC<{
 
   if (!file) return null;
   if (file.extension !== "md") return null;
+  if (!classification) return null;
+  if (loading) return null;
 
   return (
-    <>
-      {loading ? (
-        <div>Loading...</div>
-      ) : (
-        classification && (
-          <button
-            className="sidebar-format-button"
-            disabled={buttonLoading}
-            onClick={async () => {
-              setButtonLoading(true);
-              await plugin.formatContent(file, content, classification);
-              setButtonLoading(false);
-            }}
-          >
-            {buttonLoading
-              ? "Applying template..."
-              : `Apply ${classification.type} template`}
-          </button>
-        )
-      )}
-    </>
+    <button
+      className="sidebar-format-button"
+      disabled={buttonLoading}
+      onClick={async () => {
+        setButtonLoading(true);
+        await plugin.formatContent(file, content, classification);
+        setButtonLoading(false);
+      }}
+    >
+      {buttonLoading
+        ? "Applying template..."
+        : `Apply ${classification.type} template`}
+    </button>
   );
 };
 
