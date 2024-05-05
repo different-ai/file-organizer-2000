@@ -1,6 +1,6 @@
 import CheckoutButton from "@/components/ui/CheckoutButton";
 import { Button } from "@/components/ui/button";
-import { SignOutButton } from "@clerk/nextjs";
+import { UserButton } from "@clerk/nextjs";
 import { auth, clerkClient } from "@clerk/nextjs/server";
 import APIKEYForm from "./keys/client";
 
@@ -16,7 +16,7 @@ async function UserManagement() {
     <div className="absolute top-4 right-4 flex items-center gap-4">
       {!isPaidUser && <CheckoutButton />}
       <div className="text-sm text-gray-500">{email}</div>
-      <SignOutButton />
+      <UserButton />
     </div>
   );
 }
