@@ -20,7 +20,7 @@ export default async function handler(
     const { object } = await generateObject({
       model,
       schema: z.object({
-        mostSimilarTags: z.array(z.string()),
+        mostSimilarTags: z.array(z.string()).max(5),
       }),
       prompt: prompt,
     });
