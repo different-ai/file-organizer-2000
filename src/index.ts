@@ -13,7 +13,11 @@ import useAudio from "./modules/audio";
 import useText from "./modules/text";
 import { logMessage, formatToSafeName } from "../utils";
 import { FileOrganizerSettingTab } from "./FileOrganizerSettingTab";
-import { ASSISTANT_VIEW_TYPE, AssistantView, AssistantViewWrapper } from "./AssistantView";
+import {
+  ASSISTANT_VIEW_TYPE,
+  AssistantView,
+  AssistantViewWrapper,
+} from "./AssistantView";
 class FileOrganizerSettings {
   API_KEY = "";
   useLogs = true;
@@ -38,7 +42,6 @@ class FileOrganizerSettings {
   enableDocumentClassification = false;
 
   OPENAI_API_KEY = "";
-
 }
 
 const validAudioExtensions = ["mp3", "wav", "webm", "m4a"];
@@ -358,9 +361,29 @@ Which of the following classifications would
 
     const activeFileContent = await this.app.vault.read(fileToCheck);
     logMessage("activeFileContent", activeFileContent);
+    const settingsPaths = [
+      this.settings.pathToWatch,
+      this.settings.defaultDestinationPath,
+      this.settings.attachmentsPath,
+      this.settings.logFolderPath,
+      this.settings.templatePaths,
+    ];
+    // const isInSettingsPath = settingsPaths.some((path) =>
+    //   file.path.includes(path)
+    // );
     const allFiles = this.app.vault.getMarkdownFiles();
+    // remove any file path that is part of the settingsPathf
+    logMessage("allFiles", allFiles);
+    const allFilesFiltered = allFiles.filter(
+      (file) =>
+        !settingsPaths.some((path) => file.path.includes(path)) &&
+        file.path !== fileToCheck.path
+    );
+
+    logMessage("allFilesFiltered", allFilesFiltered);
+
     const fileContents = await Promise.all(
-      allFiles.map(async (file) => ({
+      allFilesFiltered.map(async (file) => ({
         name: file.path,
         // skiping content for now
         // content: await this.app.vault.read(file),
@@ -654,18 +677,18 @@ Which of the following classifications would
     await this.app.vault.append(logFile, contentWithLink);
   }
 
-validateAPIKey() {
-  if (this.settings.useCustomServer) {
-    // atm we assume no api auth for self hosted
-    return true;
-  }
+  validateAPIKey() {
+    if (this.settings.useCustomServer) {
+      // atm we assume no api auth for self hosted
+      return true;
+    }
 
-  if (!this.settings.API_KEY && !this.settings.OPENAI_API_KEY) {
-    throw new Error(
-      "Please enter your API Key or OpenAI API Key in the settings of the FileOrganizer plugin."
-    );
+    if (!this.settings.API_KEY && !this.settings.OPENAI_API_KEY) {
+      throw new Error(
+        "Please enter your API Key or OpenAI API Key in the settings of the FileOrganizer plugin."
+      );
+    }
   }
-}
 
   // native
 
