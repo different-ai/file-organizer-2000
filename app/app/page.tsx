@@ -3,21 +3,25 @@ import { UnkeyElements } from "./keys/client";
 import { Button } from "@/components/ui/button";
 import { SignOutButton } from "@clerk/nextjs";
 import { auth, clerkClient } from "@clerk/nextjs/server";
-/**
- * v0 by Vercel.
- * @see https://v0.dev/t/F1suC5Yr6GV
- * Documentation: https://v0.dev/docs#integrating-generated-code-into-your-nextjs-app
- */
 
-export default async function Component() {
+async function UserManagement() {
   const { userId } = auth();
-  // get email
   const user = await clerkClient.users.getUser(userId);
   const email = user.emailAddresses[0]?.emailAddress;
   const isPaidUser =
     (user?.publicMetadata as CustomJwtSessionClaims["publicMetadata"])?.stripe
       ?.status === "complete";
 
+  return (
+    <div className="absolute top-4 right-4 flex items-center gap-4">
+      {!isPaidUser && <CheckoutButton />}
+      <div className="text-sm text-gray-500">{email}</div>
+      <SignOutButton />
+    </div>
+  );
+}
+
+export default async function Component() {
   return (
     <div className="flex flex-col items-center justify-center min-h-screen bg-white py-12 px-4 sm:px-6 lg:px-8">
       <div className="space-y-8">
@@ -53,11 +57,7 @@ export default async function Component() {
         </div>
       </div>
       {process.env.ENABLE_USER_MANAGEMENT == "true" ? (
-        <div className="absolute top-4 right-4 flex items-center gap-4">
-          {!isPaidUser && <CheckoutButton />}
-          <div className="text-sm text-gray-500">{email}</div>
-          <SignOutButton />
-        </div>
+        <UserManagement />
       ) : (
         <></>
       )}
