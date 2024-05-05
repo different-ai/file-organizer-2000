@@ -27,7 +27,11 @@ const SimilarTags: React.FC<{
 
   React.useEffect(() => {
     const suggestTags = async () => {
-      if (!file || !content) return;
+      if (!file) return;
+      if (!content) {
+        setSuggestions([]);
+        return;
+      }
       setSuggestions(null);
       setLoading(true);
       const tags = await plugin.getSimilarTags(content, file.basename);
@@ -257,6 +261,8 @@ export const AssistantView: React.FC<AssistantViewProps> = ({ plugin }) => {
 
   React.useEffect(() => {
     const onFileOpen = async () => {
+      setActiveFile(null);
+      setNoteContent("");
       const file = plugin.app.workspace.getActiveFile();
       if (plugin.app.workspace.rightSplit.collapsed) return;
       if (!file || !file.path) {
@@ -285,7 +291,6 @@ export const AssistantView: React.FC<AssistantViewProps> = ({ plugin }) => {
       const content = await plugin.getTextFromFile(file);
       setNoteContent(content);
     };
-
     const fileOpenEventRef = plugin.app.workspace.on("file-open", onFileOpen);
     onFileOpen();
 

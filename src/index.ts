@@ -372,7 +372,7 @@ Which of the following classifications would
     //   file.path.includes(path)
     // );
     const allFiles = this.app.vault.getMarkdownFiles();
-    // remove any file path that is part of the settingsPathf
+    // remove any file path that is part of the settingsPath
     logMessage("allFiles", allFiles);
     const allFilesFiltered = allFiles.filter(
       (file) =>
