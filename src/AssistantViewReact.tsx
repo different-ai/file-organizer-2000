@@ -162,43 +162,45 @@ const SimilarFilesBox: React.FC<{
   const [loading, setLoading] = React.useState<boolean>(false);
 
   React.useEffect(() => {
-    const fetchSimilarFiles = async () => {
-      if (!file) return;
-      setFiles(null);
-      setLoading(true);
-      const similarFiles = await plugin.getSimilarFiles(file);
-      setFiles(similarFiles);
-      setLoading(false);
-    };
-    fetchSimilarFiles();
+    setFiles(null);
   }, [file]);
+
+  const fetchSimilarFiles = async () => {
+    if (!file) return;
+    setFiles(null);
+    setLoading(true);
+    const similarFiles = await plugin.getSimilarFiles(file);
+    setFiles(similarFiles);
+    setLoading(false);
+  };
 
   return (
     <div className="assistant-section files-section">
       <SectionHeader text="Similar files" icon="📄" />
-      {loading ? (
-        <div>Loading...</div>
-      ) : (
-        <div className="files-container">
-          {files &&
-            files.map((file, index) => (
-              <div key={index} className="file">
-                <a
-                  href="#"
-                  onClick={() => {
-                    const path = plugin.app.metadataCache.getFirstLinkpathDest(
-                      file,
-                      ""
-                    );
-                    plugin.app.workspace.openLinkText(path, "/", false);
-                  }}
-                >
-                  {file.replace(".md", "")}
-                </a>
-              </div>
-            ))}
-        </div>
+      {loading && <button>Loading...</button>}
+      {!loading && !files && (
+        <button onClick={fetchSimilarFiles}>Load Similar Files</button>
       )}
+
+      <div className="files-container">
+        {files &&
+          files.map((file, index) => (
+            <div key={index} className="file">
+              <a
+                href="#"
+                onClick={() => {
+                  const path = plugin.app.metadataCache.getFirstLinkpathDest(
+                    file,
+                    ""
+                  );
+                  plugin.app.workspace.openLinkText(path, "/", false);
+                }}
+              >
+                {file.replace(".md", "")}
+              </a>
+            </div>
+          ))}
+      </div>
     </div>
   );
 };
