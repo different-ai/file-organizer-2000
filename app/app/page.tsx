@@ -1,8 +1,8 @@
 import CheckoutButton from "@/components/ui/CheckoutButton";
-import { UnkeyElements } from "./keys/client";
 import { Button } from "@/components/ui/button";
 import { SignOutButton } from "@clerk/nextjs";
 import { auth, clerkClient } from "@clerk/nextjs/server";
+import APIKEYForm from "./keys/client";
 
 async function UserManagement() {
   const { userId } = auth();
@@ -30,7 +30,7 @@ export default async function Component() {
             Welcome to File Organizer 2000
           </h2>
           {process.env.ENABLE_USER_MANAGEMENT == "true" ? (
-            <UnkeyElements />
+            <APIKEYForm />
           ) : (
             <p className="text-gray-500 dark:text-gray-400">
               Just paste this URL in the plugin settings in Obsidian and you're

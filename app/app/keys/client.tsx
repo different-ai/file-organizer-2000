@@ -1,89 +1,37 @@
-"use client";
-
 import { Button } from "@/components/ui/button";
 import {
   Card,
-  CardContent,
   CardDescription,
   CardFooter,
   CardHeader,
-  CardTitle,
 } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { useState } from "react";
 import { create } from "./create";
 import CheckoutButton from "@/components/ui/CheckoutButton";
-import { useUser } from "@clerk/nextjs";
+import { auth, clerkClient } from "@clerk/nextjs/server";
 
-const APIKEYForm = () => {
-  const [key, setKey] = useState<string>("");
-  async function onCreate(formData: FormData) {
-    const res = await create(formData);
-    // @ts-ignore
-    if (res?.error) {
-      // @ts-ignore
-      alert(res.error);
-      return;
-    }
-    if (res) {
-      setKey(res.key?.key ?? "");
-    }
-  }
-  const [loading, setLoading] = useState(false);
-  // Show loading state in UI while key is being generated
-  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-    setLoading(true);
-    try {
-      await onCreate(new FormData(event.target as HTMLFormElement));
-    } catch (error) {
-      console.error(error);
-    } finally {
-      setLoading(false);
-    }
-  };
+const APIKEYForm = async () => {
+  const { userId } = auth();
 
-  const { user, isLoaded } = useUser();
-  // @ts-ignore
-  const isPaidUser = user?.publicMetadata.stripe?.status  === "complete" ;
+  // Check if the user is a paid user
+  const isPaidUser = await checkPaidUser(userId);
 
   return (
     <div className="mt-8">
       {isPaidUser ? (
-        <>
-          <Card className="w-[350px]">
-            <CardHeader></CardHeader>
-            <form action={onCreate} onSubmit={handleSubmit}>
-              <CardFooter className="flex justify-between">
-                <Button
-                  type="submit"
-                  disabled={loading}
-                  className="w-full mt-4"
-                >
-                  {loading ? "Generating Key..." : "Create Key"}{" "}
-                </Button>{" "}
-              </CardFooter>
-              <CardDescription>
-                You'll need it to unlock File Organizer 2000 in your plugin
-                settings.
-              </CardDescription>
-            </form>
-          </Card>
-          {key && key.length > 0 && (
-            <>
-              <Card className="w-[350px] mt-8">
-                <CardContent>
-                  <div className="grid items-center w-full gap-4">
-                    <div className="flex flex-col space-y-1.5">
-                      <Input name="name" value={key} />
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            </>
-          )}
-        </>
+        <Card className="w-[350px]">
+          <CardHeader></CardHeader>
+          <form action={create}>
+            <CardFooter className="flex justify-between">
+              <Button type="submit" className="w-full mt-4">
+                Create Key
+              </Button>
+            </CardFooter>
+            <CardDescription>
+              You'll need it to unlock File Organizer 2000 in your plugin
+              settings.
+            </CardDescription>
+          </form>
+        </Card>
       ) : (
         <div>
           <p className="text-gray-500 dark:text-gray-400">
@@ -98,4 +46,24 @@ const APIKEYForm = () => {
   );
 };
 
-export { APIKEYForm as UnkeyElements };
+async function checkPaidUser(userId: string | null): Promise<boolean> {
+  "use server";
+  if (!userId) {
+    return false;
+  }
+
+  try {
+    const user = await clerkClient.users.getUser(userId);
+
+    const isPaidUser =
+      (user?.publicMetadata as CustomJwtSessionClaims["publicMetadata"])?.stripe
+        ?.status === "complete";
+    return isPaidUser;
+  } catch (error) {
+    console.error("Error checking paid user status:", error);
+  }
+
+  return false;
+}
+
+export default APIKEYForm;
