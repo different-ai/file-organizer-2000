@@ -18,8 +18,9 @@ console.log(
   "middleware"
 );
 
-async function handleAuthorization(req) {
+async function handleAuthorization(req: NextRequest) {
   const header = req.headers.get("authorization");
+  console.log("header", req.headers, req.headers.get("authorization"));
   if (!header) {
     console.error("No Authorization header");
     return {
@@ -69,12 +70,10 @@ async function handleLogging(
   isCustomer: boolean,
   reamining: number
 ) {
-  console.log("inside of handleLogging");
   const user = await clerkClient.users.getUser(userId);
-  console.log("user", user);
+  console.log("user", user.emailAddresses[0]?.emailAddress);
   const client = PostHogClient();
-  console.log("client", client);
-  if (client && userId) {
+  if (client) {
     // client.identify({
     //   distinctId: userId,
     //   properties: {
