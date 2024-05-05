@@ -145,10 +145,7 @@ export default class FileOrganizer extends Plugin {
   }
 
   async classifyAndFormatDocument(file: TFile, content: string) {
-    const classification = await this.useCustomClassifier(
-      content,
-      file.basename
-    );
+    const classification = await this.classifyContent(content, file.basename);
 
     if (classification) {
       await this.formatContent(file, content, classification);
@@ -191,30 +188,33 @@ export default class FileOrganizer extends Plugin {
     return classifications;
   }
 
-  async useCustomClassifier(
+  async classifyContent(
     content: string,
     name: string
   ): Promise<{ type: string; formattingInstruction: string } | null> {
     const classifications = await this.getClassifications();
     logMessage("classifications", classifications);
-
-    const prompt = `Name: ${name}
-  Content:
-  ${content}
-  classifications:${classifications.map((c) => c.type).join(", ")}
-Which of the following classifications would 
-  be the most appropriate for the given content?`;
-
-    const whatTypeOfDocument = await useText(
-      prompt,
-      "Please respond with the name of the most appropriate classification from the provided list. If none of the classifications are suitable, respond with 'None'.",
-      {
-        baseUrl: this.settings.useCustomServer
-          ? this.settings.customServerUrl
-          : this.settings.defaultServerUrl,
-        apiKey: this.settings.API_KEY,
-      }
+    const response = await makeApiRequest(() =>
+      requestUrl({
+        url: `${
+          this.settings.useCustomServer
+            ? this.settings.customServerUrl
+            : this.settings.defaultServerUrl
+        }/api/folders`,
+        method: "POST",
+        body: JSON.stringify({
+          content,
+          fileName: name,
+          folders: classifications.map((c) => c.type),
+        }),
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${this.settings.API_KEY}`,
+        },
+      })
     );
+    const { folder: whatTypeOfDocument } = await response.json;
+
     logMessage("whatTypeOfDocument", whatTypeOfDocument);
 
     const selectedClassification = classifications.find(
@@ -229,17 +229,32 @@ Which of the following classifications would
     fileContent: string,
     selectedClassification: { type: string; formattingInstruction: string }
   ) {
-    const formattedContent = await useText(
-      fileContent,
-      selectedClassification.formattingInstruction,
-      {
-        baseUrl: this.settings.useCustomServer
-          ? this.settings.customServerUrl
-          : this.settings.defaultServerUrl,
-        apiKey: this.settings.API_KEY,
-      }
+    // send a message to /api/text
+    // use requestUrl
+    logMessage("selectedClassification", selectedClassification);
+    logMessage("fileContent", fileContent);
+    const response = await makeApiRequest(() =>
+      requestUrl({
+        url: `${
+          this.settings.useCustomServer
+            ? this.settings.customServerUrl
+            : this.settings.defaultServerUrl
+        }/api/text`,
+        method: "POST",
+        body: JSON.stringify({
+          content: fileContent,
+          formattingInstruction: selectedClassification.formattingInstruction,
+        }),
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${this.settings.API_KEY}`,
+        },
+      })
     );
-    await this.app.vault.modify(file, formattedContent);
+    const { message } = await response.json;
+
+    // delete file
+    await this.app.vault.modify(file, message);
   }
   /* experimental above until further notice */
 

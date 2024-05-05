@@ -1,46 +1,27 @@
-import type { NextApiRequest, NextApiResponse } from "next";
-type ResponseData = {
-  message: string;
-};
+import { NextApiResponse } from "next";
+import { generateText } from "ai";
+import { models } from "@/lib/models";
 
-export default async function handler(
-  req: NextApiRequest,
-  res: NextApiResponse<ResponseData>
-) {
+export default async function POST(req: Request, res: NextApiResponse) {
   try {
+    const { content, formattingInstructions } = await req.json();
 
-    
-    
-    console.log("apiKey", "hello");
-    const apiKey = process.env.OPENAI_API_KEY || "";
+    const model = models[process.env.TEXT_MODEL || "gpt-4-turbo"];
 
-    const model = "gpt-4-turbo";
-    const data = {
-      ...req.body,
+    const result = await generateText({
       model,
-    };
-
-    const response = await fetch("https://api.openai.com/v1/chat/completions", {
-      method: "POST",
-      body: JSON.stringify(data),
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${apiKey}`,
-      },
+      messages: [
+        {
+          role: "user",
+          content: `Format ${content} to the following instructions: ${formattingInstructions}`,
+        },
+      ],
     });
 
-    if (!response.ok) {
-      console.log(`Error: ${response.status}`);
-      return res.status(response.status).json({
-        message: `Server responded with status: ${response.status}`,
-      });
-    }
-
- 
-    const result = await response.json();
-    res.status(200).json(result);
+    return Response.json({ message: result.text });
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: "Error" });
   }
 }
+export const runtime = "edge";

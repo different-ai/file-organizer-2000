@@ -162,19 +162,19 @@ const SimilarFilesBox: React.FC<{
   plugin: FileOrganizer;
   file: TFile | null;
 }> = ({ plugin, file }) => {
-  const [files, setFiles] = React.useState<string[] | null>(null);
+  const [filePaths, setFilePaths] = React.useState<string[] | null>(null);
   const [loading, setLoading] = React.useState<boolean>(false);
 
   React.useEffect(() => {
-    setFiles(null);
+    setFilePaths(null);
   }, [file]);
 
   const fetchSimilarFiles = async () => {
     if (!file) return;
-    setFiles(null);
+    setFilePaths(null);
     setLoading(true);
     const similarFiles = await plugin.getSimilarFiles(file);
-    setFiles(similarFiles);
+    setFilePaths(similarFiles);
     setLoading(false);
   };
 
@@ -182,25 +182,21 @@ const SimilarFilesBox: React.FC<{
     <div className="assistant-section files-section">
       <SectionHeader text="Similar files" icon="📄" />
       {loading && <button>Loading...</button>}
-      {!loading && !files && (
+      {!loading && !filePaths && (
         <button onClick={fetchSimilarFiles}>Load Similar Files</button>
       )}
 
       <div className="files-container">
-        {files &&
-          files.map((file, index) => (
+        {filePaths &&
+          filePaths.map((filePath, index) => (
             <div key={index} className="file">
               <a
                 href="#"
                 onClick={() => {
-                  const path = plugin.app.metadataCache.getFirstLinkpathDest(
-                    file,
-                    ""
-                  );
-                  plugin.app.workspace.openLinkText(path, "/", false);
+                  plugin.app.workspace.openLinkText(filePath, "/", false);
                 }}
               >
-                {file.replace(".md", "")}
+                {filePath}
               </a>
             </div>
           ))}
@@ -229,7 +225,7 @@ const ClassificationBox: React.FC<{
       if (!file || !content) return;
       setClassification(null);
       setLoading(true);
-      const result = await plugin.useCustomClassifier(content, file.basename);
+      const result = await plugin.classifyContent(content, file.basename);
       setClassification(result);
       setLoading(false);
     };

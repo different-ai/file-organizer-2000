@@ -1,7 +1,7 @@
 import type { NextApiRequest, NextApiResponse } from "next";
-import { openai } from "@ai-sdk/openai";
 import { generateObject } from "ai";
 import { z } from "zod";
+import { models } from "@/lib/models";
 
 export default async function handler(
   req: NextApiRequest,
@@ -10,8 +10,7 @@ export default async function handler(
   console.log("folders");
   if (req.method === "POST") {
     const { content, fileName, folders } = req.body;
-
-    const model = openai("gpt-4-turbo");
+    const model = models[process.env.MODEL_FOLDERS || "gpt-4-turbo"];
 
     const prompt = `Given the text content "${content}" (and if the file name "${fileName}"), which of the following folders would be the most appropriate location for the file? Available folders: ${folders.join(
       ", "

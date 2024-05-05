@@ -1,7 +1,7 @@
 import type { NextApiRequest, NextApiResponse } from "next";
-import { openai } from "@ai-sdk/openai";
 import { generateObject } from "ai";
 import { z } from "zod";
+import { models } from "@/lib/models";
 
 export default async function handler(
   req: NextApiRequest,
@@ -11,7 +11,7 @@ export default async function handler(
   if (req.method === "POST") {
     const { content, fileName, tags } = req.body;
 
-    const model = openai("gpt-4-turbo");
+    const model = models[process.env.MODEL_TAGGING || "gpt-4-turbo"];
 
     const prompt = `Given the text "${content}" (and if relevant ${fileName}), which of the following tags are the most relevant? ${tags.join(
       ", "

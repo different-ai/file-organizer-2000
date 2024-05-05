@@ -1,8 +1,8 @@
 import type { NextApiRequest, NextApiResponse } from "next";
-import { openai } from "@ai-sdk/openai";
 
 import { generateObject } from "ai";
 import { z } from "zod";
+import { models } from "@/lib/models";
 
 export default async function handler(
   req: NextApiRequest,
@@ -10,7 +10,7 @@ export default async function handler(
 ) {
   if (req.method === "POST") {
     const { activeFileContent, files } = req.body;
-    const model = openai("gpt-4-turbo");
+    const model = models[process.env.MODEL_RELATIONSHIPS || "gpt-4-turbo"];
 
     const prompt = `Given the content of the active file:
 
@@ -25,7 +25,7 @@ Which 10 files are the most similar to the active file based on their content? R
     const { object } = await generateObject({
       model,
       schema: z.object({
-        similarFiles: z.array(z.string().nullable()).min(1).max(5),
+        similarFiles: z.array(z.string().nullable()),
       }),
       prompt: prompt,
     });

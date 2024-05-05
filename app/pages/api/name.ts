@@ -1,7 +1,7 @@
 import type { NextApiRequest, NextApiResponse } from "next";
-import { openai } from "@ai-sdk/openai";
 import { generateObject } from "ai";
 import { z } from "zod";
+import { models } from "@/lib/models";
 
 type ResponseData = {
   name?: string;
@@ -14,7 +14,9 @@ export default async function handler(
 ) {
   if (req.method === "POST") {
     try {
-      const model = openai("gpt-4-turbo");
+      const model = models[process.env.MODEL_NAME || "gpt-4-turbo"];
+
+      // const model = openai("gpt-3.5-turbo");
       const { object } = await generateObject({
         model,
         schema: z.object({

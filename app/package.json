@@ -9,6 +9,7 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@ai-sdk/anthropic": "^0.0.9",
     "@ai-sdk/openai": "^0.0.9",
     "@clerk/nextjs": "^5.0.2",
     "@radix-ui/react-label": "^2.0.2",
