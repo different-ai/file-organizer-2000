@@ -10,6 +10,10 @@ export default async function handler(
 ) {
   if (req.method === "POST") {
     const { activeFileContent, files } = req.body;
+    console.log(
+      "using process.env.MODEL_RELATIONSHIPS",
+      process.env.MODEL_RELATIONSHIPS
+    );
     const model = models[process.env.MODEL_RELATIONSHIPS || "gpt-4-turbo"];
 
     const prompt = `Given the content of the active file:
