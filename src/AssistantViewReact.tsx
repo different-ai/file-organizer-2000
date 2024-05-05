@@ -256,6 +256,7 @@ export const AssistantView: React.FC<AssistantViewProps> = ({ plugin }) => {
   React.useEffect(() => {
     const onFileOpen = async () => {
       const file = plugin.app.workspace.getActiveFile();
+      if (plugin.app.workspace.rightSplit.collapsed) return;
       if (!file || !file.path) {
         setActiveFile(null);
         setNoteContent("");
