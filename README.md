@@ -6,6 +6,7 @@ https://dub.sh/support-fo2k
 Having more supporters means we can serve you better, and faster!
 
 You can also self-host
+
 [![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2Fdifferent-ai%2Ffile-organizer-2000%2Ftree%2Fmaster%2Fapp&env=OPENAI_API_KEY,SOLO_API_KEY&envDescription=OPENAI_API_KEY%20%26%20SOLO_API_KEY%20are%20required%20(you%20will%20need%20to%20paste%20the%20solo%20api%20key%20in%20your%20plugin%20settings)&envLink=https%3A%2F%2Fgithub.com%2Fdifferent-ai%2Ffile-organizer-2000%2Fblob%2Fmaster%2Ftutorials%2Fenv-vars.md)
 
 # AI File Organizer 2000
