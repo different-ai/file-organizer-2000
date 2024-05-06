@@ -19,7 +19,7 @@ import { useUser } from "@clerk/nextjs";
 const APIKEYForm = () => {
   const [key, setKey] = useState<string>("");
   async function onCreate(formData: FormData) {
-    const res = await create(formData);
+    const res = await create();
     // @ts-ignore
     if (res?.error) {
       // @ts-ignore
@@ -46,7 +46,7 @@ const APIKEYForm = () => {
 
   const { user, isLoaded } = useUser();
   // @ts-ignore
-  const isPaidUser = user?.publicMetadata.stripe?.status  === "complete" ;
+  const isPaidUser = user?.publicMetadata.stripe?.status === "complete";
 
   return (
     <div className="mt-8">
