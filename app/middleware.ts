@@ -131,8 +131,8 @@ const soloApiKeyMiddleware = (req: NextRequest) => {
     if (token !== process.env.SOLO_API_KEY) {
       return new Response("Unauthorized", { status: 401 });
     }
-    return NextResponse.next();
   }
+  return NextResponse.next();
 };
 
 export default async function middleware(
