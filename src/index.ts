@@ -12,10 +12,7 @@ import useVision from "./modules/vision";
 import useAudio from "./modules/audio";
 import { logMessage, formatToSafeName } from "../utils";
 import { FileOrganizerSettingTab } from "./FileOrganizerSettingTab";
-import {
-  ASSISTANT_VIEW_TYPE,
-  AssistantViewWrapper,
-} from "./AssistantView";
+import { ASSISTANT_VIEW_TYPE, AssistantViewWrapper } from "./AssistantView";
 class FileOrganizerSettings {
   API_KEY = "";
   useLogs = true;
@@ -97,6 +94,7 @@ export default class FileOrganizer extends Plugin {
       const text = await this.getTextFromFile(originalFile);
 
       const isRenameEnabled = this.settings.renameDocumentTitle;
+
       if (isRenameEnabled) {
         new Notice(`Generating name for ${text.substring(0, 20)}...`, 3000);
       }
@@ -104,10 +102,6 @@ export default class FileOrganizer extends Plugin {
       const humanReadableFileName = isRenameEnabled
         ? await this.generateNameFromContent(text)
         : originalFile.basename;
-
-      if (isRenameEnabled) {
-        new Notice(`Generated name: ${humanReadableFileName}`, 3000);
-      }
 
       let processedFile = originalFile;
 
@@ -126,7 +120,14 @@ export default class FileOrganizer extends Plugin {
       }
 
       if (this.settings.enableDocumentClassification) {
-        await this.classifyAndFormatDocument(processedFile, text);
+        const classification = await this.classifyAndFormatDocument(
+          processedFile,
+          text
+        );
+        classification &&
+          this.appendToCustomLogFile(
+            `Classified [[${processedFile.basename}]] as ${classification.type}`
+          );
       }
 
       await this.renameTagAndOrganize(
@@ -147,7 +148,9 @@ export default class FileOrganizer extends Plugin {
 
     if (classification) {
       await this.formatContent(file, content, classification);
+      return classification;
     }
+    return null;
   }
 
   // we use this to keep track if we have already processed a file vs not
@@ -243,7 +246,7 @@ export default class FileOrganizer extends Plugin {
           content: fileContent,
           formattingInstruction: selectedClassification.formattingInstruction,
         }),
-        
+
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${this.settings.API_KEY}`,
