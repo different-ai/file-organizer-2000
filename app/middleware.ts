@@ -6,6 +6,7 @@ import {
 import { verifyKey } from "@unkey/api";
 import { NextFetchEvent, NextRequest, NextResponse } from "next/server";
 import PostHogClient from "./lib/posthog";
+import { incrementApiUsage } from "./drizzle/schema";
 
 const isApiRoute = createRouteMatcher(["/api(.*)"]);
 const isAuthRoute = createRouteMatcher(["/(.*)"]);
@@ -30,6 +31,7 @@ async function handleAuthorization(req: NextRequest) {
   }
   const token = header.replace("Bearer ", "");
   const { result, error } = await verifyKey(token);
+  await incrementApiUsage(result.ownerId);
   if (error) {
     console.error(error.message);
     return { response: new Response("Internal Server Error", { status: 500 }) };

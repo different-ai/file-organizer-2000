@@ -1,7 +1,9 @@
 "use server";
+import { UserUsageTable, createOrUpdateUserUsage } from "@/drizzle/schema";
 import { auth, clerkClient } from "@clerk/nextjs/server";
 import { Unkey } from "@unkey/api";
-export async function create(formData: FormData) {
+
+export async function create() {
   "use server";
   const { userId } = auth();
   if (!userId) {
@@ -14,7 +16,8 @@ export async function create(formData: FormData) {
     return null;
   }
 
-  const name = (formData.get("name") as string) ?? "My Awesome API";
+  // const name = (formData.get("name") as string) ?? "My Awesome API";
+  const name = "my api key";
   const unkey = new Unkey({ token });
 
   // Check if the user is a paid user
@@ -24,8 +27,10 @@ export async function create(formData: FormData) {
     (user?.publicMetadata as CustomJwtSessionClaims["publicMetadata"])?.stripe
       ?.status === "complete";
 
-  // Set the refill amount based on the user's subscription status
-  const refillAmount = isPaidUser ? 15000 : 500;
+  const refillAmount = isPaidUser ? 10000 : 500;
+
+  console.log("creating with refill amount", refillAmount);
+  await createOrUpdateUserUsage(userId, refillAmount, "monthly");
 
   const key = await unkey.keys.create({
     name: name,

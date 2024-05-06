@@ -1,6 +1,6 @@
 {
   "compilerOptions": {
-    "target": "es5",
+    "target": "ES2022",
     "lib": ["dom", "dom.iterable", "esnext"],
     "allowJs": true,
     "skipLibCheck": true,
@@ -29,6 +29,6 @@
     "**/*.tsx",
     ".next/types/**/*.ts",
     "types/**/*.d.ts"
-  ],
+, "drizzle/envConfig.js"  ],
   "exclude": ["node_modules"]
 }
