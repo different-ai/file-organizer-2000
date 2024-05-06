@@ -61,6 +61,7 @@ export async function makeApiRequest<T>(
   try {
     return await requestFn();
   } catch (error) {
+    console.error("API request error:", error);
     if (error.status === 429) {
       new Notice(
         "You have run out of credits. Please upgrade your plan.",
@@ -232,8 +233,6 @@ export default class FileOrganizer extends Plugin {
   ) {
     // send a message to /api/text
     // use requestUrl
-    logMessage("selectedClassification", selectedClassification);
-    logMessage("fileContent", fileContent);
     const response = await makeApiRequest(() =>
       requestUrl({
         url: `${
@@ -311,7 +310,6 @@ export default class FileOrganizer extends Plugin {
 
   // adds an attachment to a file using the ![[attachment]] syntax
   async appendAttachment(processedFile: TFile, attachmentFile: TFile) {
-    logMessage("Appending attachment", attachmentFile);
     await this.app.vault.append(processedFile, `![[${attachmentFile.name}]]`);
   }
   async appendToFrontMatter(file: TFile, key: string, value: string) {
@@ -329,10 +327,8 @@ export default class FileOrganizer extends Plugin {
 
   async appendAlias(file: TFile, alias: string) {
     if (!this.settings.useAliases) {
-      logMessage("Not appending aliases");
       return;
     }
-    logMessage("Appending alias", alias);
     this.appendToFrontMatter(file, "alias", alias);
   }
 
@@ -377,7 +373,6 @@ export default class FileOrganizer extends Plugin {
     }
 
     const activeFileContent = await this.app.vault.read(fileToCheck);
-    logMessage("activeFileContent", activeFileContent);
     const settingsPaths = [
       this.settings.pathToWatch,
       this.settings.defaultDestinationPath,
@@ -385,19 +380,13 @@ export default class FileOrganizer extends Plugin {
       this.settings.logFolderPath,
       this.settings.templatePaths,
     ];
-    // const isInSettingsPath = settingsPaths.some((path) =>
-    //   file.path.includes(path)
-    // );
     const allFiles = this.app.vault.getMarkdownFiles();
     // remove any file path that is part of the settingsPath
-    logMessage("allFiles", allFiles);
     const allFilesFiltered = allFiles.filter(
       (file) =>
         !settingsPaths.some((path) => file.path.includes(path)) &&
         file.path !== fileToCheck.path
     );
-
-    logMessage("allFilesFiltered", allFilesFiltered);
 
     const fileContents = await Promise.all(
       allFilesFiltered.map(async (file) => ({
@@ -542,12 +531,9 @@ export default class FileOrganizer extends Plugin {
       return [];
     }
 
-    logMessage("tags", tags);
     // 2. Pass all the tags to GPT-3 and get the most similar tags
     const tagNames = Object.keys(tags);
     const uniqueTags = [...new Set(tagNames)];
-
-    logMessage("uniqueTags", uniqueTags);
 
     const data = {
       content,
@@ -585,7 +571,7 @@ export default class FileOrganizer extends Plugin {
       .filter((file) => this.isTFolder(file))
       .map((folder) => folder.path);
     const uniqueFolders = [...new Set(folderPaths)];
-    logMessage("uniqueFolders", uniqueFolders);
+    // logMessage("uniqueFolders", uniqueFolders);
     return uniqueFolders;
   }
 
@@ -603,8 +589,6 @@ export default class FileOrganizer extends Plugin {
       .filter((folder) => folder !== this.settings.logFolderPath)
       .filter((folder) => folder !== this.settings.pathToWatch)
       .filter((folder) => folder !== this.settings.templatePaths);
-
-    logMessage("uniqueFolders", uniqueFolders);
 
     const data = {
       content,

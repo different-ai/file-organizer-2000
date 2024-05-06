@@ -34,9 +34,14 @@ const SimilarTags: React.FC<{
       }
       setSuggestions(null);
       setLoading(true);
-      const tags = await plugin.getSimilarTags(content, file.basename);
-      setSuggestions(tags);
-      setLoading(false);
+      try {
+        const tags = await plugin.getSimilarTags(content, file.basename);
+        setSuggestions(tags);
+      } catch (error) {
+        console.error(error);
+      } finally {
+        setLoading(false);
+      }
     };
     suggestTags();
   }, [file, content]);
@@ -272,7 +277,14 @@ export const AssistantView: React.FC<AssistantViewProps> = ({ plugin }) => {
       setNoteContent("");
       const file = plugin.app.workspace.getActiveFile();
       if (plugin.app.workspace.rightSplit.collapsed) return;
+
       if (!file || !file.path) {
+        setActiveFile(null);
+        setNoteContent("");
+        return;
+      }
+      // if it's not a markdown file, don't show the assistant
+      if (file.extension !== "md") {
         setActiveFile(null);
         setNoteContent("");
         return;
@@ -318,7 +330,7 @@ export const AssistantView: React.FC<AssistantViewProps> = ({ plugin }) => {
     <div className="assistant-container">
       <SectionHeader text="Looking at" icon="👀" />
       <div className="active-note-title">{activeFile.basename}</div>
-
+      
       <ClassificationBox
         plugin={plugin}
         file={activeFile}

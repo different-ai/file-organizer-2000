@@ -20,7 +20,8 @@ console.log(
 
 async function handleAuthorization(req: NextRequest) {
   const header = req.headers.get("authorization");
-  console.log("header", req.headers, req.headers.get("authorization"));
+  const { url, method } = req;
+  console.log({ url, method });
   if (!header) {
     console.error("No Authorization header");
     return {
@@ -29,7 +30,6 @@ async function handleAuthorization(req: NextRequest) {
   }
   const token = header.replace("Bearer ", "");
   const { result, error } = await verifyKey(token);
-  console.log("result", result);
   if (error) {
     console.error(error.message);
     return { response: new Response("Internal Server Error", { status: 500 }) };
@@ -40,7 +40,6 @@ async function handleAuthorization(req: NextRequest) {
   // check if customer or not
   //@ts-ignore
   const isCustomer = user?.publicMetadata?.stripe?.status === "complete";
-  console.log("before logging");
   await handleLogging(req, result.ownerId, isCustomer, result.remaining);
 
   if (result.remaining <= 0) {
@@ -57,9 +56,6 @@ async function handleAuthorization(req: NextRequest) {
       response: new Response(`Unauthorized ${result.code}`, { status: 401 }),
     };
   }
-
-  console.log("isCustomer", isCustomer);
-  console.log("result", result);
 
   return { userId: result.ownerId, isCustomer, remaining: result.remaining };
 }
