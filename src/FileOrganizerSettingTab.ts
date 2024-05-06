@@ -92,13 +92,24 @@ export class FileOrganizerSettingTab extends PluginSettingTab {
       );
     new Setting(containerEl)
       .setName("Rename untitled files only")
-      .setDesc(
-        "Only rename files that have 'Untitled' in their name (case-insensitive)."
-      )
+      .setDesc("Only rename files that have 'Untitled' in their name ).")
       .addToggle((toggle) =>
         toggle
           .setValue(this.plugin.settings.renameUntitledOnly)
           .onChange(async (value) => {
+            if (!value) {
+              this.plugin.settings.renameUntitledOnly = false;
+              await this.plugin.saveSettings();
+              return;
+            }
+            if (!this.plugin.settings.renameDocumentTitle) {
+              new Notice(
+                "Rename document title must be enabled to rename untitled files.",
+                6000
+              );
+              toggle.setValue(false);
+              return;
+            }
             this.plugin.settings.renameUntitledOnly = value;
             await this.plugin.saveSettings();
           })
