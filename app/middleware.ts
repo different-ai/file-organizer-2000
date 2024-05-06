@@ -94,21 +94,6 @@ async function handleLogging(
   }
 }
 
-export default async function middleware(
-  req: NextRequest,
-  event: NextFetchEvent
-) {
-  console.log(
-    "ENABLE_USER_MANAGEMENT",
-    process.env.ENABLE_USER_MANAGEMENT,
-    "bird"
-  );
-  if (process.env.ENABLE_USER_MANAGEMENT === "true") {
-    return userManagementMiddleware()(req, event);
-  }
-  return NextResponse.next();
-}
-
 const userManagementMiddleware = () =>
   clerkMiddleware(async (auth, req) => {
     if (isWebhookRoute(req)) {
@@ -135,6 +120,37 @@ const userManagementMiddleware = () =>
 
     return NextResponse.next();
   });
+
+const soloApiKeyMiddleware = (req: NextRequest) => {
+  if (isApiRoute(req)) {
+    const header = req.headers.get("authorization");
+    if (!header) {
+      return new Response("No Authorization header", { status: 401 });
+    }
+    const token = header.replace("Bearer ", "");
+    if (token !== process.env.SOLO_API_KEY) {
+      return new Response("Unauthorized", { status: 401 });
+    }
+  }
+};
+
+export default async function middleware(
+  req: NextRequest,
+  event: NextFetchEvent
+) {
+  console.log("ENABLE_USER_MANAGEMENT", process.env.ENABLE_USER_MANAGEMENT);
+  // case  1 user management/ requires clerk
+  if (process.env.ENABLE_USER_MANAGEMENT === "true") {
+    return userManagementMiddleware()(req, event);
+  }
+  // case 2 single user api key
+  if (process.env.SOLO_API_KEY.length > 0) {
+    soloApiKeyMiddleware(req);
+    return NextResponse.next();
+  }
+  // case 3 no user management, no api key
+  return NextResponse.next();
+}
 
 export const config = {
   matcher: ["/((?!.*\\..*|_next).*)", "/", "/(api|trpc)(.*)"],
