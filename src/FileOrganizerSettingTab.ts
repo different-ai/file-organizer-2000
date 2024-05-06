@@ -90,6 +90,19 @@ export class FileOrganizerSettingTab extends PluginSettingTab {
             await this.plugin.saveSettings();
           })
       );
+    new Setting(containerEl)
+      .setName("Rename untitled files only")
+      .setDesc(
+        "Only rename files that have 'Untitled' in their name (case-insensitive)."
+      )
+      .addToggle((toggle) =>
+        toggle
+          .setValue(this.plugin.settings.renameUntitledOnly)
+          .onChange(async (value) => {
+            this.plugin.settings.renameUntitledOnly = value;
+            await this.plugin.saveSettings();
+          })
+      );
 
     new Setting(containerEl)
       .setName("Similar tags")

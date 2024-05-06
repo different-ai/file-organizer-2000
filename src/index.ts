@@ -35,6 +35,7 @@ class FileOrganizerSettings {
   templatePaths = "_FileOrganizer2000/Templates";
   transcribeEmbeddedAudio = false;
   enableDocumentClassification = false;
+  renameUntitledOnly = true;
 
   OPENAI_API_KEY = "";
 }
@@ -94,15 +95,12 @@ export default class FileOrganizer extends Plugin {
       await this.checkAndCreateFolders();
       const text = await this.getTextFromFile(originalFile);
 
-      const isRenameEnabled = this.settings.renameDocumentTitle;
+      let humanReadableFileName = originalFile.basename;
 
-      if (isRenameEnabled) {
+      if (this.shouldRename(originalFile)) {
         new Notice(`Generating name for ${text.substring(0, 20)}...`, 3000);
+        humanReadableFileName = await this.generateNameFromContent(text);
       }
-
-      const humanReadableFileName = isRenameEnabled
-        ? await this.generateNameFromContent(text)
-        : originalFile.basename;
 
       let processedFile = originalFile;
 
@@ -142,6 +140,20 @@ export default class FileOrganizer extends Plugin {
       new Notice(e.message, 6000);
       console.error(e);
     }
+  }
+  shouldRename(file: TFile): boolean {
+    const isRenameEnabled = this.settings.renameDocumentTitle;
+    const isUntitledFile = /^untitled/i.test(file.basename);
+
+    if (!isRenameEnabled) {
+      return false;
+    }
+
+    if (this.settings.renameUntitledOnly && !isUntitledFile) {
+      return false;
+    }
+
+    return true;
   }
 
   async classifyAndFormatDocument(file: TFile, content: string) {
