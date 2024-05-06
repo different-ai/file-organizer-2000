@@ -20,12 +20,11 @@ async function UserManagement() {
     </div>
   );
 }
-
 export default async function Component() {
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen bg-white py-12 px-4 sm:px-6 lg:px-8">
-      <div className="space-y-8">
-        <div className="text-center flex flex-col justiy-center items-center">
+    <div className="flex min-h-screen bg-white py-12 px-4 sm:px-6 lg:px-8">
+      <div className="flex-1 space-y-8 flex flex-col justify-center">
+        <div className="text-center flex flex-col justify-center items-center">
           <h2 className="text-3xl font-extrabold">
             Welcome to File Organizer 2000
           </h2>
@@ -40,7 +39,6 @@ export default async function Component() {
         </div>
         <div className="text-center">
           <ArrowDownIcon className="mx-auto h-12 w-12 text-gray-400" />
-
           <h2 className="mt-6 text-3xl font-extrabold">
             Download File Organizer 2000
           </h2>
@@ -56,6 +54,17 @@ export default async function Component() {
           </p>
         </div>
       </div>
+      <div className="flex-1 ml-8 flex items-center">
+        <div className="relative w-full" style={{ paddingTop: "56.25%" }}>
+          <iframe
+            className="absolute top-0 left-0 w-full h-full"
+            src="https://www.youtube.com/embed/XZTpbECqZps"
+            frameBorder="0"
+            allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture"
+            allowFullScreen
+          ></iframe>
+        </div>
+      </div>
       {process.env.ENABLE_USER_MANAGEMENT == "true" ? (
         <UserManagement />
       ) : (
@@ -64,7 +73,6 @@ export default async function Component() {
     </div>
   );
 }
-
 function ArrowDownIcon(props) {
   return (
     <svg
