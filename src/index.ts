@@ -10,12 +10,10 @@ import {
 } from "obsidian";
 import useVision from "./modules/vision";
 import useAudio from "./modules/audio";
-import useText from "./modules/text";
 import { logMessage, formatToSafeName } from "../utils";
 import { FileOrganizerSettingTab } from "./FileOrganizerSettingTab";
 import {
   ASSISTANT_VIEW_TYPE,
-  AssistantView,
   AssistantViewWrapper,
 } from "./AssistantView";
 class FileOrganizerSettings {
@@ -245,6 +243,7 @@ export default class FileOrganizer extends Plugin {
           content: fileContent,
           formattingInstruction: selectedClassification.formattingInstruction,
         }),
+        
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${this.settings.API_KEY}`,
