@@ -223,11 +223,16 @@ const ClassificationBox: React.FC<{
   React.useEffect(() => {
     const fetchClassification = async () => {
       if (!file || !content) return;
-      setClassification(null);
-      setLoading(true);
-      const result = await plugin.classifyContent(content, file.basename);
-      setClassification(result);
-      setLoading(false);
+      try {
+        setClassification(null);
+        setLoading(true);
+        const result = await plugin.classifyContent(content, file.basename);
+        setClassification(result);
+      } catch (error) {
+        console.error(error);
+      } finally {
+        setLoading(false);
+      }
     };
     fetchClassification();
   }, [file, content]);
@@ -240,9 +245,15 @@ const ClassificationBox: React.FC<{
         className="format-button"
         disabled={formatting}
         onClick={async () => {
-          setFormatting(true);
-          await plugin.formatContent(file!, content, classification);
-          setFormatting(false);
+          try {
+            setFormatting(true);
+            await plugin.formatContent(file!, content, classification);
+            setFormatting(false);
+          } catch (error) {
+            console.error(error);
+          } finally {
+            setFormatting(false);
+          }
         }}
       >
         {formatting ? "Formatting..." : `Format as ${classification.type}`}
