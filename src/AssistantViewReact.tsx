@@ -175,12 +175,17 @@ const SimilarFilesBox: React.FC<{
   }, [file]);
 
   const fetchSimilarFiles = async () => {
-    if (!file) return;
-    setFilePaths(null);
-    setLoading(true);
-    const similarFiles = await plugin.getSimilarFiles(file);
-    setFilePaths(similarFiles);
-    setLoading(false);
+    try {
+      if (!file) return;
+      setFilePaths(null);
+      setLoading(true);
+      const similarFiles = await plugin.getSimilarFiles(file);
+      setFilePaths(similarFiles);
+    } catch (error) {
+      console.error(error);
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -325,12 +330,15 @@ export const AssistantView: React.FC<AssistantViewProps> = ({ plugin }) => {
       </div>
     );
   }
+  logMessage("AssistantView", activeFile);
+  logMessage("AssistantView", activeFile.basename);
+  logMessage("AssistantView", noteContent);
 
   return (
     <div className="assistant-container">
       <SectionHeader text="Looking at" icon="👀" />
       <div className="active-note-title">{activeFile.basename}</div>
-      
+
       <ClassificationBox
         plugin={plugin}
         file={activeFile}
