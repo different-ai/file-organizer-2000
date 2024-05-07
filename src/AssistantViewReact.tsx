@@ -332,7 +332,6 @@ export const AssistantView: React.FC<AssistantViewProps> = ({ plugin }) => {
   }
   logMessage("AssistantView", activeFile);
   logMessage("AssistantView", activeFile.basename);
-  logMessage("AssistantView", noteContent);
 
   return (
     <div className="assistant-container">
