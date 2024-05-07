@@ -27,6 +27,8 @@ jobs:
                   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
                   GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
               run: |
+                  echo "GH_TOKEN: $GH_TOKEN"
+                  echo "GITHUB_REF: $GITHUB_REF"
                   tag="${GITHUB_REF#refs/tags/}"
 
                   gh release create "$tag" \
