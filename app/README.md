@@ -15,10 +15,7 @@ Then you can run the server locally
 ```bash
 npm run dev
 ```
-
 Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
 
-## Learn More
 
-- [Blog Post](https://unkey.dev/blog/using-unkey-with-auth) - learn about how this project works
-- [Getting Started](https://unkey.dev/docs/quickstart) - A quickstart guide to Unkey
+ npx drizzle-kit push:pg

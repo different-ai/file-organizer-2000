@@ -14,12 +14,18 @@ async function UserManagement() {
 
   return (
     <div className="absolute top-4 right-4 flex items-center gap-4">
+      {/* Join our discord */}
+      {/* https://discord.gg/udQnCRFyus */}
+      <a href="https://discord.gg/udQnCRFyus" target="_blank">
+        <Button>Join our discord</Button>
+      </a>
       {!isPaidUser && <CheckoutButton />}
       <div className="text-sm text-gray-500">{email}</div>
       <UserButton />
     </div>
   );
 }
+
 export default async function Component() {
   return (
     <div className="flex min-h-screen bg-white py-12 px-4 sm:px-6 lg:px-8">

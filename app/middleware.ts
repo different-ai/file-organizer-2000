@@ -141,8 +141,9 @@ export default async function middleware(
   if (process.env.ENABLE_USER_MANAGEMENT === "true") {
     return userManagementMiddleware()(req, event);
   }
+  const isSoloInstance = process.env.SOLO_API_KEY && process.env.SOLO_API_KEY.length > 0;
   // case 2 single user api key
-  if (process.env.SOLO_API_KEY.length > 0) {
+  if (isSoloInstance) {
     return soloApiKeyMiddleware(req);
   }
   // case 3 no user management, no api key
