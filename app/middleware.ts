@@ -6,8 +6,8 @@ import {
 import { verifyKey } from "@unkey/api";
 import { NextFetchEvent, NextRequest, NextResponse } from "next/server";
 import PostHogClient from "./lib/posthog";
-import { incrementApiUsage } from "./drizzle/schema";
-
+import { checkApiUsage, incrementApiUsage } from "./drizzle/schema";
+import { check } from "drizzle-orm/mysql-core";
 const isApiRoute = createRouteMatcher(["/api(.*)"]);
 const isAuthRoute = createRouteMatcher(["/(.*)"]);
 const isCheckoutApiRoute = createRouteMatcher(["/api/create-checkout-session"]);
@@ -31,11 +31,25 @@ async function handleAuthorization(req: NextRequest) {
   }
   const token = header.replace("Bearer ", "");
   const { result, error } = await verifyKey(token);
-  await incrementApiUsage(result.ownerId);
-  if (error) {
+  if (!result.valid) {
+    console.error(result);
+    return {
+      response: new Response(`Unauthorized ${result.code}`, { status: 401 }),
+    };
+  }
+  const { remaining, usageError } = await checkApiUsage(result.ownerId);
+  if (error || usageError) {
     console.error(error.message);
     return { response: new Response("Internal Server Error", { status: 500 }) };
   }
+  if (remaining <= 0) {
+    return {
+      response: new Response("No remaining credits", {
+        status: 429,
+      }),
+    };
+  }
+  await incrementApiUsage(result.ownerId);
 
   // get user from api key
   const user = await clerkClient.users.getUser(result.ownerId);
@@ -43,21 +57,6 @@ async function handleAuthorization(req: NextRequest) {
   //@ts-ignore
   const isCustomer = user?.publicMetadata?.stripe?.status === "complete";
   await handleLogging(req, result.ownerId, isCustomer, result.remaining);
-
-  if (result.remaining <= 0) {
-    return {
-      response: new Response("No remaining credits", {
-        status: 429,
-      }),
-    };
-  }
-
-  if (!result.valid) {
-    console.error(result);
-    return {
-      response: new Response(`Unauthorized ${result.code}`, { status: 401 }),
-    };
-  }
 
   return { userId: result.ownerId, isCustomer, remaining: result.remaining };
 }

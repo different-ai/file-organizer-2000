@@ -69,7 +69,6 @@ export async function incrementApiUsage(userId: string): Promise<void> {
   // get current apiUsage
 
   try {
-    createOrUpdateUserUsage(userId, 10000, "monthly");
     await db
       .update(UserUsageTable)
       .set({
@@ -85,3 +84,40 @@ export async function incrementApiUsage(userId: string): Promise<void> {
 
   // Increment successful, exit the retry loop
 }
+export const checkApiUsage = async (userId: string) => {
+  console.log("Checking API Usage for User ID:", userId);
+  try {
+    const userUsage = await db
+      .select()
+      .from(UserUsageTable)
+      .where(eq(UserUsageTable.userId, userId))
+      .limit(1)
+      .execute();
+
+    console.log("User Usage Results for User ID:", userId, userUsage);
+    if (userUsage.length === 0) {
+      console.log("No usage record found for User ID:", userId);
+      await createOrUpdateUserUsage(userId, 10000, "monthly");
+    }
+    if (userUsage[0].apiUsage >= userUsage[0].maxUsage) {
+      console.log("User has exceeded their API usage limit");
+
+      return {
+        remaining: 0,
+        usageError: false,
+      };
+    }
+    console.log("User has not exceeded their API usage limit");
+    return {
+      remaining: userUsage[0].maxUsage - userUsage[0].apiUsage,
+      usageError: false,
+    };
+  } catch (error) {
+    console.error("Error checking API Usage for User ID:", userId);
+    console.error(error);
+    return {
+      remaining: 0,
+      usageError: true,
+    };
+  }
+};

@@ -14,7 +14,7 @@ export default async function handler(
 
     const prompt = `Given the text content "${content}" (and if the file name "${fileName}"), which of the following folders would be the most appropriate location for the file? Available folders: ${folders.join(
       ", "
-    )}, if none of the folders are appropriate, respond with "none".`;
+    )}, if none of the folders are appropriate, respond with "None".`;
 
     const { object } = await generateObject({
       model,
