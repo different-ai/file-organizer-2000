@@ -1,5 +1,5 @@
 import type { NextApiRequest, NextApiResponse } from "next";
-import { generateObject } from "ai";
+import { generateObject, generateText } from "ai";
 import { z } from "zod";
 import { models } from "@/lib/models";
 
@@ -13,21 +13,19 @@ export default async function handler(
 
     const model = models[process.env.MODEL_TAGGING || "gpt-4-turbo"];
 
-    const prompt = `Given the text "${content}" (and if relevant ${fileName}), which of the following tags are the most relevant? ${tags.join(
-      ", "
-    )}`;
+    const prompt = `Given the text "${content}" (and if relevant ${fileName}), which of the following tags are the most relevant?  
+    Only answer tags and seperate with commas. ${tags.join(", ")}`;
 
-    const { object } = await generateObject({
+    const object = generateText({
       model,
-      schema: z.object({
-        mostSimilarTags: z.array(z.string()),
-      }),
-      prompt: prompt,
+      prompt,
+      system:
+        "you always answer a list of tags that exist seperate them with commas. only answer tags nothing else",
     });
 
-    const normalizedTags = object.mostSimilarTags
-      .map((tag: string) => (tag.startsWith("#") ? tag : `#${tag}`))
-      .map((tag: string) => tag.trim())
+    const normalizedTags = (await object).text
+      .split(",")
+      .map((tag: string) => tag.replace("#", "").trim())
       .filter((tag: string) => !content.includes(tag));
 
     res.status(200).json({ tags: normalizedTags });

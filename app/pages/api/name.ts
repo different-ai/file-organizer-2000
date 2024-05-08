@@ -1,5 +1,5 @@
 import type { NextApiRequest, NextApiResponse } from "next";
-import { generateObject } from "ai";
+import { generateObject, generateText } from "ai";
 import { z } from "zod";
 import { models } from "@/lib/models";
 
@@ -14,21 +14,20 @@ export default async function handler(
 ) {
   if (req.method === "POST") {
     try {
+      console.log(process.env.MODEL_NAME, "name");
       const model = models[process.env.MODEL_NAME || "gpt-4-turbo"];
-
-      // const model = openai("gpt-3.5-turbo");
-      const { object } = await generateObject({
+      if (!model) {
+        throw new Error(`Model ${process.env.MODEL_NAME} not found`);
+      }
+      const name = await generateText({
         model,
-        schema: z.object({
-          name: z.string(),
-        }),
-        prompt: `You are a helpful assistant. You only answer short (less than 30 chars titles). You do not use any special character just text. Use something very specific to the content not a generic title.
-
-Give a title to this document:
-${req.body.document}`,
+        prompt: `Give a name to this document:
+${req.body.document} should only be 30 chars long max. only answer with the name nothing else.`,
       });
+      console.log({ name });
+      console.log(name.text, "name.text");
 
-      res.status(200).json({ name: object.name });
+      res.status(200).json({ name: name.text });
     } catch (error) {
       console.error(error);
       if (error.response && error.response.status === 401) {

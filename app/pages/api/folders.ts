@@ -1,5 +1,5 @@
 import type { NextApiRequest, NextApiResponse } from "next";
-import { generateObject } from "ai";
+import { generateObject, generateText } from "ai";
 import { z } from "zod";
 import { models } from "@/lib/models";
 
@@ -14,20 +14,16 @@ export default async function handler(
 
     const prompt = `Given the text content "${content}" (and if the file name "${fileName}"), which of the following folders would be the most appropriate location for the file? Available folders: ${folders.join(
       ", "
-    )}, if none of the folders are appropriate, respond with "None".`;
+    )}, if none of the folders are appropriate, respond with "None". Only answer with folder path.`;
 
-    const { object } = await generateObject({
+    const { text } = await generateText({
       model,
-      schema: z.object({
-        mostSimilarFolder: z.string(),
-      }),
       prompt: prompt,
+      system:
+        "you always answer a folder that exists in the list of folders.just the folder path. if none are appropriate respond with None only answer the folder path nothing else. e.g. /Private or /Blog/Ideas",
     });
 
-    const sanitizedFolderName = object.mostSimilarFolder.replace(
-      /[\\:*?"<>|]/g,
-      ""
-    );
+    const sanitizedFolderName = text.replace(/[\\:*?"<>|]/g, "");
 
     res.status(200).json({ folder: sanitizedFolderName });
   } else {
