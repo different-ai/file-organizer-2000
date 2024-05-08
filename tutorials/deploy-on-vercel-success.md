@@ -1,3 +1,10 @@
+## How to deploy your own File Organizer 2000
+This process takes max 2 min.
+
+1. Create a 
+
+
+
 ## Success
 
 Thanks for self-hosting file organizer 2000.
