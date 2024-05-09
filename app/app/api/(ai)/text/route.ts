@@ -1,11 +1,11 @@
-import { NextApiResponse } from "next";
 import { generateObject, generateText } from "ai";
 import { models } from "@/lib/models";
 import { z } from "zod";
+import { NextResponse } from "next/server";
 
-export default async function POST(req: Request, res: NextApiResponse) {
+export async function POST(request: Request) {
   try {
-    const { content, formattingInstruction } = await req.json();
+    const { content, formattingInstruction } = await request.json();
 
     const model = models[process.env.TEXT_MODEL || "gpt-4-turbo"];
 
@@ -21,11 +21,9 @@ export default async function POST(req: Request, res: NextApiResponse) {
       Respond with only the formatted text.`,
     });
 
-    return Response.json({ message: result.object.fromattedText });
+    return NextResponse.json({ message: result.object.fromattedText });
   } catch (error) {
     console.error(error);
-
-    res.status(500).json({ message: "Error" });
+    return NextResponse.json({ message: "Error" }, { status: 500 });
   }
 }
-export const runtime = "edge";

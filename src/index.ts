@@ -719,7 +719,7 @@ export default class FileOrganizer extends Plugin {
         if (!activeFile) {
           console.log("No active file found.");
           return;
-        }
+      }
         const similarFiles = await this.getSimilarFiles(activeFile);
         console.log("Most similar files:", similarFiles);
         // Display the similar files in the UI or perform further actions
