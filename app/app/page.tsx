@@ -13,12 +13,17 @@ async function UserManagement() {
       ?.status === "complete";
 
   return (
-    <div className="absolute top-4 right-4 flex items-center gap-4">
+    <div className="absolute top-4 right-4 flex items-center gap-4 ">
       {/* Join our discord */}
       {/* https://discord.gg/udQnCRFyus */}
       <a href="https://discord.gg/udQnCRFyus" target="_blank">
         <Button>Join our discord</Button>
       </a>
+      {isPaidUser && (
+        <a href={process.env.NEXT_PUBLIC_STRIPE_CUSTOMER_PORTAL_URL}>
+          <Button>Manage Subscription</Button>
+        </a>
+      )}
       {!isPaidUser && <CheckoutButton />}
       <div className="text-sm text-gray-500">{email}</div>
       <UserButton />
