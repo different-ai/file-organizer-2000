@@ -13,7 +13,8 @@ import useAudio from "./modules/audio";
 import { logMessage, formatToSafeName } from "../utils";
 import { FileOrganizerSettingTab } from "./FileOrganizerSettingTab";
 import { ASSISTANT_VIEW_TYPE, AssistantViewWrapper } from "./AssistantView";
-import sharp from "sharp";
+import Jimp from "jimp";
+
 class FileOrganizerSettings {
   API_KEY = "";
   useLogs = true;
@@ -369,6 +370,19 @@ export default class FileOrganizer extends Plugin {
     destinationFolder = ""
   ) {
     new Notice(`Moving file to ${destinationFolder} folder`, 3000);
+    let destinationPath = `${destinationFolder}/${humanReadableFileName}.${file.extension}`;
+    const existingFile = this.app.vault.getAbstractFileByPath(destinationPath);
+
+    if (existingFile) {
+      // If a file with the same name exists, append a Unix timestamp to the filename
+      const timestamp = Date.now();
+      const timestampedFileName = `${humanReadableFileName}_${timestamp}`;
+      destinationPath = `${destinationFolder}/${timestampedFileName}.${file.extension}`;
+
+      await this.appendToCustomLogFile(
+        `File [[${humanReadableFileName}]] already exists. Renaming to [[${timestampedFileName}.${file.extension}]]`
+      );
+    }
     await this.app.vault.rename(
       file,
       `${destinationFolder}/${humanReadableFileName}.${file.extension}`
@@ -445,8 +459,24 @@ export default class FileOrganizer extends Plugin {
 
   async moveToDefaultAttachmentFolder(file: TFile, newFileName: string) {
     const destinationFolder = this.settings.attachmentsPath;
-    const destinationPath = `${destinationFolder}/${newFileName}.${file.extension}`;
+    let destinationPath = `${destinationFolder}/${newFileName}.${file.extension}`;
+
+    // Check if a file with the same name already exists in the destination folder
+    const existingFile = this.app.vault.getAbstractFileByPath(destinationPath);
+
+    if (existingFile) {
+      // If a file with the same name exists, append a Unix timestamp to the filename
+      const timestamp = Date.now();
+      const timestampedFileName = `${newFileName}_${timestamp}`;
+      destinationPath = `${destinationFolder}/${timestampedFileName}.${file.extension}`;
+
+      await this.appendToCustomLogFile(
+        `File [[${newFileName}.${file.extension}]] already exists. Renaming to [[${timestampedFileName}.${file.extension}]]`
+      );
+    }
+
     await this.app.vault.rename(file, destinationPath);
+
     await this.appendToCustomLogFile(
       `Moved [[${newFileName}.${file.extension}]] to attachments`
     );
@@ -475,7 +505,10 @@ export default class FileOrganizer extends Plugin {
   }
 
   async generateTranscriptFromAudio(file: TFile) {
-    new Notice(`Generating transcription for ${file.basename}`, 3000);
+    new Notice(
+      `Generating transcription for ${file.basename} this can take up to a minute`,
+      8000
+    );
     // @ts-ignore
     const arrayBuffer = await this.app.vault.readBinary(file);
     const fileContent = Buffer.from(arrayBuffer);
@@ -493,20 +526,27 @@ export default class FileOrganizer extends Plugin {
   }
 
   async generateImageAnnotation(file: TFile, customPrompt?: string) {
-    new Notice(`Generating annotation for ${file.basename}`, 3000);
+    new Notice(
+      `Generating annotation for ${file.basename} this can take up to a minute`,
+      8000
+    );
+
     const arrayBuffer = await this.app.vault.readBinary(file);
     const fileContent = Buffer.from(arrayBuffer);
+    const imageSize = fileContent.byteLength;
+    const imageSizeInMB2 = imageSize / (1024 * 1024);
+    logMessage(`Image size: ${imageSizeInMB2.toFixed(2)} MB`);
+
     // Resize the image to a maximum of 1000x1000 while preserving aspect ratio
-    const resizedImage = await sharp(fileContent)
-      .resize({
-        width: 1000,
-        height: 1000,
-        fit: "inside",
-        withoutEnlargement: true,
-      })
-      .toBuffer();
+    const image = await Jimp.read(fileContent);
+    image.scaleToFit(1000, 1000);
+
+    const resizedImage = await image.getBufferAsync(Jimp.MIME_PNG);
     const encodedImage = resizedImage.toString("base64");
-    // logMessage(`Encoded: ${encodedImage.substring(0, 20)}...`);
+    const imageSizeInBytes = Buffer.byteLength(encodedImage, "base64");
+    const imageSizeInMB = imageSizeInBytes / (1024 * 1024);
+    logMessage(`Image size: ${imageSizeInMB.toFixed(2)} MB`);
+    logMessage(`Encoded: ${encodedImage.substring(0, 20)}...`);
 
     const processedContent = await useVision(encodedImage, customPrompt, {
       baseUrl: this.settings.useCustomServer
