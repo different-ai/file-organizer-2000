@@ -707,7 +707,9 @@ export default class FileOrganizer extends Plugin {
 
   async onload() {
     await this.initializePlugin();
-
+    await this.addRibbonIcon("sparkle", "Fo2k Assistant View", () => {
+      this.showAssistantSidebar();
+    });
     // add commands
     this.addCommand({
       id: "find-similar-files",
