@@ -1,5 +1,4 @@
-import { generateObject, generateText } from "ai";
-import { z } from "zod";
+import { generateText } from "ai";
 import { models } from "@/lib/models";
 import { NextResponse } from "next/server";
 import { generatePrompt } from "./prompt";
@@ -8,9 +7,10 @@ import { generatePrompt } from "./prompt";
 
 export async function POST(request: Request) {
   const { content, fileName, tags } = await request.json();
+  const modelName = process.env.MODEL_TAGGING || "gpt-4-turbo";
 
-  const model = models[process.env.MODEL_TAGGING || "gpt-4-turbo"];
-  const prompt = generatePrompt(model, content, fileName, tags);
+  const model = models[modelName];
+  const prompt = generatePrompt(modelName, content, fileName, tags);
 
   const object = generateText({
     model,
