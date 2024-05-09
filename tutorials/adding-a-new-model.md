@@ -1,8 +1,8 @@
-# Contributing new models
+# Increasing reliability of models
 
 This README explains how to extend the prompts for existing models in File Organizer 2000 to customize the behavior of each endpoint.
 
-## Steps to Extend Prompts
+## Creating specific prompts per task/ per model
 
 > If there's an existing model already available in lib/model.ts and there are issue with reliability this is a good place to start.
 
@@ -37,7 +37,7 @@ This README explains how to extend the prompts for existing models in File Organ
 
 By following these steps, you can easily extend the prompts for existing models in File Organizer 2000 to customize the behavior of each endpoint according to your specific requirements.
 
-## Adding a New Model
+## Adding a New Model from scratch
 
 If you want to add a new model to File Organizer 2000 from scratch, follow these additional steps:
 
