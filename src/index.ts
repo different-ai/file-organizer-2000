@@ -13,6 +13,7 @@ import useAudio from "./modules/audio";
 import { logMessage, formatToSafeName } from "../utils";
 import { FileOrganizerSettingTab } from "./FileOrganizerSettingTab";
 import { ASSISTANT_VIEW_TYPE, AssistantViewWrapper } from "./AssistantView";
+import sharp from "sharp";
 class FileOrganizerSettings {
   API_KEY = "";
   useLogs = true;
@@ -495,8 +496,17 @@ export default class FileOrganizer extends Plugin {
     new Notice(`Generating annotation for ${file.basename}`, 3000);
     const arrayBuffer = await this.app.vault.readBinary(file);
     const fileContent = Buffer.from(arrayBuffer);
-    const encodedImage = fileContent.toString("base64");
-    logMessage(`Encoded: ${encodedImage.substring(0, 20)}...`);
+    // Resize the image to a maximum of 1000x1000 while preserving aspect ratio
+    const resizedImage = await sharp(fileContent)
+      .resize({
+        width: 1000,
+        height: 1000,
+        fit: "inside",
+        withoutEnlargement: true,
+      })
+      .toBuffer();
+    const encodedImage = resizedImage.toString("base64");
+    // logMessage(`Encoded: ${encodedImage.substring(0, 20)}...`);
 
     const processedContent = await useVision(encodedImage, customPrompt, {
       baseUrl: this.settings.useCustomServer
@@ -719,7 +729,7 @@ export default class FileOrganizer extends Plugin {
         if (!activeFile) {
           console.log("No active file found.");
           return;
-      }
+        }
         const similarFiles = await this.getSimilarFiles(activeFile);
         console.log("Most similar files:", similarFiles);
         // Display the similar files in the UI or perform further actions
