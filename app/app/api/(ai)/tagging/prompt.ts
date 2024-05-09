@@ -2,6 +2,7 @@ import { models } from "@/lib/models";
 import { generateObject, generateText } from "ai";
 import z from "zod";
 
+export const maxDuration = 30;
 export function generateModelCall(
   content: string,
   fileName: string,
@@ -12,7 +13,7 @@ export function generateModelCall(
   const model = models[modelName];
   switch (modelName) {
     case "gpt-4-turbo": {
-      const prompt = `Given the text "${content}" (and if relevant ${fileName}), which of the following tags are the most relevant? ${tags.join(
+      const prompt = `Given the text "${content}" (and if relevant ${fileName}), which of the following tags are the 5 most relevant? ${tags.join(
         ", "
       )}`;
 
