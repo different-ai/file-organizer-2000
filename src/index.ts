@@ -81,7 +81,7 @@ export default class FileOrganizer extends Plugin {
   settings: FileOrganizerSettings;
 
   // all files in inbox will go through this function
-  async processFileV2(originalFile: TFile) {
+  async processFileV2(originalFile: TFile, oldPath?: string) {
     try {
       new Notice(`Looking at ${originalFile.basename}`, 3000);
       this.validateAPIKey();
@@ -94,6 +94,29 @@ export default class FileOrganizer extends Plugin {
       }
 
       await this.checkAndCreateFolders();
+
+      // do not allow files bigger than 25MB
+      if (originalFile.stat.size > 2500000 && oldPath) {
+        new Notice(
+          `We do not support files bigger than 25M atm, resending to ${oldPath}`,
+          8000
+        );
+        this.moveContent(originalFile, originalFile.basename, oldPath);
+        return;
+      }
+      if (originalFile.stat.size > 2500000) {
+        new Notice(
+          `We do not support files bigger than 25M atm,  sending to default path ${this.settings.defaultDestinationPath}`,
+          8000
+        );
+        this.moveContent(
+          originalFile,
+          originalFile.basename,
+          this.settings.defaultDestinationPath
+        );
+        return;
+      }
+
       const text = await this.getTextFromFile(originalFile);
 
       let humanReadableFileName = originalFile.basename;
@@ -106,6 +129,7 @@ export default class FileOrganizer extends Plugin {
       let processedFile = originalFile;
 
       if (validMediaExtensions.includes(originalFile.extension)) {
+        // if file bigger than 25M resend to old path
         const annotatedFile = await this.createFileFromContent(text);
         this.appendToCustomLogFile(
           `Generated annotation for [[${annotatedFile.basename}]]`
@@ -510,6 +534,13 @@ export default class FileOrganizer extends Plugin {
     );
     // @ts-ignore
     try {
+      if (file.stat.size > 2500000) {
+        new Notice(
+          `We do not support files transcripts for files bigger than 25M atm`,
+          8000
+        );
+        return;
+      }
       const arrayBuffer = await this.app.vault.readBinary(file);
       const fileContent = Buffer.from(arrayBuffer);
       const encodedAudio = fileContent.toString("base64");
@@ -525,7 +556,10 @@ export default class FileOrganizer extends Plugin {
         requestUrl({
           url: url,
           method: "POST",
-          body: JSON.stringify({ file: encodedAudio }),
+          body: JSON.stringify({
+            file: encodedAudio,
+            extension: file.extension,
+          }),
           headers: {
             "Content-Type": "application/json",
             Authorization: `Bearer ${this.settings.API_KEY}`,
@@ -949,10 +983,10 @@ export default class FileOrganizer extends Plugin {
       })
     );
     this.registerEvent(
-      this.app.vault.on("rename", (file) => {
+      this.app.vault.on("rename", (file, oldPath) => {
         if (!file.path.includes(this.settings.pathToWatch)) return;
         if (file instanceof TFile) {
-          this.processFileV2(file);
+          this.processFileV2(file, oldPath);
         }
       })
     );
