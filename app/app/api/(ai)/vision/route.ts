@@ -1,8 +1,9 @@
 import { NextResponse } from "next/server";
-import {  generateText } from "ai"; // Assuming generateText is the method from the AI SDK
+import { generateText } from "ai"; // Assuming generateText is the method from the AI SDK
 import { models } from "@/lib/models";
 import { generateMessages } from "./prompt";
 
+export const maxDuration = 60; // This function can run for a maximum of 5 seconds
 
 export async function POST(request: Request) {
   try {
