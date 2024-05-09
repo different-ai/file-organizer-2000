@@ -2,7 +2,6 @@ import { models } from "@/lib/models";
 import { generateObject, generateText } from "ai";
 import z from "zod";
 
-export const maxDuration = 30;
 export function generateModelCall(
   content: string,
   fileName: string,

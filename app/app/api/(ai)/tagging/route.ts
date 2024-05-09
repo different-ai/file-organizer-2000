@@ -3,7 +3,7 @@ import { models } from "@/lib/models";
 import { NextResponse } from "next/server";
 import { generateModelCall } from "./prompt";
 
-// ... (keep the generatePrompt function unchanged)
+export const maxDuration = 30;
 
 export async function POST(request: Request) {
   const { content, fileName, tags } = await request.json();
