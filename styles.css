@@ -106,3 +106,7 @@ If your plugin does not need CSS, delete this file.
 .file a:hover {
   text-decoration: underline;
 }
+
+.settings-cta-button {
+  margin-bottom: var(--size-4-4);
+}
