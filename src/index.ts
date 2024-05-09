@@ -380,7 +380,7 @@ export default class FileOrganizer extends Plugin {
       destinationPath = `${destinationFolder}/${timestampedFileName}.${file.extension}`;
 
       await this.appendToCustomLogFile(
-        `File [[${humanReadableFileName}]] already exists. Renaming to [[${timestampedFileName}.${file.extension}]]`
+        `File [[${humanReadableFileName}]] already exists. Renaming to [[${timestampedFileName}]]`
       );
     }
     await this.app.vault.rename(
@@ -539,7 +539,11 @@ export default class FileOrganizer extends Plugin {
 
     // Resize the image to a maximum of 1000x1000 while preserving aspect ratio
     const image = await Jimp.read(fileContent);
-    image.scaleToFit(1000, 1000);
+    // Check if the image is bigger than 1000 pixels in either width or height
+    if (image.getWidth() > 1000 || image.getHeight() > 1000) {
+      // Resize the image to a maximum of 1000x1000 while preserving aspect ratio
+      image.scaleToFit(1000, 1000);
+    }
 
     const resizedImage = await image.getBufferAsync(Jimp.MIME_PNG);
     const encodedImage = resizedImage.toString("base64");
