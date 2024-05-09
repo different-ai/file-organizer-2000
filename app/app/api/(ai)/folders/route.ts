@@ -3,13 +3,12 @@ import { models } from "@/lib/models";
 import { NextResponse } from "next/server";
 import { generatePrompt } from "./prompt";
 
-// ... (keep the generatePrompt function unchanged)
-
 export async function POST(request: Request) {
   const { content, fileName, folders } = await request.json();
+  const modelName = process.env.MODEL_FOLDERS || "gpt-4-turbo";
   const model = models[process.env.MODEL_FOLDERS || "gpt-4-turbo"];
 
-  const prompt = generatePrompt(model, content, fileName, folders);
+  const prompt = generatePrompt(modelName, content, fileName, folders);
 
   const { text } = await generateText({
     model,
