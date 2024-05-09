@@ -3,6 +3,8 @@ import {  generateText } from "ai"; // Assuming generateText is the method from 
 import { models } from "@/lib/models";
 import { generateMessages } from "./prompt";
 
+export const runtime = "edge"
+
 export async function POST(request: Request) {
   try {
     const payload = await request.json();
