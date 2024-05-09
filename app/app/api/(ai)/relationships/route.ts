@@ -8,8 +8,9 @@ export const maxDuration = 30;
 
 export async function POST(request: Request) {
   const { activeFileContent, files } = await request.json();
-  const model = models[process.env.MODEL_RELATIONSHIPS || "gpt-4-turbo"];
-  const prompt = generatePrompt(model, activeFileContent, files);
+  const modelName = process.env.MODEL_RELATIONSHIPS || "gpt-4-turbo";
+  const model = models[modelName];
+  const prompt = generatePrompt(modelName, activeFileContent, files);
 
   const response = await generateObject({
     model,
