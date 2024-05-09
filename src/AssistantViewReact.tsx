@@ -35,6 +35,7 @@ const SimilarTags: React.FC<{
       setSuggestions(null);
       setLoading(true);
       try {
+        console.log("firing calls");
         const tags = await plugin.getSimilarTags(content, file.basename);
         setSuggestions(tags);
       } catch (error) {

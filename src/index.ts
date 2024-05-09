@@ -13,6 +13,9 @@ import { logMessage, formatToSafeName } from "../utils";
 import { FileOrganizerSettingTab } from "./FileOrganizerSettingTab";
 import { ASSISTANT_VIEW_TYPE, AssistantViewWrapper } from "./AssistantView";
 import Jimp from "jimp";
+type TagCounts = {
+  [key: string]: number;
+};
 
 class FileOrganizerSettings {
   API_KEY = "";
@@ -638,24 +641,25 @@ export default class FileOrganizer extends Plugin {
       await this.processFileV2(file);
     }
   }
+
   async getSimilarTags(content: string, fileName: string): Promise<string[]> {
     // 1. Get all tags from the vault
     // @ts-ignore
-    const tags = this.app.metadataCache.getTags();
+    const tags: TagCounts[] = this.app.metadataCache.getTags();
     // if tags is = {} return
     if (Object.keys(tags).length === 0) {
       logMessage("No tags found");
       return [];
     }
 
-    // 2. Pass all the tags to GPT-3 and get the most similar tags
-    const tagNames = Object.keys(tags);
-    const uniqueTags = [...new Set(tagNames)];
+    // sort tags from most to least common
+    const sortedTags = Object.entries(tags).sort((a, b) => b[1] - a[1]);
+    logMessage("Sorted tags", sortedTags);
 
     const data = {
       content,
       fileName,
-      tags: uniqueTags,
+      tags: sortedTags,
     };
 
     const response = await makeApiRequest(() =>
@@ -812,7 +816,7 @@ export default class FileOrganizer extends Plugin {
 
   async onload() {
     await this.initializePlugin();
-    await this.addRibbonIcon("sparkle", "Fo2k Assistant View", () => {
+    this.addRibbonIcon("sparkle", "Fo2k Assistant View", () => {
       this.showAssistantSidebar();
     });
     // add commands
