@@ -9,7 +9,6 @@ import {
   requestUrl,
 } from "obsidian";
 import useVision from "./modules/vision";
-import useAudio from "./modules/audio";
 import { logMessage, formatToSafeName } from "../utils";
 import { FileOrganizerSettingTab } from "./FileOrganizerSettingTab";
 import { ASSISTANT_VIEW_TYPE, AssistantViewWrapper } from "./AssistantView";
@@ -510,19 +509,37 @@ export default class FileOrganizer extends Plugin {
       8000
     );
     // @ts-ignore
-    const arrayBuffer = await this.app.vault.readBinary(file);
-    const fileContent = Buffer.from(arrayBuffer);
-    const encodedAudio = fileContent.toString("base64");
-    logMessage(`Encoded: ${encodedAudio.substring(0, 20)}...`);
+    try {
+      const arrayBuffer = await this.app.vault.readBinary(file);
+      const fileContent = Buffer.from(arrayBuffer);
+      const encodedAudio = fileContent.toString("base64");
+      logMessage(`Encoded: ${encodedAudio.substring(0, 20)}...`);
 
-    const transcribedText = await useAudio(encodedAudio, {
-      baseUrl: this.settings.useCustomServer
-        ? this.settings.customServerUrl
-        : this.settings.defaultServerUrl,
-      apiKey: this.settings.API_KEY,
-    });
-    const postProcessedText = transcribedText;
-    return postProcessedText;
+      const endpoint = "api/audio";
+      const url = `${
+        this.settings.useCustomServer
+          ? this.settings.customServerUrl
+          : this.settings.defaultServerUrl
+      }/${endpoint}`;
+      const result = await makeApiRequest(() =>
+        requestUrl({
+          url: url,
+          method: "POST",
+          body: JSON.stringify({ file: encodedAudio }),
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${this.settings.API_KEY}`,
+          },
+        })
+      );
+      const data = await result.json;
+      const postProcessedText = data.transcription;
+      return postProcessedText;
+    } catch (e) {
+      console.error("Error generating transcript", e);
+      new Notice("Error generating transcript", 3000);
+      return "";
+    }
   }
 
   async generateImageAnnotation(file: TFile, customPrompt?: string) {
