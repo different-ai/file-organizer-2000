@@ -4,6 +4,7 @@ import { models } from "@/lib/models";
 import { NextResponse } from "next/server";
 import { generatePrompt } from "./prompt";
 
+export const maxDuration = 30;
 
 export async function POST(request: Request) {
   const { activeFileContent, files } = await request.json();
