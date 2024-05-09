@@ -91,7 +91,7 @@ const AliasSuggestionBox: React.FC<{
 
   return (
     <div className="assistant-section alias-section">
-      <SectionHeader text="Suggested alias" icon="💡" />
+      <SectionHeader text="Suggested title" icon="💡" />
       {loading ? (
         <div>Loading...</div>
       ) : (
@@ -193,7 +193,12 @@ const SimilarFilesBox: React.FC<{
       <SectionHeader text="Similar files" icon="📄" />
       {loading && <button>Loading...</button>}
       {!loading && !filePaths && (
-        <button onClick={fetchSimilarFiles}>Load Similar Files</button>
+        <button
+          onClick={fetchSimilarFiles}
+          className="load-similar-files-button"
+        >
+          Load Similar Files
+        </button>
       )}
 
       <div className="files-container">

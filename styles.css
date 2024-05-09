@@ -54,24 +54,28 @@ If your plugin does not need CSS, delete this file.
 }
 
 .tag:hover {
-  background: var(--background-secondary-alt);
+  background: var(--interactive-accent);
 }
 
-.alias-container, .folder-container {
+.alias-container,
+.folder-container {
   display: flex;
   align-items: center;
   gap: 0.5rem;
 }
 
-.alias, .folder {
+.alias,
+.folder {
   font-size: 1rem;
   color: var(--text-normal);
 }
 
-
-
-.add-alias-button, .move-note-button, .format-button {
-  background: white; 
+.add-alias-button,
+.move-note-button,
+.format-button,
+.assistant-view-button,
+.load-similar-files-button {
+  background: white;
   color: var(--text-normal);
   /* border: 1px solid var(--background-modifier-border); */
   /* border-radius: 0.25rem; */
@@ -79,9 +83,12 @@ If your plugin does not need CSS, delete this file.
   cursor: pointer;
 }
 
-.add-alias-button:hover, .move-note-button:hover, .format-button:hover {
+.add-alias-button:hover,
+.move-note-button:hover,
+.format-button:hover,
+.rename-alias-button:hover,
+.load-similar-files-button:hover {
   background: var(--interactive-accent);
-  color: white;
   border-color: var(--interactive-accent);
 }
 
@@ -98,4 +105,8 @@ If your plugin does not need CSS, delete this file.
 
 .file a:hover {
   text-decoration: underline;
+}
+
+.settings-cta-button {
+  margin-bottom: var(--size-4-4);
 }
