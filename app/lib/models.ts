@@ -10,8 +10,4 @@ export const models = {
   "gpt-4-turbo": openai("gpt-4-turbo"),
   llama3: ollama("llama3"),
 
-  // "llama3": ((url = "http://localhost:11434/v1") => {
-  //   const customOpenAI = createLLama({ baseURL: url, apiKey: "ollama" });
-  //   return customOpenAI.completion("llama3");
-  // })(),
 };

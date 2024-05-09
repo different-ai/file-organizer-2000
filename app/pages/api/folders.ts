@@ -1,7 +1,16 @@
 import type { NextApiRequest, NextApiResponse } from "next";
-import { generateObject, generateText } from "ai";
-import { z } from "zod";
+import {  generateText } from "ai";
 import { models } from "@/lib/models";
+
+function generatePrompt(model: string, content: string, fileName: string, folders: string[]): string {
+  switch (model) {
+    case "gpt-4-turbo":
+    default:
+      return `Given the text content "${content}" (and if the file name "${fileName}"), which of the following folders would be the most appropriate location for the file? Available folders: ${folders.join(
+        ", "
+      )}, if none of the folders are appropriate, respond with "None". Only answer with folder path.`;
+  }
+}
 
 export default async function handler(
   req: NextApiRequest,
@@ -12,9 +21,7 @@ export default async function handler(
     const { content, fileName, folders } = req.body;
     const model = models[process.env.MODEL_FOLDERS || "gpt-4-turbo"];
 
-    const prompt = `Given the text content "${content}" (and if the file name "${fileName}"), which of the following folders would be the most appropriate location for the file? Available folders: ${folders.join(
-      ", "
-    )}, if none of the folders are appropriate, respond with "None". Only answer with folder path.`;
+    const prompt = generatePrompt(model, content, fileName, folders);
 
     const { text } = await generateText({
       model,

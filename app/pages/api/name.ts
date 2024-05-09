@@ -8,6 +8,15 @@ type ResponseData = {
   message?: string;
 };
 
+function generatePrompt(model: string, document: string): string {
+  switch (model) {
+    case "gpt-4-turbo":
+    default:
+      return `Give a name to this document:
+${document} should only be 30 chars long max. only answer with the name nothing else.`;
+  }
+}
+
 export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse<ResponseData>
@@ -19,10 +28,10 @@ export default async function handler(
       if (!model) {
         throw new Error(`Model ${process.env.MODEL_NAME} not found`);
       }
+      const prompt = generatePrompt(model, req.body.document);
       const name = await generateText({
         model,
-        prompt: `Give a name to this document:
-${req.body.document} should only be 30 chars long max. only answer with the name nothing else.`,
+        prompt: prompt,
       });
       console.log({ name });
       console.log(name.text, "name.text");
