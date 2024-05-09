@@ -5,13 +5,7 @@ import { join } from "path";
 import { promises as fsPromises } from "fs";
 import { NextResponse } from "next/server";
 
-export const config = {
-  api: {
-    bodyParser: {
-      sizeLimit: "20mb",
-    },
-  },
-};
+
 
 export async function POST(request: Request) {
   const { file } = await request.json();

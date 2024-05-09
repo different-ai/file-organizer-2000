@@ -1,13 +1,5 @@
 import { NextResponse } from "next/server";
 
-export const config = {
-  api: {
-    bodyParser: {
-      sizeLimit: "20mb",
-    },
-  },
-};
-
 export async function POST(request: Request) {
   try {
     const apiKey = process.env.OPENAI_API_KEY || "";
