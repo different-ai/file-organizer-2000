@@ -16,7 +16,11 @@ export async function POST(request: Request) {
   if (response.text) {
     const normalizedTags = response.text
       .split(",")
+      // sanitize remove all # and trim
       .map((tag: string) => tag.replace("#", "").trim())
+      // prepend hash
+      .map((tag: string) => `#${tag}`)
+
       .filter((tag: string) => !content.includes(tag));
     return NextResponse.json({ tags: normalizedTags });
   }
@@ -24,6 +28,7 @@ export async function POST(request: Request) {
   // if returned by generateObject
   const normalizedTags = response.object.tags
     .map((tag: string) => tag.replace("#", "").trim())
+    .map((tag: string) => `#${tag}`)
     .filter((tag: string) => !content.includes(tag));
 
   return NextResponse.json({ tags: normalizedTags });
