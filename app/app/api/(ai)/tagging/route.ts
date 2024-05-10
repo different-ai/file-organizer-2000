@@ -1,5 +1,3 @@
-import { generateText } from "ai";
-import { models } from "@/lib/models";
 import { NextResponse } from "next/server";
 import { generateModelCall } from "./prompt";
 
@@ -20,7 +18,6 @@ export async function POST(request: Request) {
       .map((tag: string) => tag.replace("#", "").trim())
       // prepend hash
       .map((tag: string) => `#${tag}`)
-
       .filter((tag: string) => !content.includes(tag));
     return NextResponse.json({ tags: normalizedTags });
   }

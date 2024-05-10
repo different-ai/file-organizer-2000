@@ -33,7 +33,7 @@ async function UserManagement() {
 
 export default async function Component() {
   return (
-    <div className="flex min-h-screen bg-white py-12 px-4 sm:px-6 lg:px-8 flex-col-reverse sm:flex-row">
+    <div className="flex min-h-screen bg-white py-12 px-4 sm:px-6 lg:px-8 flex-col-reverse sm:flex-row-reverse">
       <div className="flex-1 space-y-8 flex flex-col justify-center">
         <div className="text-center flex flex-col justify-center items-center">
           <h2 className="text-3xl font-extrabold">
