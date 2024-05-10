@@ -238,19 +238,20 @@ export default class FileOrganizer extends Plugin {
     name: string
   ): Promise<{ type: string; formattingInstruction: string } | null> {
     const classifications = await this.getClassifications();
-    logMessage("classifications", classifications);
+    const templateNames = classifications.map((c) => c.type);
+
     const response = await makeApiRequest(() =>
       requestUrl({
         url: `${
           this.settings.useCustomServer
             ? this.settings.customServerUrl
             : this.settings.defaultServerUrl
-        }/api/folders`,
+        }/api/classify`,
         method: "POST",
         body: JSON.stringify({
           content,
           fileName: name,
-          folders: classifications.map((c) => c.type),
+          templateNames,
         }),
         headers: {
           "Content-Type": "application/json",
@@ -258,12 +259,10 @@ export default class FileOrganizer extends Plugin {
         },
       })
     );
-    const { folder: whatTypeOfDocument } = await response.json;
-
-    logMessage("whatTypeOfDocument", whatTypeOfDocument);
+    const { documentType } = await response.json;
 
     const selectedClassification = classifications.find(
-      (c) => c.type.toLowerCase() === whatTypeOfDocument.toLowerCase()
+      (c) => c.type.toLowerCase() === documentType.toLowerCase()
     );
 
     return selectedClassification || null;
