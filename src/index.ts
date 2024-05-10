@@ -172,6 +172,9 @@ export default class FileOrganizer extends Plugin {
   shouldRename(file: TFile): boolean {
     const isRenameEnabled = this.settings.renameDocumentTitle;
     const isUntitledFile = /^untitled/i.test(file.basename);
+    if (file.extension !== "md") {
+      return true;
+    }
 
     if (!isRenameEnabled) {
       return false;
@@ -579,6 +582,28 @@ export default class FileOrganizer extends Plugin {
     }
   }
 
+  async compressImage(fileContent: Buffer): Promise<Buffer> {
+    const image = await Jimp.read(fileContent);
+
+    // Check if the image is bigger than 1000 pixels in either width or height
+    if (image.getWidth() > 1000 || image.getHeight() > 1000) {
+      // Resize the image to a maximum of 1000x1000 while preserving aspect ratio
+      image.scaleToFit(1000, 1000);
+    }
+
+    const resizedImage = await image.getBufferAsync(Jimp.MIME_PNG);
+    return resizedImage;
+  }
+
+  isWebP(fileContent: Buffer): boolean {
+    // Check if the file starts with the WebP signature
+    return (
+      fileContent.slice(0, 4).toString("hex") === "52494646" &&
+      fileContent.slice(8, 12).toString("hex") === "57454250"
+    );
+  }
+
+  // main.ts
   async generateImageAnnotation(file: TFile, customPrompt?: string) {
     new Notice(
       `Generating annotation for ${file.basename} this can take up to a minute`,
@@ -591,16 +616,17 @@ export default class FileOrganizer extends Plugin {
     const imageSizeInMB2 = imageSize / (1024 * 1024);
     logMessage(`Image size: ${imageSizeInMB2.toFixed(2)} MB`);
 
-    // Resize the image to a maximum of 1000x1000 while preserving aspect ratio
-    const image = await Jimp.read(fileContent);
-    // Check if the image is bigger than 1000 pixels in either width or height
-    if (image.getWidth() > 1000 || image.getHeight() > 1000) {
-      // Resize the image to a maximum of 1000x1000 while preserving aspect ratio
-      image.scaleToFit(1000, 1000);
+    let encodedImage: string;
+
+    if (!this.isWebP(fileContent)) {
+      // Compress the image if it's not a WebP
+      const resizedImage = await this.compressImage(fileContent);
+      encodedImage = resizedImage.toString("base64");
+    } else {
+      // If it's a WebP, encode the original file content directly
+      encodedImage = fileContent.toString("base64");
     }
 
-    const resizedImage = await image.getBufferAsync(Jimp.MIME_PNG);
-    const encodedImage = resizedImage.toString("base64");
     const imageSizeInBytes = Buffer.byteLength(encodedImage, "base64");
     const imageSizeInMB = imageSizeInBytes / (1024 * 1024);
     logMessage(`Image size: ${imageSizeInMB.toFixed(2)} MB`);
