@@ -399,9 +399,12 @@ export default class FileOrganizer extends Plugin {
   ) {
     new Notice(`Moving file to ${destinationFolder} folder`, 3000);
     let destinationPath = `${destinationFolder}/${humanReadableFileName}.${file.extension}`;
+    console.log(destinationPath, "destinationPath");
     const existingFile = this.app.vault.getAbstractFileByPath(destinationPath);
+    console.log(existingFile, "existingFile");
 
     if (existingFile) {
+      console.log("File already exists");
       // If a file with the same name exists, append a Unix timestamp to the filename
       const timestamp = Date.now();
       const timestampedFileName = `${humanReadableFileName}_${timestamp}`;
@@ -411,6 +414,7 @@ export default class FileOrganizer extends Plugin {
         `File [[${humanReadableFileName}]] already exists. Renaming to [[${timestampedFileName}]]`
       );
     }
+    console.log(destinationPath, "destinationPath");
     await this.ensureFolderExists(destinationFolder);
     await this.app.vault.rename(file, `${destinationPath}`);
     await this.appendToCustomLogFile(
@@ -478,7 +482,8 @@ export default class FileOrganizer extends Plugin {
       )
       .filter((file: string) => !file.includes(this.settings.attachmentsPath))
       .filter((file: string) => !file.includes(this.settings.logFolderPath))
-      .filter((file: string) => !file.includes(this.settings.templatePaths));
+      .filter((file: string) => !file.includes(this.settings.templatePaths))
+      .filter((file: string) => !this.settings.ignoreFolders.includes(file));
 
     return similarFiles;
   }
