@@ -41,7 +41,7 @@ class FileOrganizerSettings {
   enableDocumentClassification = false;
   renameUntitledOnly = true;
 
-  OPENAI_API_KEY = "";
+  ignoreFolders = ["_FileOrganizer2000"];
 }
 
 const validAudioExtensions = ["mp3", "wav", "webm", "m4a"];
@@ -411,10 +411,8 @@ export default class FileOrganizer extends Plugin {
         `File [[${humanReadableFileName}]] already exists. Renaming to [[${timestampedFileName}]]`
       );
     }
-    await this.app.vault.rename(
-      file,
-      `${destinationFolder}/${humanReadableFileName}.${file.extension}`
-    );
+    await this.ensureFolderExists(destinationFolder);
+    await this.app.vault.rename(file, `${destinationPath}`);
     await this.appendToCustomLogFile(
       `Organized [[${humanReadableFileName}]] into ${destinationFolder}`
     );
@@ -716,6 +714,7 @@ export default class FileOrganizer extends Plugin {
     const folderPaths = allFiles
       .filter((file) => this.isTFolder(file))
       .map((folder) => folder.path);
+
     const uniqueFolders = [...new Set(folderPaths)];
     // logMessage("uniqueFolders", uniqueFolders);
     return uniqueFolders;
@@ -734,7 +733,11 @@ export default class FileOrganizer extends Plugin {
       .filter((folder) => folder !== this.settings.attachmentsPath)
       .filter((folder) => folder !== this.settings.logFolderPath)
       .filter((folder) => folder !== this.settings.pathToWatch)
-      .filter((folder) => folder !== this.settings.templatePaths);
+      .filter((folder) => folder !== this.settings.templatePaths)
+      // remove default folders
+      .filter((folder) => !this.settings.ignoreFolders.includes(folder))
+      // filter /
+      .filter((folder) => folder !== "/");
 
     const data = {
       content,
@@ -757,6 +760,7 @@ export default class FileOrganizer extends Plugin {
         },
       })
     );
+    logMessage("response", response.json);
 
     const result = await response.json;
 
