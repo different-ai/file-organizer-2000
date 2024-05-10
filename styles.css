@@ -90,6 +90,7 @@ If your plugin does not need CSS, delete this file.
 .load-similar-files-button:hover {
   background: var(--interactive-accent);
   border-color: var(--interactive-accent);
+  color: white;
 }
 
 .files-container {
