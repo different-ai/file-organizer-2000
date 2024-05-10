@@ -21,7 +21,7 @@ async function UserManagement() {
       </a>
       {isPaidUser && (
         <a href={process.env.NEXT_PUBLIC_STRIPE_CUSTOMER_PORTAL_URL}>
-          <Button>Manage Subscription</Button>
+          <Button variant="secondary">Manage Subscription</Button>
         </a>
       )}
       {!isPaidUser && <CheckoutButton />}
