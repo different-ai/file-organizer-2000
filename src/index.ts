@@ -494,17 +494,21 @@ export default class FileOrganizer extends Plugin {
 
     // Check if a file with the same name already exists in the destination folder
     const existingFile = this.app.vault.getAbstractFileByPath(destinationPath);
+    console.log(existingFile, "existingFile");
 
     if (existingFile) {
       // If a file with the same name exists, append a Unix timestamp to the filename
       const timestamp = Date.now();
       const timestampedFileName = `${newFileName}_${timestamp}`;
+      console.log(timestampedFileName, "timestampedFileName");
       destinationPath = `${destinationFolder}/${timestampedFileName}.${file.extension}`;
+      console.log(destinationPath, "destinationPath");
 
       await this.appendToCustomLogFile(
         `File [[${newFileName}.${file.extension}]] already exists. Renaming to [[${timestampedFileName}.${file.extension}]]`
       );
     }
+    console.log(destinationPath, "destinationPath");
 
     await this.app.vault.rename(file, destinationPath);
 
