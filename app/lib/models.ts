@@ -11,3 +11,11 @@ export const models = {
   llama3: ollama("llama3"),
   "llama3-gradient": ollama("llama3-gradient"),
 };
+
+export function getModel(modelName: string) {
+  const model = models[modelName];
+  if (!model) {
+    throw new Error(`Model '${modelName}' is not configured.`);
+  }
+  return model;
+}
