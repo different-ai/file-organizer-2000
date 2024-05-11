@@ -387,7 +387,14 @@ export default class FileOrganizer extends Plugin {
     }
     const safeName = formatToSafeName(name);
 
-    const outputFilePath = `/${this.settings.defaultDestinationPath}/${safeName}.md`;
+    let outputFilePath = `/${this.settings.defaultDestinationPath}/${safeName}.md`;
+    const existingFile = this.app.vault.getAbstractFileByPath(outputFilePath);
+
+    if (existingFile) {
+      const timestamp = Date.now();
+      const timestampedFileName = `${safeName}_${timestamp}`;
+      outputFilePath = `/${this.settings.defaultDestinationPath}/${timestampedFileName}.md`;
+    }
     const file = await this.app.vault.create(outputFilePath, content);
     return file;
   }
@@ -399,12 +406,9 @@ export default class FileOrganizer extends Plugin {
   ) {
     new Notice(`Moving file to ${destinationFolder} folder`, 3000);
     let destinationPath = `${destinationFolder}/${humanReadableFileName}.${file.extension}`;
-    console.log(destinationPath, "destinationPath");
     const existingFile = this.app.vault.getAbstractFileByPath(destinationPath);
-    console.log(existingFile, "existingFile");
 
     if (existingFile) {
-      console.log("File already exists");
       // If a file with the same name exists, append a Unix timestamp to the filename
       const timestamp = Date.now();
       const timestampedFileName = `${humanReadableFileName}_${timestamp}`;
@@ -414,7 +418,6 @@ export default class FileOrganizer extends Plugin {
         `File [[${humanReadableFileName}]] already exists. Renaming to [[${timestampedFileName}]]`
       );
     }
-    console.log(destinationPath, "destinationPath");
     await this.ensureFolderExists(destinationFolder);
     await this.app.vault.rename(file, `${destinationPath}`);
     await this.appendToCustomLogFile(
@@ -425,7 +428,6 @@ export default class FileOrganizer extends Plugin {
 
   async getSimilarFiles(fileToCheck: TFile): Promise<string[]> {
     if (!fileToCheck) {
-      console.log("No active file found.");
       return [];
     }
 
@@ -494,21 +496,17 @@ export default class FileOrganizer extends Plugin {
 
     // Check if a file with the same name already exists in the destination folder
     const existingFile = this.app.vault.getAbstractFileByPath(destinationPath);
-    console.log(existingFile, "existingFile");
 
     if (existingFile) {
       // If a file with the same name exists, append a Unix timestamp to the filename
       const timestamp = Date.now();
       const timestampedFileName = `${newFileName}_${timestamp}`;
-      console.log(timestampedFileName, "timestampedFileName");
       destinationPath = `${destinationFolder}/${timestampedFileName}.${file.extension}`;
-      console.log(destinationPath, "destinationPath");
 
       await this.appendToCustomLogFile(
         `File [[${newFileName}.${file.extension}]] already exists. Renaming to [[${timestampedFileName}.${file.extension}]]`
       );
     }
-    console.log(destinationPath, "destinationPath");
 
     await this.app.vault.rename(file, destinationPath);
 
@@ -711,7 +709,6 @@ export default class FileOrganizer extends Plugin {
     );
 
     const result = await response.json;
-    console.log(result, "test");
     return result.tags;
   }
   isTFolder(file: TAbstractFile): file is TFolder {
@@ -857,21 +854,7 @@ export default class FileOrganizer extends Plugin {
     this.addRibbonIcon("sparkle", "Fo2k Assistant View", () => {
       this.showAssistantSidebar();
     });
-    // add commands
-    this.addCommand({
-      id: "find-similar-files",
-      name: "Find Similar Files",
-      callback: async () => {
-        const activeFile = this.app.workspace.getActiveFile();
-        if (!activeFile) {
-          console.log("No active file found.");
-          return;
-        }
-        const similarFiles = await this.getSimilarFiles(activeFile);
-        console.log("Most similar files:", similarFiles);
-        // Display the similar files in the UI or perform further actions
-      },
-    });
+
 
     // on layout ready register event handlers
     this.addCommand({
