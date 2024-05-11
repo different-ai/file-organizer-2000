@@ -179,7 +179,7 @@ export default class FileOrganizer extends Plugin {
     const isRenameEnabled = this.settings.renameDocumentTitle;
     const isUntitledFile = /^untitled/i.test(file.basename);
     if (file.extension !== "md") {
-      console.log("Not renaming non markdown file");
+      console.log("renaming non markdown file");
       return true;
     }
 
@@ -674,8 +674,9 @@ export default class FileOrganizer extends Plugin {
     const data = {
       content,
       fileName,
-      tags: sortedTags,
+      tags: sortedTags.map((tag) => tag[0]),
     };
+
 
     const response = await makeApiRequest(() =>
       requestUrl({

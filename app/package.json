@@ -31,7 +31,7 @@
     "eslint-config-next": "13.5.4",
     "lucide-react": "^0.287.0",
     "next": "^14.2.2",
-    "ollama-ai-provider": "^0.3.0",
+    "ollama-ai-provider": "^0.5.0",
     "openai": "^4.33.1",
     "postcss": "8.4.31",
     "posthog-node": "^4.0.0",

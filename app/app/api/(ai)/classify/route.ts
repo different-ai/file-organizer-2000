@@ -1,21 +1,11 @@
-import { generateText } from "ai";
-import { models } from "@/lib/models";
+import { generateModelCall } from "./prompt";
 import { NextResponse } from "next/server";
-import { generatePrompt } from "./prompt";
 
 export async function POST(request: Request) {
   const { content, fileName, templateNames } = await request.json();
-  const modelName = process.env.MODEL_CLASSIFY || "gpt-4-turbo";
-  const model = models[modelName];
-  console.log({templateNames});
-  const prompt = generatePrompt(modelName, content, fileName, templateNames);
-  console.log({prompt});
 
-  const { text: documentType } = await generateText({
-    model,
-    prompt: prompt,
-  });
-  console.log({documentType});
+  const call = generateModelCall(content, fileName, templateNames);
+  const response = await call();
 
-  return NextResponse.json({ documentType: documentType.trim() });
+  return NextResponse.json({ documentType: response.documentType });
 }

@@ -1,5 +1,5 @@
 import { anthropic } from "@ai-sdk/anthropic";
-import { createOpenAI, openai } from "@ai-sdk/openai";
+import { openai } from "@ai-sdk/openai";
 import { ollama } from "ollama-ai-provider";
 
 export const models = {
@@ -9,5 +9,5 @@ export const models = {
   "gpt-3.5-turbo": openai("gpt-3.5-turbo"),
   "gpt-4-turbo": openai("gpt-4-turbo"),
   llama3: ollama("llama3"),
-
+  "llama3-gradient": ollama("llama3-gradient"),
 };

@@ -23,7 +23,7 @@ To configure the models used by File Organizer 2000, you need to set the appropr
 - `MODEL_FOLDERS`: Specifies the model to use for suggesting folder locations. Default is `gpt-4-turbo`.
 - `MODEL_RELATIONSHIPS`: Specifies the model to use for determining file relationships. Default is `gpt-4-turbo`.
 - `MODEL_NAME`: Specifies the model to use for generating file names. Default is `gpt-4-turbo`.
-- `TEXT_MODEL`: Specifies the model to use for text formatting tasks. Default is `gpt-4-turbo`.
+- `MODEL_TEXT`: Specifies the model to use for text formatting tasks. Default is `gpt-4-turbo`.
 
 To change the model for a specific task, simply update the corresponding environment variable with the desired model name from the available options.
 

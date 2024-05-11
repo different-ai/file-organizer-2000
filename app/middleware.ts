@@ -136,7 +136,6 @@ export default async function middleware(
   req: NextRequest,
   event: NextFetchEvent
 ) {
-  console.log("ENABLE_USER_MANAGEMENT", process.env.ENABLE_USER_MANAGEMENT);
   // case  1 user management/ requires clerk
   if (process.env.ENABLE_USER_MANAGEMENT === "true") {
     return userManagementMiddleware()(req, event);

@@ -30,14 +30,6 @@ export const UserUsageTable = pgTable(
   }
 );
 
-export const getUserUsageByUserId = async (userId: string) => {
-  const selectResult = await db
-    .select()
-    .from(UserUsageTable)
-    .where(eq(UserUsageTable.userId, userId))
-    .execute();
-  console.log("User Usage Results for User ID:", userId, selectResult);
-};
 // createOrUpdateUserUsage will create a new record if one does not exist for the user
 // or update the existing record if one does exist
 export async function createOrUpdateUserUsage(
@@ -60,7 +52,7 @@ export async function createOrUpdateUserUsage(
         billingCycle,
       },
     });
-  console.log("User Usage Results for User ID:", userId, result);
+  console.log("User Usage Results for User ID:", userId);
   // Record created or updated, exit the retry loop
 }
 
