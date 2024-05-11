@@ -10,6 +10,7 @@ export const models = {
   "gpt-4-turbo": openai("gpt-4-turbo"),
   llama3: ollama("llama3"),
   "llama3-gradient": ollama("llama3-gradient"),
+  "llava-llama3": ollama("llava-llama3"),
 };
 
 export function getModel(modelName: string) {
