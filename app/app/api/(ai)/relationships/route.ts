@@ -14,7 +14,9 @@ export async function POST(request: Request) {
 
   const response = await generateObject({
     model,
-    schema: z.array(z.string()),
+    schema: z.object({
+      similarFiles: z.array(z.string()).nullable(),
+    }),
     prompt,
   });
 

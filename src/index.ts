@@ -42,6 +42,7 @@ class FileOrganizerSettings {
   renameUntitledOnly = true;
 
   ignoreFolders = ["_FileOrganizer2000"];
+  stagingFolder = ".fileorganizer2000/staging";
 }
 
 const validAudioExtensions = ["mp3", "wav", "webm", "m4a"];
@@ -98,52 +99,26 @@ export default class FileOrganizer extends Plugin {
 
       await this.checkAndCreateFolders();
 
-      // do not allow files bigger than 25MB
-      if (originalFile.stat.size > 2500000 && oldPath) {
-        new Notice(
-          `We do not support files bigger than 25M atm, resending to ${oldPath}`,
-          8000
-        );
-        this.moveContent(originalFile, originalFile.basename, oldPath);
-        return;
-      }
-      if (originalFile.stat.size > 2500000) {
-        new Notice(
-          `We do not support files bigger than 25M atm,  sending to default path ${this.settings.defaultDestinationPath}`,
-          8000
-        );
-        this.moveContent(
-          originalFile,
-          originalFile.basename,
-          this.settings.defaultDestinationPath
-        );
-        return;
-      }
 
       const text = await this.getTextFromFile(originalFile);
 
-      let humanReadableFileName = originalFile.basename;
+      let documentName = originalFile.basename;
 
       if (this.shouldRename(originalFile)) {
         new Notice(`Generating name for ${text.substring(0, 20)}...`, 3000);
-        humanReadableFileName = await this.generateNameFromContent(text);
+        documentName = await this.generateNameFromContent(text);
       }
 
       let processedFile = originalFile;
 
       if (validMediaExtensions.includes(originalFile.extension)) {
-        // if file bigger than 25M resend to old path
-        const annotatedFile = await this.createFileFromContent(text);
+        const annotatedFile = await this.createMarkdownFileFromText(text);
+        await this.moveToDefaultAttachmentFolder(originalFile, documentName);
+        await this.appendAttachment(annotatedFile, originalFile);
+        processedFile = annotatedFile;
         this.appendToCustomLogFile(
           `Generated annotation for [[${annotatedFile.basename}]]`
         );
-
-        await this.moveToDefaultAttachmentFolder(
-          originalFile,
-          humanReadableFileName
-        );
-        await this.appendAttachment(annotatedFile, originalFile);
-        processedFile = annotatedFile;
       }
 
       if (this.settings.enableDocumentClassification) {
@@ -157,17 +132,42 @@ export default class FileOrganizer extends Plugin {
           );
       }
 
-      await this.renameTagAndOrganize(
-        processedFile,
+      const destinationFolder = await this.getAIClassifiedFolder(
         text,
-        humanReadableFileName
+        processedFile
       );
-      await this.tagAsProcessed(processedFile);
-    } catch (e) {
+      new Notice(`Most similar folder: ${destinationFolder}`, 3000);
+      await this.appendAlias(processedFile, processedFile.basename);
+      const movedFile = await this.moveFile(
+        processedFile,
+        documentName,
+        destinationFolder
+      );
+      await this.appendToCustomLogFile(
+        `Organized [[${movedFile.basename}]] into ${destinationFolder}`
+      );
+
+      await this.appendSimilarTags(text, movedFile);
+
+      await this.tagAsProcessed(movedFile);
+
+      // Create a metadata file to store processing information
+      await this.createMetadataFile(movedFile, { originalPath: oldPath });
+    } catch (error) {
       new Notice(`Error processing ${originalFile.basename}`, 3000);
-      new Notice(e.message, 6000);
-      console.error(e);
+      new Notice(error.message, 6000);
+      console.error(error);
     }
+  }
+
+  async createMetadataFile(file: TFile, metadata: Record<string, any>) {
+    const metadataFolderPath = "_FileOrganizer2000/.metadata";
+    await this.ensureFolderExists(metadataFolderPath);
+
+    const metadataFilePath = `${metadataFolderPath}/${file.basename}.json`;
+    const metadataContent = JSON.stringify(metadata, null, 2);
+
+    await this.app.vault.create(metadataFilePath, metadataContent);
   }
   shouldRename(file: TFile): boolean {
     const isRenameEnabled = this.settings.renameDocumentTitle;
@@ -304,7 +304,7 @@ export default class FileOrganizer extends Plugin {
   async organizeFile(file: TFile, content: string) {
     const destinationFolder = await this.getAIClassifiedFolder(content, file);
     new Notice(`Most similar folder: ${destinationFolder}`, 3000);
-    await this.moveContent(file, file.basename, destinationFolder);
+    await this.moveFile(file, file.basename, destinationFolder);
   }
 
   // let's unpack this into processFileV2
@@ -312,7 +312,7 @@ export default class FileOrganizer extends Plugin {
     const destinationFolder = await this.getAIClassifiedFolder(content, file);
     new Notice(`Most similar folder: ${destinationFolder}`, 3000);
     await this.appendAlias(file, file.basename);
-    await this.moveContent(file, fileName, destinationFolder);
+    await this.moveFile(file, fileName, destinationFolder);
     await this.appendSimilarTags(content, file);
   }
 
@@ -375,7 +375,7 @@ export default class FileOrganizer extends Plugin {
   }
 
   // creates a .md file with a humean readable name guessed from the content
-  async createFileFromContent(content: string) {
+  async createMarkdownFileFromText(content: string) {
     const now = new Date();
     const formattedNow = now.toISOString().replace(/[-:.TZ]/g, "");
     let name = formattedNow;
@@ -399,7 +399,7 @@ export default class FileOrganizer extends Plugin {
     return file;
   }
 
-  async moveContent(
+  async moveFile(
     file: TFile,
     humanReadableFileName: string,
     destinationFolder = ""
@@ -420,9 +420,6 @@ export default class FileOrganizer extends Plugin {
     }
     await this.ensureFolderExists(destinationFolder);
     await this.app.vault.rename(file, `${destinationPath}`);
-    await this.appendToCustomLogFile(
-      `Organized [[${humanReadableFileName}]] into ${destinationFolder}`
-    );
     return file;
   }
 
@@ -492,24 +489,7 @@ export default class FileOrganizer extends Plugin {
 
   async moveToDefaultAttachmentFolder(file: TFile, newFileName: string) {
     const destinationFolder = this.settings.attachmentsPath;
-    let destinationPath = `${destinationFolder}/${newFileName}.${file.extension}`;
-
-    // Check if a file with the same name already exists in the destination folder
-    const existingFile = this.app.vault.getAbstractFileByPath(destinationPath);
-
-    if (existingFile) {
-      // If a file with the same name exists, append a Unix timestamp to the filename
-      const timestamp = Date.now();
-      const timestampedFileName = `${newFileName}_${timestamp}`;
-      destinationPath = `${destinationFolder}/${timestampedFileName}.${file.extension}`;
-
-      await this.appendToCustomLogFile(
-        `File [[${newFileName}.${file.extension}]] already exists. Renaming to [[${timestampedFileName}.${file.extension}]]`
-      );
-    }
-
-    await this.app.vault.rename(file, destinationPath);
-
+    await this.moveFile(file, newFileName, destinationFolder);
     await this.appendToCustomLogFile(
       `Moved [[${newFileName}.${file.extension}]] to attachments`
     );
@@ -656,6 +636,8 @@ export default class FileOrganizer extends Plugin {
     this.ensureFolderExists(this.settings.attachmentsPath);
     this.ensureFolderExists(this.settings.logFolderPath);
     this.ensureFolderExists(this.settings.templatePaths);
+    // used to store info about changes
+    this.ensureFolderExists(this.settings.stagingFolder);
   }
 
   async getBacklog() {
@@ -817,11 +799,12 @@ export default class FileOrganizer extends Plugin {
     const now = new Date();
     const formattedDate = moment(now).format("YYYY-MM-DD");
     const logFilePath = `${this.settings.logFolderPath}/${formattedDate}.md`;
-
-    let logFile = this.app.vault.getAbstractFileByPath(logFilePath);
-    if (!logFile) {
-      logFile = await this.app.vault.create(logFilePath, "");
+    // if does not exist create it
+    if (!(await this.app.vault.adapter.exists(logFilePath))) {
+      await this.app.vault.create(logFilePath, "");
     }
+
+    const logFile = this.app.vault.getAbstractFileByPath(logFilePath);
     if (!(logFile instanceof TFile)) {
       throw new Error(`File with path ${logFilePath} is not a markdown file`);
     }
@@ -840,9 +823,9 @@ export default class FileOrganizer extends Plugin {
       return true;
     }
 
-    if (!this.settings.API_KEY && !this.settings.OPENAI_API_KEY) {
+    if (!this.settings.API_KEY) {
       throw new Error(
-        "Please enter your API Key or OpenAI API Key in the settings of the FileOrganizer plugin."
+        "Please enter your API Key in the settings of the FileOrganizer plugin."
       );
     }
   }
@@ -854,7 +837,6 @@ export default class FileOrganizer extends Plugin {
     this.addRibbonIcon("sparkle", "Fo2k Assistant View", () => {
       this.showAssistantSidebar();
     });
-
 
     // on layout ready register event handlers
     this.addCommand({

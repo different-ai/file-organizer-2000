@@ -8,11 +8,12 @@ export function generateModelCall(
   tags: string[]
 ): any {
   const modelName = process.env.MODEL_TAGGING || "gpt-4-turbo";
+  console.log("tags", tags.join("\n "));
   console.log("using model", modelName, "for tagging");
   const model = models[modelName];
   switch (modelName) {
     case "gpt-4-turbo": {
-      const prompt = `Given the text "${content}" (and if relevant ${fileName}), which of the following tags are the 5 most relevant? ${tags.join(
+      const prompt = `Given the text "${content}" (and if relevant ${fileName}), identify the at most 3 relevant tags from the following list: ${tags.join(
         ", "
       )}`;
 
@@ -20,9 +21,11 @@ export function generateModelCall(
         generateObject({
           model,
           schema: z.object({
-            tags: z.array(z.string()),
+            tags: z.array(z.string()).max(3),
           }),
           prompt: prompt,
+          system:
+            "Respond with up to 5 tags from the provided list. If a relevant tag is not in the list, return null.",
         });
     }
     default: {

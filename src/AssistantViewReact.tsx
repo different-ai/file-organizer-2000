@@ -64,6 +64,8 @@ const SimilarTags: React.FC<{
                 {tag}
               </span>
             ))}
+          {!suggestions && <div>No tags found</div>}
+          {suggestions && suggestions.length === 0 && <div>No tags found</div>}
         </div>
       )}
     </div>
@@ -100,18 +102,11 @@ const AliasSuggestionBox: React.FC<{
           {alias && (
             <>
               <span className="alias">{alias}</span>
-              {/* <button
-                className="add-alias-button"
-                onClick={() =>
-                  plugin.appendToFrontMatter(file!, "alias", alias)
-                }
-              >
-                Add
-              </button> */}
+
               <button
                 className="rename-alias-button"
                 onClick={() => {
-                  plugin.moveContent(file!, alias);
+                  plugin.moveFile(file!, alias);
                 }}
               >
                 Rename File
@@ -154,7 +149,7 @@ const SimilarFolderBox: React.FC<{
           <span className="folder">{folder}</span>
           <button
             className="move-note-button"
-            onClick={() => plugin.moveContent(file!, file!.basename, folder)}
+            onClick={() => plugin.moveFile(file!, file!.basename, folder)}
           >
             Move
           </button>
