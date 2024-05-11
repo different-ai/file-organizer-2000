@@ -7,6 +7,7 @@ import {
   moment,
   WorkspaceLeaf,
   requestUrl,
+  normalizePath,
 } from "obsidian";
 import useVision from "./modules/vision";
 import { logMessage, formatToSafeName } from "../utils";
@@ -99,7 +100,6 @@ export default class FileOrganizer extends Plugin {
 
       await this.checkAndCreateFolders();
 
-
       const text = await this.getTextFromFile(originalFile);
 
       let documentName = originalFile.basename;
@@ -113,7 +113,7 @@ export default class FileOrganizer extends Plugin {
 
       if (validMediaExtensions.includes(originalFile.extension)) {
         const annotatedFile = await this.createMarkdownFileFromText(text);
-        await this.moveToDefaultAttachmentFolder(originalFile, documentName);
+        await this.moveToAttachmentFolder(originalFile, documentName);
         await this.appendAttachment(annotatedFile, originalFile);
         processedFile = annotatedFile;
         this.appendToCustomLogFile(
@@ -152,7 +152,7 @@ export default class FileOrganizer extends Plugin {
       await this.tagAsProcessed(movedFile);
 
       // Create a metadata file to store processing information
-      await this.createMetadataFile(movedFile, { originalPath: oldPath });
+      // await this.createMetadataFile(movedFile, { originalPath: oldPath });
     } catch (error) {
       new Notice(`Error processing ${originalFile.basename}`, 3000);
       new Notice(error.message, 6000);
@@ -406,17 +406,13 @@ export default class FileOrganizer extends Plugin {
   ) {
     new Notice(`Moving file to ${destinationFolder} folder`, 3000);
     let destinationPath = `${destinationFolder}/${humanReadableFileName}.${file.extension}`;
-    const existingFile = this.app.vault.getAbstractFileByPath(destinationPath);
-
-    if (existingFile) {
-      // If a file with the same name exists, append a Unix timestamp to the filename
+    if (await this.app.vault.adapter.exists(normalizePath(destinationPath))) {
+      await this.appendToCustomLogFile(
+        `File [[${humanReadableFileName}]] already exists. Renaming to [[${humanReadableFileName}]]`
+      );
       const timestamp = Date.now();
       const timestampedFileName = `${humanReadableFileName}_${timestamp}`;
       destinationPath = `${destinationFolder}/${timestampedFileName}.${file.extension}`;
-
-      await this.appendToCustomLogFile(
-        `File [[${humanReadableFileName}]] already exists. Renaming to [[${timestampedFileName}]]`
-      );
     }
     await this.ensureFolderExists(destinationFolder);
     await this.app.vault.rename(file, `${destinationPath}`);
@@ -487,7 +483,7 @@ export default class FileOrganizer extends Plugin {
     return similarFiles;
   }
 
-  async moveToDefaultAttachmentFolder(file: TFile, newFileName: string) {
+  async moveToAttachmentFolder(file: TFile, newFileName: string) {
     const destinationFolder = this.settings.attachmentsPath;
     await this.moveFile(file, newFileName, destinationFolder);
     await this.appendToCustomLogFile(
@@ -800,7 +796,7 @@ export default class FileOrganizer extends Plugin {
     const formattedDate = moment(now).format("YYYY-MM-DD");
     const logFilePath = `${this.settings.logFolderPath}/${formattedDate}.md`;
     // if does not exist create it
-    if (!(await this.app.vault.adapter.exists(logFilePath))) {
+    if (!(await this.app.vault.adapter.exists(normalizePath(logFilePath)))) {
       await this.app.vault.create(logFilePath, "");
     }
 
