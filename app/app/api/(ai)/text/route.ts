@@ -19,6 +19,7 @@ export async function POST(request: Request) {
       Text to format:
       ${content}
       Respond with only the formatted text.`,
+      system: "assume markdown",
     });
 
     return NextResponse.json({ message: result.object.fromattedText });
