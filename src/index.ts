@@ -112,12 +112,18 @@ export default class FileOrganizer extends Plugin {
       let processedFile = originalFile;
 
       if (validMediaExtensions.includes(originalFile.extension)) {
-        const annotatedFile = await this.createMarkdownFileFromText(text);
-        await this.moveToAttachmentFolder(originalFile, documentName);
-        await this.appendAttachment(annotatedFile, originalFile);
-        processedFile = annotatedFile;
+        const attachementFile = originalFile;
+        const annotatedMarkdownFile = await this.createMarkdownFileFromText(
+          text
+        );
+        console.log("annotatedMarkdownFile", annotatedMarkdownFile);
+        await this.moveToAttachmentFolder(attachementFile, documentName);
+        console.log("moved to attachment folder");
+        await this.appendAttachment(annotatedMarkdownFile, originalFile);
+        console.log("appended attachment");
+        processedFile = annotatedMarkdownFile;
         this.appendToCustomLogFile(
-          `Generated annotation for [[${annotatedFile.basename}]]`
+          `Generated annotation for [[${annotatedMarkdownFile.basename}]]`
         );
       }
 
@@ -173,6 +179,7 @@ export default class FileOrganizer extends Plugin {
     const isRenameEnabled = this.settings.renameDocumentTitle;
     const isUntitledFile = /^untitled/i.test(file.basename);
     if (file.extension !== "md") {
+      console.log("Not renaming non markdown file");
       return true;
     }
 
@@ -351,8 +358,8 @@ export default class FileOrganizer extends Plugin {
   }
 
   // adds an attachment to a file using the ![[attachment]] syntax
-  async appendAttachment(processedFile: TFile, attachmentFile: TFile) {
-    await this.app.vault.append(processedFile, `![[${attachmentFile.name}]]`);
+  async appendAttachment(markdownFile: TFile, attachmentFile: TFile) {
+    await this.app.vault.append(markdownFile, `![[${attachmentFile.name}]]`);
   }
   async appendToFrontMatter(file: TFile, key: string, value: string) {
     await this.app.fileManager.processFrontMatter(file, (frontmatter) => {
