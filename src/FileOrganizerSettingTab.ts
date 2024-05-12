@@ -138,6 +138,18 @@ export class FileOrganizerSettingTab extends PluginSettingTab {
             await this.plugin.saveSettings();
           })
       );
+    
+    new Setting(containerEl)
+      .setName("Disable Image Annotation")
+      .setDesc("Disable the annotation of images during file processing.")
+      .addToggle((toggle) =>
+        toggle
+          .setValue(this.plugin.settings.disableImageAnnotation)
+          .onChange(async (value) => {
+            this.plugin.settings.disableImageAnnotation = value;
+            await this.plugin.saveSettings();
+          })
+      );
 
     //toggle setting for enabling/disabling document title renaming
     new Setting(containerEl)

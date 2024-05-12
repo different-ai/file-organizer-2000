@@ -44,6 +44,7 @@ class FileOrganizerSettings {
 
   ignoreFolders = ["_FileOrganizer2000"];
   stagingFolder = ".fileorganizer2000/staging";
+  disableImageAnnotation = false;
 }
 
 const validAudioExtensions = ["mp3", "wav", "webm", "m4a"];
@@ -112,19 +113,36 @@ export default class FileOrganizer extends Plugin {
       let processedFile = originalFile;
 
       if (validMediaExtensions.includes(originalFile.extension)) {
-        const attachementFile = originalFile;
-        const annotatedMarkdownFile = await this.createMarkdownFileFromText(
-          text
-        );
-        console.log("annotatedMarkdownFile", annotatedMarkdownFile);
-        await this.moveToAttachmentFolder(attachementFile, documentName);
-        console.log("moved to attachment folder");
-        await this.appendAttachment(annotatedMarkdownFile, originalFile);
-        console.log("appended attachment");
-        processedFile = annotatedMarkdownFile;
-        this.appendToCustomLogFile(
-          `Generated annotation for [[${annotatedMarkdownFile.basename}]]`
-        );
+        const attachmentFile = originalFile;
+        if (
+          this.settings.disableImageAnnotation &&
+          validImageExtensions.includes(originalFile.extension)
+        ) {
+          // If image annotation is disabled and the file is an image, move the image to the AI-classified folder
+          const destinationFolder = await this.getAIClassifiedFolder(
+            text,
+            processedFile
+          );
+          await this.moveFile(attachmentFile, documentName, destinationFolder);
+          await this.appendToCustomLogFile(
+            `Moved [[${documentName}.${attachmentFile.extension}]] to ${destinationFolder}`
+          );
+          return;
+        } else {
+          // If image annotation is enabled or the file is an audio, proceed with the existing logic
+          const annotatedMarkdownFile = await this.createMarkdownFileFromText(
+            text
+          );
+          console.log("annotatedMarkdownFile", annotatedMarkdownFile);
+          await this.moveToAttachmentFolder(attachmentFile, documentName);
+          console.log("moved to attachment folder");
+          await this.appendAttachment(annotatedMarkdownFile, originalFile);
+          console.log("appended attachment");
+          processedFile = annotatedMarkdownFile;
+          this.appendToCustomLogFile(
+            `Generated annotation for [[${annotatedMarkdownFile.basename}]]`
+          );
+        }
       }
 
       if (this.settings.enableDocumentClassification) {
@@ -676,7 +694,6 @@ export default class FileOrganizer extends Plugin {
       fileName,
       tags: sortedTags.map((tag) => tag[0]),
     };
-
 
     const response = await makeApiRequest(() =>
       requestUrl({
