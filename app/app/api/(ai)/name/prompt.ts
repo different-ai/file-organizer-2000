@@ -31,6 +31,26 @@ export function generateModelCall(
         return { name: response.object.name };
       };
     }
+    case "llama3": {
+      return async () => {
+        const response = await generateText({
+          model,
+          prompt: `Title Generator: Create a concise title for the following document, using only alphanumeric characters and spaces. The title must be exactly 30 characters long, including spaces. Do not include any special characters or punctuation.
+              Document content:
+              ${document}`,
+          system: `Ensure the output is exactly 30 characters long, alphanumeric and spaces only, and directly answers as a title.`,
+        });
+
+        const parsedResponse: ModelResponse = {
+          name: response.text
+            .trim()
+            .replace(/[^a-zA-Z0-9\s]/g, "")
+            .slice(0, 30),
+        };
+
+        return parsedResponse;
+      };
+    }
 
     default: {
       return async () => {

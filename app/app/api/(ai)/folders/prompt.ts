@@ -35,13 +35,14 @@ export function generateModelCall(
       return async () => {
         const response = await generateText({
           model,
-          prompt: `Review the content: "${content}" and the file name: "${fileName}". Decide which of the following folders is the most suitable: ${folders.join(
+          prompt: `Given the content: "${content}" and the file name: "${fileName}", identify the most suitable folder from the following options: ${folders.join(
             ", "
-          )}. Base your decision on the relevance of the content and the file name to the folder themes. If no existing folder is suitable, suggest a new folder name that would appropriately categorize this file.`,
+          )}. If none are suitable, suggest a new folder name.`,
+          system: `you always answer a folder name\n\nOnly answer a folder name. If none of the existing folders are suitable, suggest a new folder name. nothing else no text before after`,
         });
 
         const parsedResponse: ModelResponse = {
-          suggestedFolder: response.text.trim(),
+          suggestedFolder: response.text.split("\n")[0].trim(), // This will take only the first line of the response, assuming it's the folder name.
         };
 
         return parsedResponse;
