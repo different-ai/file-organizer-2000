@@ -20,7 +20,8 @@ npm run build
 ## checkout the tutorials file to use w/ ollama
 OPENAI_API_KEY=sk-youropenaikey npm start
 ## go back to root of repo
-cd ..
-## run the standalone script
-npm run standalone
+cd ../standalone
+## i use bun atm for this
+bun index.ts
+
 ```

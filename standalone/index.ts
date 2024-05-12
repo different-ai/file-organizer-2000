@@ -1,3 +1,4 @@
+// ignore file for ts
 import fs from "fs";
 import path from "path";
 import { promisify } from "util";
@@ -5,7 +6,7 @@ import moment from "moment";
 import Jimp from "jimp";
 import chokidar from "chokidar";
 import fetch from "node-fetch";
-import pdf from "pdf-parse";
+// import pdf from "pdf-parse";
 
 const readFile = promisify(fs.readFile);
 const writeFile = promisify(fs.writeFile);
@@ -44,9 +45,11 @@ const validAudioExtensions = ["mp3", "wav", "webm", "m4a"];
 const validImageExtensions = ["png", "jpg", "jpeg", "gif", "svg", "webp"];
 const validMediaExtensions = [...validAudioExtensions, ...validImageExtensions];
 const validTextExtensions = ["md", "txt"];
-const validExtensions = [...validMediaExtensions, ...validTextExtensions, 'pdf'];
-
-
+const validExtensions = [
+  ...validMediaExtensions,
+  ...validTextExtensions,
+  "pdf",
+];
 
 const isValidExtension = (extension: string) => {
   if (!validExtensions.includes(extension)) {
@@ -61,6 +64,7 @@ async function makeApiRequest<T>(requestFn: () => Promise<T>): Promise<T> {
     return await requestFn();
   } catch (error) {
     console.error("API request error:", error);
+    // @ts-ignore
     if (error.status === 429) {
       console.log("You have run out of credits. Please upgrade your plan.");
     } else {
@@ -184,8 +188,11 @@ class FileOrganizer {
 
       await this.tagAsProcessed(movedFilePath);
     } catch (error) {
+      // @ts-ignore
       console.log(`Error processing ${path.basename(originalFilePath)}`);
+      // @ts-ignore
       console.log(error.message);
+      // @ts-ignore
       console.error(error);
     }
   }
@@ -288,6 +295,7 @@ class FileOrganizer {
         }
       )
     );
+    // @ts-ignore
     const { documentType } = await response.json();
 
     const selectedClassification = classifications.find(
@@ -322,6 +330,7 @@ class FileOrganizer {
         }
       )
     );
+    // @ts-ignore
     const { message } = await response.json();
 
     await writeFile(filePath, message, "utf8");
@@ -374,21 +383,21 @@ class FileOrganizer {
     } else if (validAudioExtensions.includes(fileExtension)) {
       content = await this.generateTranscriptFromAudio(filePath);
     } else if (fileExtension === "pdf") {
-      content = await this.extractTextFromPDF(filePath);
+      // content = await this.extractTextFromPDF(filePath);
     }
 
     return content;
   }
-  async extractTextFromPDF(filePath: string): Promise<string> {
-    try {
-      const dataBuffer = await readFile(filePath);
-      const data = await pdf(dataBuffer);
-      return data.text;
-    } catch (error) {
-      console.error(`Error extracting text from PDF: ${error}`);
-      return '';
-    }
-  }
+  // async extractTextFromPDF(filePath: string): Promise<string> {
+  //   try {
+  //     const dataBuffer = await readFile(filePath);
+  //     const data = await pdf(dataBuffer);
+  //     return data.text;
+  //   } catch (error) {
+  //     console.error(`Error extracting text from PDF: ${error}`);
+  //     return '';
+  //   }
+  // }
 
   async appendAttachment(markdownFilePath: string, attachmentFilePath: string) {
     await fs.promises.appendFile(
@@ -449,7 +458,9 @@ class FileOrganizer {
     try {
       name = await this.generateNameFromContent(content);
     } catch (error) {
+      // @ts-ignore
       console.error("Error processing file:", error.status);
+      // @ts-ignore
       console.log("Could not set a human readable name.");
     }
     const safeName = formatToSafeName(name);
@@ -537,6 +548,7 @@ class FileOrganizer {
     );
 
     const result = await response.json();
+    // @ts-ignore
     const similarFiles = result.similarFiles
       .filter((file: string) => !file.includes(this.settings.pathToWatch))
       .filter(
@@ -578,6 +590,7 @@ class FileOrganizer {
     );
 
     const data = await response.json();
+    // @ts-ignore
     const safeName = formatToSafeName(data.name);
     return safeName;
   }
@@ -620,6 +633,7 @@ class FileOrganizer {
         })
       );
       const data = await result.json();
+      // @ts-ignore
       const postProcessedText = data.transcription;
       return postProcessedText;
     } catch (e) {
@@ -748,6 +762,7 @@ class FileOrganizer {
     );
 
     const result = await response.json();
+    // @ts-ignore
     return result.tags;
   }
 
@@ -804,9 +819,11 @@ class FileOrganizer {
 
     const result = await response.json();
 
+    // @ts-ignore
     if (result.folder === "None") {
       destinationFolder = this.settings.defaultDestinationPath;
     } else {
+      // @ts-ignore
       destinationFolder = result.folder;
     }
 
@@ -949,6 +966,7 @@ async function useVision(
   );
   const result = await response.json();
 
+  // @ts-ignore
   return result.text;
 }
 
