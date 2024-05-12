@@ -1,21 +1,6 @@
-# Unkey with Clerk
-
-## Getting Started
-
-First, make sure you have a Clerk and Unkey account, and add them to the `.env` you can see an example in the `.env.example`.
-
-```bash
-NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=pk_test_xxxxxxxxxxxxxx
-CLERK_SECRET_KEY=sk_test_xxxxxxxxxxxxxx
-UNKEY_API_ID=api_xxxxxxxxxxxxxx
-UNKEY_ROOT_KEY=unkey_xxxxxxxxxxxxxx
+```
+npm i 
+npm build
+OPENAI_API_KEY=<your-api-key> npm start
 ```
 
-Then you can run the server locally
-```bash
-npm run dev
-```
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
-
-
- npx drizzle-kit push:pg
