@@ -12,8 +12,8 @@ File Organizer 2000 currently supports the following models:
 - `gpt-3.5-turbo` (OpenAI)
 - `gpt-4-turbo` (OpenAI)
 - `llama3` (Ollama) (points to localhost as ollama expects)
-- 
-(see app/lib/models.ts for an up-to-date list)
+- `lava-llama3`
+(see [model.ts](../app/lib/models.ts) for an up-to-date list)
 
 ## Configuring Models
 
