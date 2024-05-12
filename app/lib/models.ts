@@ -11,6 +11,7 @@ export const models = {
   llama3: ollama("llama3"),
   "llama3-gradient": ollama("llama3-gradient"),
   "llava-llama3": ollama("llava-llama3"),
+  codegemma: ollama("codegemma"),
 };
 
 export function getModel(modelName: string) {

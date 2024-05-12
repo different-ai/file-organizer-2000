@@ -30,6 +30,31 @@ export function generateModelCall(
         return { tags: response.object.tags };
       };
     }
+    case "codegemma": {
+      return async () => {
+        const response = await generateText({
+          model,
+          prompt: `TASK -> Classify this content:
+  CONTENT -> ${content}
+  
+  Select up to three tags from the list, plus one new tag:
+  TAGS -> ${tags.join(", ")}
+  
+  Only respond with tags, then STOP.
+  FORMAT -> tag1, tag2, tag3,`,
+        });
+
+        const parsedResponse: ModelResponse = {
+          tags: response.text
+            .split(",")
+            .map((tag) => tag.trim())
+            // if it is inside the content, do not return the tag
+            .filter((tag) => content.includes(tag) === false),
+        };
+
+        return parsedResponse;
+      };
+    }
 
     default: {
       return async () => {
