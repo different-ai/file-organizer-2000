@@ -7,7 +7,7 @@
     "dev": "node esbuild.config.mjs",
     "build": "node esbuild.config.mjs production",
     "version": "node version-bump.mjs && git add manifest.json versions.json",
-    "standalone": "ts-node ./desktop/index.ts"
+    "standalone": "ts-node ./standalone/index.ts"
   },
   "keywords": [],
   "author": "",
@@ -32,6 +32,7 @@
     "moment": "^2.29.4",
     "node-fetch": "^3.3.2",
     "openai": "^4.19.0",
+    "pdf-parse": "^1.1.1",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "ts-node": "^10.9.2"

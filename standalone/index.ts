@@ -5,6 +5,7 @@ import moment from "moment";
 import Jimp from "jimp";
 import chokidar from "chokidar";
 import fetch from "node-fetch";
+import pdf from "pdf-parse";
 
 const readFile = promisify(fs.readFile);
 const writeFile = promisify(fs.writeFile);
@@ -43,7 +44,9 @@ const validAudioExtensions = ["mp3", "wav", "webm", "m4a"];
 const validImageExtensions = ["png", "jpg", "jpeg", "gif", "svg", "webp"];
 const validMediaExtensions = [...validAudioExtensions, ...validImageExtensions];
 const validTextExtensions = ["md", "txt"];
-const validExtensions = [...validMediaExtensions, ...validTextExtensions];
+const validExtensions = [...validMediaExtensions, ...validTextExtensions, 'pdf'];
+
+
 
 const isValidExtension = (extension: string) => {
   if (!validExtensions.includes(extension)) {
@@ -370,8 +373,21 @@ class FileOrganizer {
       content = await this.generateImageAnnotation(filePath);
     } else if (validAudioExtensions.includes(fileExtension)) {
       content = await this.generateTranscriptFromAudio(filePath);
+    } else if (fileExtension === "pdf") {
+      content = await this.extractTextFromPDF(filePath);
     }
+
     return content;
+  }
+  async extractTextFromPDF(filePath: string): Promise<string> {
+    try {
+      const dataBuffer = await readFile(filePath);
+      const data = await pdf(dataBuffer);
+      return data.text;
+    } catch (error) {
+      console.error(`Error extracting text from PDF: ${error}`);
+      return '';
+    }
   }
 
   async appendAttachment(markdownFilePath: string, attachmentFilePath: string) {
