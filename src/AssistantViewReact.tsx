@@ -105,7 +105,7 @@ const AliasSuggestionBox: React.FC<{
               <button
                 className="rename-alias-button"
                 onClick={() => {
-                  plugin.moveFile(file!, alias);
+                  plugin.moveFile(file!, alias, file?.parent.path);
                 }}
               >
                 Rename File
