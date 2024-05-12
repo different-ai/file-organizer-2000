@@ -1,6 +1,8 @@
 # Configuring File Organizer 2000 to Use Different Models
 
-File Organizer 2000 supports using different AI models for various tasks such as tagging, folder suggestions, relationships, and more. This tutorial will guide you through configuring the `models.ts` file to use different models and explain their purpose.
+File Organizer 2000 supports using different AI models for various tasks such as tagging, folder suggestions, relationships, and more. 
+
+- [Configure our `.env` to use the models you want](../app/.env.example)
 
 ## Available Models
 
