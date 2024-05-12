@@ -20,7 +20,7 @@ export function generateModelCall(
           schema: z.object({
             name: z
               .string()
-              .max(30)
+              .max(50)
               .regex(/^[a-zA-Z0-9\s]+$/),
           }),
           prompt: `You are a helpful assistant. You only answer short (less than 30 chars titles). You do not use any special character just text. Use something very specific to the content not a generic title.

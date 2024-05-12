@@ -278,12 +278,10 @@ export const AssistantView: React.FC<AssistantViewProps> = ({ plugin }) => {
   const [noteContent, setNoteContent] = React.useState<string>("");
 
   React.useEffect(() => {
-    const onFileOpen = async () => {
-      setActiveFile(null);
-      setNoteContent("");
-      const file = plugin.app.workspace.getActiveFile();
+    const onFileOpen = async (activeFile: TFile) => {
       if (plugin.app.workspace.rightSplit.collapsed) return;
-
+      const file = activeFile || plugin.app.workspace.getActiveFile();
+      console.log("file", file);
       if (!file || !file.path) {
         setActiveFile(null);
         setNoteContent("");
