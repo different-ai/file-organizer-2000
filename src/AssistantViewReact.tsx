@@ -35,7 +35,6 @@ const SimilarTags: React.FC<{
       setSuggestions(null);
       setLoading(true);
       try {
-        console.log("firing calls");
         const tags = await plugin.getSimilarTags(content, file.basename);
         setSuggestions(tags);
       } catch (error) {
@@ -113,6 +112,7 @@ const AliasSuggestionBox: React.FC<{
               </button>
             </>
           )}
+          {!alias && <div>No suggestions found</div>}
         </div>
       )}
     </div>
@@ -278,7 +278,9 @@ export const AssistantView: React.FC<AssistantViewProps> = ({ plugin }) => {
   const [noteContent, setNoteContent] = React.useState<string>("");
 
   React.useEffect(() => {
-    const onFileOpen = async (activeFile: TFile) => {
+    const onFileOpen = async (activeFile?: TFile) => {
+      // force slow down
+      await new Promise((resolve) => setTimeout(resolve, 500));
       if (plugin.app.workspace.rightSplit.collapsed) return;
       const file = activeFile || plugin.app.workspace.getActiveFile();
       console.log("file", file);
@@ -311,6 +313,7 @@ export const AssistantView: React.FC<AssistantViewProps> = ({ plugin }) => {
       }
 
       setActiveFile(file);
+
       const content = await plugin.getTextFromFile(file);
       setNoteContent(content);
     };
