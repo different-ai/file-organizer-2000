@@ -33,10 +33,10 @@ class FileOrganizerSettings {
   templatePaths = "_FileOrganizer2000/Templates";
   transcribeEmbeddedAudio = false;
   enableDocumentClassification = false;
-  renameUntitledOnly = true;
+  renameUntitledOnly = false;
   ignoreFolders = ["_FileOrganizer2000"];
   stagingFolder = ".fileorganizer2000/staging";
-  disableImageAnnotation = false;
+  disableImageAnnotation = true;
 }
 
 const validAudioExtensions = ["mp3", "wav", "webm", "m4a"];
@@ -81,6 +81,11 @@ class FileOrganizer {
       this.validateAPIKey();
 
       const fileExtension = path.extname(originalFilePath).slice(1);
+
+      // if ds store ignore
+      if (path.basename(originalFilePath) === ".DS_Store") {
+        return;
+      }
       if (!isValidExtension(fileExtension)) {
         return;
       }
@@ -94,11 +99,8 @@ class FileOrganizer {
         path.extname(originalFilePath)
       );
 
-      if (this.shouldRename(originalFilePath)) {
-        console.log(`Generating name for ${text.substring(0, 20)}...`);
-        documentName = await this.generateNameFromContent(text);
-      }
-
+      console.log(`Generating name for ${text.substring(0, 20)}...`);
+      documentName = await this.generateNameFromContent(text);
       let processedFilePath = originalFilePath;
 
       if (validMediaExtensions.includes(fileExtension)) {

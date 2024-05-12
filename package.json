@@ -6,7 +6,8 @@
   "scripts": {
     "dev": "node esbuild.config.mjs",
     "build": "node esbuild.config.mjs production",
-    "version": "node version-bump.mjs && git add manifest.json versions.json"
+    "version": "node version-bump.mjs && git add manifest.json versions.json",
+    "standalone": "ts-node ./desktop/index.ts"
   },
   "keywords": [],
   "author": "",
@@ -32,6 +33,7 @@
     "node-fetch": "^3.3.2",
     "openai": "^4.19.0",
     "react": "^18.3.1",
-    "react-dom": "^18.3.1"
+    "react-dom": "^18.3.1",
+    "ts-node": "^10.9.2"
   }
 }
