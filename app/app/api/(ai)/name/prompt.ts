@@ -9,7 +9,7 @@ interface ModelResponse {
 export function generateModelCall(
   document: string
 ): () => Promise<ModelResponse> {
-  const modelName = process.env.MODEL_NAME || "gpt-4-turbo";
+  const modelName = process.env.MODEL_NAME || "gpt-4o";
   const model = getModel(modelName);
 
   switch (modelName) {

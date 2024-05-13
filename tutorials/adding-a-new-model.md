@@ -9,7 +9,7 @@ This README explains how to extend the prompts for existing models in File Organ
 
 1. Identify the endpoint and model you want to modify:
    - Determine the endpoint to customize the prompt for (e.g., `/api/(ai)/tagging`).
-   - Identify the model to extend the prompt for (e.g., `gpt-4-turbo`).
+   - Identify the model to extend the prompt for (e.g., `gpt-4o`).
 
 2. Open the corresponding prompt file:
    - Navigate to the prompt file for the desired endpoint (e.g., `app/api/(ai)/tagging/prompt.ts`).

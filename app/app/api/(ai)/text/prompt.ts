@@ -11,7 +11,7 @@ export function generateModelCall(
   content: string,
   formattingInstruction: string
 ): () => Promise<ModelResponse> {
-  const modelName = process.env.MODEL_TEXT || "gpt-4-turbo";
+  const modelName = process.env.MODEL_TEXT || "gpt-4o";
   const model = getModel(modelName);
   console.log("text is using model", modelName);
   switch (modelName) {

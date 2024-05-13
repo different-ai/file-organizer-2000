@@ -9,7 +9,7 @@ export async function POST(request: Request) {
   try {
     const payload = await request.json();
 
-    const modelName = process.env.MODEL_VISION || "gpt-4-turbo";
+    const modelName = process.env.MODEL_VISION || "gpt-4o";
     const model = getModel(modelName);
     console.log("vision is using model", modelName);
     const messages = generateMessages(model, payload.image);

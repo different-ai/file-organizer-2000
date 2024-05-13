@@ -10,10 +10,12 @@ export function generateModelCall(
   activeFileContent: string,
   files: { name: string }[]
 ): () => Promise<ModelResponse> {
-  const modelName = process.env.MODEL_RELATIONSHIPS || "gpt-4-turbo";
+  const modelName = process.env.MODEL_RELATIONSHIPS || "gpt-4o";
+  console.log('similar files /api/relationships is using model:', modelName);
   const model = models[modelName];
 
   switch (modelName) {
+    case "gpt-4-turbo":
     case "gpt-4o": {
       return async () => {
         const response = await generateObject({

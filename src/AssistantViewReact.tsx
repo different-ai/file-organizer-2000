@@ -78,15 +78,29 @@ const AliasSuggestionBox: React.FC<{
 }> = ({ plugin, file, content }) => {
   const [alias, setAlias] = React.useState<string | null>(null);
   const [loading, setLoading] = React.useState<boolean>(false);
+  const [error, setError] = React.useState<string | null>(null);
 
   React.useEffect(() => {
     const suggestAlias = async () => {
-      if (!content) return;
+      if (!content) {
+        setAlias(null);
+        return;
+      }
       setAlias(null);
       setLoading(true);
-      const suggestedAlias = await plugin.generateNameFromContent(content);
-      setAlias(suggestedAlias);
-      setLoading(false);
+      setError(null);
+      try {
+        const suggestedAlias = await plugin.generateNameFromContent(content);
+        setAlias(suggestedAlias);
+        if (!suggestedAlias) {
+          setError("No alias could be generated.");
+        }
+      } catch (err) {
+        console.error("Failed to generate alias:", err);
+        setError("Error generating alias.");
+      } finally {
+        setLoading(false);
+      }
     };
     suggestAlias();
   }, [content]);
@@ -96,23 +110,29 @@ const AliasSuggestionBox: React.FC<{
       <SectionHeader text="Suggested title" icon="💡" />
       {loading ? (
         <div>Loading...</div>
+      ) : error ? (
+        <div className="error-message">{}</div>
       ) : (
         <div className="alias-container">
-          {alias && (
+          {alias ? (
             <>
               <span className="alias">{alias}</span>
-
               <button
                 className="rename-alias-button"
                 onClick={() => {
-                  plugin.moveFile(file!, alias, file?.parent.path);
+                  if (file && file.parent) {
+                    plugin.moveFile(file, alias, file.parent.path);
+                  } else {
+                    console.error("File or file parent is null.");
+                  }
                 }}
               >
                 Rename File
               </button>
             </>
+          ) : (
+            <div>No suggestions found</div>
           )}
-          {!alias && <div>No suggestions found</div>}
         </div>
       )}
     </div>

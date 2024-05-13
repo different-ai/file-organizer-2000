@@ -11,7 +11,7 @@ export function generateModelCall(
   fileName: string,
   folders: string[]
 ): () => Promise<ModelResponse> {
-  const modelName = process.env.MODEL_FOLDERS || "gpt-4-turbo";
+  const modelName = process.env.MODEL_FOLDERS || "gpt-4o";
   const model = models[modelName];
 
   switch (modelName) {

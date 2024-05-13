@@ -10,7 +10,7 @@ export function generateModelCall(
   fileName: string,
   templateNames: string[]
 ): () => Promise<ModelResponse> {
-  const modelName = process.env.MODEL_CLASSIFY || "gpt-4-turbo";
+  const modelName = process.env.MODEL_CLASSIFY || "gpt-4o";
   const model = models[modelName];
 
   return async () => {
