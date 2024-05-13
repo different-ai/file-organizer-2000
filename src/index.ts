@@ -434,9 +434,15 @@ export default class FileOrganizer extends Plugin {
     // Extract the folder part from file.path
     const filePathParts = file.path.split("/");
     filePathParts.pop(); // Remove the last part (filename)
-    const folderPartOfFile = filePathParts.join("/");
-    // only show notice if the folder is different; i.e. when the file is moved to a different folder, not when user is renaming the file
-    if (folderPartOfFile !== destinationFolder) {
+    let folderPartOfFile = filePathParts.join("/");
+
+    // Normalize the folder paths for comparison
+    folderPartOfFile = folderPartOfFile === "/" ? "" : folderPartOfFile; // Normalize root directory representation
+    let normalizedDestinationFolder =
+      destinationFolder === "/" ? "" : destinationFolder;
+
+    // Only show notice if the folder is different; i.e., when the file is moved to a different folder, not when the user is renaming the file
+    if (folderPartOfFile !== normalizedDestinationFolder) {
       new Notice(`Moving file to ${destinationFolder} folder`, 3000);
     }
 
