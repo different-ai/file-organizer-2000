@@ -28,7 +28,6 @@ const SimilarTags: React.FC<{
 
   React.useEffect(() => {
     const suggestTags = async () => {
-      if (!file) return;
       if (!content) {
         setSuggestions([]);
         return;
@@ -45,7 +44,7 @@ const SimilarTags: React.FC<{
       }
     };
     suggestTags();
-  }, [file, content]);
+  }, [content]);
 
   return (
     <div className="assistant-section tags-section">
@@ -82,7 +81,7 @@ const AliasSuggestionBox: React.FC<{
 
   React.useEffect(() => {
     const suggestAlias = async () => {
-      if (!file || !content) return;
+      if (!content) return;
       setAlias(null);
       setLoading(true);
       const suggestedAlias = await plugin.generateNameFromContent(content);
@@ -90,7 +89,7 @@ const AliasSuggestionBox: React.FC<{
       setLoading(false);
     };
     suggestAlias();
-  }, [file, content]);
+  }, [content]);
 
   return (
     <div className="assistant-section alias-section">
@@ -130,7 +129,7 @@ const SimilarFolderBox: React.FC<{
 
   React.useEffect(() => {
     const suggestFolder = async () => {
-      if (!file || !content) return;
+      if (!content) return;
       setFolder(null);
       setLoading(true);
       const suggestedFolder = await plugin.getAIClassifiedFolder(content, file);
@@ -138,7 +137,7 @@ const SimilarFolderBox: React.FC<{
       setLoading(false);
     };
     suggestFolder();
-  }, [file, content]);
+  }, [content]);
 
   return (
     <div className="assistant-section folder-section">
@@ -234,7 +233,7 @@ const ClassificationBox: React.FC<{
 
   React.useEffect(() => {
     const fetchClassification = async () => {
-      if (!file || !content) return;
+      if (!content) return;
       try {
         setClassification(null);
         setLoading(true);
@@ -248,7 +247,7 @@ const ClassificationBox: React.FC<{
       }
     };
     fetchClassification();
-  }, [file, content]);
+  }, [content]);
 
   if (!classification) return null;
 
@@ -282,11 +281,11 @@ export const AssistantView: React.FC<AssistantViewProps> = ({ plugin }) => {
   const [noteContent, setNoteContent] = React.useState<string>("");
 
   React.useEffect(() => {
-    const onFileOpen = async (activeFile?: TFile) => {
+    const onFileOpen = async () => {
       // force slow down
       await new Promise((resolve) => setTimeout(resolve, 500));
       if (plugin.app.workspace.rightSplit.collapsed) return;
-      const file = activeFile || plugin.app.workspace.getActiveFile();
+      const file = plugin.app.workspace.getActiveFile();
       console.log("file", file);
       if (!file || !file.path) {
         setActiveFile(null);
