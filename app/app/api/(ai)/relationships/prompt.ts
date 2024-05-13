@@ -11,30 +11,31 @@ export function generateModelCall(
   files: { name: string }[]
 ): () => Promise<ModelResponse> {
   const modelName = process.env.MODEL_RELATIONSHIPS || "gpt-4o";
-  console.log('similar files /api/relationships is using model:', modelName);
+  console.log("similar files /api/relationships is using model:", modelName);
   const model = models[modelName];
 
   switch (modelName) {
     case "gpt-4-turbo":
     case "gpt-4o": {
-      return async () => {
-        const response = await generateObject({
-          model,
-          schema: z.object({
-            similarFiles: z.array(z.string()).nullable(),
-          }),
-          prompt: `Analyze the content of the active file and compare it with the following files:
+      const prompt = `Analyze the content of the active file and compare it with the following files:
 
           Active File Content:
           ${activeFileContent}
           
           List of Files:
-          ${files
-            .map((file: { name: string }) => `${file.name}`)
-            .join(", ")}
+          ${files.map((file: { name: string }) => `${file.name}`).join(", ")}
           
-          Determine which five files are most similar to the active file based on their content. Provide a ranked list of the top 5 similar file names, each on a new line. If no files are similar, return null.`,
+          Determine which five files are most similar to the active file based on their content. Provide a ranked list of the top 5 similar file names, each on a new line. If no files are similar, return null.`;
+
+      return async () => {
+        const response = await generateObject({
+          model,
+          schema: z.object({
+            similarFiles: z.array(z.string()).max(5).default([]),
+          }),
+          prompt,
         });
+        console.log("response", response);
 
         return { similarFiles: response.object.similarFiles || [] };
       };
