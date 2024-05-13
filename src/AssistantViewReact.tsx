@@ -2,6 +2,7 @@ import * as React from "react";
 import { TFile } from "obsidian";
 import FileOrganizer from ".";
 import { logMessage } from "../utils";
+import { log } from "console";
 
 interface AssistantViewProps {
   plugin: FileOrganizer;
@@ -238,6 +239,7 @@ const ClassificationBox: React.FC<{
         setClassification(null);
         setLoading(true);
         const result = await plugin.classifyContent(content, file.basename);
+        logMessage("ClassificationBox result", result);
         setClassification(result);
       } catch (error) {
         console.error(error);
@@ -258,6 +260,8 @@ const ClassificationBox: React.FC<{
         onClick={async () => {
           try {
             setFormatting(true);
+            logMessage("ClassificationBox class", classification);
+            logMessage("ClassificationBox content", content);
             await plugin.formatContent(file!, content, classification);
             setFormatting(false);
           } catch (error) {

@@ -1,5 +1,6 @@
-import { models } from "@/lib/models";
+import { getModel, models } from "@/lib/models";
 import { generateObject, generateText } from "ai";
+import { get } from "http";
 import { z } from "zod";
 
 interface ModelResponse {
@@ -11,8 +12,8 @@ export function generateModelCall(
   formattingInstruction: string
 ): () => Promise<ModelResponse> {
   const modelName = process.env.MODEL_TEXT || "gpt-4-turbo";
-  const model = models[modelName];
-
+  const model = getModel(modelName);
+  console.log("text is using model", modelName);
   switch (modelName) {
     case "gpt-4-turbo": {
       return async () => {

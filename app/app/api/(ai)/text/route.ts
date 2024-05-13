@@ -1,10 +1,11 @@
 import { generateModelCall } from "./prompt";
 import { NextResponse } from "next/server";
 
+export const maxDuration = 60;
+
 export async function POST(request: Request) {
   try {
     const { content, formattingInstruction } = await request.json();
-    console.log("text is using model", process.env.MODEL_TEXT);
 
     const call = generateModelCall(content, formattingInstruction);
     const response = await call();
