@@ -15,7 +15,7 @@ export function generateModelCall(
   const model = getModel(modelName);
   console.log("text is using model", modelName);
   switch (modelName) {
-    case "gpt-4-turbo": {
+    gpt-4o: {
       return async () => {
         const response = await generateObject({
           model,

@@ -15,7 +15,8 @@ export function generateModelCall(
   const model = models[modelName];
 
   switch (modelName) {
-    case "gpt-4-turbo": {
+    case "gpt-4o":
+    gpt-4o: {
       return async () => {
         const response = await generateObject({
           model,

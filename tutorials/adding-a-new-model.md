@@ -18,13 +18,13 @@ This README explains how to extend the prompts for existing models in File Organ
    - Find the `generatePrompt` function within the prompt file.
 
 4. Modify the prompt template for the desired model:
-   - Locate the `case` statement for the model you want to modify (e.g., `case "gpt-4-turbo"`).
+   - Locate the `case` statement for the model you want to modify (e.g., `gpt-4o`).
    - Update the prompt template string to customize the model's behavior for that endpoint.
 
    ```typescript
    export function generatePrompt(model: string, content: string, fileName: string, tags: string[]): string {
      switch (model) {
-       case "gpt-4-turbo":
+       gpt-4o:
          return `Given the text "${content}" (and if relevant ${fileName}), generate up to 5 relevant tags from the following list: ${tags.join(", ")}. Respond with only the tags, separated by commas.`;
        // ...existing cases
        default:

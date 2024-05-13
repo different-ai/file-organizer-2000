@@ -1,6 +1,6 @@
 export const generateMessages = (model: string, image: string): any => {
   switch (model) {
-    case "gpt-4-turbo":
+    gpt-4o:
     default:
       return [
         {
