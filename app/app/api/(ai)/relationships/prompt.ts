@@ -31,7 +31,7 @@ export function generateModelCall(
         const response = await generateObject({
           model,
           schema: z.object({
-            similarFiles: z.array(z.string()).max(5).default([]),
+            similarFiles: z.array(z.string()),
           }),
           prompt,
         });
