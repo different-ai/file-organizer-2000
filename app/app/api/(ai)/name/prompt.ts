@@ -11,6 +11,7 @@ export function generateModelCall(
 ): () => Promise<ModelResponse> {
   const modelName = process.env.MODEL_NAME || "gpt-4o";
   const model = getModel(modelName);
+  console.log('generate name /api/name is using model:', modelName);
 
   switch (modelName) {
     case "gpt-4o": {
