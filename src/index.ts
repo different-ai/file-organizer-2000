@@ -14,6 +14,7 @@ import { logMessage, formatToSafeName } from "../utils";
 import { FileOrganizerSettingTab } from "./FileOrganizerSettingTab";
 import { ASSISTANT_VIEW_TYPE, AssistantViewWrapper } from "./AssistantView";
 import Jimp from "jimp";
+
 type TagCounts = {
   [key: string]: number;
 };
@@ -429,8 +430,16 @@ export default class FileOrganizer extends Plugin {
     humanReadableFileName: string,
     destinationFolder = ""
   ) {
-    new Notice(`Moving file to ${destinationFolder} folder`, 3000);
     let destinationPath = `${destinationFolder}/${humanReadableFileName}.${file.extension}`;
+    // Extract the folder part from file.path
+    const filePathParts = file.path.split("/");
+    filePathParts.pop(); // Remove the last part (filename)
+    const folderPartOfFile = filePathParts.join("/");
+    // only show notice if the folder is different; i.e. when the file is moved to a different folder, not when user is renaming the file
+    if (folderPartOfFile !== destinationFolder) {
+      new Notice(`Moving file to ${destinationFolder} folder`, 3000);
+    }
+
     if (await this.app.vault.adapter.exists(normalizePath(destinationPath))) {
       await this.appendToCustomLogFile(
         `File [[${humanReadableFileName}]] already exists. Renaming to [[${humanReadableFileName}]]`
