@@ -2,7 +2,7 @@ import * as React from "react";
 import { TFile } from "obsidian";
 import FileOrganizer from ".";
 import { logMessage } from "../utils";
-import SkeletonLoader from "./SkeletonLoader";
+import { log } from "console";
 
 interface AssistantViewProps {
   plugin: FileOrganizer;
@@ -35,7 +35,7 @@ const SimilarTags: React.FC<{
       setSuggestions(null);
       setLoading(true);
       try {
-        const tags = await plugin.getSimilarTags(content, file?.basename || "");
+        const tags = await plugin.getSimilarTags(content, file.basename);
         setSuggestions(tags);
       } catch (error) {
         console.error(error);
@@ -50,11 +50,7 @@ const SimilarTags: React.FC<{
     <div className="assistant-section tags-section">
       <SectionHeader text="Similar tags" icon="🏷️" />
       {loading ? (
-        <div className="tags-container">
-          <SkeletonLoader height="2em" />
-          <SkeletonLoader height="2em" />
-          <SkeletonLoader height="2em" />
-        </div>
+        <div>Loading...</div>
       ) : (
         <div className="tags-container">
           {suggestions &&
@@ -75,7 +71,6 @@ const SimilarTags: React.FC<{
   );
 };
 
-// Apply similar changes to other components like AliasSuggestionBox, SimilarFolderBox, etc.
 const AliasSuggestionBox: React.FC<{
   plugin: FileOrganizer;
   file: TFile | null;
@@ -116,7 +111,7 @@ const AliasSuggestionBox: React.FC<{
       {loading ? (
         <div>Loading...</div>
       ) : error ? (
-        <div className="error-message">{error}</div>
+        <div className="error-message">{}</div>
       ) : (
         <div className="alias-container">
           {alias ? (
@@ -153,49 +148,31 @@ const SimilarFolderBox: React.FC<{
   const [loading, setLoading] = React.useState<boolean>(false);
 
   React.useEffect(() => {
-    const suggestFolders = async () => {
-      if (!content) {
-        setFolder(null);
-        return;
-      }
-      if (!file) {
-        return;
-      }
+    const suggestFolder = async () => {
+      if (!content) return;
       setFolder(null);
       setLoading(true);
-      try {
-        const folder = await plugin.getAIClassifiedFolder(content, file);
-        setFolder(folder);
-      } catch (error) {
-        console.error(error);
-      } finally {
-        setLoading(false);
-      }
+      const suggestedFolder = await plugin.getAIClassifiedFolder(content, file);
+      setFolder(suggestedFolder);
+      setLoading(false);
     };
-    suggestFolders();
+    suggestFolder();
   }, [content]);
 
   return (
-    <div className="assistant-section folders-section">
-      <SectionHeader text="Similar folders" icon="📁" />
+    <div className="assistant-section folder-section">
+      <SectionHeader text="Suggested folder" icon="📁" />
       {loading ? (
-        <div className="folders-container">
-          <SkeletonLoader height="2em" />
-          <SkeletonLoader height="2em" />
-          <SkeletonLoader height="2em" />
-        </div>
+        <div>Loading...</div>
       ) : (
-        <div className="folders-container">
-          {folder && (
-            <span
-              className="folder"
-              onClick={() => plugin.moveFile(file!, folder)}
-            >
-              {folder}
-            </span>
-          )}
-          {!folder && <div>No folders found</div>}
-          {folder && folder.length === 0 && <div>No folders found</div>}
+        <div className="folder-container">
+          <span className="folder">{folder}</span>
+          <button
+            className="move-note-button"
+            onClick={() => plugin.moveFile(file!, file!.basename, folder)}
+          >
+            Move
+          </button>
         </div>
       )}
     </div>
@@ -230,9 +207,8 @@ const SimilarFilesBox: React.FC<{
   return (
     <div className="assistant-section files-section">
       <SectionHeader text="Similar files" icon="📄" />
-      {loading ? (
-        <div>Loading...</div>
-      ) : (
+      {loading && <button>Loading...</button>}
+      {!loading && !filePaths && (
         <button
           onClick={fetchSimilarFiles}
           className="load-similar-files-button"
@@ -242,7 +218,6 @@ const SimilarFilesBox: React.FC<{
       )}
 
       <div className="files-container">
-        {filePaths?.length === 0 && "No similar files found"}
         {filePaths &&
           filePaths.map((filePath, index) => (
             <div key={index} className="file">
@@ -282,10 +257,7 @@ const ClassificationBox: React.FC<{
       try {
         setClassification(null);
         setLoading(true);
-        const result = await plugin.classifyContent(
-          content,
-          file?.basename || ""
-        );
+        const result = await plugin.classifyContent(content, file.basename);
         logMessage("ClassificationBox result", result);
         setClassification(result);
       } catch (error) {
@@ -310,6 +282,7 @@ const ClassificationBox: React.FC<{
             logMessage("ClassificationBox class", classification);
             logMessage("ClassificationBox content", content);
             await plugin.formatContent(file!, content, classification);
+            setFormatting(false);
           } catch (error) {
             console.error(error);
           } finally {
@@ -326,18 +299,23 @@ const ClassificationBox: React.FC<{
 export const AssistantView: React.FC<AssistantViewProps> = ({ plugin }) => {
   const [activeFile, setActiveFile] = React.useState<TFile | null>(null);
   const [noteContent, setNoteContent] = React.useState<string>("");
-  const [loading, setLoading] = React.useState<boolean>(false);
 
   React.useEffect(() => {
     const onFileOpen = async () => {
-      setLoading(true);
+      // force slow down
       await new Promise((resolve) => setTimeout(resolve, 500));
       if (plugin.app.workspace.rightSplit.collapsed) return;
       const file = plugin.app.workspace.getActiveFile();
-      if (!file || !file.path || file.extension !== "md") {
+      console.log("file", file);
+      if (!file || !file.path) {
         setActiveFile(null);
         setNoteContent("");
-        setLoading(false);
+        return;
+      }
+      // if it's not a markdown file, don't show the assistant
+      if (file.extension !== "md") {
+        setActiveFile(null);
+        setNoteContent("");
         return;
       }
 
@@ -354,14 +332,13 @@ export const AssistantView: React.FC<AssistantViewProps> = ({ plugin }) => {
       if (isInSettingsPath) {
         setActiveFile(null);
         setNoteContent("");
-        setLoading(false);
         return;
       }
 
       setActiveFile(file);
+
       const content = await plugin.getTextFromFile(file);
       setNoteContent(content);
-      setLoading(false);
     };
     const fileOpenEventRef = plugin.app.workspace.on("file-open", onFileOpen);
     onFileOpen();
@@ -385,33 +362,24 @@ export const AssistantView: React.FC<AssistantViewProps> = ({ plugin }) => {
     <div className="assistant-container">
       <SectionHeader text="Looking at" icon="👀" />
       <div className="active-note-title">{activeFile.basename}</div>
-      {loading && <div>Loading...</div>}
 
-      {!loading && (
-        <>
-          <ClassificationBox
-            plugin={plugin}
-            file={activeFile}
-            content={noteContent}
-          />
-          <SimilarTags
-            plugin={plugin}
-            file={activeFile}
-            content={noteContent}
-          />
-          <AliasSuggestionBox
-            plugin={plugin}
-            file={activeFile}
-            content={noteContent}
-          />
-          <SimilarFolderBox
-            plugin={plugin}
-            file={activeFile}
-            content={noteContent}
-          />
-          <SimilarFilesBox plugin={plugin} file={activeFile} />
-        </>
-      )}
+      <ClassificationBox
+        plugin={plugin}
+        file={activeFile}
+        content={noteContent}
+      />
+      <SimilarTags plugin={plugin} file={activeFile} content={noteContent} />
+      <AliasSuggestionBox
+        plugin={plugin}
+        file={activeFile}
+        content={noteContent}
+      />
+      <SimilarFolderBox
+        plugin={plugin}
+        file={activeFile}
+        content={noteContent}
+      />
+      <SimilarFilesBox plugin={plugin} file={activeFile} />
     </div>
   );
 };
