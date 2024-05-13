@@ -2,6 +2,7 @@ import * as React from "react";
 import { TFile } from "obsidian";
 import FileOrganizer from ".";
 import { logMessage } from "../utils";
+import SkeletonLoader from "./SkeletonLoader";
 
 interface AssistantViewProps {
   plugin: FileOrganizer;
@@ -49,7 +50,11 @@ const SimilarTags: React.FC<{
     <div className="assistant-section tags-section">
       <SectionHeader text="Similar tags" icon="🏷️" />
       {loading ? (
-        <div>Loading...</div>
+        <div className="tags-container">
+          <SkeletonLoader height="2em" />
+          <SkeletonLoader height="2em" />
+          <SkeletonLoader height="2em" />
+        </div>
       ) : (
         <div className="tags-container">
           {suggestions &&
@@ -70,6 +75,7 @@ const SimilarTags: React.FC<{
   );
 };
 
+// Apply similar changes to other components like AliasSuggestionBox, SimilarFolderBox, etc.
 const AliasSuggestionBox: React.FC<{
   plugin: FileOrganizer;
   file: TFile | null;
@@ -147,42 +153,49 @@ const SimilarFolderBox: React.FC<{
   const [loading, setLoading] = React.useState<boolean>(false);
 
   React.useEffect(() => {
-    const suggestFolder = async () => {
-      if (!content) return;
+    const suggestFolders = async () => {
+      if (!content) {
+        setFolder(null);
+        return;
+      }
+      if (!file) {
+        return;
+      }
       setFolder(null);
       setLoading(true);
       try {
-        const suggestedFolder = await plugin.getAIClassifiedFolder(content, file);
-        setFolder(suggestedFolder);
+        const folder = await plugin.getAIClassifiedFolder(content, file);
+        setFolder(folder);
       } catch (error) {
         console.error(error);
       } finally {
         setLoading(false);
       }
     };
-    suggestFolder();
+    suggestFolders();
   }, [content]);
 
   return (
-    <div className="assistant-section folder-section">
-      <SectionHeader text="Suggested folder" icon="📁" />
+    <div className="assistant-section folders-section">
+      <SectionHeader text="Similar folders" icon="📁" />
       {loading ? (
-        <div>Loading...</div>
+        <div className="folders-container">
+          <SkeletonLoader height="2em" />
+          <SkeletonLoader height="2em" />
+          <SkeletonLoader height="2em" />
+        </div>
       ) : (
-        <div className="folder-container">
-          {folder ? (
-            <>
-              <span className="folder">{folder}</span>
-              <button
-                className="move-note-button"
-                onClick={() => plugin.moveFile(file!, file!.basename, folder)}
-              >
-                Move
-              </button>
-            </>
-          ) : (
-            <div>No suggestions found</div>
+        <div className="folders-container">
+          {folder && (
+            <span
+              className="folder"
+              onClick={() => plugin.moveFile(file!, folder)}
+            >
+              {folder}
+            </span>
           )}
+          {!folder && <div>No folders found</div>}
+          {folder && folder.length === 0 && <div>No folders found</div>}
         </div>
       )}
     </div>
@@ -269,7 +282,10 @@ const ClassificationBox: React.FC<{
       try {
         setClassification(null);
         setLoading(true);
-        const result = await plugin.classifyContent(content, file?.basename || "");
+        const result = await plugin.classifyContent(
+          content,
+          file?.basename || ""
+        );
         logMessage("ClassificationBox result", result);
         setClassification(result);
       } catch (error) {

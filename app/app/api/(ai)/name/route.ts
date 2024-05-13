@@ -6,7 +6,6 @@ export async function POST(request: Request) {
     const { document } = await request.json();
 
     const call = generateModelCall(document);
-    console.log("name is using model", process.env.MODEL_NAME);
     const response = await call();
 
     return NextResponse.json({ name: response.name });

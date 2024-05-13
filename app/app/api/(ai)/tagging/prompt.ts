@@ -20,7 +20,7 @@ export function generateModelCall(
         const response = await generateObject({
           model,
           schema: z.object({
-            tags: z.array(z.string()).max(3).default(["none"]),
+            tags: z.array(z.string()).default(["none"]),
           }),
           prompt: `Given the text "${content}" (and if relevant ${fileName}), identify the at most 3 relevant tags from the following list, sorted from most commonly found to least commonly found: ${tags.join(
             ", "

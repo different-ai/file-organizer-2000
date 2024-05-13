@@ -13,6 +13,7 @@ export function generateModelCall(
   const model = getModel(modelName);
   console.log('generate name /api/name is using model:', modelName);
 
+
   switch (modelName) {
     case "gpt-4o": {
       return async () => {
@@ -21,8 +22,7 @@ export function generateModelCall(
           schema: z.object({
             name: z
               .string()
-              .max(50)
-              .regex(/^[a-zA-Z0-9\s]+$/),
+              .max(60)
           }),
           prompt: `You are a helpful assistant. You only answer short (less than 30 chars titles). You do not use any special character just text. Use something very specific to the content not a generic title.
           Give a title to this document:
