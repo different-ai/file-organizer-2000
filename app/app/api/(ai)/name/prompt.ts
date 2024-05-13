@@ -13,7 +13,7 @@ export function generateModelCall(
   const model = getModel(modelName);
 
   switch (modelName) {
-    gpt-4o: {
+    case "gpt-4o": {
       return async () => {
         const response = await generateObject({
           model,
