@@ -27,7 +27,6 @@ export class AssistantViewWrapper extends ItemView {
 
   async onOpen(): Promise<void> {
     this.root = createRoot(this.containerEl.children[1]);
-    logMessage("AssistantViewWrapper", this.plugin);
     this.root.render(
       <React.StrictMode>
         <AssistantView plugin={this.plugin} />

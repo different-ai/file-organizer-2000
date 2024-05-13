@@ -450,6 +450,7 @@ export default class FileOrganizer extends Plugin {
     }
 
     const activeFileContent = await this.app.vault.read(fileToCheck);
+    logMessage("activeFileContent", activeFileContent);
     const settingsPaths = [
       this.settings.pathToWatch,
       this.settings.defaultDestinationPath,
