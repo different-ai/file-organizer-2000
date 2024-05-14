@@ -1,6 +1,11 @@
 import { anthropic } from "@ai-sdk/anthropic";
 import { openai } from "@ai-sdk/openai";
-import { ollama } from "ollama-ai-provider";
+import { createOllama } from "ollama-ai-provider";
+
+
+const ollama = createOllama({
+  baseURL: process.env.OLLAMA_API_URL,
+});
 
 export const models = {
   "claude-3-haiku-20240307": anthropic("claude-3-haiku-20240307"),
