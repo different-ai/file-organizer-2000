@@ -1,0 +1,21 @@
+version: '3'
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "3000:3000"
+    environment:
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - SOLO_API_KEY=${SOLO_API_KEY}
+      - MODEL_VISION=${MODEL_VISION}
+      - MODEL_TEXT=${MODEL_TEXT}
+      - MODEL_NAME=${MODEL_NAME}
+      - MODEL_CLASSIFY=${MODEL_CLASSIFY}
+      - MODEL_TAGGING=${MODEL_TAGGING}
+      - MODEL_FOLDERS=${MODEL_FOLDERS}
+
+      - OLLAMA_API_URL=${OLLAMA_API_URL}
+    env_file:
+      - app/.env.local
