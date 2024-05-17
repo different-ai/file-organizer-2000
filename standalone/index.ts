@@ -1,3 +1,4 @@
+/// standalone
 // ignore file for ts
 import fs from "fs";
 import path from "path";
@@ -14,13 +15,16 @@ const mkdir = promisify(fs.mkdir);
 const exists = promisify(fs.exists);
 const rename = promisify(fs.rename);
 
+const folderToWatch = process.argv[2];
+
 class FileOrganizerSettings {
   API_KEY = "";
   useLogs = true;
-  defaultDestinationPath = "_FileOrganizer2000/Processed";
-  attachmentsPath = "_FileOrganizer2000/Processed/Attachments";
-  pathToWatch = "_FileOrganizer2000/Inbox";
-  logFolderPath = "_FileOrganizer2000/Logs";
+  defaultDestinationPath = `${folderToWatch}/Processed`;
+  attachmentsPath = `${folderToWatch}/Processed/Attachments`;
+  // should be path to watch inbox
+  pathToWatch = `${folderToWatch}/Inbox`;
+  logFolderPath = `${folderToWatch}/Logs`;
   useSimilarTags = true;
   renameDocumentTitle = false;
   useAliases = false;
@@ -32,7 +36,7 @@ class FileOrganizerSettings {
   enableEarlyAccess = false;
   earlyAccessCode = "";
   processedTag = false;
-  templatePaths = "_FileOrganizer2000/Templates";
+  templatePaths = `${folderToWatch}/Templates`;
   transcribeEmbeddedAudio = false;
   enableDocumentClassification = false;
   renameUntitledOnly = false;
@@ -488,7 +492,12 @@ class FileOrganizer {
   ) {
     console.log(`Moving file to ${destinationFolder} folder`);
     const fileExtension = path.extname(filePath);
-    let destinationPath = `${destinationFolder}/${humanReadableFileName}${fileExtension}`;
+    let destinationPath = path.join(
+      folderToWatch,
+      destinationFolder,
+      `${humanReadableFileName}${fileExtension}`
+    );
+    console.log(`Destination path: ${destinationPath}`);
 
     if (fs.existsSync(destinationPath)) {
       await this.appendToCustomLogFile(
@@ -497,8 +506,9 @@ class FileOrganizer {
       const timestamp = Date.now();
       const timestampedFileName = `${humanReadableFileName}_${timestamp}`;
       destinationPath = `${destinationFolder}/${timestampedFileName}${fileExtension}`;
+      destinationPath = path.join(folderToWatch, destinationPath);
     }
-    await this.ensureFolderExists(destinationFolder);
+    await this.ensureFolderExists(path.join(folderToWatch, destinationFolder));
     await rename(filePath, destinationPath);
     return destinationPath;
   }
@@ -772,7 +782,7 @@ class FileOrganizer {
   }
 
   async getAllFolders(): Promise<string[]> {
-    const allFiles = await this.getAllFilesInDirectory(".");
+    const allFiles = await this.getAllFilesInDirectory(folderToWatch);
     const folderPaths = allFiles
       .filter((file) => fs.statSync(file).isDirectory())
       .map((folder) => folder);
@@ -977,12 +987,13 @@ async function useVision(
 
 async function main() {
   const settings = new FileOrganizerSettings();
+  const folderToWatch = settings.pathToWatch;
   const fileOrganizer = new FileOrganizer(settings);
 
   await fileOrganizer.checkAndCreateFolders();
 
   chokidar
-    .watch(settings.pathToWatch, { ignoreInitial: true })
+    .watch(folderToWatch, { ignoreInitial: true })
     .on("add", async (filePath) => {
       await fileOrganizer.processFileV2(filePath);
     })
