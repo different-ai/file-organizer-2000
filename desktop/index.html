@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>File Watcher</title>
+</head>
+<body>
+  <h1>File Watcher</h1>
+  <button id="select-folder">Select Folder</button>
+  <ul id="file-list"></ul>
+
+  <script>
+    document.getElementById('select-folder').addEventListener('click', async () => {
+      const folderPath = await window.electron.selectFolder();
+      if (folderPath) {
+        window.electron.watchFolder(folderPath);
+      }
+    });
+
+    window.electron.onNewFile((filename) => {
+      const fileList = document.getElementById('file-list');
+      const listItem = document.createElement('li');
+      listItem.textContent = `New file: ${filename}`;
+      fileList.appendChild(listItem);
+    });
+  </script>
+</body>
+</html>
