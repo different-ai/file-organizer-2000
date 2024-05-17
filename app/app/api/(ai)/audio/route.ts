@@ -5,6 +5,8 @@ import { join } from "path";
 import { promises as fsPromises } from "fs";
 import { NextResponse } from "next/server";
 
+export const maxDuration = 60; // This function can run for a maximum of 5 seconds
+
 export async function POST(request: Request) {
   const { file, extension } = await request.json();
   const base64Data = file.split(";base64,").pop();
