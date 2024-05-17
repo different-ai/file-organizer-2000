@@ -98,6 +98,7 @@ export default class FileOrganizer extends Plugin {
       ) {
         return;
       }
+      
 
       await this.checkAndCreateFolders();
 
@@ -546,13 +547,6 @@ export default class FileOrganizer extends Plugin {
     );
     // @ts-ignore
     try {
-      if (file.stat.size > 2500000) {
-        new Notice(
-          `We do not support files transcripts for files bigger than 25M atm`,
-          8000
-        );
-        return;
-      }
       const arrayBuffer = await this.app.vault.readBinary(file);
       const fileContent = Buffer.from(arrayBuffer);
       const encodedAudio = fileContent.toString("base64");
