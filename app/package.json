@@ -1,12 +1,22 @@
 {
-  "name": "unkey-clerk",
+  "name": "file-organizer-app",
   "version": "0.1.0",
   "private": true,
+  "main": "./desktop/electron.js",
   "scripts": {
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "electron-dev": "concurrently \"next dev\" \"wait-on http://localhost:3000 && electron .\"",
+    "electron-pack": "electron-builder"
+  },
+  "build": {
+    "files": [
+      "out/**/*",
+      "desktop/**/*",
+      "package.json"
+    ]
   },
   "dependencies": {
     "@ai-sdk/anthropic": "^0.0.9",
@@ -25,8 +35,10 @@
     "autoprefixer": "10.4.16",
     "class-variance-authority": "^0.7.0",
     "clsx": "^2.0.0",
+    "concurrently": "^8.2.2",
     "drizzle-kit": "^0.20.18",
     "drizzle-orm": "^0.30.10",
+    "electron-is-dev": "^3.0.1",
     "eslint": "8.51.0",
     "eslint-config-next": "13.5.4",
     "lucide-react": "^0.287.0",
@@ -41,6 +53,11 @@
     "tailwind-merge": "^1.14.0",
     "tailwindcss": "3.3.3",
     "tailwindcss-animate": "^1.0.7",
-    "typescript": "5.2.2"
+    "typescript": "5.2.2",
+    "wait-on": "^7.2.0"
+  },
+  "devDependencies": {
+    "electron": "^30.0.6",
+    "electron-builder": "^24.13.3"
   }
 }
