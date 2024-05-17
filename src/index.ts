@@ -123,6 +123,7 @@ export default class FileOrganizer extends Plugin {
             text,
             processedFile
           );
+          new Notice(`Moving file to ${destinationFolder} folder`, 3000);
           await this.moveFile(attachmentFile, documentName, destinationFolder);
           await this.appendToCustomLogFile(
             `Moved [[${documentName}.${attachmentFile.extension}]] to ${destinationFolder}`
@@ -429,7 +430,6 @@ export default class FileOrganizer extends Plugin {
     humanReadableFileName: string,
     destinationFolder = ""
   ) {
-    new Notice(`Moving file to ${destinationFolder} folder`, 3000);
     let destinationPath = `${destinationFolder}/${humanReadableFileName}.${file.extension}`;
     if (await this.app.vault.adapter.exists(normalizePath(destinationPath))) {
       await this.appendToCustomLogFile(
