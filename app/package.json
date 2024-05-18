@@ -9,7 +9,9 @@
     "start": "next start",
     "lint": "next lint",
     "electron-dev": "concurrently \"next dev\" \"wait-on http://localhost:3000 && electron .\"",
-    "electron-pack": "electron-builder"
+    "electron-pack": "next build && electron-builder"
+
+    
   },
   "build": {
     "appId": "com.file-organizer.app",

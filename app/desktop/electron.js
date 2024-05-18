@@ -18,8 +18,8 @@ async function createWindow() {
     icon: path.join(__dirname, '../public/big-logo.png'),
     webPreferences: {
       preload: path.join(__dirname, './preload.js'),
-      contextIsolation: true, // Ensure contextIsolation is true
-      enableRemoteModule: false, // Disable remote module for security
+      contextIsolation: true,
+      enableRemoteModule: false,
     },
   });
 
@@ -39,6 +39,7 @@ async function createWindow() {
         mainWindow.loadURL(url);
       });
     } else {
+      console.error('Server error:', err);
       throw err;
     }
   });
