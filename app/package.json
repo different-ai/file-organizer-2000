@@ -12,10 +12,16 @@
     "electron-pack": "electron-builder"
   },
   "build": {
+    "appId": "com.file-organizer.app",
+    "productName": "File Organizer 2000",
+    "mac": {
+      "icon": "public/icon.icns"
+    },
     "files": [
       "out/**/*",
       "desktop/**/*",
-      "package.json"
+      "package.json",
+      "public/**/*"
     ]
   },
   "dependencies": {

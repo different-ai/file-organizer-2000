@@ -52,11 +52,9 @@ async function createWindow() {
   });
 }
 
-app.on('ready', () => {
-  createWindow();
-  app.dock.setIcon(path.join(__dirname, '../public/big-logo.png')); // macOS specific
+app.whenReady().then(createWindow).catch(err => {
+  console.error('Failed to create window:', err);
 });
-
 
 ipcMain.handle('select-folder', async () => {
   const result = await dialog.showOpenDialog(mainWindow, {
