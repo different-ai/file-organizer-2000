@@ -15,6 +15,7 @@ async function createWindow() {
   mainWindow = new BrowserWindow({
     width: 800,
     height: 600,
+    icon: path.join(__dirname, '../public/big-logo.png'),
     webPreferences: {
       preload: path.join(__dirname, './preload.js'),
       contextIsolation: true, // Ensure contextIsolation is true
@@ -51,7 +52,11 @@ async function createWindow() {
   });
 }
 
-app.on('ready', createWindow);
+app.on('ready', () => {
+  createWindow();
+  app.dock.setIcon(path.join(__dirname, '../public/big-logo.png')); // macOS specific
+});
+
 
 ipcMain.handle('select-folder', async () => {
   const result = await dialog.showOpenDialog(mainWindow, {

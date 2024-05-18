@@ -3,6 +3,7 @@ import { UnkeyElements } from "./keys/client";
 import { Button } from "@/components/ui/button";
 import { UserButton } from "@clerk/nextjs";
 import { auth, clerkClient } from "@clerk/nextjs/server";
+import FolderSelector from "@/components/ui/FolderSelection";
 
 async function UserManagement() {
   const { userId } = auth();
@@ -32,6 +33,10 @@ async function UserManagement() {
 }
 
 export default async function Component() {
+  if (process.env.USE_STANDALONE === "true") {
+    return <FolderSelector />;
+  }
+
   return (
     <div className="flex min-h-screen bg-white py-12 px-4 sm:px-6 lg:px-8 flex-col-reverse sm:flex-row-reverse">
       <div className="flex-1 space-y-8 flex flex-col justify-center">
