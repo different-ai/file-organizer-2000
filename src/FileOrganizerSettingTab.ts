@@ -7,7 +7,7 @@ import {
 } from "obsidian";
 import { logMessage, cleanPath } from "../utils";
 import FileOrganizer from "./index";
-import { createOpenAIInstance } from "../standalone/models";
+import { configureTask, createOpenAIInstance } from "../standalone/models";
 
 export class FileOrganizerSettingTab extends PluginSettingTab {
   plugin: FileOrganizer;
@@ -22,49 +22,245 @@ export class FileOrganizerSettingTab extends PluginSettingTab {
 
     containerEl.empty();
 
-    new Setting(containerEl)
-      .setName("File Organizer API Key")
-      .setDesc(
-        "Enter your API Key here. Get it at https://app.fileorganizer2000.com/ "
-      )
-      .addText((text) =>
-        text
-          .setPlaceholder("Enter your API Key")
-          .setValue(this.plugin.settings.API_KEY)
-          .onChange(async (value) => {
-            if (value) loginButton.settingEl.hide();
-            if (!value) loginButton.settingEl.show();
-            createOpenAIInstance(value, "gpt-4o");
-            this.plugin.settings.API_KEY = value;
-            await this.plugin.saveSettings();
-          })
-      );
+    const tabs = containerEl.createEl("div", { cls: "setting-tabs" });
+    const tabHeaders = tabs.createEl("div", { cls: "setting-tab-headers" });
+    const tabContents = tabs.createEl("div", { cls: "setting-tab-contents" });
 
-    // Add the new setting for OPENAI_API_KEY_2
-    new Setting(containerEl)
-      .setName("OpenAI API Key 2")
-      .setDesc("Enter your OpenAI API Key here.")
-      .addText((text) =>
-        text
-          .setPlaceholder("Enter your OpenAI API Key 2")
-          .setValue(this.plugin.settings.OPENAI_API_KEY_2)
-          .onChange(async (value) => {
-            this.plugin.settings.OPENAI_API_KEY_2 = value;
-            await this.plugin.saveSettings();
-          })
-      );
+    const fileConfigTabHeader = tabHeaders.createEl("div", {
+      text: "File Configuration",
+      cls: "setting-tab-header",
+    });
+    const customizationTabHeader = tabHeaders.createEl("div", {
+      text: "Customization",
+      cls: "setting-tab-header",
+    });
 
-    const loginButton = new Setting(containerEl)
-      .setName("Login")
-      .setDesc("Click to login to File Organizer 2000")
-      .addButton((button) =>
-        button.setButtonText("Login").onClick(() => {
-          window.open("https://app.fileorganizer2000.com/", "_blank");
+    const modelTabHeader = tabHeaders.createEl("div", {
+      text: "Models",
+      cls: "setting-tab-header",
+    });
+
+    const fileConfigTabContent = tabContents.createEl("div", {
+      cls: "setting-tab-content",
+    });
+    const customizationTabContent = tabContents.createEl("div", {
+      cls: "setting-tab-content",
+    });
+    const modelTabContent = tabContents.createEl("div", {
+      cls: "setting-tab-content",
+    });
+
+    fileConfigTabHeader.addEventListener("click", () => {
+      this.showTab(fileConfigTabContent, [
+        modelTabContent,
+        customizationTabContent,
+      ]);
+    });
+
+    customizationTabHeader.addEventListener("click", () => {
+      this.showTab(customizationTabContent, [
+        modelTabContent,
+        fileConfigTabContent,
+      ]);
+    });
+
+    // Default to showing the first tab
+    this.showTab(modelTabContent, [
+      fileConfigTabContent,
+      customizationTabContent,
+    ]);
+    modelTabHeader.addEventListener("click", () => {
+      this.showTab(modelTabContent, [
+        fileConfigTabContent,
+        customizationTabContent,
+      ]);
+    });
+
+    // Models Tab
+    // OpenAI Settings Section
+    new Setting(modelTabContent).setName("OpenAI Settings").setHeading();
+
+    new Setting(modelTabContent).setName("Enable OpenAI").addToggle((toggle) =>
+      toggle
+        .setValue(this.plugin.settings.enableOpenAI)
+        .onChange(async (value) => {
+          this.plugin.settings.enableOpenAI = value;
+          await this.plugin.saveSettings();
         })
-      );
-    loginButton.settingEl.hide();
+    );
 
-    new Setting(containerEl)
+    new Setting(modelTabContent).setName("OpenAI API Key").addText((text) =>
+      text
+        .setPlaceholder("Enter your OpenAI API Key")
+        .setValue(this.plugin.settings.openAIApiKey)
+        .onChange(async (value) => {
+          this.plugin.settings.openAIApiKey = value;
+          await this.plugin.saveSettings();
+        })
+    );
+
+    new Setting(modelTabContent).setName("OpenAI Model").addText((text) =>
+      text
+        .setPlaceholder("Enter the OpenAI model name")
+        .setValue(this.plugin.settings.openAIModel)
+        .onChange(async (value) => {
+          this.plugin.settings.openAIModel = value;
+          await this.plugin.saveSettings();
+        })
+    );
+
+    // Anthropic Settings Section
+    new Setting(modelTabContent).setName("Anthropic Settings").setHeading();
+
+    new Setting(modelTabContent)
+      .setName("Enable Anthropic")
+      .addToggle((toggle) =>
+        toggle
+          .setValue(this.plugin.settings.enableAnthropic)
+          .onChange(async (value) => {
+            this.plugin.settings.enableAnthropic = value;
+            await this.plugin.saveSettings();
+          })
+      );
+
+    new Setting(modelTabContent).setName("Anthropic API Key").addText((text) =>
+      text
+        .setPlaceholder("Enter your Anthropic API Key")
+        .setValue(this.plugin.settings.anthropicApiKey)
+        .onChange(async (value) => {
+          this.plugin.settings.anthropicApiKey = value;
+          await this.plugin.saveSettings();
+        })
+    );
+
+    new Setting(modelTabContent).setName("Anthropic Model").addText((text) =>
+      text
+        .setPlaceholder("Enter the Anthropic model name")
+        .setValue(this.plugin.settings.anthropicModel)
+        .onChange(async (value) => {
+          this.plugin.settings.anthropicModel = value;
+          await this.plugin.saveSettings();
+        })
+    );
+
+    // Ollama Settings Section
+    new Setting(modelTabContent).setName("Ollama Settings").setHeading();
+
+    new Setting(modelTabContent).setName("Enable Ollama").addToggle((toggle) =>
+      toggle
+        .setValue(this.plugin.settings.enableOllama)
+        .onChange(async (value) => {
+          this.plugin.settings.enableOllama = value;
+          await this.plugin.saveSettings();
+        })
+    );
+
+    new Setting(modelTabContent).setName("Ollama URL").addText((text) =>
+      text
+        .setPlaceholder("Enter the Ollama URL")
+        .setValue(this.plugin.settings.ollamaUrl)
+        .onChange(async (value) => {
+          this.plugin.settings.ollamaUrl = value;
+          await this.plugin.saveSettings();
+        })
+    );
+
+    new Setting(modelTabContent).setName("Ollama Model").addText((text) =>
+      text
+        .setPlaceholder("Enter the Ollama model name")
+        .setValue(this.plugin.settings.ollamaModel)
+        .onChange(async (value) => {
+          this.plugin.settings.ollamaModel = value;
+          await this.plugin.saveSettings();
+        })
+    );
+
+    // Model Settings Section
+    new Setting(modelTabContent).setName("Model Settings").setHeading();
+
+    new Setting(modelTabContent).setName("Tagging Model").addText((text) =>
+      text
+        .setPlaceholder("Enter the model name for tagging")
+        .setValue(this.plugin.settings.taggingModel)
+        .onChange(async (value) => {
+          this.plugin.settings.taggingModel = value;
+          await this.plugin.saveSettings();
+          configureTask("tagging", value);
+        })
+    );
+
+    new Setting(modelTabContent).setName("Folders Model").addText((text) =>
+      text
+        .setPlaceholder("Enter the model for folders")
+        .setValue(this.plugin.settings.foldersModel)
+        .onChange(async (value) => {
+          this.plugin.settings.foldersModel = value;
+          await this.plugin.saveSettings();
+          configureTask("folders", value);
+        })
+    );
+
+    new Setting(modelTabContent)
+      .setName("Relationships Model")
+      .addText((text) =>
+        text
+          .setPlaceholder("Enter the model for relationships")
+          .setValue(this.plugin.settings.relationshipsModel)
+          .onChange(async (value) => {
+            this.plugin.settings.relationshipsModel = value;
+            await this.plugin.saveSettings();
+            configureTask("relationships", value);
+          })
+      );
+
+    new Setting(modelTabContent).setName("Name Model").addText((text) =>
+      text
+        .setPlaceholder("Enter the model for name generation")
+        .setValue(this.plugin.settings.nameModel)
+        .onChange(async (value) => {
+          this.plugin.settings.nameModel = value;
+          await this.plugin.saveSettings();
+          configureTask("name", value);
+        })
+    );
+
+    new Setting(modelTabContent)
+      .setName("Classification Model")
+      .addText((text) =>
+        text
+          .setPlaceholder("Enter the model for classification")
+          .setValue(this.plugin.settings.classifyModel)
+          .onChange(async (value) => {
+            this.plugin.settings.classifyModel = value;
+            await this.plugin.saveSettings();
+            configureTask("classify", value);
+          })
+      );
+
+    new Setting(modelTabContent).setName("Vision Model").addText((text) =>
+      text
+        .setPlaceholder("Enter the model for vision")
+        .setValue(this.plugin.settings.visionModel)
+        .onChange(async (value) => {
+          this.plugin.settings.visionModel = value;
+          configureTask("vision", value);
+          await this.plugin.saveSettings();
+        })
+    );
+
+    new Setting(modelTabContent).setName("Formatting Model").addText((text) =>
+      text
+        .setPlaceholder("Enter the model for formatting")
+        .setValue(this.plugin.settings.formatModel)
+        .onChange(async (value) => {
+          this.plugin.settings.formatModel = value;
+          configureTask("format", value);
+          await this.plugin.saveSettings();
+        })
+    );
+
+    // File Configuration Tab
+    new Setting(fileConfigTabContent)
       .setName("Inbox folder")
       .setDesc("Choose which folder to automatically organize files from")
       .addText((text) =>
@@ -76,22 +272,56 @@ export class FileOrganizerSettingTab extends PluginSettingTab {
             await this.plugin.saveSettings();
           })
       );
-    // make button inside a setting container
 
-    new ButtonComponent(containerEl)
-      .setButtonText("Tutorial")
-      .setClass("settings-tutorial-button")
-      .onClick(async () => {
-        // open a gitub link to the raw markdown tutorial
-        window.open(
-          "https://github.com/different-ai/file-organizer-2000/blob/master/tutorials/howItWorks.md",
-          "_blank"
-        );
-      });
+    new Setting(fileConfigTabContent)
+      .setName("Attachments folder")
+      .setDesc(
+        "Enter the path to the folder where the original images and audio will be moved."
+      )
+      .addText((text) =>
+        text
+          .setPlaceholder("Enter your path")
+          .setValue(this.plugin.settings.attachmentsPath)
+          .onChange(async (value) => {
+            this.plugin.settings.attachmentsPath = cleanPath(value);
+            await this.plugin.saveSettings();
+          })
+      );
 
-    new Setting(containerEl).setName("Features").setHeading();
+    new Setting(fileConfigTabContent)
+      .setName("File Organizer log folder")
+      .setDesc("Choose a folder for Organization Logs e.g. Ava/Logs.")
+      .addText((text) =>
+        text
+          .setPlaceholder("Enter your path")
+          .setValue(this.plugin.settings.logFolderPath)
+          .onChange(async (value) => {
+            this.plugin.settings.logFolderPath = cleanPath(value);
+            await this.plugin.saveSettings();
+          })
+      );
 
-    new Setting(containerEl)
+    new Setting(fileConfigTabContent)
+      .setName("Output folder path")
+      .setDesc(
+        "Enter the path where you want to save the processed files. e.g. Processed/myfavoritefolder"
+      )
+      .addText((text) =>
+        text
+          .setPlaceholder("Enter your path")
+          .setValue(this.plugin.settings.defaultDestinationPath)
+          .onChange(async (value) => {
+            const cleanedPath = cleanPath(value);
+            logMessage(cleanedPath);
+            this.plugin.settings.defaultDestinationPath = cleanedPath;
+            await this.plugin.saveSettings();
+          })
+      );
+
+    // Customization Tab
+    new Setting(customizationTabContent).setName("Features").setHeading();
+
+    new Setting(customizationTabContent)
       .setName("FileOrganizer logs")
       .setDesc(
         "Allows you to keep track of the changes made by file Organizer."
@@ -104,9 +334,10 @@ export class FileOrganizerSettingTab extends PluginSettingTab {
             await this.plugin.saveSettings();
           })
       );
-    new Setting(containerEl)
+
+    new Setting(customizationTabContent)
       .setName("Rename untitled files only")
-      .setDesc("Only rename files that have 'Untitled' in their name ).")
+      .setDesc("Only rename files that have 'Untitled' in their name.")
       .addToggle((toggle) =>
         toggle
           .setValue(this.plugin.settings.renameUntitledOnly)
@@ -129,7 +360,7 @@ export class FileOrganizerSettingTab extends PluginSettingTab {
           })
       );
 
-    new Setting(containerEl)
+    new Setting(customizationTabContent)
       .setName("Similar tags")
       .setDesc("Append similar tags to processed files.")
       .addToggle((toggle) =>
@@ -141,7 +372,7 @@ export class FileOrganizerSettingTab extends PluginSettingTab {
           })
       );
 
-    new Setting(containerEl)
+    new Setting(customizationTabContent)
       .setName("Add similar tags in frontmatter")
       .setDesc("Use frontmatter to add similar tags to processed files.")
       .addToggle((toggle) =>
@@ -153,7 +384,7 @@ export class FileOrganizerSettingTab extends PluginSettingTab {
           })
       );
 
-    new Setting(containerEl)
+    new Setting(customizationTabContent)
       .setName("Disable Image Annotation")
       .setDesc("Disable the annotation of images during file processing.")
       .addToggle((toggle) =>
@@ -165,8 +396,7 @@ export class FileOrganizerSettingTab extends PluginSettingTab {
           })
       );
 
-    //toggle setting for enabling/disabling document title renaming
-    new Setting(containerEl)
+    new Setting(customizationTabContent)
       .setName("Rename document title")
       .setDesc("Rename the document title based on the content.")
       .addToggle((toggle) =>
@@ -177,8 +407,8 @@ export class FileOrganizerSettingTab extends PluginSettingTab {
             await this.plugin.saveSettings();
           })
       );
-    // new setting for enabling/disabling aliases
-    new Setting(containerEl)
+
+    new Setting(customizationTabContent)
       .setName("Aliases")
       .setDesc("Append aliases to processed files.")
       .addToggle((toggle) =>
@@ -189,7 +419,8 @@ export class FileOrganizerSettingTab extends PluginSettingTab {
             await this.plugin.saveSettings();
           })
       );
-    new Setting(containerEl)
+
+    new Setting(customizationTabContent)
       .setName("Processed File Tag")
       .setDesc("Specify the tag to be added to processed files.")
       .addToggle((toggle) =>
@@ -201,145 +432,11 @@ export class FileOrganizerSettingTab extends PluginSettingTab {
           })
       );
 
-    new Setting(containerEl).setName("Folder config").setHeading();
-    new Setting(containerEl)
-      .setName("Attachments folder")
-      .setDesc(
-        "Enter the path to the folder where the original images and audio will be moved."
-      )
-      .addText((text) =>
-        text
-          .setPlaceholder("Enter your path")
-          .setValue(this.plugin.settings.attachmentsPath)
-          .onChange(async (value) => {
-            // cleanup path remove leading and trailing slashes
-            this.plugin.settings.attachmentsPath = cleanPath(value);
-            await this.plugin.saveSettings();
-          })
-      );
-    new Setting(containerEl)
-      .setName("File Organizer log folder")
-      .setDesc("Choose a folder for Organization Logs e.g. Ava/Logs.")
-      .addText((text) =>
-        text
-          .setPlaceholder("Enter your path")
-          .setValue(this.plugin.settings.logFolderPath)
-          .onChange(async (value) => {
-            this.plugin.settings.logFolderPath = cleanPath(value);
-            await this.plugin.saveSettings();
-          })
-      );
-    new Setting(containerEl)
-      .setName("Output folder path")
-      .setDesc(
-        "Enter the path where you want to save the processed files. e.g. Processed/myfavoritefolder"
-      )
-      .addText((text) =>
-        text
-          .setPlaceholder("Enter your path")
-          .setValue(this.plugin.settings.defaultDestinationPath)
-          .onChange(async (value) => {
-            const cleanedPath = cleanPath(value);
-            logMessage(cleanedPath);
-            this.plugin.settings.defaultDestinationPath = cleanedPath;
-            await this.plugin.saveSettings();
-          })
-      );
+    new Setting(customizationTabContent)
+      .setName("Experimental features")
+      .setHeading();
 
-    new Setting(containerEl).setName("Experimental features").setHeading();
-
-    new ButtonComponent(containerEl)
-      .setButtonText("Become an Early Supporter")
-      .setClass("settings-cta-button")
-      .setCta()
-      .onClick(() => {
-        window.open("https://app.fileorganizer2000.com/", "_blank");
-      });
-
-    new Setting(containerEl)
-      .setName("Enable Early Access")
-      .setDesc(
-        "Enable early access to new features. You need to be a supporter to enable this."
-      )
-      .addToggle((toggle) =>
-        toggle
-          .setValue(this.plugin.settings.enableEarlyAccess)
-          .onChange(async (value) => {
-            if (!value) {
-              this.plugin.settings.enableEarlyAccess = false;
-              await this.plugin.saveSettings();
-              return;
-            }
-            new Notice("Checking for early access...");
-            const isCustomer = await this.plugin.checkForEarlyAccess();
-
-            if (!isCustomer) {
-              new Notice(
-                "You need to be a supporter to enable Early Access Features.",
-                6000
-              );
-              toggle.setValue(false);
-              return;
-            }
-
-            this.plugin.settings.enableEarlyAccess = true;
-            new Notice("Early Access Features enabled.");
-            return;
-          })
-      );
-
-    new Setting(containerEl)
-      .setName("Use Self-hosted")
-      .setDesc("Toggle to use a custom server instead of the default.")
-      .addToggle((toggle) =>
-        toggle
-          .setValue(this.plugin.settings.useCustomServer)
-          .onChange(async (value) => {
-            this.plugin.settings.useCustomServer = value;
-            await this.plugin.saveSettings();
-            if (!value) {
-              customServerSetting.settingEl.hide();
-              return;
-            }
-            customServerSetting.settingEl.show();
-          })
-      );
-
-    const customServerSetting = new Setting(containerEl)
-      .setName("Self-hosted URL")
-      .setDesc("Enter the address of your custom server.")
-      .addText((text) =>
-        text
-          .setPlaceholder("http://localhost:3000")
-          .setValue(this.plugin.settings.customServerUrl)
-          .onChange(async (value) => {
-            this.plugin.settings.customServerUrl = value;
-            await this.plugin.saveSettings();
-          })
-      );
-
-    customServerSetting.settingEl.hide();
-
-    if (this.plugin.settings.useCustomServer) {
-      customServerSetting.settingEl.show();
-    }
-
-    if (!this.plugin.settings.API_KEY) {
-      loginButton.settingEl.show();
-    }
-
-    new Setting(containerEl)
-      .setName("AI Assistant")
-      .setDesc(
-        "A sidebar that gives you more control in your file management. Open command pallette and search for 'AI Assistant' to open."
-      );
-
-    new Setting(containerEl)
-      .setName("Experimental: Full Auto Org (in progress)")
-      .setDesc("Let file Organizer work fully automatically.")
-      .setDisabled(true);
-
-    new Setting(containerEl)
+    new Setting(customizationTabContent)
       .setName("Transcribe Embedded Audio")
       .setDesc(
         "This features automatically add transcriptions inside your files where you record a fresh audio recording or drop a audio file."
@@ -348,7 +445,6 @@ export class FileOrganizerSettingTab extends PluginSettingTab {
         toggle
           .setValue(this.plugin.settings.transcribeEmbeddedAudio)
           .onChange(async (value) => {
-            // value is false than disable
             if (!value) {
               this.plugin.settings.transcribeEmbeddedAudio = false;
               await this.plugin.saveSettings();
@@ -362,25 +458,16 @@ export class FileOrganizerSettingTab extends PluginSettingTab {
               toggle.setValue(false);
               return;
             }
-
-            // value is true but early access is not enabled
-            // show notice and set value to false
-            if (!this.plugin.settings.enableEarlyAccess) {
-              new Notice(
-                "You need to be a supporter to enable this feature.",
-                6000
-              );
-              toggle.setValue(false);
-              return;
-            }
             this.plugin.settings.transcribeEmbeddedAudio = true;
             await this.plugin.saveSettings();
           })
       );
 
-    new Setting(containerEl).setName("Custom Formatting").setHeading();
+    new Setting(customizationTabContent)
+      .setName("Custom Formatting")
+      .setHeading();
 
-    new Setting(containerEl)
+    new Setting(customizationTabContent)
       .setName("Enable Document Classification")
       .setDesc("Automatically classify and format documents in the inbox.")
       .addToggle((toggle) =>
@@ -405,12 +492,16 @@ export class FileOrganizerSettingTab extends PluginSettingTab {
           })
       );
 
-    // Information section about the new method of specifying document type and accessing it via the AI sidebar
-    new Setting(containerEl)
+    new Setting(customizationTabContent)
       .setName("Document Type Configuration")
       .setDesc(
         "To specify the document type for AI formatting, please add a file inside the template folder of File Organizer. Each file should be named according to the document type it represents (e.g., 'workout'). The content of each file should be the prompt that will be applied to the formatting. Additionally, you can access and manage these document types directly through the AI sidebar in the application."
       )
       .setDisabled(true);
+  }
+
+  private showTab(activeTab: HTMLElement, otherTabs: HTMLElement[]): void {
+    activeTab.style.display = "block";
+    otherTabs.forEach((tab) => (tab.style.display = "none"));
   }
 }

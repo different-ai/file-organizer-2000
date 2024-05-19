@@ -16,6 +16,8 @@ export async function generateTags(
 ): Promise<string[]> {
   const modelName = process.env.MODEL_TAGGING || "gpt-4o";
   const model = getModelFromTask("tagging");
+  console.log("modelName", modelName);
+  console.log("model", model);
 
   switch (modelName) {
     case "gpt-4o": {
@@ -66,41 +68,47 @@ export async function generateTags(
   }
 }
 
-// Function to generate folder suggestions
-export async function generateFolderSuggestion(
+// Function to guess the relevant folder
+// Function to guess the relevant folder
+export async function guessRelevantFolder(
   content: string,
   fileName: string,
   folders: string[]
-): Promise<string> {
-  const modelName = process.env.MODEL_FOLDERS || "gpt-4o";
+): Promise<string | null> {
   const model = getModelFromTask("folders");
 
-  switch (modelName) {
-    case "gpt-4o": {
-      const response = await generateObject({
-        model,
-        schema: z.object({
-          suggestedFolder: z.string(),
-        }),
-        prompt: `Review the content: "${content}" and the file name: "${fileName}". Decide which of the following folders is the most suitable: ${folders.join(
-          ", "
-        )}. Base your decision on the relevance of the content and the file name to the folder themes. If no existing folder is suitable, suggest a new folder name that would appropriately categorize this file.`,
-      });
+  const response = await generateObject({
+    model,
+    schema: z.object({
+      suggestedFolder: z.string().nullable(),
+    }),
+    prompt: `Review the content: "${content}" and the file name: "${fileName}". Decide which of the following folders is the most suitable: ${folders.join(
+      ", "
+    )}. Base your decision on the relevance of the content and the file name to the folder themes. If no existing folder is suitable, respond with null.`,
+  });
 
-      return response.object.suggestedFolder;
-    }
-    default: {
-      const defaultResponse = await generateText({
-        model,
-        prompt: `Given the content: "${content}" and the file name: "${fileName}", identify the most suitable folder from the following options: ${folders.join(
-          ", "
-        )}. If none are suitable, suggest a new folder name.`,
-        system: `you always answer a folder name\n\nOnly answer a folder name. If none of the existing folders are suitable, suggest a new folder name. nothing else no text before after`,
-      });
+  return response.object.suggestedFolder;
+}
 
-      return defaultResponse.text.split("\n")[0].trim();
-    }
-  }
+// Function to create a new folder if none is found
+export async function createNewFolder(
+  content: string,
+  fileName: string,
+  existingFolders: string[]
+): Promise<string> {
+  const model = getModelFromTask("folders");
+
+  const response = await generateObject({
+    model,
+    schema: z.object({
+      newFolderName: z.string(),
+    }),
+    prompt: `Given the content: "${content}" and the file name: "${fileName}", suggest a new folder name that would appropriately categorize this file. Consider the existing folder structure: ${existingFolders.join(
+      ", "
+    )}.`,
+  });
+
+  return response.object.newFolderName;
 }
 
 // Function to generate relationships between files
@@ -157,11 +165,16 @@ export async function generateRelationships(
 
 // Function to generate document titles
 export async function generateDocumentTitle(document: string): Promise<string> {
-  const modelName = process.env.MODEL_NAME || "gpt-4o";
+  console.log("inside title");
   const model = getModelFromTask("name");
+  console.log("model", model);
+  const modelName = model.modelId;
+  console.log("modelName", modelName);
 
   switch (modelName) {
     case "gpt-4o":
+      console.log("not hitting htis");
+      // eslint-disable-next-line no-case-declarations
       const response = await generateObject({
         model,
         schema: z.object({
@@ -174,21 +187,23 @@ export async function generateDocumentTitle(document: string): Promise<string> {
 
       return response.object.name;
 
-    case "llama3":
-      const responseText = await generateText({
+    case "llama3": {
+      console.log("hitting this cas");
+      const response = await generateObject({
         model,
-        prompt: `Title Generator: Create a concise title for the following document, using only alphanumeric characters and spaces. The title must be exactly 30 characters long, including spaces. Do not include any special characters or punctuation.
-              Document content:
-              ${document}`,
-        system: `Ensure the output is exactly 30 characters long, alphanumeric and spaces only, and directly answers as a title.`,
+        schema: z.object({
+          name: z.string(),
+        }),
+        prompt: `You are a helpful assistant. You only answer short (less than 30 chars titles). You do not use any special character just text. Use something very specific to the content not a generic title.
+          Give a title to this document:
+          ${document}`,
       });
 
-      return responseText.text
-        .trim()
-        .replace(/[^a-zA-Z0-9\s]/g, "")
-        .slice(0, 30);
+      return response.object.name;
+    }
 
     default:
+      console.log("do not hit");
       const defaultResponse = await generateText({
         model,
         prompt: `You are a helpful assistant. You only answer short (less than 30 chars titles). You do not use any special character just text. Use something very specific to the content not a generic title.
@@ -208,6 +223,7 @@ export async function transcribeAudio(
   audioBase64: string,
   extension: string
 ): Promise<string> {
+  throw new Error("This function is not implemented yet.");
   const modelName = process.env.MODEL_AUDIO || "whisper-1";
   const openai = new OpenAI({ apiKey, dangerouslyAllowBrowser: true });
 
@@ -309,6 +325,49 @@ export async function classifyDocument(
           ${templateNames.join(", ")}
           
           If the content clearly matches one of the provided template types, respond with the name of that document type. If the content does not clearly match any of the template types, respond with an empty string.`,
+      });
+
+      return defaultResponse.text.trim();
+    }
+  }
+}
+
+// Function to format document content
+export async function formatDocumentContent(
+  content: string,
+  formattingInstruction: string
+): Promise<string> {
+  const modelName = process.env.MODEL_FORMAT || "gpt-4o";
+  const model = getModelFromTask("format");
+
+  switch (modelName) {
+    case "gpt-4o": {
+      const response = await generateObject({
+        model,
+        schema: z.object({
+          formattedContent: z.string(),
+        }),
+        prompt: `Format the following content according to the given instruction:
+        
+        Content:
+        "${content}"
+        
+        Formatting Instruction:
+        "${formattingInstruction}"`,
+      });
+
+      return response.object.formattedContent;
+    }
+    default: {
+      const defaultResponse = await generateText({
+        model,
+        prompt: `Format the following content according to the given instruction:
+        
+        Content:
+        "${content}"
+        
+        Formatting Instruction:
+        "${formattingInstruction}"`,
       });
 
       return defaultResponse.text.trim();

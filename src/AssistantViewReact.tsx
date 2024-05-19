@@ -152,7 +152,7 @@ const SimilarFolderBox: React.FC<{
       if (!content) return;
       setFolder(null);
       setLoading(true);
-      const suggestedFolder = await plugin.getAIClassifiedFolder(content, file);
+      const suggestedFolder = await plugin.getAIClassifiedFolder(content, file.path);
       setFolder(suggestedFolder);
       setLoading(false);
     };

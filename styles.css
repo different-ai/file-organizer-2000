@@ -129,3 +129,43 @@ If your plugin does not need CSS, delete this file.
     opacity: 1;
   }
 }
+
+
+
+/* Add the following CSS to your styles */
+.setting-tabs {
+  display: flex;
+  flex-direction: column;
+}
+
+.setting-tab-headers {
+  display: flex;
+  border-bottom: 1px solid #ddd;
+  margin-bottom: 10px;
+}
+
+.setting-tab-header {
+  padding: 10px 20px;
+  cursor: pointer;
+  border: 1px solid transparent;
+  border-bottom: none;
+}
+
+.setting-tab-header.active {
+  border-color: #ddd;
+  border-bottom-color: #fff;
+  background: #f5f5f5;
+  border-radius: 5px 5px 0 0;
+}
+
+.setting-tab-contents {
+  flex-grow: 1;
+}
+
+.setting-tab-content {
+  display: none;
+}
+
+.setting-tab-content.active {
+  display: block;
+}

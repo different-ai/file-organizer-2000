@@ -2,11 +2,24 @@ import { createAnthropic } from "@ai-sdk/anthropic";
 import { createOpenAI } from "@ai-sdk/openai";
 import { createOllama } from "ollama-ai-provider";
 
-let models: Record<string, any> = {};
-let taskModelConfig: Record<string, string> = {};
+interface ModelConfig {
+  [key: string]: any;
+  // baseURL: string;
+  defaultObjectGenerationMode: string;
+  modelId: string;
+}
+
+type Models = {
+  [key: string]: ModelConfig;
+};
+
+const models: Models = {};
+
+const taskModelConfig: Record<string, string> = {};
 
 export function createOpenAIInstance(apiKey: string, modelName: string) {
   const modelInstance = createOpenAI({ apiKey })(modelName);
+  console.log({ modelInstance });
   models[modelName] = modelInstance;
   return modelInstance;
 }
@@ -17,17 +30,17 @@ export function createAnthropicInstance(apiKey: string, modelName: string) {
   return modelInstance;
 }
 
-export function createOllamaInstance(modelName: string) {
-  const modelInstance = createOllama({ baseURL: process.env.OLLAMA_API_URL })(
-    modelName
-  );
+export function createOllamaInstance(
+  modelName: string,
+  { baseURL = "http://localhost:11434/api" }: { baseURL: string }
+) {
+  const modelInstance = createOllama({ baseURL })(modelName);
   models[modelName] = modelInstance;
   return modelInstance;
 }
 
-
-
 export function configureTask(task: string, modelName: string) {
+  console.log(`Configuring task '${task}' with model '${modelName}'`);
   if (!models[modelName]) {
     throw new Error(`Model '${modelName}' is not available.`);
   }

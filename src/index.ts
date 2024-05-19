@@ -15,6 +15,8 @@ import { ASSISTANT_VIEW_TYPE, AssistantViewWrapper } from "./AssistantView";
 import Jimp from "jimp";
 import {
   configureTask,
+  createAnthropicInstance,
+  createOllamaInstance,
   createOpenAIInstance,
 } from "../standalone/models";
 
@@ -22,10 +24,12 @@ import {
   classifyDocument,
   extractTextFromImage,
   generateDocumentTitle,
-  generateFolderSuggestion,
   generateTags,
   transcribeAudio,
   generateRelationships,
+  formatDocumentContent,
+  guessRelevantFolder,
+  createNewFolder,
 } from "../standalone/aiService";
 type TagCounts = {
   [key: string]: number;
@@ -60,6 +64,26 @@ class FileOrganizerSettings {
   ignoreFolders = ["_FileOrganizer2000"];
   stagingFolder = ".fileorganizer2000/staging";
   disableImageAnnotation = false;
+
+  enableAnthropic = false;
+  anthropicApiKey = "";
+  anthropicModel = "claude-3-opus-20240229";
+
+  enableOpenAI = true;
+  openAIApiKey = "";
+  openAIModel = "gpt-4o";
+
+  enableOllama = false;
+  ollamaUrl = "";
+  ollamaModel = "mistral";
+
+  taggingModel = "gpt-4o";
+  foldersModel = "gpt-4o";
+  relationshipsModel = "gpt-4o";
+  nameModel = "gpt-4o";
+  classifyModel = "gpt-4o";
+  visionModel = "gpt-4o";
+  formatModel = "gpt-4o";
 }
 
 const validAudioExtensions = ["mp3", "wav", "webm", "m4a"];
@@ -228,11 +252,27 @@ export default class FileOrganizer extends Plugin {
     return true;
   }
 
+  async formatContent(
+    file: TFile,
+    content: string,
+    formattingInstruction: string
+  ) {
+    const formattedContent = await formatDocumentContent(
+      content,
+      formattingInstruction
+    );
+    await this.app.vault.modify(file, formattedContent);
+  }
+
   async classifyAndFormatDocument(file: TFile, content: string) {
     const classification = await this.classifyContent(content, file.basename);
 
     if (classification) {
-      await this.formatContent(file, content, classification);
+      await this.formatContent(
+        file,
+        content,
+        classification.formattingInstruction
+      );
       return classification;
     }
     return null;
@@ -293,14 +333,20 @@ export default class FileOrganizer extends Plugin {
   /* experimental above until further notice */
 
   async organizeFile(file: TFile, content: string) {
-    const destinationFolder = await this.getAIClassifiedFolder(content, file);
+    const destinationFolder = await this.getAIClassifiedFolder(
+      content,
+      file.path
+    );
     new Notice(`Most similar folder: ${destinationFolder}`, 3000);
     await this.moveFile(file, file.basename, destinationFolder);
   }
 
   // let's unpack this into processFileV2
   async renameTagAndOrganize(file: TFile, content: string, fileName: string) {
-    const destinationFolder = await this.getAIClassifiedFolder(content, file);
+    const destinationFolder = await this.getAIClassifiedFolder(
+      content,
+      file.path
+    );
     new Notice(`Most similar folder: ${destinationFolder}`, 3000);
     await this.appendAlias(file, file.basename);
     await this.moveFile(file, fileName, destinationFolder);
@@ -621,19 +667,27 @@ export default class FileOrganizer extends Plugin {
       .filter((folder) => folder !== this.settings.logFolderPath)
       .filter((folder) => folder !== this.settings.pathToWatch)
       .filter((folder) => folder !== this.settings.templatePaths)
-      .filter((folder) => !this.settings.ignoreFolders.includes(folder))
+      .filter((folder) => !folder.includes("_FileOrganizer2000"))
       .filter((folder) => folder !== "/");
+    console.log("filteredFolders", filteredFolders);
+    console.log("filteredFolders", filteredFolders);
 
-    const suggestedFolder = await generateFolderSuggestion(
+    const guessedFolder = await guessRelevantFolder(
       content,
       filePath,
       filteredFolders
     );
 
-    if (suggestedFolder === "None") {
-      destinationFolder = this.settings.defaultDestinationPath;
+    console.log("guessedFolder", guessedFolder);
+    if (guessedFolder === null || guessedFolder === "null") {
+      const newFolderName = await createNewFolder(
+        content,
+        filePath,
+        filteredFolders
+      );
+      destinationFolder = newFolderName;
     } else {
-      destinationFolder = suggestedFolder;
+      destinationFolder = guessedFolder;
     }
 
     return destinationFolder;
@@ -708,22 +762,44 @@ export default class FileOrganizer extends Plugin {
     }
   }
 
-  // native
+  initalizeModels() {
+    if (this.settings.enableAnthropic) {
+      createAnthropicInstance(
+        this.settings.anthropicApiKey,
+        this.settings.anthropicModel
+      );
+    }
+
+    if (this.settings.enableOpenAI) {
+      createOpenAIInstance(
+        this.settings.openAIApiKey,
+        this.settings.openAIModel
+      );
+    }
+
+    if (this.settings.enableOllama) {
+      createOllamaInstance(this.settings.ollamaModel, {
+        baseURL: this.settings.ollamaUrl,
+      });
+    }
+
+    // Configure tasks with default models
+    configureTask("tagging", this.settings.taggingModel);
+    configureTask("folders", this.settings.foldersModel);
+    configureTask("relationships", this.settings.relationshipsModel);
+    configureTask("name", this.settings.nameModel);
+    configureTask("classify", this.settings.classifyModel);
+    configureTask("vision", this.settings.visionModel);
+    configureTask("format", this.settings.formatModel);
+
+    // ...
+  }
 
   async onload() {
     await this.initializePlugin();
 
-    const modelName = "gpt-4o";
-    const apiKey = this.settings.API_KEY;
-    createOpenAIInstance(apiKey, modelName);
+    this.initalizeModels();
 
-
-    configureTask("tagging", "gpt-4o");
-    configureTask("folders", "gpt-4o");
-    configureTask("relationships", "gpt-4o");
-    configureTask("name", "gpt-4o");
-    configureTask("classify", "gpt-4o");
-    configureTask("vision", "gpt-4o");
     // configureTask("audio", "whisper-1");
 
     this.addRibbonIcon("sparkle", "Fo2k Assistant View", () => {
@@ -787,6 +863,7 @@ export default class FileOrganizer extends Plugin {
     );
   }
   async saveSettings() {
+    this.initalizeModels();
     await this.saveData(this.settings);
   }
 
@@ -800,32 +877,6 @@ export default class FileOrganizer extends Plugin {
     );
   }
 
-  async checkForEarlyAccess() {
-    try {
-      const response = await makeApiRequest(() =>
-        requestUrl({
-          url: `${
-            this.settings.useCustomServer
-              ? this.settings.customServerUrl
-              : this.settings.defaultServerUrl
-          }/api/early-access`,
-          method: "POST",
-          body: JSON.stringify({ code: this.settings.earlyAccessCode }),
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${this.settings.API_KEY}`,
-          },
-        })
-      );
-
-      const result = await response.json;
-      return result.isCustomer;
-    } catch (e) {
-      new Notice("Error checking for early access", 3000);
-      console.error("Error checking for early access", e);
-      return false;
-    }
-  }
   async processEmbeddedAudioFile(audioFile: TFile, parentFile: TFile) {
     try {
       const transcript = await this.generateTranscriptFromAudio(audioFile);
