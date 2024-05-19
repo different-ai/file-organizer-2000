@@ -2,13 +2,12 @@ import {
   PluginSettingTab,
   App,
   Setting,
-  requestUrl,
   Notice,
   ButtonComponent,
-  TFile,
 } from "obsidian";
 import { logMessage, cleanPath } from "../utils";
 import FileOrganizer from "./index";
+import { createOpenAIInstance } from "../standalone/models";
 
 export class FileOrganizerSettingTab extends PluginSettingTab {
   plugin: FileOrganizer;
@@ -35,7 +34,22 @@ export class FileOrganizerSettingTab extends PluginSettingTab {
           .onChange(async (value) => {
             if (value) loginButton.settingEl.hide();
             if (!value) loginButton.settingEl.show();
+            createOpenAIInstance(value, "gpt-4o");
             this.plugin.settings.API_KEY = value;
+            await this.plugin.saveSettings();
+          })
+      );
+
+    // Add the new setting for OPENAI_API_KEY_2
+    new Setting(containerEl)
+      .setName("OpenAI API Key 2")
+      .setDesc("Enter your OpenAI API Key here.")
+      .addText((text) =>
+        text
+          .setPlaceholder("Enter your OpenAI API Key 2")
+          .setValue(this.plugin.settings.OPENAI_API_KEY_2)
+          .onChange(async (value) => {
+            this.plugin.settings.OPENAI_API_KEY_2 = value;
             await this.plugin.saveSettings();
           })
       );
@@ -138,7 +152,7 @@ export class FileOrganizerSettingTab extends PluginSettingTab {
             await this.plugin.saveSettings();
           })
       );
-    
+
     new Setting(containerEl)
       .setName("Disable Image Annotation")
       .setDesc("Disable the annotation of images during file processing.")

@@ -24,16 +24,21 @@
     "typescript": "4.7.4"
   },
   "dependencies": {
+    "@ai-sdk/anthropic": "^0.0.14",
+    "@ai-sdk/openai": "^0.0.13",
+    "ai": "^3.1.12",
     "axios": "^1.6.2",
     "chokidar": "^3.6.0",
     "form-data": "^4.0.0",
     "jimp": "^0.22.12",
     "moment": "^2.29.4",
     "node-fetch": "^3.3.2",
+    "ollama-ai-provider": "^0.7.0",
     "openai": "^4.19.0",
     "pdf-lib": "^1.17.1",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
-    "ts-node": "^10.9.2"
+    "ts-node": "^10.9.2",
+    "zod": "^3.23.8"
   }
 }

@@ -9,11 +9,24 @@ import {
   requestUrl,
   normalizePath,
 } from "obsidian";
-import useVision from "./modules/vision";
 import { logMessage, formatToSafeName } from "../utils";
 import { FileOrganizerSettingTab } from "./FileOrganizerSettingTab";
 import { ASSISTANT_VIEW_TYPE, AssistantViewWrapper } from "./AssistantView";
 import Jimp from "jimp";
+import {
+  configureTask,
+  createOpenAIInstance,
+} from "../standalone/models";
+
+import {
+  classifyDocument,
+  extractTextFromImage,
+  generateDocumentTitle,
+  generateFolderSuggestion,
+  generateTags,
+  transcribeAudio,
+  generateRelationships,
+} from "../standalone/aiService";
 type TagCounts = {
   [key: string]: number;
 };
@@ -41,6 +54,8 @@ class FileOrganizerSettings {
   transcribeEmbeddedAudio = false;
   enableDocumentClassification = false;
   renameUntitledOnly = true;
+
+  OPENAI_API_KEY_2 = "";
 
   ignoreFolders = ["_FileOrganizer2000"];
   stagingFolder = ".fileorganizer2000/staging";
@@ -98,7 +113,6 @@ export default class FileOrganizer extends Plugin {
       ) {
         return;
       }
-      
 
       await this.checkAndCreateFolders();
 
@@ -122,7 +136,7 @@ export default class FileOrganizer extends Plugin {
           // If image annotation is disabled and the file is an image, move the image to the AI-classified folder
           const destinationFolder = await this.getAIClassifiedFolder(
             text,
-            processedFile
+            processedFile.path
           );
           new Notice(`Moving file to ${destinationFolder} folder`, 3000);
           await this.moveFile(attachmentFile, documentName, destinationFolder);
@@ -160,7 +174,7 @@ export default class FileOrganizer extends Plugin {
 
       const destinationFolder = await this.getAIClassifiedFolder(
         text,
-        processedFile
+        processedFile.path
       );
       new Notice(`Most similar folder: ${destinationFolder}`, 3000);
       await this.appendAlias(processedFile, processedFile.basename);
@@ -267,26 +281,7 @@ export default class FileOrganizer extends Plugin {
     const classifications = await this.getClassifications();
     const templateNames = classifications.map((c) => c.type);
 
-    const response = await makeApiRequest(() =>
-      requestUrl({
-        url: `${
-          this.settings.useCustomServer
-            ? this.settings.customServerUrl
-            : this.settings.defaultServerUrl
-        }/api/classify`,
-        method: "POST",
-        body: JSON.stringify({
-          content,
-          fileName: name,
-          templateNames,
-        }),
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${this.settings.API_KEY}`,
-        },
-      })
-    );
-    const { documentType } = await response.json;
+    const documentType = await classifyDocument(content, name, templateNames);
 
     const selectedClassification = classifications.find(
       (c) => c.type.toLowerCase() === documentType.toLowerCase()
@@ -295,37 +290,6 @@ export default class FileOrganizer extends Plugin {
     return selectedClassification || null;
   }
 
-  async formatContent(
-    file: TFile,
-    fileContent: string,
-    selectedClassification: { type: string; formattingInstruction: string }
-  ) {
-    // send a message to /api/text
-    // use requestUrl
-    const response = await makeApiRequest(() =>
-      requestUrl({
-        url: `${
-          this.settings.useCustomServer
-            ? this.settings.customServerUrl
-            : this.settings.defaultServerUrl
-        }/api/text`,
-        method: "POST",
-        body: JSON.stringify({
-          content: fileContent,
-          formattingInstruction: selectedClassification.formattingInstruction,
-        }),
-
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${this.settings.API_KEY}`,
-        },
-      })
-    );
-    const { message } = await response.json;
-
-    // delete file
-    await this.app.vault.modify(file, message);
-  }
   /* experimental above until further notice */
 
   async organizeFile(file: TFile, content: string) {
@@ -467,47 +431,20 @@ export default class FileOrganizer extends Plugin {
         file.path !== fileToCheck.path
     );
 
-    const fileContents = await Promise.all(
-      allFilesFiltered.map(async (file) => ({
-        name: file.path,
-        // skiping content for now
-        // content: await this.app.vault.read(file),
-      }))
-    );
+    const fileContents = allFilesFiltered.map((file) => ({
+      name: file.path,
+    }));
 
-    const data = {
+    const similarFiles = await generateRelationships(
       activeFileContent,
-      files: fileContents,
-    };
-
-    const response = await makeApiRequest(() =>
-      requestUrl({
-        url: `${
-          this.settings.useCustomServer
-            ? this.settings.customServerUrl
-            : this.settings.defaultServerUrl
-        }/api/relationships`,
-        method: "POST",
-        body: JSON.stringify(data),
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${this.settings.API_KEY}`,
-        },
-      })
+      fileContents
     );
 
-    const result = await response.json;
-    const similarFiles = result.similarFiles
-      .filter((file: string) => !file.includes(this.settings.pathToWatch))
-      .filter(
-        (file: string) => !file.includes(this.settings.defaultDestinationPath)
-      )
-      .filter((file: string) => !file.includes(this.settings.attachmentsPath))
-      .filter((file: string) => !file.includes(this.settings.logFolderPath))
-      .filter((file: string) => !file.includes(this.settings.templatePaths))
-      .filter((file: string) => !this.settings.ignoreFolders.includes(file));
-
-    return similarFiles;
+    return similarFiles.filter(
+      (file: string) =>
+        !settingsPaths.some((path) => file.includes(path)) &&
+        !this.settings.ignoreFolders.includes(file)
+    );
   }
 
   async moveToAttachmentFolder(file: TFile, newFileName: string) {
@@ -519,24 +456,8 @@ export default class FileOrganizer extends Plugin {
   }
 
   async generateNameFromContent(content: string): Promise<string> {
-    const response = await makeApiRequest(() =>
-      requestUrl({
-        url: `${
-          this.settings.useCustomServer
-            ? this.settings.customServerUrl
-            : this.settings.defaultServerUrl
-        }/api/name`,
-        method: "POST",
-        body: JSON.stringify({ document: content }),
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${this.settings.API_KEY}`,
-        },
-      })
-    );
-
-    const data = await response.json;
-    const safeName = formatToSafeName(data.name);
+    const name = await generateDocumentTitle(content);
+    const safeName = formatToSafeName(name);
     return safeName;
   }
 
@@ -545,35 +466,16 @@ export default class FileOrganizer extends Plugin {
       `Generating transcription for ${file.basename} this can take up to a minute`,
       8000
     );
-    // @ts-ignore
     try {
       const arrayBuffer = await this.app.vault.readBinary(file);
       const fileContent = Buffer.from(arrayBuffer);
       const encodedAudio = fileContent.toString("base64");
       logMessage(`Encoded: ${encodedAudio.substring(0, 20)}...`);
 
-      const endpoint = "api/audio";
-      const url = `${
-        this.settings.useCustomServer
-          ? this.settings.customServerUrl
-          : this.settings.defaultServerUrl
-      }/${endpoint}`;
-      const result = await makeApiRequest(() =>
-        requestUrl({
-          url: url,
-          method: "POST",
-          body: JSON.stringify({
-            file: encodedAudio,
-            extension: file.extension,
-          }),
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${this.settings.API_KEY}`,
-          },
-        })
+      const postProcessedText = await transcribeAudio(
+        encodedAudio,
+        file.extension
       );
-      const data = await result.json;
-      const postProcessedText = data.transcription;
       return postProcessedText;
     } catch (e) {
       console.error("Error generating transcript", e);
@@ -616,28 +518,18 @@ export default class FileOrganizer extends Plugin {
     const imageSizeInMB2 = imageSize / (1024 * 1024);
     logMessage(`Image size: ${imageSizeInMB2.toFixed(2)} MB`);
 
-    let encodedImage: string;
+    let processedArrayBuffer: ArrayBuffer;
 
     if (!this.isWebP(fileContent)) {
       // Compress the image if it's not a WebP
       const resizedImage = await this.compressImage(fileContent);
-      encodedImage = resizedImage.toString("base64");
+      processedArrayBuffer = resizedImage.buffer;
     } else {
-      // If it's a WebP, encode the original file content directly
-      encodedImage = fileContent.toString("base64");
+      // If it's a WebP, use the original file content directly
+      processedArrayBuffer = arrayBuffer;
     }
 
-    const imageSizeInBytes = Buffer.byteLength(encodedImage, "base64");
-    const imageSizeInMB = imageSizeInBytes / (1024 * 1024);
-    logMessage(`Image size: ${imageSizeInMB.toFixed(2)} MB`);
-    logMessage(`Encoded: ${encodedImage.substring(0, 20)}...`);
-
-    const processedContent = await useVision(encodedImage, customPrompt, {
-      baseUrl: this.settings.useCustomServer
-        ? this.settings.customServerUrl
-        : this.settings.defaultServerUrl,
-      apiKey: this.settings.API_KEY,
-    });
+    const processedContent = await extractTextFromImage(processedArrayBuffer);
 
     return processedContent;
   }
@@ -646,6 +538,7 @@ export default class FileOrganizer extends Plugin {
       await this.app.vault.createFolder(folderPath);
     }
   }
+
   async checkAndCreateFolders() {
     this.ensureFolderExists(this.settings.pathToWatch);
     this.ensureFolderExists(this.settings.defaultDestinationPath);
@@ -669,46 +562,36 @@ export default class FileOrganizer extends Plugin {
       await this.processFileV2(file);
     }
   }
-
   async getSimilarTags(content: string, fileName: string): Promise<string[]> {
-    // 1. Get all tags from the vault
+    const tags: string[] = await this.getAllTags();
+
+    if (tags.length === 0) {
+      console.log("No tags found");
+      return [];
+    }
+
+    const generatedTags = await generateTags(content, fileName, tags);
+    return generatedTags;
+  }
+
+  async getAllTags(): Promise<string[]> {
+    // Fetch all tags from the vault
     // @ts-ignore
-    const tags: TagCounts[] = this.app.metadataCache.getTags();
-    // if tags is = {} return
+    const tags: TagCounts = this.app.metadataCache.getTags();
+
+    // If no tags are found, return an empty array
     if (Object.keys(tags).length === 0) {
       logMessage("No tags found");
       return [];
     }
 
-    // sort tags from most to least common
+    // Sort tags by their occurrence count in descending order
     const sortedTags = Object.entries(tags).sort((a, b) => b[1] - a[1]);
-    logMessage("Sorted tags", sortedTags);
 
-    const data = {
-      content,
-      fileName,
-      tags: sortedTags.map((tag) => tag[0]),
-    };
-
-    const response = await makeApiRequest(() =>
-      requestUrl({
-        url: `${
-          this.settings.useCustomServer
-            ? this.settings.customServerUrl
-            : this.settings.defaultServerUrl
-        }/api/tagging`,
-        method: "POST",
-        body: JSON.stringify(data),
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${this.settings.API_KEY}`,
-        },
-      })
-    );
-
-    const result = await response.json;
-    return result.tags;
+    // Return the list of sorted tags
+    return sortedTags.map((tag) => tag[0]);
   }
+
   isTFolder(file: TAbstractFile): file is TFolder {
     return file instanceof TFolder;
   }
@@ -724,54 +607,33 @@ export default class FileOrganizer extends Plugin {
     return uniqueFolders;
   }
 
-  async getAIClassifiedFolder(content: string, file: TFile): Promise<string> {
-    // Initialize destination folder as "None"
+  async getAIClassifiedFolder(
+    content: string,
+    filePath: string
+  ): Promise<string> {
     let destinationFolder = "None";
 
-    // Get all folders
-    const uniqueFolders = this.getAllFolders()
-      // remove current file path
-      .filter((folder) => folder !== file.parent?.path)
-      // remove default destination path
+    const uniqueFolders = await this.getAllFolders();
+    const filteredFolders = uniqueFolders
+      .filter((folder) => folder !== filePath)
       .filter((folder) => folder !== this.settings.defaultDestinationPath)
       .filter((folder) => folder !== this.settings.attachmentsPath)
       .filter((folder) => folder !== this.settings.logFolderPath)
       .filter((folder) => folder !== this.settings.pathToWatch)
       .filter((folder) => folder !== this.settings.templatePaths)
-      // remove default folders
       .filter((folder) => !this.settings.ignoreFolders.includes(folder))
-      // filter /
       .filter((folder) => folder !== "/");
 
-    const data = {
+    const suggestedFolder = await generateFolderSuggestion(
       content,
-      fileName: file.basename,
-      folders: uniqueFolders,
-    };
-
-    const response = await makeApiRequest(() =>
-      requestUrl({
-        url: `${
-          this.settings.useCustomServer
-            ? this.settings.customServerUrl
-            : this.settings.defaultServerUrl
-        }/api/folders`,
-        method: "POST",
-        body: JSON.stringify(data),
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${this.settings.API_KEY}`,
-        },
-      })
+      filePath,
+      filteredFolders
     );
-    logMessage("response", response.json);
 
-    const result = await response.json;
-
-    if (result.folder === "None") {
+    if (suggestedFolder === "None") {
       destinationFolder = this.settings.defaultDestinationPath;
     } else {
-      destinationFolder = result.folder;
+      destinationFolder = suggestedFolder;
     }
 
     return destinationFolder;
@@ -850,6 +712,20 @@ export default class FileOrganizer extends Plugin {
 
   async onload() {
     await this.initializePlugin();
+
+    const modelName = "gpt-4o";
+    const apiKey = this.settings.API_KEY;
+    createOpenAIInstance(apiKey, modelName);
+
+
+    configureTask("tagging", "gpt-4o");
+    configureTask("folders", "gpt-4o");
+    configureTask("relationships", "gpt-4o");
+    configureTask("name", "gpt-4o");
+    configureTask("classify", "gpt-4o");
+    configureTask("vision", "gpt-4o");
+    // configureTask("audio", "whisper-1");
+
     this.addRibbonIcon("sparkle", "Fo2k Assistant View", () => {
       this.showAssistantSidebar();
     });
@@ -898,6 +774,8 @@ export default class FileOrganizer extends Plugin {
       },
     });
 
+    console.log("FileOrganizer2000 loaded");
+    console.log("Settings", this.settings);
     this.app.workspace.onLayoutReady(this.registerEventHandlers.bind(this));
     this.processBacklog();
   }
@@ -999,6 +877,8 @@ export default class FileOrganizer extends Plugin {
     // inbox events
     this.registerEvent(
       this.app.vault.on("create", (file) => {
+        console.log("file created", file);
+        console.log("path to watch", this.settings.pathToWatch);
         if (!file.path.includes(this.settings.pathToWatch)) return;
         if (file instanceof TFile) {
           this.processFileV2(file);
@@ -1007,6 +887,8 @@ export default class FileOrganizer extends Plugin {
     );
     this.registerEvent(
       this.app.vault.on("rename", (file, oldPath) => {
+        console.log("file created", file);
+        console.log("path to watch", this.settings.pathToWatch);
         if (!file.path.includes(this.settings.pathToWatch)) return;
         if (file instanceof TFile) {
           this.processFileV2(file, oldPath);
