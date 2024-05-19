@@ -129,7 +129,6 @@ export default class FileOrganizer extends Plugin {
   async processFileV2(originalFile: TFile, oldPath?: string) {
     try {
       new Notice(`Looking at ${originalFile.basename}`, 3000);
-      this.validateAPIKey();
 
       if (
         !originalFile.extension ||
