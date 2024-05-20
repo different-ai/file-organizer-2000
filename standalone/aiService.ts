@@ -384,7 +384,10 @@ export async function formatDocumentContent(
         "${formattingInstruction}"`,
       });
 
-      return defaultResponse.text.trim();
+      return defaultResponse.text
+        .trim()
+        .replace(/[^a-zA-Z0-9\s]/g, "")
+        .slice(0, 30);
     }
   }
 }
