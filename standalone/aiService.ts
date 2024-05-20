@@ -14,10 +14,9 @@ export async function generateTags(
   fileName: string,
   tags: string[]
 ): Promise<string[]> {
-  const modelName = process.env.MODEL_TAGGING || "gpt-4o";
   const model = getModelFromTask("tagging");
-  console.log("modelName", modelName);
-  console.log("model", model);
+
+  const modelName = model.modelId;
 
   switch (modelName) {
     case "gpt-4o": {
@@ -116,8 +115,8 @@ export async function generateRelationships(
   activeFileContent: string,
   files: { name: string }[]
 ): Promise<string[]> {
-  const modelName = process.env.MODEL_RELATIONSHIPS || "gpt-4o";
   const model = getModelFromTask("relationships");
+  const modelName = model.modelId;
 
   switch (modelName) {
     case "gpt-4-turbo":
@@ -165,11 +164,8 @@ export async function generateRelationships(
 
 // Function to generate document titles
 export async function generateDocumentTitle(document: string): Promise<string> {
-  console.log("inside title");
   const model = getModelFromTask("name");
-  console.log("model", model);
   const modelName = model.modelId;
-  console.log("modelName", modelName);
 
   switch (modelName) {
     case "gpt-4o":
@@ -244,8 +240,8 @@ export async function transcribeAudio(
 export async function extractTextFromImage(
   image: ArrayBuffer
 ): Promise<string> {
-  const modelName = process.env.MODEL_VISION || "gpt-4o";
   const model = getModelFromTask("vision");
+  const modelName = model.modelId;
 
   const messages = [
     {
@@ -337,9 +333,9 @@ export async function formatDocumentContent(
   content: string,
   formattingInstruction: string
 ): Promise<string> {
-  const modelName = process.env.MODEL_FORMAT || "gpt-4o";
   const model = getModelFromTask("format");
 
+  const modelName = model.modelId;
   switch (modelName) {
     case "gpt-4o": {
       const response = await generateObject({

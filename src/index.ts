@@ -74,7 +74,7 @@ class FileOrganizerSettings {
   openAIModel = "gpt-4o";
 
   enableOllama = false;
-  ollamaUrl = "";
+  ollamaUrl = "http://locahost:11434/api";
   ollamaModel = "mistral";
 
   taggingModel = "gpt-4o";
