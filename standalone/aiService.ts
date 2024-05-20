@@ -7,6 +7,8 @@ import { join } from "path";
 import { promises as fsPromises } from "fs";
 import OpenAI from "openai";
 import { getModelFromTask } from "./models";
+import { log } from "console";
+import { logMessage } from "../utils";
 
 // Function to generate tags
 export async function generateTags(
@@ -68,25 +70,41 @@ export async function generateTags(
 }
 
 // Function to guess the relevant folder
-// Function to guess the relevant folder
 export async function guessRelevantFolder(
   content: string,
   fileName: string,
   folders: string[]
 ): Promise<string | null> {
   const model = getModelFromTask("folders");
+  console.log("modelazo", model.modelId);
 
-  const response = await generateObject({
-    model,
-    schema: z.object({
-      suggestedFolder: z.string().nullable(),
-    }),
-    prompt: `Review the content: "${content}" and the file name: "${fileName}". Decide which of the following folders is the most suitable: ${folders.join(
-      ", "
-    )}. Base your decision on the relevance of the content and the file name to the folder themes. If no existing folder is suitable, respond with null.`,
-  });
-
-  return response.object.suggestedFolder;
+  switch (model.modelId) {
+    case "gpt-4o":
+      const response = await generateObject({
+        model,
+        schema: z.object({
+          suggestedFolder: z.string().nullable(),
+        }),
+        prompt: `Review the content: "${content}" and the file name: "${fileName}". Decide which of the following folders is the most suitable: ${folders.join(
+          ", "
+        )}. Base your decision on the relevance of the content and the file name to the folder themes. If no existing folder is suitable, respond with null.`,
+      });
+      console.log("default response", response);
+      return response.object.suggestedFolder;
+    default:
+      const mistralResponse = await generateObject({
+        model,
+        schema: z.object({
+          suggestedFolder: z.string().nullable(),
+        }),
+        prompt: `Given the content: "${content}" and the file name: "${fileName}", identify the most suitable folder from the following options: ${folders.join(
+          ", "
+        )}. If none of the existing folders are suitable, respond with null.`,
+      });
+      logMessage("fileName", fileName);
+      logMessage("mistralResponse", mistralResponse);
+      return mistralResponse.object.suggestedFolder;
+  }
 }
 
 // Function to create a new folder if none is found
@@ -164,12 +182,15 @@ export async function generateRelationships(
 
 // Function to generate document titles
 export async function generateDocumentTitle(document: string): Promise<string> {
+  //  console.log("inside title");
   const model = getModelFromTask("name");
+  // console.log("model", model);
   const modelName = model.modelId;
+  // console.log("modelName", modelName);
 
   switch (modelName) {
     case "gpt-4o":
-      console.log("not hitting htis");
+      // console.log("not hitting htis");
       // eslint-disable-next-line no-case-declarations
       const response = await generateObject({
         model,
@@ -199,7 +220,7 @@ export async function generateDocumentTitle(document: string): Promise<string> {
     }
 
     default:
-      console.log("do not hit");
+      //console.log("do not hit");
       const defaultResponse = await generateText({
         model,
         prompt: `You are a helpful assistant. You only answer short (less than 30 chars titles). You do not use any special character just text. Use something very specific to the content not a generic title.
@@ -207,10 +228,7 @@ export async function generateDocumentTitle(document: string): Promise<string> {
           ${document}`,
       });
 
-      return defaultResponse.text
-        .trim()
-        .replace(/[^a-zA-Z0-9\s]/g, "")
-        .slice(0, 30);
+      return defaultResponse.text;
   }
 }
 
