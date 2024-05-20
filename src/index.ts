@@ -45,7 +45,7 @@ class FileOrganizerSettings {
   logFolderPath = "_FileOrganizer2000/Logs";
   useSimilarTags = true; // default value is true
   renameDocumentTitle = false; // default value is true
-  useAliases = false; // default value is false
+
   useAutoAppend = false;
   defaultServerUrl = "https://app.fileorganizer2000.com";
   customServerUrl = "https://file-organizer-2000.vercel.app/";
@@ -62,7 +62,7 @@ class FileOrganizerSettings {
 
   OPENAI_API_KEY_2 = "";
 
-  ignoreFolders = ["_FileOrganizer2000"];
+  ignoreFolders = [""];
   stagingFolder = ".fileorganizer2000/staging";
   disableImageAnnotation = false;
 
@@ -409,7 +409,7 @@ export default class FileOrganizer extends Plugin {
   }
 
   async appendAlias(file: TFile, alias: string) {
-   this.appendToFrontMatter(file, "alias", alias);
+    this.appendToFrontMatter(file, "alias", alias);
   }
 
   // creates a .md file with a humean readable name guessed from the content
@@ -669,6 +669,13 @@ export default class FileOrganizer extends Plugin {
       .filter((folder) => folder !== this.settings.pathToWatch)
       .filter((folder) => folder !== this.settings.templatePaths)
       .filter((folder) => !folder.includes("_FileOrganizer2000"))
+      .filter(
+        (folder) =>
+          !this.settings.ignoreFolders.some((ignoreFolder) =>
+            folder.includes(ignoreFolder)
+          )
+      )
+
       .filter((folder) => folder !== "/");
     console.log("filteredFolders", filteredFolders);
     console.log("filteredFolders", filteredFolders);

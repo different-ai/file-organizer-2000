@@ -18,8 +18,6 @@ export class FileOrganizerSettingTab extends PluginSettingTab {
 
     containerEl.empty();
 
-
-
     const tabs = containerEl.createEl("div", { cls: "setting-tabs" });
     const tabHeaders = tabs.createEl("div", { cls: "setting-tab-headers" });
     const tabContents = tabs.createEl("div", { cls: "setting-tab-contents" });
@@ -94,36 +92,6 @@ export class FileOrganizerSettingTab extends PluginSettingTab {
       modelForXTabContent,
     ]);
 
-
-
-    // Append tooltips to relevant elements
-    enableOpenAITooltip.appendTo(containerEl.querySelector(".enable-openai"));
-    apiKeyTooltip.appendTo(containerEl.querySelector(".openai-api-key"));
-    modelTooltip.appendTo(containerEl.querySelector(".openai-model"));
-
-    // Add event listeners for inline validation
-    const apiKeyInput = containerEl.querySelector(".openai-api-key input");
-    apiKeyInput.addEventListener("input", () => {
-      validateApiKey(apiKeyInput.value);
-    });
-
-    function validateApiKey(key) {
-      // Example validation logic
-      if (key.startsWith("sk-")) {
-        apiKeyInput.classList.remove("invalid");
-        apiKeyInput.classList.add("valid");
-      } else {
-        apiKeyInput.classList.remove("valid");
-        apiKeyInput.classList.add("invalid");
-      }
-    }
-
-    // Function to show the selected tab and hide others
-    this.showTab = (show, hide) => {
-      show.style.display = "block";
-      hide.forEach((tab) => (tab.style.display = "none"));
-    };
-
     // CSS for tooltips and validation
     const style = document.createElement("style");
     style.textContent = `
@@ -145,5 +113,16 @@ export class FileOrganizerSettingTab extends PluginSettingTab {
   private showTab(activeTab: HTMLElement, otherTabs: HTMLElement[]): void {
     activeTab.style.display = "block";
     otherTabs.forEach((tab) => (tab.style.display = "none"));
+  }
+
+  private validateApiKey(key: string, inputElement: HTMLInputElement): void {
+    // Example validation logic
+    if (key.startsWith("sk-")) {
+      inputElement.classList.remove("invalid");
+      inputElement.classList.add("valid");
+    } else {
+      inputElement.classList.remove("valid");
+      inputElement.classList.add("invalid");
+    }
   }
 }

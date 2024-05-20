@@ -73,6 +73,21 @@ export class FileConfigTab {
           })
       );
 
+    new Setting(fileConfigTabContent)
+      .setName("Ignore folders")
+      .setDesc(
+        "Enter folder paths to ignore during organization, separated by commas. e.g. Folder1,Folder2"
+      )
+      .addText((text) =>
+        text
+          .setPlaceholder("Enter folder paths")
+          .setValue(this.plugin.settings.ignoreFolders.join(","))
+          .onChange(async (value) => {
+            this.plugin.settings.ignoreFolders = value.split(",").map(cleanPath);
+            await this.plugin.saveSettings();
+          })
+      );
+
     return fileConfigTabContent;
   }
 }

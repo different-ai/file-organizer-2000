@@ -103,17 +103,7 @@ export class CustomizationTab {
           })
       );
 
-    new Setting(customizationTabContent)
-      .setName("Aliases")
-      .setDesc("Append aliases to processed files.")
-      .addToggle((toggle) =>
-        toggle
-          .setValue(this.plugin.settings.useAliases)
-          .onChange(async (value) => {
-            this.plugin.settings.useAliases = value;
-            await this.plugin.saveSettings();
-          })
-      );
+
 
     new Setting(customizationTabContent)
       .setName("Processed File Tag")
