@@ -84,6 +84,8 @@ class FileOrganizerSettings {
   classifyModel = "gpt-4o";
   visionModel = "gpt-4o";
   formatModel = "gpt-4o";
+  ollamaModels: string[];
+
 }
 
 const validAudioExtensions = ["mp3", "wav", "webm", "m4a"];
