@@ -68,6 +68,24 @@ export async function generateTags(
     }
   }
 }
+// Function to generate alias variations
+export async function generateAliasVariations(
+  fileName: string,
+  content: string
+): Promise<string[]> {
+  const model = getModelFromTask("name");
+
+  const response = await generateObject({
+    model,
+    schema: z.object({
+      aliases: z.array(z.string()).default([]),
+    }),
+    prompt: `Generate a list of  3 closely related names (aliases) for the given file name: "${fileName}". The aliases should include variations in capitalization, spacing, and common extensions. For example, for "ECSS", generate aliases like "ecss", "ecss space", "ECSS", "ECSS Space", "ECSS Compliance", etc. Consider the context provided by the content "${content}".`,
+    system: "only answer with name not extension"
+  });
+
+  return response.object.aliases;
+}
 
 // Function to guess the relevant folder
 export async function guessRelevantFolder(

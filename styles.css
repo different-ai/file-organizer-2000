@@ -54,7 +54,9 @@ If your plugin does not need CSS, delete this file.
 }
 
 .tag:hover {
-  background: var(--interactive-accent);
+  color: var(--nav-item-color-hover);
+  background-color: var(--nav-item-background-hover);
+  font-weight: var(--nav-item-weight-hover);
 }
 
 .alias-container,

@@ -30,6 +30,7 @@ import {
   formatDocumentContent,
   guessRelevantFolder,
   createNewFolder,
+  generateAliasVariations,
 } from "../standalone/aiService";
 type TagCounts = {
   [key: string]: number;
@@ -85,7 +86,6 @@ class FileOrganizerSettings {
   visionModel = "gpt-4o";
   formatModel = "gpt-4o";
   ollamaModels: string[];
-
 }
 
 const validAudioExtensions = ["mp3", "wav", "webm", "m4a"];
@@ -223,6 +223,9 @@ export default class FileOrganizer extends Plugin {
       new Notice(error.message, 6000);
       console.error(error);
     }
+  }
+  generateAliasses(name: string, content: string) {
+    return generateAliasVariations(name, content);
   }
 
   async createMetadataFile(file: TFile, metadata: Record<string, any>) {
@@ -406,10 +409,7 @@ export default class FileOrganizer extends Plugin {
   }
 
   async appendAlias(file: TFile, alias: string) {
-    if (!this.settings.useAliases) {
-      return;
-    }
-    this.appendToFrontMatter(file, "alias", alias);
+   this.appendToFrontMatter(file, "alias", alias);
   }
 
   // creates a .md file with a humean readable name guessed from the content

@@ -71,7 +71,7 @@ const SimilarTags: React.FC<{
   );
 };
 
-const AliasSuggestionBox: React.FC<{
+const RenameSuggestionBox: React.FC<{
   plugin: FileOrganizer;
   file: TFile | null;
   content: string;
@@ -139,6 +139,70 @@ const AliasSuggestionBox: React.FC<{
   );
 };
 
+const AliasSuggestionBox: React.FC<{
+  plugin: FileOrganizer;
+  file: TFile | null;
+  content: string;
+}> = ({ plugin, file, content }) => {
+  const [aliases, setAliases] = React.useState<string[]>([]);
+  const [loading, setLoading] = React.useState<boolean>(false);
+  const [error, setError] = React.useState<string | null>(null);
+
+  React.useEffect(() => {
+    const suggestAliases = async () => {
+      if (!content) {
+        setAliases([]);
+        return;
+      }
+      setAliases([]);
+      setLoading(true);
+      setError(null);
+      try {
+        const generatedAliases = await plugin.generateAliasses(
+          file.basename,
+          content
+        );
+        setAliases(generatedAliases);
+      } catch (err) {
+        console.error("Failed to generate aliases:", err);
+        setError("Error generating aliases.");
+      } finally {
+        setLoading(false);
+      }
+    };
+    suggestAliases();
+  }, [content]);
+
+  return (
+    <div className="assistant-section alias-section">
+      <SectionHeader text="Suggested aliases" icon="💡" />
+      {loading ? (
+        <div>Loading...</div>
+      ) : error ? (
+        <div className="error-message">{error}</div>
+      ) : (
+        <div className="alias-container">
+          {aliases.length > 0 ? (
+            <>
+              {aliases.map((alias, index) => (
+                <span
+                  key={index}
+                  className="alias tag"
+                  onClick={() => plugin.appendAlias(file, alias)}
+                >
+                  {alias}
+                </span>
+              ))}
+            </>
+          ) : (
+            <div>No suggestions found</div>
+          )}
+        </div>
+      )}
+    </div>
+  );
+};
+
 const SimilarFolderBox: React.FC<{
   plugin: FileOrganizer;
   file: TFile | null;
@@ -152,7 +216,10 @@ const SimilarFolderBox: React.FC<{
       if (!content) return;
       setFolder(null);
       setLoading(true);
-      const suggestedFolder = await plugin.getAIClassifiedFolder(content, file.path);
+      const suggestedFolder = await plugin.getAIClassifiedFolder(
+        content,
+        file.path
+      );
       setFolder(suggestedFolder);
       setLoading(false);
     };
@@ -369,6 +436,12 @@ export const AssistantView: React.FC<AssistantViewProps> = ({ plugin }) => {
         content={noteContent}
       />
       <SimilarTags plugin={plugin} file={activeFile} content={noteContent} />
+      <RenameSuggestionBox
+        plugin={plugin}
+        file={activeFile}
+        content={noteContent}
+      />
+
       <AliasSuggestionBox
         plugin={plugin}
         file={activeFile}
