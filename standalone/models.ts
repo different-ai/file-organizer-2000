@@ -1,25 +1,24 @@
 import { createAnthropic } from "@ai-sdk/anthropic";
-import { createOpenAI } from "@ai-sdk/openai";
+import { createOpenAI, OpenAIProvider } from "@ai-sdk/openai";
+import { LanguageModel } from "ai";
 import { createOllama } from "ollama-ai-provider";
 
 interface ModelConfig {
   [key: string]: any;
-  // baseURL: string;
   defaultObjectGenerationMode: string;
   modelId: string;
 }
 
 type Models = {
-  [key: string]: ModelConfig;
+  [key: string]: LanguageModel;
 };
 
-const models: Models = {};
+export const models: Models = {};
 
 const taskModelConfig: Record<string, string> = {};
 
 export function createOpenAIInstance(apiKey: string, modelName: string) {
   const modelInstance = createOpenAI({ apiKey })(modelName);
-  console.log({ modelInstance });
   models[modelName] = modelInstance;
   return modelInstance;
 }
@@ -48,7 +47,6 @@ export function configureTask(task: string, modelName: string) {
 }
 
 export function getModelFromTask(task: string) {
-  console.log({ models });
   const modelName = taskModelConfig[task];
   if (!modelName) {
     throw new Error(`Task '${task}' is not configured.`);

@@ -6,8 +6,8 @@ import { promisify } from "util";
 import moment from "moment";
 import Jimp from "jimp";
 import chokidar from "chokidar";
-import fetch from "node-fetch";
-import { PDFDocument } from "pdf-lib";
+// import fetch from "node-fetch";
+// import { PDFDocument } from "pdf-lib";
 
 const readFile = promisify(fs.readFile);
 const writeFile = promisify(fs.writeFile);
@@ -387,26 +387,26 @@ class FileOrganizer {
     } else if (validAudioExtensions.includes(fileExtension)) {
       content = await this.generateTranscriptFromAudio(filePath);
     } else if (fileExtension === "pdf") {
-      content = await this.extractTextFromPDF(filePath);
+      // content = await this.extractTextFromPDF(filePath);
     }
 
     return content;
   }
-  async extractTextFromPDF(filePath: string): Promise<string> {
-    try {
-      const pdfBytes = await readFile(filePath);
-      const pdfDoc = await PDFDocument.load(pdfBytes);
-      const pageTextPromises = pdfDoc.getPages().map(async (page) => {
-        const textContent = await page.getTextContent();
-        return textContent.items.map((item) => item.str).join(" ");
-      });
-      const pageTexts = await Promise.all(pageTextPromises);
-      return pageTexts.join("\n");
-    } catch (error) {
-      console.error(`Error extracting text from PDF: ${error}`);
-      return "";
-    }
-  }
+  // async extractTextFromPDF(filePath: string): Promise<string> {
+  //   try {
+  //     const pdfBytes = await readFile(filePath);
+  //     const pdfDoc = await PDFDocument.load(pdfBytes);
+  //     const pageTextPromises = pdfDoc.getPages().map(async (page) => {
+  //       const textContent = await page.getTextContent();
+  //       return textContent.items.map((item) => item.str).join(" ");
+  //     });
+  //     const pageTexts = await Promise.all(pageTextPromises);
+  //     return pageTexts.join("\n");
+  //   } catch (error) {
+  //     console.error(`Error extracting text from PDF: ${error}`);
+  //     return "";
+  //   }
+  // }
 
   async appendAttachment(markdownFilePath: string, attachmentFilePath: string) {
     await fs.promises.appendFile(

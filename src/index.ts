@@ -31,7 +31,6 @@ import {
   guessRelevantFolder,
   createNewFolder,
   generateAliasVariations,
-  generateChunks,
   identifyConcepts,
   fetchChunksForConcept as generateChunkFromConcept,
 } from "../standalone/aiService";
@@ -79,7 +78,7 @@ class FileOrganizerSettings {
 
   enableOllama = false;
   ollamaUrl = "http://locahost:11434/api";
-  ollamaModel = "mistral";
+  // ollamaModel = "mistral";
 
   taggingModel = "gpt-4o";
   foldersModel = "gpt-4o";
@@ -808,7 +807,8 @@ export default class FileOrganizer extends Plugin {
     }
 
     if (this.settings.enableOllama) {
-      createOllamaInstance(this.settings.ollamaModel, {
+      const ollamaModel = this.settings.ollamaModels[0];
+      createOllamaInstance(ollamaModel, {
         baseURL: this.settings.ollamaUrl,
       });
     }

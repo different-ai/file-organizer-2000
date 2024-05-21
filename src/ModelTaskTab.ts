@@ -2,6 +2,8 @@ import { Setting } from "obsidian";
 import { configureTask } from "../standalone/models";
 import FileOrganizer from "./index";
 
+import { models } from "../standalone/models"; // Import models
+
 export class ModelForXTab {
   private plugin: FileOrganizer;
   private containerEl: HTMLElement;
@@ -16,88 +18,47 @@ export class ModelForXTab {
       cls: "setting-tab-content",
     });
 
-    // Model Settings Section
-    new Setting(modelTabContent).setName("Model Settings").setHeading();
-
-    new Setting(modelTabContent).setName("Tagging Model").addText((text) =>
-      text
-        .setPlaceholder("Enter the model name for tagging")
-        .setValue(this.plugin.settings.taggingModel)
-        .onChange(async (value) => {
-          this.plugin.settings.taggingModel = value;
-          await this.plugin.saveSettings();
-          configureTask("tagging", value);
-        })
+    this.createModelDropdown(
+      modelTabContent,
+      "Tagging Model",
+      "taggingModel",
+      "tagging"
     );
-
-    new Setting(modelTabContent).setName("Folders Model").addText((text) =>
-      text
-        .setPlaceholder("Enter the model for folders")
-        .setValue(this.plugin.settings.foldersModel)
-        .onChange(async (value) => {
-          this.plugin.settings.foldersModel = value;
-          await this.plugin.saveSettings();
-          configureTask("folders", value);
-        })
+    this.createModelDropdown(
+      modelTabContent,
+      "Folders Model",
+      "foldersModel",
+      "folders"
     );
-
-    new Setting(modelTabContent)
-      .setName("Relationships Model")
-      .addText((text) =>
-        text
-          .setPlaceholder("Enter the model for relationships")
-          .setValue(this.plugin.settings.relationshipsModel)
-          .onChange(async (value) => {
-            this.plugin.settings.relationshipsModel = value;
-            await this.plugin.saveSettings();
-            configureTask("relationships", value);
-          })
-      );
-
-    new Setting(modelTabContent).setName("Name Model").addText((text) =>
-      text
-        .setPlaceholder("Enter the model for name generation")
-        .setValue(this.plugin.settings.nameModel)
-        .onChange(async (value) => {
-          this.plugin.settings.nameModel = value;
-          await this.plugin.saveSettings();
-          configureTask("name", value);
-        })
+    this.createModelDropdown(
+      modelTabContent,
+      "Relationships Model",
+      "relationshipsModel",
+      "relationships"
     );
-
-    new Setting(modelTabContent)
-      .setName("Classification Model")
-      .addText((text) =>
-        text
-          .setPlaceholder("Enter the model for classification")
-          .setValue(this.plugin.settings.classifyModel)
-          .onChange(async (value) => {
-            this.plugin.settings.classifyModel = value;
-            await this.plugin.saveSettings();
-            configureTask("classify", value);
-          })
-      );
-
-    new Setting(modelTabContent).setName("Vision Model").addText((text) =>
-      text
-        .setPlaceholder("Enter the model for vision")
-        .setValue(this.plugin.settings.visionModel)
-        .onChange(async (value) => {
-          this.plugin.settings.visionModel = value;
-          configureTask("vision", value);
-          await this.plugin.saveSettings();
-        })
+    this.createModelDropdown(
+      modelTabContent,
+      "Name Model",
+      "nameModel",
+      "name"
     );
-
-    new Setting(modelTabContent).setName("Formatting Model").addText((text) =>
-      text
-        .setPlaceholder("Enter the model for formatting")
-        .setValue(this.plugin.settings.formatModel)
-        .onChange(async (value) => {
-          this.plugin.settings.formatModel = value;
-          configureTask("format", value);
-          await this.plugin.saveSettings();
-        })
+    this.createModelDropdown(
+      modelTabContent,
+      "Classification Model",
+      "classifyModel",
+      "classify"
+    );
+    this.createModelDropdown(
+      modelTabContent,
+      "Vision Model",
+      "visionModel",
+      "vision"
+    );
+    this.createModelDropdown(
+      modelTabContent,
+      "Formatting Model",
+      "formatModel",
+      "format"
     );
 
     // Anthropic Settings Section
@@ -176,10 +137,10 @@ export class ModelForXTab {
         })
     );
 
-    new Setting(ollamaSettingsEl).setName("Ollama Model(s)").addText(
+    new Setting(ollamaSettingsEl).setName("Ollama Model").addText(
       (text) =>
         text
-          .setPlaceholder("Enter the Ollama model names, separated by commas")
+          .setPlaceholder("Enter the Ollama model name")
           .setValue(
             Array.isArray(this.plugin.settings.ollamaModels)
               ? this.plugin.settings.ollamaModels.join(", ")
@@ -192,6 +153,11 @@ export class ModelForXTab {
                   .split(",")
                   .map((model) => model.trim())
                   .filter((model) => model.length > 0);
+
+                console.log(
+                  "Ollama models:",
+                  this.plugin.settings.ollamaModels
+                );
                 await this.plugin.saveSettings();
               } else {
                 console.error("Invalid input for Ollama models:", value);
@@ -208,6 +174,32 @@ export class ModelForXTab {
     isVisible: boolean
   ): void {
     settingEl.style.display = isVisible ? "block" : "none";
+  }
+
+  private createModelDropdown(
+    container: HTMLElement,
+    settingName: string,
+    settingKey: keyof FileOrganizer["settings"],
+    taskType: string
+  ): void {
+    new Setting(container).setName(settingName).addDropdown((dropdown) => {
+      const loadOptions = async () => {
+        dropdown.selectEl.innerHTML = "";
+        Object.keys(models).forEach((model) => {
+          dropdown.addOption(model, model);
+        });
+        dropdown.setValue(this.plugin.settings[settingKey] as string);
+      };
+
+      loadOptions();
+      setInterval(loadOptions, 5000);
+
+      dropdown.onChange(async (value) => {
+        this.plugin.settings[settingKey] = value;
+        await this.plugin.saveSettings();
+        configureTask(taskType, value);
+      });
+    });
   }
 }
 

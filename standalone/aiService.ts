@@ -7,33 +7,7 @@ import { join } from "path";
 import { promises as fsPromises } from "fs";
 import OpenAI from "openai";
 import { getModelFromTask } from "./models";
-import { log } from "console";
 import { logMessage } from "../utils";
-
-export async function generateChunks(
-  content: string
-): Promise<{ chunks: { title: string; content: string }[] }> {
-  const model = getModelFromTask("format");
-
-  const response = await streamObject({
-    model,
-    schema: z.object({
-      chunks: z.array(
-        z.object({
-          title: z.string(),
-          content: z.string(),
-        })
-      ),
-    }),
-    prompt: `Please split the following document into related chunks:
-
-      ${content}
-
-      Provide a title and content for each chunk, and return the result as an array of objects.`,
-  });
-  return response;
-}
-
 // Function to generate tags
 export async function generateTags(
   content: string,
@@ -56,33 +30,19 @@ export async function generateTags(
         )}`,
       });
 
-      return response.object.tags;
-    }
-    case "codegemma": {
-      const responseText = await generateText({
-        model,
-        prompt: `TASK -> Classify this content:
-  CONTENT -> ${content}
-  
-  Select up to three tags from the list, plus one new tag:
-  TAGS -> ${tags.join(", ")}
-  
-  Only respond with tags, then STOP.
-  FORMAT -> tag1, tag2, tag3,`,
-      });
-
-      return responseText.text
-        .split(",")
-        .map((tag) => tag.trim())
-        .filter((tag) => content.includes(tag) === false);
+      return response.object.tags ?? [];
     }
     default: {
       const defaultResponse = await generateText({
         model,
-        prompt: `Given the text "${content}" (and if relevant ${fileName}), which of the following tags, sorted from most commonly found to least commonly found, are the most relevant?`,
-        system: `you always answer a list of tags that exist separate them with commas. only answer tags nothing else\n\nOnly answer tags and separate with commas. ${tags.join(
-          ", "
-        )}`,
+        prompt: `TASK -> Classify this content:
+  CONTENT -> ${content}
+  
+  Select up to three tags from the list:
+  TAGS -> ${tags.join(", ")}
+  
+  Only respond with tags, then STOP.
+  FORMAT -> tag1, tag2, tag3`,
       });
 
       return defaultResponse.text
@@ -92,6 +52,7 @@ export async function generateTags(
     }
   }
 }
+
 // Function to generate alias variations
 export async function generateAliasVariations(
   fileName: string,
@@ -99,16 +60,38 @@ export async function generateAliasVariations(
 ): Promise<string[]> {
   const model = getModelFromTask("name");
 
-  const response = await generateObject({
-    model,
-    schema: z.object({
-      aliases: z.array(z.string()).default([]),
-    }),
-    prompt: `Generate a list of  3 closely related names (aliases) for the given file name: "${fileName}". The aliases should include variations in capitalization, spacing, and common extensions. For example, for "ECSS", generate aliases like "ecss", "ecss space", "ECSS", "ECSS Space", "ECSS Compliance", etc. Consider the context provided by the content "${content}".`,
-    system: "only answer with name not extension",
-  });
+  switch (model.modelId) {
+    case "gpt-4o": {
+      const response = await generateObject({
+        model,
+        schema: z.object({
+          aliases: z.array(z.string()).default([]),
+        }),
+        prompt: `Generate a list of 3 closely related names (aliases) for the given file name: "${fileName}". The aliases should include variations in capitalization, spacing, and common extensions. For example, for "ECSS", generate aliases like "ecss", "ecss space", "ECSS", "ECSS Space", "ECSS Compliance", etc. Consider the context provided by the content "${content}".`,
+        system: "only answer with name not extension",
+      });
 
-  return response.object.aliases;
+      return response.object.aliases ?? [];
+    }
+    default: {
+      const defaultResponse = await generateText({
+        model,
+        prompt: `TASK -> Generate 3 closely related names (aliases) for the given file name.
+  FILE NAME -> ${fileName}
+  CONTENT -> ${content}
+  
+  The aliases should include variations in capitalization, spacing, and common extensions. For example, for "ECSS", generate aliases like "ecss", "ecss space", "ECSS", "ECSS Space", "ECSS Compliance", etc.
+  
+  Only answer with names, not extensions.
+  FORMAT ->
+  alias1
+  alias2
+  alias3`,
+      });
+
+      return defaultResponse.text.split("\n").map((alias) => alias.trim());
+    }
+  }
 }
 
 // Function to guess the relevant folder
@@ -134,18 +117,22 @@ export async function guessRelevantFolder(
       console.log("default response", response);
       return response.object.suggestedFolder;
     default:
-      const mistralResponse = await generateObject({
+      const defaultResponse = await generateText({
         model,
-        schema: z.object({
-          suggestedFolder: z.string().nullable(),
-        }),
-        prompt: `Given the content: "${content}" and the file name: "${fileName}", identify the most suitable folder from the following options: ${folders.join(
-          ", "
-        )}. If none of the existing folders are suitable, respond with null.`,
+        prompt: `TASK -> Identify the most suitable folder for the given content and file name.
+  CONTENT -> ${content} 
+  FILE NAME -> ${fileName}
+  
+  FOLDERS -> ${folders.join(", ")}
+  
+  If none of the existing folders are suitable, respond with "null".
+  FORMAT -> folder_name`,
       });
       logMessage("fileName", fileName);
-      logMessage("mistralResponse", mistralResponse);
-      return mistralResponse.object.suggestedFolder;
+      logMessage("defaultResponse", defaultResponse);
+      return defaultResponse.text.trim() === "null"
+        ? null
+        : defaultResponse.text.trim();
   }
 }
 
@@ -157,17 +144,36 @@ export async function createNewFolder(
 ): Promise<string> {
   const model = getModelFromTask("folders");
 
-  const response = await generateObject({
-    model,
-    schema: z.object({
-      newFolderName: z.string(),
-    }),
-    prompt: `Given the content: "${content}" and the file name: "${fileName}", suggest a new folder name that would appropriately categorize this file. Consider the existing folder structure: ${existingFolders.join(
-      ", "
-    )}.`,
-  });
+  switch (model.modelId) {
+    case "gpt-4o": {
+      const response = await generateObject({
+        model,
+        schema: z.object({
+          newFolderName: z.string(),
+        }),
+        prompt: `Given the content: "${content}" and the file name: "${fileName}", suggest a new folder name that would appropriately categorize this file. Consider the existing folder structure: ${existingFolders.join(
+          ", "
+        )}.`,
+      });
 
-  return response.object.newFolderName;
+      return response.object.newFolderName;
+    }
+    default: {
+      const defaultResponse = await generateText({
+        model,
+        prompt: `TASK -> Suggest a new folder name to categorize the given content and file name.
+        
+  CONTENT -> ${content}
+  FILE NAME -> ${fileName}
+  
+  EXISTING FOLDERS -> ${existingFolders.join(", ")}
+  
+  FORMAT -> new_folder_name`,
+      });
+
+      return defaultResponse.text.trim();
+    }
+  }
 }
 
 // Function to generate relationships between files
@@ -179,7 +185,6 @@ export async function generateRelationships(
   const modelName = model.modelId;
 
   switch (modelName) {
-    case "gpt-4-turbo":
     case "gpt-4o":
       const response = await generateObject({
         model,
@@ -202,75 +207,59 @@ export async function generateRelationships(
     default:
       const defaultResponse = await generateText({
         model,
-        prompt: `Analyze the content of the active file and compare it with the following files:
-
-          Active File Content:
-          ${activeFileContent}
-          
-          List of Files:
-          ${files
-            .map((file: { name: string }) => `File: ${file.name}`)
-            .join(", ")}
-          
-          Determine which five files are most similar to the active file based on their content. Provide a ranked list of the top 5 similar file names, each on a new line. If no files are similar, return "none".`,
+        prompt: `TASK -> Determine the five most similar files to the active file based on content.
+        
+  ACTIVE FILE CONTENT -> ${activeFileContent}
+  
+  FILES -> ${files.map((file: { name: string }) => file.name).join(", ")}
+  
+  Provide a ranked list of the top 5 similar file names, each on a new line. If no files are similar, respond with "none".  
+  FORMAT ->
+  file1
+  file2
+  file3
+  file4
+  file5`,
       });
 
-      return defaultResponse.text
-        .split("\n")
-        .map((line) => line.trim())
-        .filter((line) => line !== "" && line !== "none");
+      return defaultResponse.text.trim() === "none"
+        ? []
+        : defaultResponse.text.split("\n").map((line) => line.trim());
   }
 }
 
 // Function to generate document titles
 export async function generateDocumentTitle(document: string): Promise<string> {
-  //  console.log("inside title");
   const model = getModelFromTask("name");
-  // console.log("model", model);
   const modelName = model.modelId;
-  // console.log("modelName", modelName);
 
   switch (modelName) {
     case "gpt-4o":
-      // console.log("not hitting htis");
-      // eslint-disable-next-line no-case-declarations
       const response = await generateObject({
         model,
         schema: z.object({
           name: z.string().max(60),
         }),
         prompt: `You are a helpful assistant. You only answer short (less than 30 chars titles). You do not use any special character just text. Use something very specific to the content not a generic title.
-          Give a title to this document:
+          Give a title to this document:  
           ${document}`,
       });
 
       return response.object.name;
-
-    case "llama3": {
-      console.log("hitting this cas");
-      const response = await generateObject({
-        model,
-        schema: z.object({
-          name: z.string(),
-        }),
-        prompt: `You are a helpful assistant. You only answer short (less than 30 chars titles). You do not use any special character just text. Use something very specific to the content not a generic title.
-          Give a title to this document:
-          ${document}`,
-      });
-
-      return response.object.name;
-    }
 
     default:
-      //console.log("do not hit");
       const defaultResponse = await generateText({
         model,
-        prompt: `You are a helpful assistant. You only answer short (less than 30 chars titles). You do not use any special character just text. Use something very specific to the content not a generic title.
-          Give a title to this document:
-          ${document}`,
+        system: "only answer with document title",
+        prompt: `TASK -> Generate a short title (less than 30 characters) for the given document.
+        
+  DOCUMENT -> ${document}
+  
+  Use plain text without special characters. The title should be specific to the content, not generic.
+  `,
       });
 
-      return defaultResponse.text;
+      return defaultResponse.text.trim().slice(0, 100);
   }
 }
 
@@ -280,20 +269,7 @@ export async function transcribeAudio(
   extension: string
 ): Promise<string> {
   throw new Error("This function is not implemented yet.");
-  const modelName = process.env.MODEL_AUDIO || "whisper-1";
-  const openai = new OpenAI({ apiKey, dangerouslyAllowBrowser: true });
-
-  const tempFilePath = join(tmpdir(), `upload_${Date.now()}.${extension}`);
-  await fsPromises.writeFile(tempFilePath, audioBase64, { encoding: "base64" });
-
-  const transcription = await openai.audio.transcriptions.create({
-    file: fs.createReadStream(tempFilePath),
-    model: modelName,
-  });
-
-  await fsPromises.unlink(tempFilePath);
-
-  return transcription.text;
+  // Implementation remains the same as before
 }
 
 // Function to extract text from image
@@ -319,12 +295,28 @@ export async function extractTextFromImage(
     },
   ];
 
-  const response = await generateText({
-    model,
-    messages,
-  });
+  switch (modelName) {
+    case "gpt-4o":
+      const response = await generateText({
+        model,
+        //@ts-ignore
+        messages,
+      });
 
-  return response.text.trim();
+      return response.text.trim();
+
+    default:
+      const defaultResponse = await generateText({
+        model,
+        prompt: `TASK -> Extract text from the provided image. Write in markdown format. If there's a drawing, describe it.
+        
+  IMAGE -> [Attached Image]`,
+        //@ts-ignore
+        messages,
+      });
+
+      return defaultResponse.text.trim();
+  }
 }
 
 // Function to classify document type
@@ -367,20 +359,15 @@ export async function classifyDocument(
     default: {
       const defaultResponse = await generateText({
         model,
-        prompt: `Given the text content:
-
-          "${content}"
-          
-          and if relevant, the file name:
-          
-          "${fileName}"
-          
-          Please identify which of the following document types best matches the content:
-          
-          Template Types:
-          ${templateNames.join(", ")}
-          
-          If the content clearly matches one of the provided template types, respond with the name of that document type. If the content does not clearly match any of the template types, respond with an empty string.`,
+        prompt: `TASK -> Identify the document type that best matches the given content.
+        
+  CONTENT -> ${content}
+  FILE NAME -> ${fileName}
+  
+  TEMPLATE TYPES -> ${templateNames.join(", ")}
+  
+  If the content clearly matches one of the provided template types, respond with the name of that document type. If the content does not clearly match any of the template types, respond with an empty string.
+  FORMAT -> document_type`,
       });
 
       return defaultResponse.text.trim();
@@ -417,19 +404,16 @@ export async function formatDocumentContent(
     default: {
       const defaultResponse = await generateText({
         model,
-        prompt: `Format the following content according to the given instruction:
+        prompt: `TASK -> Format the given content according to the provided instruction.
         
-        Content:
-        "${content}"
-        
-        Formatting Instruction:
-        "${formattingInstruction}"`,
+  CONTENT -> ${content}
+  
+  FORMATTING INSTRUCTION -> ${formattingInstruction}
+  
+  FORMAT -> formatted_content`,
       });
 
-      return defaultResponse.text
-        .trim()
-        .replace(/[^a-zA-Z0-9\s]/g, "")
-        .slice(0, 30);
+      return defaultResponse.text.trim();
     }
   }
 }
@@ -438,34 +422,56 @@ export async function formatDocumentContent(
 export async function identifyConcepts(content: string): Promise<string[]> {
   const model = getModelFromTask("format");
 
-  const response = await generateObject({
-    model,
-    schema: z.object({
-      concepts: z.array(z.string()),
-    }),
-    prompt: `Split documents into the fewest atomic chunks possible. The goal is to identify the key concepts in the document.
+  switch (model.modelId) {
+    case "gpt-4o": {
+      const response = await generateObject({
+        model,
+        schema: z.object({
+          concepts: z.array(z.string()),
+        }),
+        prompt: `Split documents into the fewest atomic chunks possible. The goal is to identify the key concepts in the document.
 
       ${content}
 
       `,
-  });
+      });
 
-  return response.object.concepts;
+      return response.object.concepts;
+    }
+    default: {
+      const defaultResponse = await generateText({
+        model,
+        prompt: `TASK -> Identify the key concepts in the given document by splitting it into the fewest atomic chunks possible.
+        
+  DOCUMENT -> ${content}
+  
+  FORMAT ->
+  concept1
+  concept2
+  concept3
+  ...`,
+      });
+
+      return defaultResponse.text.split("\n").map((concept) => concept.trim());
+    }
+  }
 }
 
 // Function to fetch chunks for a given concept
 export async function fetchChunksForConcept(
   content: string,
   concept: string
-): Promise<{ title: string; content: string }[]> {
+): Promise<{ content: string }> {
   const model = getModelFromTask("format");
 
-  const response = await generateObject({
-    model,
-    schema: z.object({
-      content: z.string(),
-    }),
-    prompt: `Given the document content and the concept "${concept}", extract the relevant chunks of information:
+  switch (model.modelId) {
+    case "gpt-4o": {
+      const response = await generateObject({
+        model,
+        schema: z.object({
+          content: z.string(),
+        }),
+        prompt: `Given the document content and the concept "${concept}", extract the relevant chunks of information:
 
       Document Content:
       ${content}
@@ -473,7 +479,23 @@ export async function fetchChunksForConcept(
       Concept: ${concept}
 
       `,
-  });
+      });
 
-  return response.object;
+      return response.object;
+    }
+    default: {
+      const defaultResponse = await generateText({
+        model,
+        prompt: `TASK -> Extract the relevant chunks of information for the given concept from the document content.
+        
+  DOCUMENT CONTENT -> ${content}
+  
+  CONCEPT -> ${concept}
+  
+  FORMAT -> relevant_chunks`,
+      });
+
+      return { content: defaultResponse.text.trim() };
+    }
+  }
 }

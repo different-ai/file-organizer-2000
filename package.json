@@ -6,9 +6,9 @@
   "scripts": {
     "dev": "node esbuild.config.mjs",
     "build": "node esbuild.config.mjs production",
-    "version": "node version-bump.mjs && git add manifest.json versions.json"
+    "version": "node version-bump.mjs && git add manifest.json versions.json",
+    "test": "ts-node ./standalone/index.test.ts"
   },
-  "keywords": [],
   "author": "",
   "license": "MIT",
   "devDependencies": {
@@ -21,7 +21,7 @@
     "esbuild": "0.17.3",
     "obsidian": "latest",
     "tslib": "2.4.0",
-    "typescript": "4.7.4"
+    "typescript": "^4.7.4"
   },
   "dependencies": {
     "@ai-sdk/anthropic": "^0.0.14",
