@@ -31,6 +31,9 @@ import {
   guessRelevantFolder,
   createNewFolder,
   generateAliasVariations,
+  generateChunks,
+  identifyConcepts,
+  fetchChunksForConcept as generateChunkFromConcept,
 } from "../standalone/aiService";
 type TagCounts = {
   [key: string]: number;
@@ -280,6 +283,25 @@ export default class FileOrganizer extends Plugin {
       return classification;
     }
     return null;
+  }
+  async createFileInInbox(content: string): Promise<void> {
+    const fileName = `chunk_${Date.now()}.md`;
+    const filePath = `${this.settings.pathToWatch}/${fileName}`;
+    await this.app.vault.create(filePath, content);
+    await this.processFileV2(
+      this.app.vault.getAbstractFileByPath(filePath) as TFile
+    );
+  }
+
+  async identifyConcepts(content: string): Promise<string[]> {
+    return await identifyConcepts(content);
+  }
+
+  async fetchChunkForConcept(
+    content: string,
+    concept: string
+  ): Promise<{ content: string }> {
+    return await generateChunkFromConcept(content, concept);
   }
 
   // we use this to keep track if we have already processed a file vs not

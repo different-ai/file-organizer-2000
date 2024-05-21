@@ -1,5 +1,5 @@
 // import { getModel } from "./models";
-import { generateObject, generateText } from "ai";
+import { generateObject, generateText, streamObject } from "ai";
 import { z } from "zod";
 import fs from "fs";
 import { tmpdir } from "os";
@@ -9,6 +9,30 @@ import OpenAI from "openai";
 import { getModelFromTask } from "./models";
 import { log } from "console";
 import { logMessage } from "../utils";
+
+export async function generateChunks(
+  content: string
+): Promise<{ chunks: { title: string; content: string }[] }> {
+  const model = getModelFromTask("format");
+
+  const response = await streamObject({
+    model,
+    schema: z.object({
+      chunks: z.array(
+        z.object({
+          title: z.string(),
+          content: z.string(),
+        })
+      ),
+    }),
+    prompt: `Please split the following document into related chunks:
+
+      ${content}
+
+      Provide a title and content for each chunk, and return the result as an array of objects.`,
+  });
+  return response;
+}
 
 // Function to generate tags
 export async function generateTags(
@@ -81,7 +105,7 @@ export async function generateAliasVariations(
       aliases: z.array(z.string()).default([]),
     }),
     prompt: `Generate a list of  3 closely related names (aliases) for the given file name: "${fileName}". The aliases should include variations in capitalization, spacing, and common extensions. For example, for "ECSS", generate aliases like "ecss", "ecss space", "ECSS", "ECSS Space", "ECSS Compliance", etc. Consider the context provided by the content "${content}".`,
-    system: "only answer with name not extension"
+    system: "only answer with name not extension",
   });
 
   return response.object.aliases;
@@ -408,4 +432,48 @@ export async function formatDocumentContent(
         .slice(0, 30);
     }
   }
+}
+
+// Function to identify concepts in the document
+export async function identifyConcepts(content: string): Promise<string[]> {
+  const model = getModelFromTask("format");
+
+  const response = await generateObject({
+    model,
+    schema: z.object({
+      concepts: z.array(z.string()),
+    }),
+    prompt: `Split documents into the fewest atomic chunks possible. The goal is to identify the key concepts in the document.
+
+      ${content}
+
+      `,
+  });
+
+  return response.object.concepts;
+}
+
+// Function to fetch chunks for a given concept
+export async function fetchChunksForConcept(
+  content: string,
+  concept: string
+): Promise<{ title: string; content: string }[]> {
+  const model = getModelFromTask("format");
+
+  const response = await generateObject({
+    model,
+    schema: z.object({
+      content: z.string(),
+    }),
+    prompt: `Given the document content and the concept "${concept}", extract the relevant chunks of information:
+
+      Document Content:
+      ${content}
+
+      Concept: ${concept}
+
+      `,
+  });
+
+  return response.object;
 }
