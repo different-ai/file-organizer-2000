@@ -107,6 +107,7 @@ export async function guessRelevantFolder(
 
   switch (model.modelId) {
     case "gpt-4o":
+      // eslint-disable-next-line no-case-declarations
       const response = await generateObject({
         model,
         schema: z.object({
@@ -119,20 +120,15 @@ export async function guessRelevantFolder(
       console.log("default response", response);
       return response.object.suggestedFolder;
     default:
+      // eslint-disable-next-line no-case-declarations
       const defaultResponse = await generateText({
         model,
-        system: "only answer with folder path",
-        prompt: `TASK -> Identify the most suitable folder for the given content and file name.
-  CONTENT -> ${content} 
-  FILE NAME -> ${fileName}
-  
-  FOLDERS -> ${folders.join(", ")}
-  
-  If none of the existing folders are suitable, respond with "null".
-  FORMAT -> folder_name`,
+        system: "only answer with folder path, nothing else.",
+        prompt: `Given the content: "${content}" and the file name: "${fileName}", suggest a folder name that would appropriately categorize this file. Consider the existing folder structure: ${folders.join(
+          ", "
+        )}
+        `,
       });
-      logMessage("fileName", fileName);
-      logMessage("defaultResponse", defaultResponse);
       return defaultResponse.text.trim() === "null"
         ? null
         : defaultResponse.text.trim();

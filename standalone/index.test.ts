@@ -150,6 +150,27 @@ function generateStatistics(testResults: TestResult[]): void {
   console.log(`Path Validity: ${pathValidity.toFixed(2)}%`);
   console.log(`File Name Validity: ${fileNameValidity.toFixed(2)}%`);
   console.log(`Failed Tests: ${failedTests}`);
+
+  // Generate CSV report
+  const csvHeader =
+    "GeneratedTitle,TitleAnalysis,SuggestedFolder,FolderAnalysis,IsValidPath,IsValidFileName\n";
+  const csvRows = testResults.map((result) => {
+    const {
+      generatedTitle,
+      titleAnalysis,
+      suggestedFolder,
+      folderAnalysis,
+      isValidPath,
+      isValidFileName,
+    } = result;
+    return `"${generatedTitle}","${titleAnalysis}","${
+      suggestedFolder || ""
+    }","${folderAnalysis}",${isValidPath},${isValidFileName}\n`;
+  });
+
+  const csvContent = csvHeader + csvRows.join("");
+  fs.writeFileSync("test_report.csv", csvContent);
+  console.log("CSV report generated: test_report.csv");
 }
 
 interface TestCase {
