@@ -88,6 +88,7 @@ class FileOrganizerSettings {
   visionModel = "gpt-4o";
   formatModel = "gpt-4o";
   ollamaModels: string[] = ["codegemma"];
+  openAIBaseUrl = "https://api.openai.com/v1";
 }
 
 const validAudioExtensions = ["mp3", "wav", "webm", "m4a"];
@@ -802,7 +803,8 @@ export default class FileOrganizer extends Plugin {
     if (this.settings.enableOpenAI) {
       createOpenAIInstance(
         this.settings.openAIApiKey,
-        this.settings.openAIModel
+        this.settings.openAIModel,
+        this.settings.openAIBaseUrl
       );
     }
 

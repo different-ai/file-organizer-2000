@@ -17,8 +17,12 @@ export const models: Models = {};
 
 const taskModelConfig: Record<string, string> = {};
 
-export function createOpenAIInstance(apiKey: string, modelName: string) {
-  const modelInstance = createOpenAI({ apiKey })(modelName);
+export function createOpenAIInstance(
+  apiKey: string,
+  modelName = "gpt-4o",
+  baseURL = "https://api.openai.com/v1"
+) {
+  const modelInstance = createOpenAI({ apiKey, baseURL })(modelName);
   models[modelName] = modelInstance;
   return modelInstance;
 }

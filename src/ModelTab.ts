@@ -56,6 +56,17 @@ export class ModelTab {
         })
     );
 
+    // OpenAI Base URL Setting
+    new Setting(openAISettingsEl).setName("OpenAI Base URL").addText((text) =>
+      text
+        .setPlaceholder("Enter the OpenAI base URL")
+        .setValue(this.plugin.settings.openAIBaseUrl)
+        .onChange(async (value) => {
+          this.plugin.settings.openAIBaseUrl = value;
+          await this.plugin.saveSettings();
+        })
+    );
+
     // Additional Information for OpenAI Settings
     const openAIInfoEl = modelTabContent.createEl("div", {
       cls: "setting-info",
@@ -73,8 +84,6 @@ export class ModelTab {
       text: "For more advanced settings, go to the Advanced Models tab.",
     });
 
-
-
     return modelTabContent;
   }
 
@@ -85,14 +94,3 @@ export class ModelTab {
     settingEl.style.display = isVisible ? "block" : "none";
   }
 }
-
-// Debounce function
-function debounce(func, wait) {
-  let timeout;
-  return function (...args) {
-    clearTimeout(timeout);
-    timeout = setTimeout(() => func.apply(this, args), wait);
-  };
-}
-
-

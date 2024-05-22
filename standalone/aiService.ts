@@ -250,13 +250,12 @@ export async function generateDocumentTitle(document: string): Promise<string> {
       const defaultResponse = await generateText({
         model,
         system: "only answer with document title, no formatting, just letters",
-        prompt: `TASK -> Generate a short title (less than 30 characters) for the given document.
-        
-  DOCUMENT -> ${document}
-  
-  Use plain text without special characters. The title should be specific to the content, not generic.
+        prompt: `You are a helpful assistant. You only answer short (less than 80 chars ). Use only filename characters (including spaces). Use something very specific to the content not a generic title.
+        Give a title to this document:
+         ${document}
   `,
       });
+      console.log("default response", defaultResponse);
 
       return defaultResponse.text
         .replace(/[^\w\s]/gi, "")
