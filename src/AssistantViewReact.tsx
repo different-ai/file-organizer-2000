@@ -48,7 +48,6 @@ const SimilarTags: React.FC<{
 
   return (
     <div className="assistant-section tags-section">
-      <SectionHeader text="Similar tags" icon="🏷️" />
       {loading ? (
         <div>Loading...</div>
       ) : (
@@ -118,26 +117,26 @@ const DocumentChunks: React.FC<{
       <button onClick={parseDocument} disabled={loading}>
         {loading ? "Parsing..." : "Parse Document"}
       </button>
-      {concepts.length > 0 ? (
-        concepts.map((concept, index) => (
-          <div key={index}>
-            <h4>{concept}</h4>
-            {chunks
-              .filter((chunk) => chunk.concept === concept)
-              .map((chunk, chunkIndex) => (
-                <div key={chunkIndex} className="chunk-container">
-                  <div className="chunk-content">
-                    <p>{chunk.content}</p>
-                    <button onClick={() => addToInbox(chunk.content)}>
-                      Add to Inbox
-                    </button>
+      {concepts.length > 0 && (
+        <>
+          {concepts.map((concept, index) => (
+            <div key={index}>
+              <h4>{concept}</h4>
+              {chunks
+                .filter((chunk) => chunk.concept === concept)
+                .map((chunk, chunkIndex) => (
+                  <div key={chunkIndex} className="chunk-container">
+                    <div className="chunk-content">
+                      <p>{chunk.content}</p>
+                      <button onClick={() => addToInbox(chunk.content)}>
+                        Add to Inbox
+                      </button>
+                    </div>
                   </div>
-                </div>
-              ))}
-          </div>
-        ))
-      ) : (
-        <div>No concepts found</div>
+                ))}
+            </div>
+          ))}
+        </>
       )}
     </div>
   );
@@ -179,7 +178,6 @@ const RenameSuggestionBox: React.FC<{
 
   return (
     <div className="assistant-section alias-section">
-      <SectionHeader text="Suggested title" icon="💡" />
       {loading ? (
         <div>Loading...</div>
       ) : error ? (
@@ -247,7 +245,6 @@ const AliasSuggestionBox: React.FC<{
 
   return (
     <div className="assistant-section alias-section">
-      <SectionHeader text="Suggested aliases" icon="💡" />
       {loading ? (
         <div>Loading...</div>
       ) : error ? (
@@ -300,7 +297,6 @@ const SimilarFolderBox: React.FC<{
 
   return (
     <div className="assistant-section folder-section">
-      <SectionHeader text="Suggested folder" icon="📁" />
       {loading ? (
         <div>Loading...</div>
       ) : (
@@ -345,7 +341,6 @@ const SimilarFilesBox: React.FC<{
 
   return (
     <div className="assistant-section files-section">
-      <SectionHeader text="Similar files" icon="📄" />
       {loading && <button>Loading...</button>}
       {!loading && !filePaths && (
         <button
@@ -502,30 +497,39 @@ export const AssistantView: React.FC<AssistantViewProps> = ({ plugin }) => {
       <SectionHeader text="Looking at" icon="👀" />
       <div className="active-note-title">{activeFile.basename}</div>
 
+      {/* <SectionHeader text="Classification" icon="🗂️" /> */}
       <ClassificationBox
         plugin={plugin}
         file={activeFile}
         content={noteContent}
       />
+
+      <SectionHeader text="Similar tags" icon="🏷️" />
       <SimilarTags plugin={plugin} file={activeFile} content={noteContent} />
+
+      <SectionHeader text="Suggested title" icon="💡" />
       <RenameSuggestionBox
         plugin={plugin}
         file={activeFile}
         content={noteContent}
       />
-
+      <SectionHeader text="Suggested aliases" icon="💡" />
       <AliasSuggestionBox
         plugin={plugin}
         file={activeFile}
         content={noteContent}
       />
+      <SectionHeader text="Suggested folder" icon="📁" />
       <SimilarFolderBox
         plugin={plugin}
         file={activeFile}
         content={noteContent}
       />
+
+      <SectionHeader text="Similar files" icon="📄" />
       <SimilarFilesBox plugin={plugin} file={activeFile} />
 
+      <SectionHeader text="Atomic notes" icon="✂️" />
       <DocumentChunks plugin={plugin} activeFile={activeFile} />
     </div>
   );

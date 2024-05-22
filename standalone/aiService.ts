@@ -76,6 +76,7 @@ export async function generateAliasVariations(
     default: {
       const defaultResponse = await generateText({
         model,
+        system: "only answer with name not extension, no special characters, no numbers",
         prompt: `TASK -> Generate 3 closely related names (aliases) for the given file name.
   FILE NAME -> ${fileName}
   CONTENT -> ${content}
@@ -250,7 +251,7 @@ export async function generateDocumentTitle(document: string): Promise<string> {
     default:
       const defaultResponse = await generateText({
         model,
-        system: "only answer with document title",
+        system: "only answer with document title, no formatting, just letters",
         prompt: `TASK -> Generate a short title (less than 30 characters) for the given document.
         
   DOCUMENT -> ${document}
@@ -259,7 +260,7 @@ export async function generateDocumentTitle(document: string): Promise<string> {
   `,
       });
 
-      return defaultResponse.text.trim().slice(0, 100);
+      return defaultResponse.text.replace(/[^\w\s]/gi, '').trim().slice(0, 100);
   }
 }
 
