@@ -76,7 +76,8 @@ export async function generateAliasVariations(
     default: {
       const defaultResponse = await generateText({
         model,
-        system: "only answer with name not extension, no special characters, no numbers",
+        system:
+          "only answer with name not extension, no special characters, no numbers",
         prompt: `TASK -> Generate 3 closely related names (aliases) for the given file name.
   FILE NAME -> ${fileName}
   CONTENT -> ${content}
@@ -120,6 +121,7 @@ export async function guessRelevantFolder(
     default:
       const defaultResponse = await generateText({
         model,
+        system: "only answer with folder path",
         prompt: `TASK -> Identify the most suitable folder for the given content and file name.
   CONTENT -> ${content} 
   FILE NAME -> ${fileName}
@@ -161,6 +163,7 @@ export async function createNewFolder(
     }
     default: {
       const defaultResponse = await generateText({
+        system: "only answer with folder name",
         model,
         prompt: `TASK -> Suggest a new folder name to categorize the given content and file name.
         
@@ -168,8 +171,7 @@ export async function createNewFolder(
   FILE NAME -> ${fileName}
   
   EXISTING FOLDERS -> ${existingFolders.join(", ")}
-  
-  FORMAT -> new_folder_name`,
+ `,
       });
 
       return defaultResponse.text.trim();
@@ -260,7 +262,10 @@ export async function generateDocumentTitle(document: string): Promise<string> {
   `,
       });
 
-      return defaultResponse.text.replace(/[^\w\s]/gi, '').trim().slice(0, 100);
+      return defaultResponse.text
+        .replace(/[^\w\s]/gi, "")
+        .trim()
+        .slice(0, 100);
   }
 }
 
