@@ -55,6 +55,7 @@ class FileOrganizerSettings {
   defaultServerUrl = "https://app.fileorganizer2000.com";
   customServerUrl = "https://app.fileorganizer2000.com";
   usePro = true;
+  useCustomServer = false;
   useSimilarTagsInFrontmatter = false;
   enableEarlyAccess = false;
   earlyAccessCode = "";

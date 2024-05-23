@@ -26,11 +26,11 @@ export class ModelTab {
       .addToggle((toggle) =>
         toggle.setValue(this.plugin.settings.usePro).onChange(async (value) => {
           this.plugin.settings.usePro = value;
-          this.plugin.settings.usePro = value;
           await this.plugin.saveSettings();
           this.updateSettingsVisibility();
         })
       );
+
     // File Organizer Settings Section
     const fileOrganizerSettingsEl = modelTabContent.createEl("div", {
       cls: "file-organizer-settings",
@@ -47,7 +47,25 @@ export class ModelTab {
           })
       );
 
+    // Custom Server Toggle
     new Setting(fileOrganizerSettingsEl)
+      .setName("Use Custom Server")
+      .setDesc("Enable this to use a custom server URL.")
+      .addToggle((toggle) =>
+        toggle
+          .setValue(this.plugin.settings.useCustomServer)
+          .onChange(async (value) => {
+            this.plugin.settings.useCustomServer = value;
+            await this.plugin.saveSettings();
+            this.updateSettingsVisibility();
+          })
+      );
+
+    // Custom Server Settings Section
+    const customServerSettingsEl = modelTabContent.createEl("div", {
+      cls: "custom-server-settings",
+    });
+    new Setting(customServerSettingsEl)
       .setName("Custom Server URL")
       .addText((text) =>
         text
@@ -144,13 +162,23 @@ export class ModelTab {
       ".file-organizer-settings"
     );
     const openAISettingsEl = this.containerEl.querySelector(".openai-settings");
-
+    const customServerSettingsEl = this.containerEl.querySelector(
+      ".custom-server-settings"
+    );
     if (fileOrganizerSettingsEl) {
       fileOrganizerSettingsEl.style.display = isPro ? "block" : "none";
     }
-    
+
     if (openAISettingsEl) {
       openAISettingsEl.style.display = isPro ? "none" : "block";
     }
+
+    if (customServerSettingsEl) {
+      customServerSettingsEl.style.display = this.plugin.settings.useCustomServer
+        ? "block"
+        : "none";
+    }
+
+
   }
 }
