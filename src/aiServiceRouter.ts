@@ -21,7 +21,7 @@ export async function classifyDocumentRouter(
   useCustomServer: boolean,
   customServerUrl: string,
   apiKey: string
-): Promise<{ type: string; formattingInstruction: string } | null> {
+): Promise<string | null> {
   if (useCustomServer) {
     const response = await makeApiRequest(() =>
       requestUrl({
@@ -39,10 +39,11 @@ export async function classifyDocumentRouter(
       })
     );
     const { documentType } = await response.json;
-    return { type: documentType, formattingInstruction: "" };
+    return documentType
   } else {
     const model = getModelFromTask("classify");
-    return await classifyDocument(content, name, templateNames, model);
+    const documentType = await classifyDocument(content, name, templateNames, model);
+    return documentType;
   }
 }
 

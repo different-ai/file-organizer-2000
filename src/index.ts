@@ -35,6 +35,7 @@ import {
   fetchChunksForConcept as generateChunkFromConcept,
 } from "../app/aiService";
 import {
+  classifyDocumentRouter,
   fetchChunksForConceptRouter,
   formatDocumentContentRouter,
   generateAliasVariationsRouter,
@@ -384,7 +385,14 @@ export default class FileOrganizer extends Plugin {
     const classifications = await this.getClassifications();
     const templateNames = classifications.map((c) => c.type);
 
-    const documentType = await classifyDocument(content, name, templateNames);
+    const documentType = await classifyDocumentRouter(
+      content,
+      name,
+      templateNames,
+      this.settings.useCustomServer,
+      this.settings.customServerUrl,
+      this.settings.API_KEY
+    );
 
     const selectedClassification = classifications.find(
       (c) => c.type.toLowerCase() === documentType.toLowerCase()
