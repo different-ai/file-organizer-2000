@@ -7,6 +7,7 @@ import { models } from "../standalone/models"; // Import models
 export class ModelForXTab {
   private plugin: FileOrganizer;
   private containerEl: HTMLElement;
+  private tempSettings: Partial<FileOrganizer["settings"]> = {};
 
   constructor(containerEl: HTMLElement, plugin: FileOrganizer) {
     this.containerEl = containerEl;
@@ -61,52 +62,47 @@ export class ModelForXTab {
       "format"
     );
 
-    // Anthropic Settings Section
-    new Setting(modelTabContent).setName("Anthropic Settings").setHeading();
+    // // Anthropic Settings Section
+    // new Setting(modelTabContent).setName("Anthropic Settings").setHeading();
 
-    const anthropicSettings = new Setting(modelTabContent)
-      .setName("Enable Anthropic")
-      .addToggle((toggle) => {
-        toggle
-          .setValue(this.plugin.settings.enableAnthropic)
-          .onChange(async (value) => {
-            this.plugin.settings.enableAnthropic = value;
-            await this.plugin.saveSettings();
-            this.plugin.initalizeModels();
-            this.toggleSettingsVisibility(anthropicSettingsEl, value);
-          });
-      });
+    // const anthropicSettings = new Setting(modelTabContent)
+    //   .setName("Enable Anthropic")
+    //   .addToggle((toggle) => {
+    //     toggle
+    //       .setValue(this.plugin.settings.enableAnthropic)
+    //       .onChange((value) => {
+    //         this.tempSettings.enableAnthropic = value;
+    //         this.toggleSettingsVisibility(anthropicSettingsEl, value);
+    //       });
+    //   });
 
-    const anthropicSettingsEl = modelTabContent.createEl("div");
-    this.toggleSettingsVisibility(
-      anthropicSettingsEl,
-      this.plugin.settings.enableAnthropic
-    );
+    // const anthropicSettingsEl = modelTabContent.createEl("div");
+    // this.toggleSettingsVisibility(
+    //   anthropicSettingsEl,
+    //   this.plugin.settings.enableAnthropic
+    // );
 
-    new Setting(anthropicSettingsEl)
-      .setName("Anthropic API Key")
-      .addText((text) =>
-        text
-          .setPlaceholder("Enter your Anthropic API Key")
-          .setValue(this.plugin.settings.anthropicApiKey)
-          .onChange(async (value) => {
-            this.plugin.settings.anthropicApiKey = value;
-            this.plugin.initalizeModels();
-            await this.plugin.saveSettings();
-          })
-      );
+    // new Setting(anthropicSettingsEl)
+    //   .setName("Anthropic API Key")
+    //   .addText((text) =>
+    //     text
+    //       .setPlaceholder("Enter your Anthropic API Key")
+    //       .setValue(this.plugin.settings.anthropicApiKey)
+    //       .onChange((value) => {
+    //         this.tempSettings.anthropicApiKey = value;
+    //       })
+    //   );
 
-    new Setting(anthropicSettingsEl)
-      .setName("Anthropic Model")
-      .addText((text) =>
-        text
-          .setPlaceholder("Enter the Anthropic model name")
-          .setValue(this.plugin.settings.anthropicModel)
-          .onChange(async (value) => {
-            this.plugin.settings.anthropicModel = value;
-            await this.plugin.saveSettings();
-          })
-      );
+    // new Setting(anthropicSettingsEl)
+    //   .setName("Anthropic Model")
+    //   .addText((text) =>
+    //     text
+    //       .setPlaceholder("Enter the Anthropic model name")
+    //       .setValue(this.plugin.settings.anthropicModel)
+    //       .onChange((value) => {
+    //         this.tempSettings.anthropicModel = value;
+    //       })
+    //   );
 
     // Ollama Settings Section
     new Setting(modelTabContent).setName("Ollama Settings").setHeading();
@@ -114,14 +110,10 @@ export class ModelForXTab {
     const ollamaSettings = new Setting(modelTabContent)
       .setName("Enable Ollama")
       .addToggle((toggle) => {
-        toggle
-          .setValue(this.plugin.settings.enableOllama)
-          .onChange(async (value) => {
-            this.plugin.settings.enableOllama = value;
-            await this.plugin.saveSettings();
-            this.plugin.initalizeModels();
-            this.toggleSettingsVisibility(ollamaSettingsEl, value);
-          });
+        toggle.setValue(this.plugin.settings.enableOllama).onChange((value) => {
+          this.tempSettings.enableOllama = value;
+          this.toggleSettingsVisibility(ollamaSettingsEl, value);
+        });
       });
 
     const ollamaSettingsEl = modelTabContent.createEl("div");
@@ -134,13 +126,12 @@ export class ModelForXTab {
       text
         .setPlaceholder("Enter the Ollama URL")
         .setValue(this.plugin.settings.ollamaUrl)
-        .onChange(async (value) => {
-          this.plugin.settings.ollamaUrl = value;
-          await this.plugin.saveSettings();
+        .onChange((value) => {
+          this.tempSettings.ollamaUrl = value;
         })
     );
 
-    new Setting(ollamaSettingsEl).setName("Ollama Model").addText(
+    new Setting(ollamaSettingsEl).setName("Ollama Model").setDesc("If you are hosting on your computer, remember to use `OLLAMA_ORIGINS=* ollama serve`").addText(
       (text) =>
         text
           .setPlaceholder("Enter the Ollama model name")
@@ -152,23 +143,42 @@ export class ModelForXTab {
           .onChange(
             debounce(async (value) => {
               if (typeof value === "string") {
-                this.plugin.settings.ollamaModels = value
+                this.tempSettings.ollamaModels = value
                   .split(",")
                   .map((model) => model.trim())
                   .filter((model) => model.length > 0);
 
-                console.log(
-                  "Ollama models:",
-                  this.plugin.settings.ollamaModels
-                );
-                this.plugin.initalizeModels();
-                await this.plugin.saveSettings();
+                console.log("Ollama models:", this.tempSettings.ollamaModels);
               } else {
                 console.error("Invalid input for Ollama models:", value);
               }
             }, 2000)
           ) // 2000 milliseconds = 2 seconds
     );
+
+    // Save button
+    const saveButton = new Setting(modelTabContent)
+      .setName("Save Settings")
+      .addButton((button) => {
+        button
+          .setCta()
+
+          .setButtonText("Save")
+          .onClick(async () => {
+            button.setButtonText("Saving...");
+            this.plugin.settings = {
+              ...this.plugin.settings,
+              ...this.tempSettings,
+            };
+            await this.plugin.saveSettings();
+            this.plugin.initalizeModels();
+            button.setButtonText("Saved!");
+            setTimeout(() => button.setButtonText("Save"), 2000); // Reset text after 2 seconds
+          });
+      });
+
+    // Add margin to separate the save button
+    saveButton.settingEl.style.marginTop = "20px";
 
     return modelTabContent;
   }
