@@ -18,19 +18,24 @@ export class ModelTab {
 
     // OpenAI Settings Section
 
-    const openAISettings = new Setting(modelTabContent)
-      .setName("Enable OpenAI")
-      .addToggle((toggle) => {
-        toggle
-          .setValue(this.plugin.settings.enableOpenAI)
-          .onChange(async (value) => {
-            this.plugin.settings.enableOpenAI = value;
-            await this.plugin.saveSettings();
-            this.toggleSettingsVisibility(openAISettingsEl, value);
-          });
-      });
-
     const openAISettingsEl = modelTabContent.createEl("div");
+    this.toggleSettingsVisibility(openAISettingsEl, true);
+
+    new Setting(openAISettingsEl)
+      .setName("User Pro Account")
+      .setDesc(
+        "Enable this to route OpenAI API calls through the File Organizer 2000 server."
+      )
+      .addToggle((toggle) =>
+        toggle
+          .setValue(this.plugin.settings.useOpenAIProxy)
+          .onChange(async (value) => {
+            this.plugin.settings.useOpenAIProxy = value;
+            await this.plugin.saveSettings();
+            this.plugin.updateOpenAIConfig();
+          })
+      );
+
     this.toggleSettingsVisibility(
       openAISettingsEl,
       this.plugin.settings.enableOpenAI

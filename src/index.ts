@@ -89,6 +89,7 @@ class FileOrganizerSettings {
   formatModel = "gpt-4o";
   ollamaModels: string[] = ["codegemma"];
   openAIBaseUrl = "https://api.openai.com/v1";
+  useOpenAIProxy = false;
 }
 
 const validAudioExtensions = ["mp3", "wav", "webm", "m4a"];
@@ -226,6 +227,13 @@ export default class FileOrganizer extends Plugin {
       new Notice(error.message, 6000);
       console.error(error);
     }
+  }
+  updateOpenAIConfig() {
+    createOpenAIInstance(
+      this.settings.openAIApiKey,
+      this.settings.openAIModel,
+      this.settings.openAIBaseUrl
+    );
   }
   generateAliasses(name: string, content: string) {
     return generateAliasVariations(name, content);
@@ -793,6 +801,7 @@ export default class FileOrganizer extends Plugin {
   }
 
   initalizeModels() {
+    this.updateOpenAIConfig();
     if (this.settings.enableAnthropic) {
       createAnthropicInstance(
         this.settings.anthropicApiKey,
@@ -800,13 +809,11 @@ export default class FileOrganizer extends Plugin {
       );
     }
 
-    if (this.settings.enableOpenAI) {
-      createOpenAIInstance(
-        this.settings.openAIApiKey,
-        this.settings.openAIModel,
-        this.settings.openAIBaseUrl
-      );
-    }
+    createOpenAIInstance(
+      this.settings.openAIApiKey,
+      this.settings.openAIModel,
+      this.settings.openAIBaseUrl
+    );
 
     if (this.settings.enableOllama) {
       const ollamaModel = this.settings.ollamaModels[0];
@@ -895,7 +902,6 @@ export default class FileOrganizer extends Plugin {
     );
   }
   async saveSettings() {
-    this.initalizeModels();
     await this.saveData(this.settings);
   }
 

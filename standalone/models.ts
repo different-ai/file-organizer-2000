@@ -22,6 +22,7 @@ export function createOpenAIInstance(
   modelName = "gpt-4o",
   baseURL = "https://api.openai.com/v1"
 ) {
+  console.log("initializing openai instance", modelName, apiKey, baseURL);
   const modelInstance = createOpenAI({ apiKey, baseURL })(modelName);
   models[modelName] = modelInstance;
   return modelInstance;

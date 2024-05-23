@@ -2,7 +2,7 @@ import { App, PluginSettingTab } from "obsidian";
 import FileOrganizer from "./index";
 import { FileConfigTab } from "./FileConfigTab";
 import { CustomizationTab } from "./CustomizationTab";
-import { ModelTab } from "./ModelTab";
+import { ModelTab } from "./GeneralTab";
 import { ModelForXTab } from "./ModelTaskTab"; // Import the new tab
 
 export class FileOrganizerSettingTab extends PluginSettingTab {
@@ -35,7 +35,7 @@ export class FileOrganizerSettingTab extends PluginSettingTab {
       cls: "setting-tab-header",
     });
     const modelForXTabHeader = tabHeaders.createEl("div", {
-      text: "Advanced Model Config",
+      text: "Advanced Config",
       cls: "setting-tab-header",
     });
 
