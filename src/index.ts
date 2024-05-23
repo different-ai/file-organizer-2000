@@ -21,18 +21,9 @@ import {
 } from "../standalone/models";
 
 import {
-  classifyDocument,
   extractTextFromImage,
-  generateDocumentTitle,
-  generateTags,
   transcribeAudio,
-  generateRelationships,
-  formatDocumentContent,
-  guessRelevantFolder,
   createNewFolder,
-  generateAliasVariations,
-  identifyConcepts,
-  fetchChunksForConcept as generateChunkFromConcept,
 } from "../app/aiService";
 import {
   classifyDocumentRouter,
@@ -61,7 +52,7 @@ class FileOrganizerSettings {
 
   useAutoAppend = false;
   defaultServerUrl = "https://app.fileorganizer2000.com";
-  customServerUrl = "http://app.fileorganizer2000.com";
+  customServerUrl = "https://app.fileorganizer2000.com";
   useCustomServer = false;
   useSimilarTagsInFrontmatter = false;
   enableEarlyAccess = false;
