@@ -1,5 +1,5 @@
 import { openai } from "@ai-sdk/openai";
-import { generateRelationships } from "../../../../../src/aiService";
+import { generateRelationships } from "../../../../aiService";
 import { NextResponse } from "next/server";
 
 export async function POST(request: Request) {

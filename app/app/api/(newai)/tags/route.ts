@@ -1,4 +1,4 @@
-import { generateTags } from "../../../../../src/aiService";
+import { generateTags } from "../../../../aiService";
 import { NextResponse } from "next/server";
 import { openai } from "@ai-sdk/openai";
 

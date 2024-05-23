@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { fetchChunksForConcept } from "../../../../../src/aiService";
+import { fetchChunksForConcept } from "../../../../aiService";
 import { openai } from "@ai-sdk/openai";
 
 export async function POST(request: Request) {

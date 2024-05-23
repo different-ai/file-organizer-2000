@@ -1,4 +1,4 @@
-import { identifyConcepts } from "../../../../../src/aiService";
+import { identifyConcepts } from "../../../../aiService";
 import { openai } from "@ai-sdk/openai";
 import { NextResponse } from "next/server";
 

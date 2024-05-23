@@ -1,4 +1,4 @@
-import { formatDocumentContent } from "../../../../../src/aiService";
+import { formatDocumentContent } from "../../../../aiService";
 import { NextResponse } from "next/server";
 
 export async function POST(request: Request) {

@@ -1,5 +1,5 @@
 import { createOllamaInstance, configureTask } from "./models";
-import { generateDocumentTitle, guessRelevantFolder } from "../src/aiService";
+import { generateDocumentTitle, guessRelevantFolder } from "../app/aiService";
 import { generateText } from "ai";
 import { openai } from "@ai-sdk/openai";
 import fetch from "node-fetch";

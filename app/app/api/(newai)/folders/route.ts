@@ -1,5 +1,5 @@
 import { openai } from "@ai-sdk/openai";
-import { guessRelevantFolder } from "../../../../../src/aiService";
+import { guessRelevantFolder } from "../../../../aiService";
 import { NextResponse } from "next/server";
 
 export async function POST(request: Request) {

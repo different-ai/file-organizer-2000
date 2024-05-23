@@ -10,7 +10,7 @@ import {
   formatDocumentContent,
   identifyConcepts,
   fetchChunksForConcept,
-} from "./aiService";
+} from "../app/aiService";
 import { requestUrl } from "obsidian";
 import { getModelFromTask } from "../standalone/models";
 

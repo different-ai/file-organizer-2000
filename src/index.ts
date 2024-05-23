@@ -33,7 +33,7 @@ import {
   generateAliasVariations,
   identifyConcepts,
   fetchChunksForConcept as generateChunkFromConcept,
-} from "./aiService";
+} from "../app/aiService";
 import {
   fetchChunksForConceptRouter,
   formatDocumentContentRouter,

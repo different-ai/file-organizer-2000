@@ -1,5 +1,5 @@
 // app/app/api/(ai)/classify/route.ts
-import { classifyDocument } from "../../../../../src/aiService";
+import { classifyDocument } from "../../../../aiService";
 import { NextResponse } from "next/server";
 
 export async function POST(request: Request) {
