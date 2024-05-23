@@ -23,7 +23,6 @@ import {
 import {
   extractTextFromImage,
   transcribeAudio,
-  createNewFolder,
 } from "../app/aiService";
 import {
   classifyDocumentRouter,

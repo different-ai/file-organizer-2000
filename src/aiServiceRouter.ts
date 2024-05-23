@@ -11,6 +11,7 @@ import {
   identifyConcepts,
   fetchChunksForConcept,
   createNewFolder,
+  extractTextFromImage,
 } from "../app/aiService";
 import { requestUrl } from "obsidian";
 import { getModelFromTask } from "../standalone/models";
@@ -314,5 +315,31 @@ export async function fetchChunksForConceptRouter(
   } else {
     const model = getModelFromTask("chunks");
     return await fetchChunksForConcept(content, concept, model);
+  }
+}
+
+export async function extractTextFromImageRouter(
+  image: ArrayBuffer,
+  useCustomServer: boolean,
+  customServerUrl: string,
+  apiKey: string
+): Promise<string> {
+  if (useCustomServer) {
+    const response = await makeApiRequest(() =>
+      requestUrl({
+        url: `${customServerUrl}/api/vision`,
+        method: "POST",
+        contentType: "application/json",
+        body: JSON.stringify({ image }),
+        headers: {
+          Authorization: `Bearer ${apiKey}`,
+        },
+      })
+    );
+    const { text } = await response.json;
+    return text;
+  } else {
+    const model = getModelFromTask("vision");
+    return await extractTextFromImage(image, model);
   }
 }
