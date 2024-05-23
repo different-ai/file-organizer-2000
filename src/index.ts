@@ -41,7 +41,7 @@ type TagCounts = {
 };
 
 class FileOrganizerSettings {
-  API_KEY = "3ZfVdRXvg1x2jJfLbeN7b3Y9";
+  API_KEY = "";
   useLogs = true;
   defaultDestinationPath = "_FileOrganizer2000/Processed";
   attachmentsPath = "_FileOrganizer2000/Processed/Attachments";
