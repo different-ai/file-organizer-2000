@@ -60,7 +60,7 @@ class FileOrganizerSettings {
 
   useAutoAppend = false;
   defaultServerUrl = "https://app.fileorganizer2000.com";
-  customServerUrl = "http://localhost:3000/";
+  customServerUrl = "http://app.fileorganizer2000.com";
   useCustomServer = false;
   useSimilarTagsInFrontmatter = false;
   enableEarlyAccess = false;
@@ -99,7 +99,7 @@ class FileOrganizerSettings {
   formatModel = "gpt-4o";
   ollamaModels: string[] = ["codegemma"];
   openAIBaseUrl = "https://api.openai.com/v1";
-  usePro = false;
+  usePro = true;
 }
 
 const validAudioExtensions = ["mp3", "wav", "webm", "m4a"];
