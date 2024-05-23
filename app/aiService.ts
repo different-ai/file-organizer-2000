@@ -1,13 +1,6 @@
 // import { getModel } from "./models";
 import { LanguageModel, generateObject, generateText, streamObject } from "ai";
 import { z } from "zod";
-import fs from "fs";
-import { tmpdir } from "os";
-import { join } from "path";
-import { promises as fsPromises } from "fs";
-import OpenAI from "openai";
-import { getModelFromTask } from "../standalone/models";
-import { logMessage } from "../utils";
 // Function to generate tags
 export async function generateTags(
   content: string,
