@@ -148,6 +148,7 @@ export class ModelTab {
     if (fileOrganizerSettingsEl) {
       fileOrganizerSettingsEl.style.display = isPro ? "block" : "none";
     }
+    
     if (openAISettingsEl) {
       openAISettingsEl.style.display = isPro ? "none" : "block";
     }
