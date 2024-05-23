@@ -28,14 +28,22 @@ export class ModelTab {
           this.plugin.settings.usePro = value;
           await this.plugin.saveSettings();
           this.updateSettingsVisibility();
-          this.plugin.initalizeModels(); 
+          this.plugin.initalizeModels();
         })
       );
-
-    // File Organizer Settings Section
     const fileOrganizerSettingsEl = modelTabContent.createEl("div", {
       cls: "file-organizer-settings",
     });
+
+    const loginButton = fileOrganizerSettingsEl.createEl("button", {
+      text: "Login to File Organizer",
+    });
+    loginButton.addEventListener("click", () => {
+      window.open("https://app.fileorganizer2000.com", "_blank");
+    });
+
+    // File Organizer Settings Section
+
     new Setting(fileOrganizerSettingsEl)
       .setName("File Organizer API Key")
       .addText((text) =>
@@ -77,13 +85,6 @@ export class ModelTab {
             await this.plugin.saveSettings();
           })
       );
-
-    const loginButton = fileOrganizerSettingsEl.createEl("button", {
-      text: "Login to File Organizer",
-    });
-    loginButton.addEventListener("click", () => {
-      window.open("https://app.fileorganizer2000.com", "_blank");
-    });
 
     // Special message for File Organizer
     const fileOrganizerMessageEl = fileOrganizerSettingsEl.createEl("div", {
@@ -175,11 +176,10 @@ export class ModelTab {
     }
 
     if (customServerSettingsEl) {
-      customServerSettingsEl.style.display = this.plugin.settings.useCustomServer
+      customServerSettingsEl.style.display = this.plugin.settings
+        .useCustomServer
         ? "block"
         : "none";
     }
-
-
   }
 }
