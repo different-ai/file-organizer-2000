@@ -25,7 +25,7 @@ export class ModelTab {
       )
       .addToggle((toggle) =>
         toggle.setValue(this.plugin.settings.usePro).onChange(async (value) => {
-          this.plugin.settings.useCustomServer = value;
+          this.plugin.settings.usePro = value;
           this.plugin.settings.usePro = value;
           await this.plugin.saveSettings();
           this.updateSettingsVisibility();
@@ -43,6 +43,18 @@ export class ModelTab {
           .setValue(this.plugin.settings.API_KEY)
           .onChange(async (value) => {
             this.plugin.settings.API_KEY = value;
+            await this.plugin.saveSettings();
+          })
+      );
+
+    new Setting(fileOrganizerSettingsEl)
+      .setName("Custom Server URL")
+      .addText((text) =>
+        text
+          .setPlaceholder("Enter your custom server URL")
+          .setValue(this.plugin.settings.customServerUrl)
+          .onChange(async (value) => {
+            this.plugin.settings.customServerUrl = value;
             await this.plugin.saveSettings();
           })
       );

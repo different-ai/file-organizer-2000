@@ -54,7 +54,7 @@ class FileOrganizerSettings {
   useAutoAppend = false;
   defaultServerUrl = "https://app.fileorganizer2000.com";
   customServerUrl = "https://app.fileorganizer2000.com";
-  useCustomServer = false;
+  usePro = true;
   useSimilarTagsInFrontmatter = false;
   enableEarlyAccess = false;
   earlyAccessCode = "";
@@ -92,7 +92,6 @@ class FileOrganizerSettings {
   formatModel = "gpt-4o";
   ollamaModels: string[] = ["codegemma"];
   openAIBaseUrl = "https://api.openai.com/v1";
-  usePro = true;
 }
 
 const validAudioExtensions = ["mp3", "wav", "webm", "m4a"];
@@ -242,7 +241,7 @@ export default class FileOrganizer extends Plugin {
     return await generateAliasVariationsRouter(
       name,
       content,
-      this.settings.useCustomServer,
+      this.settings.usePro,
       this.settings.customServerUrl,
       this.settings.API_KEY
     );
@@ -284,7 +283,7 @@ export default class FileOrganizer extends Plugin {
     const formattedContent = await formatDocumentContentRouter(
       content,
       formattingInstruction,
-      this.settings.useCustomServer,
+      this.settings.usePro,
       this.settings.customServerUrl,
       this.settings.API_KEY
     );
@@ -316,7 +315,7 @@ export default class FileOrganizer extends Plugin {
   async identifyConcepts(content: string): Promise<string[]> {
     return await identifyConceptsRouter(
       content,
-      this.settings.useCustomServer,
+      this.settings.usePro,
       this.settings.customServerUrl,
       this.settings.API_KEY
     );
@@ -329,7 +328,7 @@ export default class FileOrganizer extends Plugin {
     return await fetchChunksForConceptRouter(
       content,
       concept,
-      this.settings.useCustomServer,
+      this.settings.usePro,
       this.settings.customServerUrl,
       this.settings.API_KEY
     );
@@ -381,7 +380,7 @@ export default class FileOrganizer extends Plugin {
       content,
       name,
       templateNames,
-      this.settings.useCustomServer,
+      this.settings.usePro,
       this.settings.customServerUrl,
       this.settings.API_KEY
     );
@@ -544,7 +543,7 @@ export default class FileOrganizer extends Plugin {
     const similarFiles = await generateRelationshipsRouter(
       activeFileContent,
       fileContents,
-      this.settings.useCustomServer,
+      this.settings.usePro,
       this.settings.customServerUrl,
       this.settings.API_KEY
     );
@@ -567,7 +566,7 @@ export default class FileOrganizer extends Plugin {
   async generateNameFromContent(content: string): Promise<string> {
     const name = await generateDocumentTitleRouter(
       content,
-      this.settings.useCustomServer,
+      this.settings.usePro,
       this.settings.customServerUrl,
       this.settings.API_KEY
     );
@@ -687,7 +686,7 @@ export default class FileOrganizer extends Plugin {
       content,
       fileName,
       tags,
-      this.settings.useCustomServer,
+      this.settings.usePro,
       this.settings.customServerUrl,
       this.settings.API_KEY
     );
@@ -755,7 +754,7 @@ export default class FileOrganizer extends Plugin {
       content,
       filePath,
       filteredFolders,
-      this.settings.useCustomServer,
+      this.settings.usePro,
       this.settings.customServerUrl,
       this.settings.API_KEY
     );
@@ -765,7 +764,7 @@ export default class FileOrganizer extends Plugin {
         content,
         filePath,
         filteredFolders,
-        this.settings.useCustomServer,
+        this.settings.usePro,
         this.settings.customServerUrl,
         this.settings.API_KEY
       );
@@ -833,7 +832,7 @@ export default class FileOrganizer extends Plugin {
   }
 
   validateAPIKey() {
-    if (!this.settings.useCustomServer) {
+    if (!this.settings.usePro) {
       // atm we assume no api auth for self hosted
       return true;
     }
