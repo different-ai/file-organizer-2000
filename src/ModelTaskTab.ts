@@ -72,6 +72,7 @@ export class ModelForXTab {
           .onChange(async (value) => {
             this.plugin.settings.enableAnthropic = value;
             await this.plugin.saveSettings();
+            this.plugin.initalizeModels();
             this.toggleSettingsVisibility(anthropicSettingsEl, value);
           });
       });
