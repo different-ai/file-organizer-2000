@@ -7,7 +7,6 @@ import { verifyKey } from "@unkey/api";
 import { NextFetchEvent, NextRequest, NextResponse } from "next/server";
 import PostHogClient from "./lib/posthog";
 import { checkApiUsage, incrementApiUsage } from "./drizzle/schema";
-import { check } from "drizzle-orm/mysql-core";
 const isApiRoute = createRouteMatcher(["/api(.*)"]);
 const isAuthRoute = createRouteMatcher(["/(.*)"]);
 const isCheckoutApiRoute = createRouteMatcher(["/api/create-checkout-session"]);
@@ -132,21 +131,55 @@ const soloApiKeyMiddleware = (req: NextRequest) => {
   return NextResponse.next();
 };
 
+const allowedOrigins = ["app://obsidian.md", "http://localhost:3000"];
+const corsOptions = {
+  "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
+  "Access-Control-Allow-Headers": "Content-Type, Authorization",
+};
+
 export default async function middleware(
   req: NextRequest,
   event: NextFetchEvent
 ) {
-  // case  1 user management/ requires clerk
+  const origin = req.headers.get("origin") ?? "";
+  const isAllowedOrigin = allowedOrigins.includes(origin);
+
+  const res = NextResponse.next();
+
+  if (req.method === "OPTIONS") {
+    console.log("OPTIONS");
+    // Handle preflight requests
+    const preflightHeaders = {
+      ...(isAllowedOrigin && { "Access-Control-Allow-Origin": origin }),
+      ...corsOptions,
+      "Access-Control-Max-Age": "86400",
+    };
+    return new NextResponse(null, { status: 204, headers: preflightHeaders });
+  }
+
+  if (isAllowedOrigin) {
+    console.log("isAllowedOrigin", origin);
+    res.headers.set("Access-Control-Allow-Origin", origin);
+  }
+
+  Object.entries(corsOptions).forEach(([key, value]) => {
+    res.headers.set(key, value);
+  });
+
+  // case 1: user management requires clerk
   if (process.env.ENABLE_USER_MANAGEMENT === "true") {
     return userManagementMiddleware()(req, event);
   }
-  const isSoloInstance = process.env.SOLO_API_KEY && process.env.SOLO_API_KEY.length > 0;
-  // case 2 single user api key
+
+  const isSoloInstance =
+    process.env.SOLO_API_KEY && process.env.SOLO_API_KEY.length > 0;
+  // case 2: single user API key
   if (isSoloInstance) {
     return soloApiKeyMiddleware(req);
   }
-  // case 3 no user management, no api key
-  return NextResponse.next();
+
+  // case 3: no user management, no API key
+  return res;
 }
 
 export const config = {

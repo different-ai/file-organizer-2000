@@ -33,13 +33,23 @@ import {
   generateAliasVariations,
   identifyConcepts,
   fetchChunksForConcept as generateChunkFromConcept,
-} from "../standalone/aiService";
+} from "./aiService";
+import {
+  fetchChunksForConceptRouter,
+  formatDocumentContentRouter,
+  generateAliasVariationsRouter,
+  generateDocumentTitleRouter,
+  generateRelationshipsRouter,
+  generateTagsRouter,
+  guessRelevantFolderRouter,
+  identifyConceptsRouter,
+} from "./aiServiceRouter";
 type TagCounts = {
   [key: string]: number;
 };
 
 class FileOrganizerSettings {
-  API_KEY = "";
+  API_KEY = "3ZfVdRXvg1x2jJfLbeN7b3Y9";
   useLogs = true;
   defaultDestinationPath = "_FileOrganizer2000/Processed";
   attachmentsPath = "_FileOrganizer2000/Processed/Attachments";
@@ -50,7 +60,7 @@ class FileOrganizerSettings {
 
   useAutoAppend = false;
   defaultServerUrl = "https://app.fileorganizer2000.com";
-  customServerUrl = "https://file-organizer-2000.vercel.app/";
+  customServerUrl = "http://localhost:3000/";
   useCustomServer = false;
   useSimilarTagsInFrontmatter = false;
   enableEarlyAccess = false;
@@ -89,7 +99,7 @@ class FileOrganizerSettings {
   formatModel = "gpt-4o";
   ollamaModels: string[] = ["codegemma"];
   openAIBaseUrl = "https://api.openai.com/v1";
-  useOpenAIProxy = false;
+  usePro = false;
 }
 
 const validAudioExtensions = ["mp3", "wav", "webm", "m4a"];
@@ -235,8 +245,14 @@ export default class FileOrganizer extends Plugin {
       this.settings.openAIBaseUrl
     );
   }
-  generateAliasses(name: string, content: string) {
-    return generateAliasVariations(name, content);
+  async generateAliasses(name: string, content: string): Promise<string[]> {
+    return await generateAliasVariationsRouter(
+      name,
+      content,
+      this.settings.useCustomServer,
+      this.settings.customServerUrl,
+      this.settings.API_KEY
+    );
   }
 
   async createMetadataFile(file: TFile, metadata: Record<string, any>) {
@@ -271,10 +287,13 @@ export default class FileOrganizer extends Plugin {
     file: TFile,
     content: string,
     formattingInstruction: string
-  ) {
-    const formattedContent = await formatDocumentContent(
+  ): Promise<void> {
+    const formattedContent = await formatDocumentContentRouter(
       content,
-      formattingInstruction
+      formattingInstruction,
+      this.settings.useCustomServer,
+      this.settings.customServerUrl,
+      this.settings.API_KEY
     );
     await this.app.vault.modify(file, formattedContent);
   }
@@ -302,16 +321,26 @@ export default class FileOrganizer extends Plugin {
   }
 
   async identifyConcepts(content: string): Promise<string[]> {
-    return await identifyConcepts(content);
+    return await identifyConceptsRouter(
+      content,
+      this.settings.useCustomServer,
+      this.settings.customServerUrl,
+      this.settings.API_KEY
+    );
   }
 
   async fetchChunkForConcept(
     content: string,
     concept: string
   ): Promise<{ content: string }> {
-    return await generateChunkFromConcept(content, concept);
+    return await fetchChunksForConceptRouter(
+      content,
+      concept,
+      this.settings.useCustomServer,
+      this.settings.customServerUrl,
+      this.settings.API_KEY
+    );
   }
-
   // we use this to keep track if we have already processed a file vs not
   // to indicate it to our users (aka they won't need to send it to inbox again)
   async tagAsProcessed(file: TFile) {
@@ -512,9 +541,12 @@ export default class FileOrganizer extends Plugin {
       name: file.path,
     }));
 
-    const similarFiles = await generateRelationships(
+    const similarFiles = await generateRelationshipsRouter(
       activeFileContent,
-      fileContents
+      fileContents,
+      this.settings.useCustomServer,
+      this.settings.customServerUrl,
+      this.settings.API_KEY
     );
 
     return similarFiles.filter(
@@ -533,9 +565,13 @@ export default class FileOrganizer extends Plugin {
   }
 
   async generateNameFromContent(content: string): Promise<string> {
-    const name = await generateDocumentTitle(content);
-    const safeName = formatToSafeName(name);
-    return safeName;
+    const name = await generateDocumentTitleRouter(
+      content,
+      this.settings.useCustomServer,
+      this.settings.customServerUrl,
+      this.settings.API_KEY
+    );
+    return formatToSafeName(name);
   }
 
   async generateTranscriptFromAudio(file: TFile) {
@@ -647,8 +683,14 @@ export default class FileOrganizer extends Plugin {
       return [];
     }
 
-    const generatedTags = await generateTags(content, fileName, tags);
-    return generatedTags;
+    return await generateTagsRouter(
+      content,
+      fileName,
+      tags,
+      this.settings.useCustomServer,
+      this.settings.customServerUrl,
+      this.settings.API_KEY
+    );
   }
 
   async getAllTags(): Promise<string[]> {
@@ -709,14 +751,15 @@ export default class FileOrganizer extends Plugin {
       .filter((folder) => folder !== "/");
     console.log("filteredFolders", filteredFolders);
     console.log("filteredFolders", filteredFolders);
-
-    const guessedFolder = await guessRelevantFolder(
+    const guessedFolder = await guessRelevantFolderRouter(
       content,
       filePath,
-      filteredFolders
+      filteredFolders,
+      this.settings.useCustomServer,
+      this.settings.customServerUrl,
+      this.settings.API_KEY
     );
 
-    console.log("guessedFolder", guessedFolder);
     if (guessedFolder === null || guessedFolder === "null") {
       const newFolderName = await createNewFolder(
         content,
@@ -788,7 +831,7 @@ export default class FileOrganizer extends Plugin {
   }
 
   validateAPIKey() {
-    if (this.settings.useCustomServer) {
+    if (!this.settings.useCustomServer) {
       // atm we assume no api auth for self hosted
       return true;
     }

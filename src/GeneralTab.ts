@@ -1,5 +1,6 @@
+// GeneralTab.ts
+
 import { Setting } from "obsidian";
-import { configureTask } from "../standalone/models";
 import FileOrganizer from "./index";
 
 export class ModelTab {
@@ -15,25 +16,21 @@ export class ModelTab {
     const modelTabContent = this.containerEl.createEl("div", {
       cls: "setting-tab-content",
     });
-
-    // // Pro Account Toggle
-    // const proAccountEl = modelTabContent.createEl("div");
-    // new Setting(proAccountEl)
-    //   .setName("User Pro Account")
-    //   .setDesc(
-    //     "Enable this to route use your api key from File Organizer 2000."
-    //   )
-    //   .addToggle((toggle) =>
-    //     toggle
-    //       .setValue(this.plugin.settings.useOpenAIProxy)
-    //       .onChange(async (value) => {
-    //         this.plugin.settings.useOpenAIProxy = value;
-    //         this.plugin.updateOpenAIConfig();
-    //         await this.plugin.saveSettings();
-    //         this.updateSettingsVisibility();
-    //       })
-    //   );
-
+    // Pro Account Toggle
+    const proAccountEl = modelTabContent.createEl("div");
+    new Setting(proAccountEl)
+      .setName("User Pro Account")
+      .setDesc(
+        "Enable this to route use your api key from File Organizer 2000."
+      )
+      .addToggle((toggle) =>
+        toggle.setValue(this.plugin.settings.usePro).onChange(async (value) => {
+          this.plugin.settings.useCustomServer = value;
+          this.plugin.settings.usePro = value;
+          await this.plugin.saveSettings();
+          this.updateSettingsVisibility();
+        })
+      );
     // File Organizer Settings Section
     const fileOrganizerSettingsEl = modelTabContent.createEl("div", {
       cls: "file-organizer-settings",
@@ -43,9 +40,9 @@ export class ModelTab {
       .addText((text) =>
         text
           .setPlaceholder("Enter your File Organizer API Key")
-          .setValue(this.plugin.settings.openAIApiKey)
+          .setValue(this.plugin.settings.API_KEY)
           .onChange(async (value) => {
-            this.plugin.settings.openAIApiKey = value;
+            this.plugin.settings.API_KEY = value;
             await this.plugin.saveSettings();
           })
       );
@@ -130,7 +127,7 @@ export class ModelTab {
   }
 
   private updateSettingsVisibility(): void {
-    const isPro = this.plugin.settings.useOpenAIProxy;
+    const isPro = this.plugin.settings.usePro;
     const fileOrganizerSettingsEl = this.containerEl.querySelector(
       ".file-organizer-settings"
     );

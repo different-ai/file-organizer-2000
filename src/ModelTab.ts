@@ -28,9 +28,9 @@ export class ModelTab {
       )
       .addToggle((toggle) =>
         toggle
-          .setValue(this.plugin.settings.useOpenAIProxy)
+          .setValue(this.plugin.settings.usePro)
           .onChange(async (value) => {
-            this.plugin.settings.useOpenAIProxy = value;
+            this.plugin.settings.usePro = value;
             await this.plugin.saveSettings();
             this.plugin.updateOpenAIConfig();
           })

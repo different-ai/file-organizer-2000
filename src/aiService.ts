@@ -1,21 +1,20 @@
 // import { getModel } from "./models";
-import { generateObject, generateText, streamObject } from "ai";
+import { LanguageModel, generateObject, generateText, streamObject } from "ai";
 import { z } from "zod";
 import fs from "fs";
 import { tmpdir } from "os";
 import { join } from "path";
 import { promises as fsPromises } from "fs";
 import OpenAI from "openai";
-import { getModelFromTask } from "./models";
+import { getModelFromTask } from "../standalone/models";
 import { logMessage } from "../utils";
 // Function to generate tags
 export async function generateTags(
   content: string,
   fileName: string,
-  tags: string[]
+  tags: string[],
+  model: LanguageModel
 ): Promise<string[]> {
-  const model = getModelFromTask("tagging");
-
   const modelName = model.modelId;
 
   switch (modelName) {
@@ -56,9 +55,9 @@ export async function generateTags(
 // Function to generate alias variations
 export async function generateAliasVariations(
   fileName: string,
-  content: string
+  content: string,
+  model: LanguageModel
 ): Promise<string[]> {
-  const model = getModelFromTask("name");
 
   switch (model.modelId) {
     case "gpt-4o": {
@@ -100,9 +99,9 @@ export async function generateAliasVariations(
 export async function guessRelevantFolder(
   content: string,
   fileName: string,
-  folders: string[]
+  folders: string[],
+  model: LanguageModel
 ): Promise<string | null> {
-  const model = getModelFromTask("folders");
   console.log("modelazo", model.modelId);
 
   switch (model.modelId) {
@@ -139,10 +138,9 @@ export async function guessRelevantFolder(
 export async function createNewFolder(
   content: string,
   fileName: string,
-  existingFolders: string[]
+  existingFolders: string[],
+  model: LanguageModel
 ): Promise<string> {
-  const model = getModelFromTask("folders");
-
   switch (model.modelId) {
     case "gpt-4o": {
       const response = await generateObject({
@@ -178,13 +176,13 @@ export async function createNewFolder(
 // Function to generate relationships between files
 export async function generateRelationships(
   activeFileContent: string,
-  files: { name: string }[]
+  files: { name: string }[],
+  model: LanguageModel
 ): Promise<string[]> {
-  const model = getModelFromTask("relationships");
   const modelName = model.modelId;
 
   switch (modelName) {
-    case "gpt-4o":
+    case "gpt-4o": {
       const response = await generateObject({
         model,
         schema: z.object({
@@ -202,8 +200,8 @@ export async function generateRelationships(
       });
 
       return response.object.similarFiles || [];
-
-    default:
+    }
+    default: {
       const defaultResponse = await generateText({
         model,
         prompt: `TASK -> Determine the five most similar files to the active file based on content.
@@ -224,16 +222,19 @@ export async function generateRelationships(
       return defaultResponse.text.trim() === "none"
         ? []
         : defaultResponse.text.split("\n").map((line) => line.trim());
+    }
   }
 }
 
 // Function to generate document titles
-export async function generateDocumentTitle(document: string): Promise<string> {
-  const model = getModelFromTask("name");
+export async function generateDocumentTitle(
+  document: string,
+  model: LanguageModel
+): Promise<string> {
   const modelName = model.modelId;
 
   switch (modelName) {
-    case "gpt-4o":
+    case "gpt-4o": {
       const response = await generateObject({
         model,
         schema: z.object({
@@ -245,8 +246,8 @@ export async function generateDocumentTitle(document: string): Promise<string> {
       });
 
       return response.object.name;
-
-    default:
+    }
+    default: {
       const defaultResponse = await generateText({
         model,
         system: "only answer with document title, no formatting, just letters",
@@ -261,6 +262,7 @@ export async function generateDocumentTitle(document: string): Promise<string> {
         .replace(/[^\w\s]/gi, "")
         .trim()
         .slice(0, 100);
+    }
   }
 }
 
@@ -275,9 +277,9 @@ export async function transcribeAudio(
 
 // Function to extract text from image
 export async function extractTextFromImage(
-  image: ArrayBuffer
+  image: ArrayBuffer,
+  model: LanguageModel
 ): Promise<string> {
-  const model = getModelFromTask("vision");
   const modelName = model.modelId;
 
   const messages = [
@@ -297,7 +299,7 @@ export async function extractTextFromImage(
   ];
 
   switch (modelName) {
-    case "gpt-4o":
+    case "gpt-4o": {
       const response = await generateText({
         model,
         //@ts-ignore
@@ -305,8 +307,8 @@ export async function extractTextFromImage(
       });
 
       return response.text.trim();
-
-    default:
+    }
+    default: {
       const defaultResponse = await generateText({
         model,
         prompt: `TASK -> Extract text from the provided image. Write in markdown format. If there's a drawing, describe it.
@@ -317,6 +319,7 @@ export async function extractTextFromImage(
       });
 
       return defaultResponse.text.trim();
+    }
   }
 }
 
@@ -324,13 +327,13 @@ export async function extractTextFromImage(
 export async function classifyDocument(
   content: string,
   fileName: string,
-  templateNames: string[]
+  templateNames: string[],
+  model: LanguageModel
 ): Promise<string> {
   console.log("content", content);
   console.log("fileName", fileName);
   console.log("templateNames", templateNames);
-  const modelName = process.env.MODEL_CLASSIFY || "gpt-4o";
-  const model = getModelFromTask("classify");
+  const modelName = model.modelId;
 
   switch (modelName) {
     case "gpt-4o": {
@@ -379,10 +382,9 @@ export async function classifyDocument(
 // Function to format document content
 export async function formatDocumentContent(
   content: string,
-  formattingInstruction: string
+  formattingInstruction: string,
+  model: LanguageModel
 ): Promise<string> {
-  const model = getModelFromTask("format");
-
   const modelName = model.modelId;
   switch (modelName) {
     case "gpt-4o": {
@@ -420,9 +422,10 @@ export async function formatDocumentContent(
 }
 
 // Function to identify concepts in the document
-export async function identifyConcepts(content: string): Promise<string[]> {
-  const model = getModelFromTask("format");
-
+export async function identifyConcepts(
+  content: string,
+  model: LanguageModel
+): Promise<string[]> {
   switch (model.modelId) {
     case "gpt-4o": {
       const response = await generateObject({
@@ -461,10 +464,9 @@ export async function identifyConcepts(content: string): Promise<string[]> {
 // Function to fetch chunks for a given concept
 export async function fetchChunksForConcept(
   content: string,
-  concept: string
-): Promise<{ content: string }> {
-  const model = getModelFromTask("format");
-
+  concept: string,
+  model: LanguageModel
+): Promise<{ content?: string }> {
   switch (model.modelId) {
     case "gpt-4o": {
       const response = await generateObject({
