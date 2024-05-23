@@ -91,6 +91,7 @@ export class ModelForXTab {
           .setValue(this.plugin.settings.anthropicApiKey)
           .onChange(async (value) => {
             this.plugin.settings.anthropicApiKey = value;
+            this.plugin.initalizeModels();
             await this.plugin.saveSettings();
           })
       );
@@ -118,6 +119,7 @@ export class ModelForXTab {
           .onChange(async (value) => {
             this.plugin.settings.enableOllama = value;
             await this.plugin.saveSettings();
+            this.plugin.initalizeModels();
             this.toggleSettingsVisibility(ollamaSettingsEl, value);
           });
       });
