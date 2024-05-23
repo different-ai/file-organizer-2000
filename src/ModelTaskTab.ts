@@ -158,6 +158,7 @@ export class ModelForXTab {
                   "Ollama models:",
                   this.plugin.settings.ollamaModels
                 );
+                this.plugin.initalizeModels();
                 await this.plugin.saveSettings();
               } else {
                 console.error("Invalid input for Ollama models:", value);
