@@ -10,6 +10,7 @@ import {
   formatDocumentContent,
   identifyConcepts,
   fetchChunksForConcept,
+  createNewFolder,
 } from "../app/aiService";
 import { requestUrl } from "obsidian";
 import { getModelFromTask } from "../standalone/models";
@@ -39,10 +40,15 @@ export async function classifyDocumentRouter(
       })
     );
     const { documentType } = await response.json;
-    return documentType
+    return documentType;
   } else {
     const model = getModelFromTask("classify");
-    const documentType = await classifyDocument(content, name, templateNames, model);
+    const documentType = await classifyDocument(
+      content,
+      name,
+      templateNames,
+      model
+    );
     return documentType;
   }
 }
@@ -76,6 +82,37 @@ export async function generateTagsRouter(
   } else {
     const model = getModelFromTask("tagging");
     return await generateTags(content, fileName, tags, model);
+  }
+}
+export async function createNewFolderRouter(
+  content: string,
+  fileName: string,
+  existingFolders: string[],
+  useCustomServer: boolean,
+  customServerUrl: string,
+  apiKey: string
+): Promise<string> {
+  if (useCustomServer) {
+    const response = await makeApiRequest(() =>
+      requestUrl({
+        url: `${customServerUrl}/api/create-folder`,
+        method: "POST",
+        contentType: "application/json",
+        body: JSON.stringify({
+          content,
+          fileName,
+          existingFolders,
+        }),
+        headers: {
+          Authorization: `Bearer ${apiKey}`,
+        },
+      })
+    );
+    const { folderName } = await response.json;
+    return folderName;
+  } else {
+    const model = getModelFromTask("folders");
+    return await createNewFolder(content, fileName, existingFolders, model);
   }
 }
 

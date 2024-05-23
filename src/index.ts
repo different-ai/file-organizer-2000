@@ -27,6 +27,7 @@ import {
 } from "../app/aiService";
 import {
   classifyDocumentRouter,
+  createNewFolderRouter,
   fetchChunksForConceptRouter,
   formatDocumentContentRouter,
   generateAliasVariationsRouter,
@@ -760,16 +761,18 @@ export default class FileOrganizer extends Plugin {
     );
 
     if (guessedFolder === null || guessedFolder === "null") {
-      const newFolderName = await createNewFolder(
+      const newFolderName = await createNewFolderRouter(
         content,
         filePath,
-        filteredFolders
+        filteredFolders,
+        this.settings.useCustomServer,
+        this.settings.customServerUrl,
+        this.settings.API_KEY
       );
       destinationFolder = newFolderName;
     } else {
       destinationFolder = guessedFolder;
     }
-
     return destinationFolder;
   }
 
