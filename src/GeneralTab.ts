@@ -28,6 +28,7 @@ export class ModelTab {
           this.plugin.settings.usePro = value;
           await this.plugin.saveSettings();
           this.updateSettingsVisibility();
+          this.plugin.initalizeModels(); 
         })
       );
 
