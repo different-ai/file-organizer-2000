@@ -1,23 +1,19 @@
 We ship daily - try to keep F02k version up to date
 
 # AI File Organizer 2000
-  
-This is an Obsidian Plugin that uses AI to keep your files organized. It transcribes audio, uses AI to annotate images, and automatically renames and moves new files to the most likely folders.
+
+This is an Obsidian Plugin that uses AI to keep your files organized by tagging, renamimg, and moving files to the most appropriate folders in your vault. It also enables users to transcribe audios and to process images for annotations.
 
 ### Features
 
-  
 - Automatically move files to correct folder.
 - Supports text, audio, and images
-- Local-first LLM support (coming soon, like very soon there's already a branch)
-<img width="900" alt="Screenshot 2024-04-30 at 14 05 30" src="https://github.com/different-ai/file-organizer-2000/assets/11430621/2e2cdf14-c6d0-4fd0-8e02-268928ad7ef3">
-
-
+- Local-first LLM support (see advanced settings)
+  <img width="900" alt="Screenshot 2024-04-30 at 14 05 30" src="https://github.com/different-ai/file-organizer-2000/assets/11430621/2e2cdf14-c6d0-4fd0-8e02-268928ad7ef3">
 
 ## Tips and Tricks
+
 [![Thumbnail (2)](https://github.com/different-ai/file-organizer-2000/assets/11430621/1b2c524b-11bc-484d-9255-4699783303bf)](https://youtube.com/playlist?list=PLgRcC-DFR5jdUxbSBuNeymwYTH_FSVxio&si=I7VpzzAnY0XVQ15c)
-
-
 
 ## How to use
 
@@ -31,33 +27,38 @@ It takes a sec, and then renames, and organizes your file.
 
 ![image](https://github.com/different-ai/file-organizer-2000/assets/11430621/f9fd716f-6ada-45c4-bd59-a4efcd79b0e5)
 
+## Bring your own Key (without self-hosting)
 
-
+1. Go to general settings inside the plugin settings
+2. Get your OpenAI API key + top up with credits
+3. Paste the API key in OpenAI API Key input
+4. That's it you should be ready to go!
 
 ## Self-hosting
 
 1. Run the server
 
-    For Linux/macOS:
-    ```sh
-    cd ./app
-    npm i && npm run build
-    OPENAI_API_KEY=[your open ai api key] npm run start
-    ```
-    Replace `[your open ai api key]` with your actual OpenAI API key.
+   For Linux/macOS:
 
-    For Windows (PowerShell):
-    ```sh
-    cd .\app
-    npm i; npm run build
-    $env:OPENAI_API_KEY="your open ai api key"; npm run start
-    ```
-    Replace `your open ai api key` with your actual OpenAI API key.
+   ```sh
+   cd ./app
+   npm i && npm run build
+   OPENAI_API_KEY=[your open ai api key] npm run start
+   ```
 
+   Replace `[your open ai api key]` with your actual OpenAI API key.
 
+   For Windows (PowerShell):
+
+   ```sh
+   cd .\app
+   npm i; npm run build
+   $env:OPENAI_API_KEY="your open ai api key"; npm run start
+   ```
+
+   Replace `your open ai api key` with your actual OpenAI API key.
 
 2. Go inside the Settings of the plugin and enable "Self-hosted"
-
 
 <img width="707" alt="Screenshot 2024-04-13 at 07 16 21" src="https://github.com/different-ai/file-organizer-2000/assets/11430621/ca2222c9-cb8d-4d15-8459-2da4c9662f24">
 
@@ -66,18 +67,15 @@ It takes a sec, and then renames, and organizes your file.
 Join the [discord server](https://discord.gg/udQnCRFyus) for more.
 
 ## Small iOS shortcut for easy access
+
 The iOS shortcut below makes it easy for you to easily work from your phone with this plugin.
 
 https://www.icloud.com/shortcuts/06915768862848fb9711f2f19b6405e2
-
-
 
 ## To Do
 
 - [ ] Replace GPT Vision by a local model
 - [ ] Make it easy for people to extend whatever workflow.
-
-
 
 ### Notes
 
