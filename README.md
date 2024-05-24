@@ -43,7 +43,7 @@ See video: https://www.youtube.com/watch?v=rommuUXRgUw&t=17s
 
 ## Setup
 
-### Bring your own Key (without self-hosting)
+### A) Bring your own Key (without self-hosting)
 
 1. Go to general settings inside the plugin settings
 2. Get your OpenAI API key + top up with credits
@@ -54,7 +54,7 @@ See video: https://www.youtube.com/watch?v=rommuUXRgUw&t=17s
 
 
 
-### Self-hosting
+### B) Self-hosting
 
 1. Run the server
 
