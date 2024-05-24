@@ -32,7 +32,7 @@ It takes a sec, and then renames, and organizes your file.
 
 ![image](https://github.com/different-ai/file-organizer-2000/assets/11430621/f9fd716f-6ada-45c4-bd59-a4efcd79b0e5)
 
-### B) Get suggestions and choose what to apply with AI Assistant View
+### B) or Get suggestions and choose what to apply with AI Assistant View
 
 <img width="1277" alt="Screenshot 2024-05-24 at 10 13 13 PM" src="https://github.com/different-ai/file-organizer-2000/assets/46509400/9723c23e-0d58-463b-8ea2-a164e4225341">
 
