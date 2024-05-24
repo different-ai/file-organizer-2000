@@ -34,6 +34,10 @@ It takes a sec, and then renames, and organizes your file.
 3. Paste the API key in OpenAI API Key input
 4. That's it you should be ready to go!
 
+<img width="836" alt="byok" src="https://github.com/different-ai/file-organizer-2000/assets/46509400/2bcc6824-236d-40ae-895b-d501401238bd">
+
+
+
 ## Self-hosting
 
 1. Run the server
