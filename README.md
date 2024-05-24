@@ -7,7 +7,7 @@ This is an Obsidian Plugin that uses AI to help you keep your files organized.
 ### Features
 
 - Automatically move files to the correct folder
-- AI suggestions to organize your files. Apply what you need.
+- AI suggestions to organize your files. Apply what you need
 - Supports text, audio, and images
 - Create and apply custom AI templates
 - Local-first LLM support (see advanced settings in plugin)
