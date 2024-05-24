@@ -33,11 +33,13 @@ It takes a sec, and then renames, and organizes your file.
 
 ### B) Get suggestions and choose what to apply with AI Assistant View
 
+<img width="1277" alt="Screenshot 2024-05-24 at 10 13 13 PM" src="https://github.com/different-ai/file-organizer-2000/assets/46509400/9723c23e-0d58-463b-8ea2-a164e4225341">
+
 ### C) Create custom AI Templates
 
 See video: https://www.youtube.com/watch?v=rommuUXRgUw&t=17s
 
-<img width="1277" alt="Screenshot 2024-05-24 at 10 13 13 PM" src="https://github.com/different-ai/file-organizer-2000/assets/46509400/9723c23e-0d58-463b-8ea2-a164e4225341">
+
 
 
 ## Bring your own Key (without self-hosting)
