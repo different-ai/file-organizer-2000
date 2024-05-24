@@ -41,9 +41,9 @@ It takes a sec, and then renames, and organizes your file.
 See video: https://www.youtube.com/watch?v=rommuUXRgUw&t=17s
 
 
+##Setup
 
-
-## Bring your own Key (without self-hosting)
+### Bring your own Key (without self-hosting)
 
 1. Go to general settings inside the plugin settings
 2. Get your OpenAI API key + top up with credits
@@ -54,7 +54,7 @@ See video: https://www.youtube.com/watch?v=rommuUXRgUw&t=17s
 
 
 
-## Self-hosting
+### Self-hosting
 
 1. Run the server
 
