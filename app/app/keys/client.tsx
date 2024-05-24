@@ -87,11 +87,23 @@ const APIKEYForm = () => {
       ) : (
         <div>
           <p className="text-gray-500 dark:text-gray-400">
-            You need to be a paid user to create an API key.
+            You need to be a paid user to create a File Organizer API key.
           </p>
           <div className="mt-4">
             <CheckoutButton />
           </div>
+          <p className="text-gray-500 dark:text-gray-400 pt-3">or</p>
+          <p className=" text-violet-900 dark:text-gray-400 pt-2">
+            <a
+              className="cursor-pointer"
+              href="https://platform.openai.com/api-keys"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              Get your own OpenAI API key
+            </a>
+          </p>
+          <p className="text-gray-500 dark:text-gray-400">(requires credits)</p>
         </div>
       )}
     </div>
