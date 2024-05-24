@@ -96,7 +96,7 @@ const APIKEYForm = () => {
           <p className=" text-violet-700 dark:text-gray-400 pt-2">
             <a
               className="cursor-pointer"
-              href="https://platform.openai.com/docs/overview"
+              href="https://platform.openai.com/api-keys"
               target="_blank"
               rel="noopener noreferrer"
             >
