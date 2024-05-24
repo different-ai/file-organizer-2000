@@ -66,8 +66,6 @@
   }
 }
 
-/* In your CSS file */
-
 @layer base {
   * {
     @apply border-border;
