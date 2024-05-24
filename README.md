@@ -2,7 +2,7 @@ We ship daily - try to keep F02k version up to date
 
 # AI File Organizer 2000
 
-This is an Obsidian Plugin that uses AI to help you keep your files organized. It tags, renames, and moves files to the most appropriate folders in your vault. You'll also be able to transcribe audios, to have your images annotated, and to create AI templates
+This is an Obsidian Plugin that uses AI to help you keep your files organized. It tags, renames, and moves files to the most appropriate folders in your vault. You'll also be able to transcribe audios, to have your images annotated, and to create AI templates.
 
 ### Features
 
