@@ -177,3 +177,10 @@ If your plugin does not need CSS, delete this file.
 .setting-tab-content.active {
   display: block;
 }
+.file-organizer-login-button {
+  margin-bottom: 1rem;
+}
+.small-text {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+}

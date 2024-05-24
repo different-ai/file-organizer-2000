@@ -16,10 +16,16 @@ export class ModelTab {
     const modelTabContent = this.containerEl.createEl("div", {
       cls: "setting-tab-content",
     });
+    // add margin top to the tab content
+
+    // title
+    modelTabContent.createEl("h6", { text: "Pro Settings" });
     // Pro Account Toggle
     const proAccountEl = modelTabContent.createEl("div");
+    proAccountEl.createEl("div", { cls: "separation-bar" });
+
     new Setting(proAccountEl)
-      .setName("User Pro Account")
+      .setName("Use Pro Account")
       .setDesc(
         "Enable this to route use your api key from File Organizer 2000."
       )
@@ -37,6 +43,7 @@ export class ModelTab {
 
     const loginButton = fileOrganizerSettingsEl.createEl("button", {
       text: "Login to File Organizer",
+      cls: "file-organizer-login-button",
     });
     loginButton.addEventListener("click", () => {
       window.open("https://app.fileorganizer2000.com", "_blank");
@@ -85,25 +92,30 @@ export class ModelTab {
             await this.plugin.saveSettings();
           })
       );
-
+    // DONT THINK WE NEED THIS ANYMORE, WE HAVE THE LOGIN BUTTON
     // Special message for File Organizer
-    const fileOrganizerMessageEl = fileOrganizerSettingsEl.createEl("div", {
-      cls: "file-organizer-message",
-    });
-    fileOrganizerMessageEl
-      .createEl("p", {
-        text: "Access your dashboard at ",
-      })
-      .createEl("a", {
-        href: "https://app.fileorganizer2000.com",
-        text: "File Organizer Dashboard",
-        target: "_blank",
-      });
+    // const fileOrganizerMessageEl = fileOrganizerSettingsEl.createEl("div", {
+    //   cls: "file-organizer-message",
+    // });
+    // fileOrganizerMessageEl
+    //   .createEl("p", {
+    //     text: "Access your dashboard at ",
+    //   })
+    //   .createEl("a", {
+    //     href: "https://app.fileorganizer2000.com",
+    //     text: "File Organizer Dashboard",
+    //     target: "_blank",
+    //   });
 
     // OpenAI Settings Section
     const openAISettingsEl = modelTabContent.createEl("div", {
       cls: "openai-settings",
     });
+    // add separation bar
+    openAISettingsEl.createEl("div", { cls: "separation-bar" });
+    // add OpenAI title
+    openAISettingsEl.createEl("h6", { text: "Bring your own key Settings" });
+
     new Setting(openAISettingsEl).setName("OpenAI API Key").addText((text) =>
       text
         .setPlaceholder("Enter your OpenAI API Key")
@@ -142,13 +154,20 @@ export class ModelTab {
     });
     openAIInfoEl
       .createEl("p", {
-        text: "To obtain an OpenAI API key, visit the OpenAI API platform at ",
+        text: "To obtain an OpenAI API key, visit the ",
       })
       .createEl("a", {
         href: "https://platform.openai.com/",
-        text: "OpenAI API Platform",
+        text: "OpenAI API Platform*",
         target: "_blank",
       });
+
+    openAIInfoEl.createEl("p", {
+      text: "*Requires a minimum top up of $6 USD for use",
+      //make text small
+      cls: "small-text",
+    });
+
     openAIInfoEl.createEl("p", {
       text: "For more advanced settings, go to the Advanced Models tab.",
     });
