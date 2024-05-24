@@ -93,7 +93,7 @@ const APIKEYForm = () => {
             <CheckoutButton />
           </div>
           <p className="text-gray-500 dark:text-gray-400 pt-3">or</p>
-          <p className=" text-violet-700 dark:text-gray-400 pt-2">
+          <p className=" text-violet-900 dark:text-gray-400 pt-2">
             <a
               className="cursor-pointer"
               href="https://platform.openai.com/api-keys"

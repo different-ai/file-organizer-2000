@@ -36,7 +36,7 @@ export default function CheckoutButton() {
   }
 
   return (
-    <Button variant="freeTrial" onClick={handleCheckout} disabled={loading}>
+    <Button onClick={handleCheckout} disabled={loading}>
       {loading ? "Processing..." : "Start free trial"}
     </Button>
   );
