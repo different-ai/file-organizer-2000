@@ -19,7 +19,7 @@ export class ModelTab {
     // Pro Account Toggle
     const proAccountEl = modelTabContent.createEl("div");
     new Setting(proAccountEl)
-      .setName("User Pro Account")
+      .setName("Use Pro Account")
       .setDesc(
         "Enable this to route use your api key from File Organizer 2000."
       )
