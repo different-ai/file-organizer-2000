@@ -87,7 +87,7 @@ const APIKEYForm = () => {
       ) : (
         <div>
           <p className="text-gray-500 dark:text-gray-400">
-            You need to be a paid user to create a File Organizer API key.
+            You need to be a pro user to create a File Organizer API key.
           </p>
           <div className="mt-4">
             <CheckoutButton />
