@@ -92,7 +92,7 @@ const APIKEYForm = () => {
           <div className="mt-4">
             <CheckoutButton />
           </div>
-          <p className="text-gray-500 dark:text-gray-400 pt-5">or</p>
+          <p className="text-gray-500 dark:text-gray-400 pt-3">or</p>
           <p className=" text-violet-700 dark:text-gray-400 pt-2">
             <a
               className="cursor-pointer"
