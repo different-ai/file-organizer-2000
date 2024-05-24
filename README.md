@@ -9,6 +9,7 @@ This is an Obsidian Plugin that uses AI to help you keep your files organized.
 - Automatically move files to the correct folder
 - Or see AI suggestions before applying them with the Assistant Sidebar
 - Supports text, audio, and images
+- Create and apply custom AI templates
 - Local-first LLM support (see advanced settings in plugin)
   <img width="900" alt="Screenshot 2024-04-30 at 14 05 30" src="https://github.com/different-ai/file-organizer-2000/assets/11430621/2e2cdf14-c6d0-4fd0-8e02-268928ad7ef3">
 
@@ -32,7 +33,7 @@ It takes a sec, and then renames, and organizes your file.
 
 ### B) Get suggestions and choose what to apply with AI Assistant View
 
-### C) Create your custom AI Templates
+### C) Create custom AI Templates
 
 See video: https://www.youtube.com/watch?v=rommuUXRgUw&t=17s
 
