@@ -154,13 +154,20 @@ export class ModelTab {
     });
     openAIInfoEl
       .createEl("p", {
-        text: "To obtain an OpenAI API key, visit the OpenAI API platform at ",
+        text: "To obtain an OpenAI API key, visit the ",
       })
       .createEl("a", {
         href: "https://platform.openai.com/",
-        text: "OpenAI API Platform",
+        text: "OpenAI API Platform*",
         target: "_blank",
       });
+
+    openAIInfoEl.createEl("p", {
+      text: "*Requires a minimum top up of $6 USD for use",
+      //make text small
+      cls: "small-text",
+    });
+
     openAIInfoEl.createEl("p", {
       text: "For more advanced settings, go to the Advanced Models tab.",
     });
