@@ -37,6 +37,7 @@ export class ModelTab {
 
     const loginButton = fileOrganizerSettingsEl.createEl("button", {
       text: "Login to File Organizer",
+      cls: "file-organizer-login-button",
     });
     loginButton.addEventListener("click", () => {
       window.open("https://app.fileorganizer2000.com", "_blank");
