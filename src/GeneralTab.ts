@@ -17,9 +17,13 @@ export class ModelTab {
       cls: "setting-tab-content",
     });
     // add margin top to the tab content
-    modelTabContent.style.marginTop = "0.5rem";
+
+    // title
+    modelTabContent.createEl("h6", { text: "Pro Settings" });
     // Pro Account Toggle
     const proAccountEl = modelTabContent.createEl("div");
+    proAccountEl.createEl("div", { cls: "separation-bar" });
+
     new Setting(proAccountEl)
       .setName("Use Pro Account")
       .setDesc(
@@ -88,20 +92,20 @@ export class ModelTab {
             await this.plugin.saveSettings();
           })
       );
-
+    // DONT THINK WE NEED THIS ANYMORE, WE HAVE THE LOGIN BUTTON
     // Special message for File Organizer
-    const fileOrganizerMessageEl = fileOrganizerSettingsEl.createEl("div", {
-      cls: "file-organizer-message",
-    });
-    fileOrganizerMessageEl
-      .createEl("p", {
-        text: "Access your dashboard at ",
-      })
-      .createEl("a", {
-        href: "https://app.fileorganizer2000.com",
-        text: "File Organizer Dashboard",
-        target: "_blank",
-      });
+    // const fileOrganizerMessageEl = fileOrganizerSettingsEl.createEl("div", {
+    //   cls: "file-organizer-message",
+    // });
+    // fileOrganizerMessageEl
+    //   .createEl("p", {
+    //     text: "Access your dashboard at ",
+    //   })
+    //   .createEl("a", {
+    //     href: "https://app.fileorganizer2000.com",
+    //     text: "File Organizer Dashboard",
+    //     target: "_blank",
+    //   });
 
     // OpenAI Settings Section
     const openAISettingsEl = modelTabContent.createEl("div", {
@@ -110,7 +114,7 @@ export class ModelTab {
     // add separation bar
     openAISettingsEl.createEl("div", { cls: "separation-bar" });
     // add OpenAI title
-    openAISettingsEl.createEl("h5", { text: "Bring your own key Settings" });
+    openAISettingsEl.createEl("h6", { text: "Bring your own key Settings" });
 
     new Setting(openAISettingsEl).setName("OpenAI API Key").addText((text) =>
       text
