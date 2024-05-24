@@ -34,7 +34,11 @@ It takes a sec, and then renames, and organizes your file.
 
 ### B) or Get suggestions and choose what to apply with AI Assistant View
 
-<img width="1277" alt="Screenshot 2024-05-24 at 10 13 13 PM" src="https://github.com/different-ai/file-organizer-2000/assets/46509400/9723c23e-0d58-463b-8ea2-a164e4225341">
+1. Click on the Assistant View Icon or set up the "Show Assistant" hotkey to open the Sidebar
+2. Select any of your files and choose which changes to apply
+
+<img width="1277" alt="Screenshot 2024-05-24 at 11 42 17 PM" src="https://github.com/different-ai/file-organizer-2000/assets/46509400/dc06a61f-64d0-4e10-898d-3e0330004e94">
+
 
 ### C) Create custom AI Templates
 
