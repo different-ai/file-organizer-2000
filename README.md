@@ -41,7 +41,7 @@ It takes a sec, and then renames, and organizes your file.
 See video: https://www.youtube.com/watch?v=rommuUXRgUw&t=17s
 
 
-##Setup
+## Setup
 
 ### Bring your own Key (without self-hosting)
 
