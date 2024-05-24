@@ -16,6 +16,8 @@ export class ModelTab {
     const modelTabContent = this.containerEl.createEl("div", {
       cls: "setting-tab-content",
     });
+    // add margin top to the tab content
+    modelTabContent.style.marginTop = "0.5rem";
     // Pro Account Toggle
     const proAccountEl = modelTabContent.createEl("div");
     new Setting(proAccountEl)
@@ -105,6 +107,11 @@ export class ModelTab {
     const openAISettingsEl = modelTabContent.createEl("div", {
       cls: "openai-settings",
     });
+    // add separation bar
+    openAISettingsEl.createEl("div", { cls: "separation-bar" });
+    // add OpenAI title
+    openAISettingsEl.createEl("h5", { text: "Bring your own key Settings" });
+
     new Setting(openAISettingsEl).setName("OpenAI API Key").addText((text) =>
       text
         .setPlaceholder("Enter your OpenAI API Key")
