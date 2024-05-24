@@ -19,7 +19,7 @@ This is an Obsidian Plugin that uses AI to help you keep your files organized.
 
 ## How to use
 
-### A) Auto-Organize with the Inbox Folder
+### A) Auto-Organize with the AI Inbox
 
 Simply move any of your files to the "Inbox" folder and the plugin will automatically move it to the most likely folder.
 
