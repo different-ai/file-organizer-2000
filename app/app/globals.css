@@ -67,9 +67,7 @@
 }
 
 /* In your CSS file */
-.bg-purple {
-  background-color: #7852ee;
-}
+
 @layer base {
   * {
     @apply border-border;
