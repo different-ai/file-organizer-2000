@@ -3,7 +3,7 @@ import type { Metadata } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "File Organizer 2000 - Dasboard",
+  title: "File Organizer 2000 - Dashboard",
   description: "Manage your account",
 };
 
