@@ -142,27 +142,27 @@ const DocumentChunks: React.FC<{
   );
 };
 
-const RenameSuggestionBox: React.FC<{
+const RenameSuggestion: React.FC<{
   plugin: FileOrganizer;
   file: TFile | null;
   content: string;
 }> = ({ plugin, file, content }) => {
-  const [alias, setAlias] = React.useState<string | null>(null);
+  const [alias, setTitle] = React.useState<string | null>(null);
   const [loading, setLoading] = React.useState<boolean>(false);
   const [error, setError] = React.useState<string | null>(null);
 
   React.useEffect(() => {
     const suggestAlias = async () => {
       if (!content) {
-        setAlias(null);
+        setTitle(null);
         return;
       }
-      setAlias(null);
+      setTitle(null);
       setLoading(true);
       setError(null);
       try {
         const suggestedAlias = await plugin.generateNameFromContent(content);
-        setAlias(suggestedAlias);
+        setTitle(suggestedAlias);
         if (!suggestedAlias) {
           setError("No alias could be generated.");
         }
@@ -243,6 +243,11 @@ const AliasSuggestionBox: React.FC<{
     suggestAliases();
   }, [content]);
 
+  const handleAliasClick = (alias: string) => {
+    plugin.appendAlias(file, alias);
+    setAliases((prevAliases) => prevAliases.filter((a) => a !== alias));
+  };
+
   return (
     <div className="assistant-section alias-section">
       {loading ? (
@@ -257,7 +262,7 @@ const AliasSuggestionBox: React.FC<{
                 <span
                   key={index}
                   className="alias tag"
-                  onClick={() => plugin.appendAlias(file, alias)}
+                  onClick={() => handleAliasClick(alias)}
                 >
                   {alias}
                 </span>
@@ -508,7 +513,7 @@ export const AssistantView: React.FC<AssistantViewProps> = ({ plugin }) => {
       <SimilarTags plugin={plugin} file={activeFile} content={noteContent} />
 
       <SectionHeader text="Suggested title" icon="💡" />
-      <RenameSuggestionBox
+      <RenameSuggestion
         plugin={plugin}
         file={activeFile}
         content={noteContent}

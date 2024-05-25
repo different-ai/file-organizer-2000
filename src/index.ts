@@ -393,11 +393,20 @@ export default class FileOrganizer extends Plugin {
       this.settings.API_KEY
     );
 
+    logMessage("documentType", documentType);
+
     const selectedClassification = classifications.find(
       (c) => c.type.toLowerCase() === documentType.toLowerCase()
     );
 
-    return selectedClassification || null;
+    if (selectedClassification) {
+      return {
+        type: selectedClassification.type,
+        formattingInstruction: selectedClassification.formattingInstruction,
+      };
+    }
+
+    return null;
   }
 
   /* experimental above until further notice */
@@ -464,18 +473,17 @@ export default class FileOrganizer extends Plugin {
   async appendToFrontMatter(file: TFile, key: string, value: string) {
     await this.app.fileManager.processFrontMatter(file, (frontmatter) => {
       if (!frontmatter.hasOwnProperty(key)) {
-        frontmatter[key] = value;
-        return;
+        frontmatter[key] = [value];
+      } else if (!Array.isArray(frontmatter[key])) {
+        frontmatter[key] = [frontmatter[key], value];
+      } else {
+        frontmatter[key].push(value);
       }
-      if (!Array.isArray(frontmatter[key])) {
-        frontmatter[key] = [frontmatter[key]];
-      }
-      frontmatter[key].push(value);
     });
   }
 
   async appendAlias(file: TFile, alias: string) {
-    this.appendToFrontMatter(file, "alias", alias);
+    this.appendToFrontMatter(file, "aliases", alias);
   }
 
   // creates a .md file with a humean readable name guessed from the content
