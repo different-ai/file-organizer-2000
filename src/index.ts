@@ -20,13 +20,11 @@ import {
   createOpenAIInstance,
 } from "../standalone/models";
 
-import {
-  extractTextFromImage,
-  transcribeAudio,
-} from "../app/aiService";
+import { extractTextFromImage, transcribeAudio } from "../app/aiService";
 import {
   classifyDocumentRouter,
   createNewFolderRouter,
+  extractTextFromImageRouter,
   fetchChunksForConceptRouter,
   formatDocumentContentRouter,
   generateAliasVariationsRouter,
@@ -242,7 +240,9 @@ export default class FileOrganizer extends Plugin {
       name,
       content,
       this.settings.usePro,
-      this.settings.customServerUrl,
+      this.settings.useCustomServer
+        ? this.settings.customServerUrl
+        : this.settings.defaultServerUrl,
       this.settings.API_KEY
     );
   }
@@ -284,7 +284,9 @@ export default class FileOrganizer extends Plugin {
       content,
       formattingInstruction,
       this.settings.usePro,
-      this.settings.customServerUrl,
+      this.settings.useCustomServer
+        ? this.settings.customServerUrl
+        : this.settings.defaultServerUrl,
       this.settings.API_KEY
     );
     await this.app.vault.modify(file, formattedContent);
@@ -316,7 +318,9 @@ export default class FileOrganizer extends Plugin {
     return await identifyConceptsRouter(
       content,
       this.settings.usePro,
-      this.settings.customServerUrl,
+      this.settings.useCustomServer
+        ? this.settings.customServerUrl
+        : this.settings.defaultServerUrl,
       this.settings.API_KEY
     );
   }
@@ -329,7 +333,9 @@ export default class FileOrganizer extends Plugin {
       content,
       concept,
       this.settings.usePro,
-      this.settings.customServerUrl,
+      this.settings.useCustomServer
+        ? this.settings.customServerUrl
+        : this.settings.defaultServerUrl,
       this.settings.API_KEY
     );
   }
@@ -381,7 +387,9 @@ export default class FileOrganizer extends Plugin {
       name,
       templateNames,
       this.settings.usePro,
-      this.settings.customServerUrl,
+      this.settings.useCustomServer
+        ? this.settings.customServerUrl
+        : this.settings.defaultServerUrl,
       this.settings.API_KEY
     );
 
@@ -544,7 +552,9 @@ export default class FileOrganizer extends Plugin {
       activeFileContent,
       fileContents,
       this.settings.usePro,
-      this.settings.customServerUrl,
+      this.settings.useCustomServer
+        ? this.settings.customServerUrl
+        : this.settings.defaultServerUrl,
       this.settings.API_KEY
     );
 
@@ -567,7 +577,9 @@ export default class FileOrganizer extends Plugin {
     const name = await generateDocumentTitleRouter(
       content,
       this.settings.usePro,
-      this.settings.customServerUrl,
+      this.settings.useCustomServer
+        ? this.settings.customServerUrl
+        : this.settings.defaultServerUrl,
       this.settings.API_KEY
     );
     return formatToSafeName(name);
@@ -641,7 +653,14 @@ export default class FileOrganizer extends Plugin {
       processedArrayBuffer = arrayBuffer;
     }
 
-    const processedContent = await extractTextFromImage(processedArrayBuffer);
+    const processedContent = await extractTextFromImageRouter(
+      processedArrayBuffer,
+      this.settings.usePro,
+      this.settings.useCustomServer
+        ? this.settings.customServerUrl
+        : this.settings.defaultServerUrl,
+      this.settings.API_KEY
+    );
 
     return processedContent;
   }
@@ -755,7 +774,9 @@ export default class FileOrganizer extends Plugin {
       filePath,
       filteredFolders,
       this.settings.usePro,
-      this.settings.customServerUrl,
+      this.settings.useCustomServer
+        ? this.settings.customServerUrl
+        : this.settings.defaultServerUrl,
       this.settings.API_KEY
     );
 
@@ -765,7 +786,9 @@ export default class FileOrganizer extends Plugin {
         filePath,
         filteredFolders,
         this.settings.usePro,
-        this.settings.customServerUrl,
+        this.settings.useCustomServer
+          ? this.settings.customServerUrl
+          : this.settings.defaultServerUrl,
         this.settings.API_KEY
       );
       destinationFolder = newFolderName;
