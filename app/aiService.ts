@@ -51,7 +51,6 @@ export async function generateAliasVariations(
   content: string,
   model: LanguageModel
 ): Promise<string[]> {
-
   switch (model.modelId) {
     case "gpt-4o": {
       const response = await generateObject({
@@ -59,8 +58,9 @@ export async function generateAliasVariations(
         schema: z.object({
           aliases: z.array(z.string()).default([]),
         }),
-        prompt: `Generate a list of 3 closely related names (aliases) for the given file name: "${fileName}". The aliases should include variations in capitalization, spacing, and common extensions. For example, for "ECSS", generate aliases like "ecss", "ecss space", "ECSS", "ECSS Space", "ECSS Compliance", etc. Consider the context provided by the content "${content}".`,
-        system: "only answer with name not extension",
+        prompt: `Generate a list of 3 closely related names (aliases) for the given document name: "${fileName}". The aliases should include variations in capitalization.  Consider the context provided by the content "${content}".`,
+        system:
+          "only answer with good names that could refer to a title of this document",
       });
 
       return response.object.aliases ?? [];
