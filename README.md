@@ -32,6 +32,8 @@ It takes a sec, and then renames, and organizes your file.
 
 ![image](https://github.com/different-ai/file-organizer-2000/assets/11430621/f9fd716f-6ada-45c4-bd59-a4efcd79b0e5)
 
+See plugin settings to customize the changes AI Inbox applies to your files.
+
 ### B. or Get suggestions and choose what to apply with AI Assistant View
 
 1. Click on the Assistant View Icon or set up the "Show Assistant" hotkey to open the Sidebar
