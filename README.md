@@ -1,6 +1,6 @@
 We ship daily - try to keep F02k version up to date
 
-<a href="[https://discord.gg/u54VK8m8tk](https://discord.gg/udQnCRFyus)"><img src="https://raw.githubusercontent.com/unslothai/unsloth/main/images/Discord button.png" height="48"></a>
+<a href="[https://discord.gg/u54VK8m8tk]"><img src="https://raw.githubusercontent.com/unslothai/unsloth/main/images/Discord button.png" height="48"></a>
 
 # AI File Organizer 2000
 
