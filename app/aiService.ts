@@ -1,6 +1,6 @@
-// import { getModel } from "./models";
 import { LanguageModel, generateObject, generateText, streamObject } from "ai";
 import { z } from "zod";
+
 // Function to generate tags
 export async function generateTags(
   content: string,
@@ -27,14 +27,9 @@ export async function generateTags(
     default: {
       const defaultResponse = await generateText({
         model,
-        prompt: `TASK -> Classify this content:
-  CONTENT -> ${content}
-  
-  Select up to three tags from the list:
-  TAGS -> ${tags.join(", ")}
-  
-  Only respond with tags, then STOP.
-  FORMAT -> tag1, tag2, tag3`,
+        prompt: `Given the text "${content}" (and if relevant ${fileName}), identify the at most 3 relevant tags from the following list, sorted from most commonly found to least commonly found: ${tags.join(
+          ", "
+        )}. Respond with only the tags, no other text.`,
       });
 
       return defaultResponse.text
@@ -68,19 +63,7 @@ export async function generateAliasVariations(
     default: {
       const defaultResponse = await generateText({
         model,
-        system:
-          "only answer with name not extension, no special characters, no numbers",
-        prompt: `TASK -> Generate 3 closely related names (aliases) for the given file name.
-  FILE NAME -> ${fileName}
-  CONTENT -> ${content}
-  
-  The aliases should include variations in capitalization, spacing, and common extensions. For example, for "ECSS", generate aliases like "ecss", "ecss space", "ECSS", "ECSS Space", "ECSS Compliance", etc.
-  
-  Only answer with names, not extensions.
-  FORMAT ->
-  alias1
-  alias2
-  alias3`,
+        prompt: `Generate a list of 3 closely related names (aliases) for the given document name: "${fileName}". The aliases should include variations in capitalization. Consider the context provided by the content "${content}". Respond with only the aliases, no other text.`,
       });
 
       return defaultResponse.text.split("\n").map((alias) => alias.trim());
@@ -115,11 +98,9 @@ export async function guessRelevantFolder(
       // eslint-disable-next-line no-case-declarations
       const defaultResponse = await generateText({
         model,
-        system: "only answer with folder path, nothing else.",
-        prompt: `Given the content: "${content}" and the file name: "${fileName}", suggest a folder name that would appropriately categorize this file. Consider the existing folder structure: ${folders.join(
+        prompt: `Review the content: "${content}" and the file name: "${fileName}". Decide which of the following folders is the most suitable: ${folders.join(
           ", "
-        )}
-        `,
+        )}. Base your decision on the relevance of the content and the file name to the folder themes. If no existing folder is suitable, respond with null. Respond with only the folder name or null, no other text.`,
       });
       return defaultResponse.text.trim() === "null"
         ? null
@@ -150,15 +131,10 @@ export async function createNewFolder(
     }
     default: {
       const defaultResponse = await generateText({
-        system: "only answer with folder name",
         model,
-        prompt: `TASK -> Suggest a new folder name to categorize the given content and file name.
-        
-  CONTENT -> ${content}
-  FILE NAME -> ${fileName}
-  
-  EXISTING FOLDERS -> ${existingFolders.join(", ")}
- `,
+        prompt: `Given the content: "${content}" and the file name: "${fileName}", suggest a new folder name that would appropriately categorize this file. Consider the existing folder structure: ${existingFolders.join(
+          ", "
+        )}. Respond with only the new folder name, no other text.`,
       });
 
       return defaultResponse.text.trim();
@@ -197,22 +173,18 @@ export async function generateRelationships(
     default: {
       const defaultResponse = await generateText({
         model,
-        prompt: `TASK -> Determine the five most similar files to the active file based on content.
-        
-  ACTIVE FILE CONTENT -> ${activeFileContent}
-  
-  FILES -> ${files.map((file: { name: string }) => file.name).join(", ")}
-  
-  Provide a ranked list of the top 5 similar file names, each on a new line. If no files are similar, respond with "none".  
-  FORMAT ->
-  file1
-  file2
-  file3
-  file4
-  file5`,
+        prompt: `Analyze the content of the active file and compare it with the following files:
+
+          Active File Content:
+          ${activeFileContent}
+          
+          List of Files:
+          ${files.map((file: { name: string }) => `${file.name}`).join(", ")}
+          
+          Determine which five files are most similar to the active file based on their content. Provide a ranked list of the top 5 similar file names, each on a new line. If no files are similar, respond with an empty string. Respond with only the file names or an empty string, no other text.`,
       });
 
-      return defaultResponse.text.trim() === "none"
+      return defaultResponse.text.trim() === ""
         ? []
         : defaultResponse.text.split("\n").map((line) => line.trim());
     }
@@ -243,18 +215,15 @@ export async function generateDocumentTitle(
     default: {
       const defaultResponse = await generateText({
         model,
-        system: "only answer with document title, no formatting, just letters",
-        prompt: `You are a helpful assistant. You only answer short (less than 80 chars ). Use only filename characters (including spaces). Use something very specific to the content not a generic title.
-        Give a title to this document:
-         ${document}
-  `,
+        prompt: `Give a title to this document: 
+          ${document}
+          Respond with a short title (less than 60 chars) using only filename characters (including spaces). Use something very specific to the content, not a generic title. Respond with only the title, no other text.`,
       });
-      console.log("default response", defaultResponse);
 
       return defaultResponse.text
         .replace(/[^\w\s]/gi, "")
         .trim()
-        .slice(0, 100);
+        .slice(0, 60);
     }
   }
 }
@@ -281,7 +250,7 @@ export async function extractTextFromImage(
       content: [
         {
           type: "text",
-          text: "Extract text from image. Write in markdown. If there's a drawing, describe it.",
+          text: "Extract text from image. Write in markdown. If there's a drawing, describe it. Respond with only the extracted text or description, no other text.",
         },
         {
           type: "image",
@@ -304,9 +273,6 @@ export async function extractTextFromImage(
     default: {
       const defaultResponse = await generateText({
         model,
-        prompt: `TASK -> Extract text from the provided image. Write in markdown format. If there's a drawing, describe it.
-        
-  IMAGE -> [Attached Image]`,
         //@ts-ignore
         messages,
       });
@@ -356,15 +322,20 @@ export async function classifyDocument(
     default: {
       const defaultResponse = await generateText({
         model,
-        prompt: `TASK -> Identify the document type that best matches the given content.
-        
-  CONTENT -> ${content}
-  FILE NAME -> ${fileName}
-  
-  TEMPLATE TYPES -> ${templateNames.join(", ")}
-  
-  If the content clearly matches one of the provided template types, respond with the name of that document type. If the content does not clearly match any of the template types, respond with an empty string.
-  FORMAT -> document_type`,
+        prompt: `Given the text content:
+
+          "${content}"
+          
+          and if relevant, the file name:
+          
+          "${fileName}"
+          
+          Please identify which of the following document types best matches the content:
+          
+          Template Types:
+          ${templateNames.join(", ")}
+          
+          If the content clearly matches one of the provided template types, respond with the name of that document type. If the content does not clearly match any of the template types, respond with an empty string. Respond with only the document type or an empty string, no other text.`,
       });
 
       return defaultResponse.text.trim();
@@ -400,13 +371,15 @@ export async function formatDocumentContent(
     default: {
       const defaultResponse = await generateText({
         model,
-        prompt: `TASK -> Format the given content according to the provided instruction.
+        prompt: `Format the following content according to the given instruction:
         
-  CONTENT -> ${content}
-  
-  FORMATTING INSTRUCTION -> ${formattingInstruction}
-  
-  FORMAT -> formatted_content`,
+        Content:
+        "${content}"
+        
+        Formatting Instruction:
+        "${formattingInstruction}"
+        
+        Respond with only the formatted content, no other text.`,
       });
 
       return defaultResponse.text.trim();
@@ -438,15 +411,9 @@ export async function identifyConcepts(
     default: {
       const defaultResponse = await generateText({
         model,
-        prompt: `TASK -> Identify the key concepts in the given document by splitting it into the fewest atomic chunks possible.
-        
-  DOCUMENT -> ${content}
-  
-  FORMAT ->
-  concept1
-  concept2
-  concept3
-  ...`,
+        prompt: `Split the following document into the fewest atomic chunks possible. The goal is to identify the key concepts in the document. Respond with only the concepts, each on a new line, no other text.
+
+      ${content}`,
       });
 
       return defaultResponse.text.split("\n").map((concept) => concept.trim());
@@ -482,13 +449,12 @@ export async function fetchChunksForConcept(
     default: {
       const defaultResponse = await generateText({
         model,
-        prompt: `TASK -> Extract the relevant chunks of information for the given concept from the document content.
-        
-  DOCUMENT CONTENT -> ${content}
-  
-  CONCEPT -> ${concept}
-  
-  FORMAT -> relevant_chunks`,
+        prompt: `Given the document content and the concept "${concept}", extract the relevant chunks of information. Respond with only the extracted chunks, no other text.
+
+      Document Content:
+      ${content}
+
+      Concept: ${concept}`,
       });
 
       return { content: defaultResponse.text.trim() };
