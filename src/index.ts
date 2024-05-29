@@ -759,6 +759,7 @@ export default class FileOrganizer extends Plugin {
     let destinationFolder = "None";
 
     const uniqueFolders = await this.getAllFolders();
+    logMessage("uniqueFolders", uniqueFolders);
     const filteredFolders = uniqueFolders
       .filter((folder) => folder !== filePath)
       .filter((folder) => folder !== this.settings.defaultDestinationPath)
@@ -767,16 +768,13 @@ export default class FileOrganizer extends Plugin {
       .filter((folder) => folder !== this.settings.pathToWatch)
       .filter((folder) => folder !== this.settings.templatePaths)
       .filter((folder) => !folder.includes("_FileOrganizer2000"))
-      .filter(
-        (folder) =>
-          !this.settings.ignoreFolders.some((ignoreFolder) =>
-            folder.includes(ignoreFolder)
-          )
+      .filter((folder) =>
+        this.settings.ignoreFolders.some(
+          (ignoreFolder) => !folder.includes(ignoreFolder)
+        )
       )
-
       .filter((folder) => folder !== "/");
-    console.log("filteredFolders", filteredFolders);
-    console.log("filteredFolders", filteredFolders);
+    logMessage("filteredFolders", filteredFolders);
     const guessedFolder = await guessRelevantFolderRouter(
       content,
       filePath,
@@ -789,6 +787,7 @@ export default class FileOrganizer extends Plugin {
     );
 
     if (guessedFolder === null || guessedFolder === "null") {
+      logMessage("no good folder, creating a new one instead");
       const newFolderName = await createNewFolderRouter(
         content,
         filePath,
