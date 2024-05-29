@@ -155,13 +155,13 @@ If your plugin does not need CSS, delete this file.
 }
 
 .setting-tab-header:hover {
-  background: #f0f0f0;
+  background: var(--background-modifier-hover);
 }
 
 .setting-tab-header.active {
   border-color: #ddd;
   border-bottom-color: #fff;
-  background: #f5f5f5;
+  background: var(--background-modifier-active-hover);
   border-radius: 5px 5px 0 0;
   font-weight: bold;
 }
