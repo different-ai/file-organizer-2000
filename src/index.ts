@@ -760,7 +760,9 @@ export default class FileOrganizer extends Plugin {
 
     const uniqueFolders = await this.getAllFolders();
     logMessage("uniqueFolders", uniqueFolders);
+
     logMessage("ignore folders", this.settings.ignoreFolders);
+
     const filteredFolders = uniqueFolders
       .filter((folder) => folder !== filePath)
       .filter((folder) => folder !== this.settings.defaultDestinationPath)
