@@ -760,6 +760,9 @@ export default class FileOrganizer extends Plugin {
 
     const uniqueFolders = await this.getAllFolders();
     logMessage("uniqueFolders", uniqueFolders);
+
+    logMessage("ignore folders", this.settings.ignoreFolders);
+
     const filteredFolders = uniqueFolders
       .filter((folder) => folder !== filePath)
       .filter((folder) => folder !== this.settings.defaultDestinationPath)
@@ -768,11 +771,17 @@ export default class FileOrganizer extends Plugin {
       .filter((folder) => folder !== this.settings.pathToWatch)
       .filter((folder) => folder !== this.settings.templatePaths)
       .filter((folder) => !folder.includes("_FileOrganizer2000"))
-      .filter((folder) =>
-        this.settings.ignoreFolders.some(
-          (ignoreFolder) => !folder.includes(ignoreFolder)
-        )
-      )
+      // if  this.settings.ignoreFolders has one or more folder specified, filter them out including subfolders
+      .filter((folder) => {
+        const hasIgnoreFolders =
+          this.settings.ignoreFolders.length > 0 &&
+          this.settings.ignoreFolders[0] !== "";
+        if (!hasIgnoreFolders) return true;
+        const isFolderIgnored = this.settings.ignoreFolders.some(
+          (ignoreFolder) => folder.startsWith(ignoreFolder)
+        );
+        return !isFolderIgnored;
+      })
       .filter((folder) => folder !== "/");
     logMessage("filteredFolders", filteredFolders);
     const guessedFolder = await guessRelevantFolderRouter(
