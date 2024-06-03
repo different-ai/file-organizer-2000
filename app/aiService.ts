@@ -97,14 +97,16 @@ export async function guessRelevantFolder(
       // eslint-disable-next-line no-case-declarations
       const defaultResponse = await generateText({
         model,
-        prompt: `Given the content: "${content}"
-        and the file name: "${fileName}",
-        determine the most appropriate folder from the following list: "${folders.join(
-          ", "
-        )}".
-       Based on the main topic and purpose of the content, return only the name of the most relevant folder from the list. 
-       If none of the existing folders are suitable, respond with 'null'. Your response must contain only the folder name.`,
         temperature: 0,
+        system: "only answer with a pathname from the list",
+        prompt: `    Given the content: "${content}" and the file name: "${fileName}",
+        determine the most appropriate folder from the following list:
+        "${folders.join(
+          ", "
+        )}". Based on the main topic and purpose of the content, return
+        only the name of the most relevant folder from the list. If none of the
+        existing folders are suitable, respond with 'null'. Your response must
+        contain only the folder name.`,
       });
       return defaultResponse.text.trim() === "null"
         ? null
