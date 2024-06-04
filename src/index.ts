@@ -62,6 +62,7 @@ class FileOrganizerSettings {
   // experimental features settings
   transcribeEmbeddedAudio = false;
   enableAliasGeneration = false;
+  enableAtomicNotes = false;
 
   enableDocumentClassification = false;
   renameUntitledOnly = true;

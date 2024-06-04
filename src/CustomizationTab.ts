@@ -129,6 +129,19 @@ export class CustomizationTab {
             await this.plugin.saveSettings();
           })
       );
+    new Setting(customizationTabContent)
+      .setName("Enable Atomic Notes")
+      .setDesc(
+        "Enable the generation of atomic notes in the assistant sidebar."
+      )
+      .addToggle((toggle) =>
+        toggle
+          .setValue(this.plugin.settings.enableAtomicNotes)
+          .onChange(async (value) => {
+            this.plugin.settings.enableAtomicNotes = value;
+            await this.plugin.saveSettings();
+          })
+      );
 
     new Setting(customizationTabContent)
       .setName("Transcribe Embedded Audio")
