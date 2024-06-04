@@ -63,6 +63,7 @@ class FileOrganizerSettings {
   transcribeEmbeddedAudio = false;
   enableAliasGeneration = false;
   enableAtomicNotes = false;
+  enableSimilarFiles = false;
 
   enableDocumentClassification = false;
   renameUntitledOnly = true;

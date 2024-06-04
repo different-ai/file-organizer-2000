@@ -537,8 +537,12 @@ export const AssistantView: React.FC<AssistantViewProps> = ({ plugin }) => {
         content={noteContent}
       />
 
-      <SectionHeader text="Similar files" icon="📄" />
-      <SimilarFilesBox plugin={plugin} file={activeFile} />
+      {plugin.settings.enableSimilarFiles && (
+        <>
+          <SectionHeader text="Similar files" icon="📄" />
+          <SimilarFilesBox plugin={plugin} file={activeFile} />
+        </>
+      )}
       {plugin.settings.enableAtomicNotes && (
         <>
           <SectionHeader text="Atomic notes" icon="✂️" />

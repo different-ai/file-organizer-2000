@@ -130,6 +130,17 @@ export class CustomizationTab {
           })
       );
     new Setting(customizationTabContent)
+      .setName("Enable Similar Files")
+      .setDesc("Enable the display of similar files in the assistant sidebar.")
+      .addToggle((toggle) =>
+        toggle
+          .setValue(this.plugin.settings.enableSimilarFiles)
+          .onChange(async (value) => {
+            this.plugin.settings.enableSimilarFiles = value;
+            await this.plugin.saveSettings();
+          })
+      );
+    new Setting(customizationTabContent)
       .setName("Enable Atomic Notes")
       .setDesc(
         "Enable the generation of atomic notes in the assistant sidebar."
