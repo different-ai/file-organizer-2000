@@ -1,0 +1,356 @@
+# This configuration compares LLM output of  prompts x models.
+# Learn more: https://promptfoo.dev/docs/configuration/guide
+description: "My first eval"
+
+prompts:
+  - "Given the content: '**Blog Article Idea: Using AI for Organization**
+
+- **Argument 1:** AI organizes your files for you.
+Ai takes the hassle away from organizing. 
+- **Argument 2:** AI transcribes your audio notes.
+- **Argument 3:** AI formats your notes the way you want them.
+
+#blog #ideas #audio
+
+
+Given the content: "**Blog Article Idea: Using AI for Organization**
+
+- **Argument 1:** AI organizes your files for you.
+Ai takes the hassle away from organizing. 
+- **Argument 2:** AI transcribes your audio notes.
+- **Argument 3:** AI formats your notes the way you want them.
+
+![[AI For Organization.m4a]]
+
+#blog #ideas #audio''
+   and the file name: 'AI Organizes Files and Notes',
+   determine the most appropriate folder from the following list: 'AI_for_Organization', 'Personal', 'Pro', 'Test Files', 'Personal/Book Notes', 'Personal/Daily', 'Personal/Design', 'Personal/Finance', 'Personal/Hobbys', 'Personal/Images', 'Personal/Mini projects', 'Personal/Youtube video ideas', 'Personal/thoughts', 'Pro/Administrative', 'Pro/Goals', 'Pro/fo2k', 'Personal/Book Notes/Antifragility', 'Personal/Book Notes/Ordinary Men', 'Personal/Hobbys/Architecture', 'Personal/Hobbys/Motorcycle', 'Personal/Hobbys/Photography', 'Personal/Design/Inspiration', 'Personal/Mini projects/Ideas', 'Pro/Goals/Daily', 'Pro/Goals/Weekly', 'Pro/fo2k/Blog Ideas', 'Pro/fo2k/Emails', 'Pro/fo2k/Feedback', 'Pro/fo2k/Landing Page', 'Pro/fo2k/Video Scripts', 'Personal/Hobbys/Photography/Fuji Film Simulations'.
+  Based on the main topic and purpose of the content, return only the name of the most relevant folder from the list. 
+  If none of the existing folders are suitable, respond with 'null'. Your response must contain only the folder name."
+providers:
+  - id: openai:gpt-4o
+    label: openai-gpt-4o
+    config:
+      temperature: 0
+      max_tokens: 1024
+      top_p: 1
+      frequency_penalty: 0
+      presence_penalty: 0
+
+  # - id: ollama:embeddings:llama3:8b-text-q8_0
+  #   label: ollama-llama3-8b-text-lowtemp
+  #   config:
+  #     temperature: 0
+
+
+  # - id: ollama:embeddings:llama3:8b-instruct-q8_0
+  #   label: ollama-llama3-8b-instruct-lowtemp
+  #   config:
+  #     temperature: 0
+
+
+  # - id: ollama:embeddings:mistral:instruct
+  #   label: ollama-mistral-instruct-lowtemp
+  #   config:
+  #     temperature: 0
+
+  # - id: ollama:embeddings:llama3-gradient:latest
+  #   label: ollama-llama3-gradient-lowtemp
+  #   config:
+  #     temperature: 0
+
+  # - id: ollama:embeddings:mixtral:8x7b-instruct-v0.1-q2_K
+  #   label: ollama-mixtral-8x7b-instruct-lowtemp
+  #   config:
+  #     temperature: 0
+
+  # - id: ollama:embeddings:llama3:instruct
+  #   label: ollama-llama3-instruct-lowtemp
+  #   config:
+  #     temperature: 0
+
+  # - id: ollama:embeddings:llama3:latest
+  #   label: ollama-llama3-latest-lowtemp
+  #   config:
+  #     temperature: 0
+
+  # - id: ollama:embeddings:llama3-chatqa:latest
+  #   label: ollama-llama3-chatqa-lowtemp
+  #   config:
+  #     temperature: 0
+
+ 
+
+
+
+
+
+  - id: ollama:embeddings:dolphin-mistral:latest
+    label: ollama-dolphin-mistral-latest-lowtemp
+    config:
+      temperature: 0
+
+  - id: ollama:embeddings:mistral:latest
+    label: ollama-mistral-latest-lowtemp
+    config:
+      temperature: 0
+
+
+
+tests:
+  - vars:
+      content: " fo2k video 
+
+- I have a camera where I can set some settings to mimic real film on a digital camera. They're called film simulations. If you have a fujifilm camera you'll know about them. 
+- So to find them there's this website with hundreds of them, where you can see a few pics, and the settings to use. 
+- Once in a while I'll just scroll through the website and choose a few.
+- And this is how I do it using Obsidian and File Organizer 2000
+- When I find one that looks interesting I just tap on it. Check a few images. And if it looks good. I just scroll down to the settings. 
+- And these are great. They're exactly the settings I need. But there's a big problem with them.
+- They're in a completely different order than the settings on my camera, for whatever reason. 
+- But anyways. I just capture a screenshot, and send it to obsidian. 
+- Then do this for two more. 
+
+
+
+
+
+How I use Obsidian + fo2k to analyze images and organize information"
+
+      documentTitle: "video.md"
+
+    assert:
+      - type: "contains"
+        value: "Personal/Hobbys/Photography/Fuji Film Simulations"
+
+
+
+  - vars:
+      content: |
+        **Blog Article Idea: Using AI for Organization**
+
+        - **Argument 1:** AI organizes your files for you.
+          AI takes the hassle away from organizing. 
+        - **Argument 2:** AI transcribes your audio notes.
+        - **Argument 3:** AI formats your notes the way you want them.
+
+        #blog #ideas #audio
+      documentTitle: "AI Organizes Files and Notes"
+    assert:
+      - type: "contains"
+        value: "Pro/fo2k/Blog Ideas"
+
+  - vars:
+      content: "## Summary\n\nThese passages discuss the importance of developing a personal 'Workview' and 'Lifeview' to guide one's life decisions. A Workview involves understanding what work means to you, its purpose, and why you do it. A Lifeview encompasses your beliefs about the world, what gives life meaning, and how your life relates to the broader community. By crafting these views, you create a 'compass' for making life choices that are true to yourself rather than influenced by others. The passages also share an example of Parker Palmer, who realized he was living by the ideals of others and chose to redesign his life to align with his own values.\n\n---\n\n## Text\n\n### Building Your Compass\n\nYou need two things to build your compass—a Workview and a Lifeview. To start out, we need to discover what work means to you. What is work for? Why do you do it? What makes good work good? If you discover and are able to articulate your philosophy of work (what it’s for and why you do it), you will be less likely to let others design your life for you. Developing your own Workview is one component of the compass you are building; a Lifeview is second.\n\nNow, Lifeview may sound a bit lofty, but it’s really not—everyone has a Lifeview. You may not have articulated it before, but if you are alive, you have a Lifeview. A Lifeview is simply your ideas about the world and how it works. What gives life meaning? What makes your life worthwhile or valuable? How does your life relate to others in your family, your community, and the world? What do money, fame, and personal accomplishment have to do with a satisfying life? How important are experience, growth, and fulfillment in your life?\n\nOnce you’ve written your Workview and your Lifeview, and completed the simple exercise[…]\n\n### ...\n\nThe point is, you don’t have to have it all figured out for the rest of your life; you just have to create the compass for what life is about for you right now. Parker Palmer, a renowned educational reformer and author of *Let Your Life Speak*, says that at one point he suddenly realized he was doing a noble job of living someone else’s life. Parker was emulating his great heroes—Martin Luther King, Jr., Gandhi—both great social justice leaders of the 1950s and ’60s. Because he valued their sentiments and goals, he set his path in the world by their compass, not his own, and worked hard to change the educational system from within. He earned a Ph.D. at UC Berkeley and was on track to reach his goal of becoming a respected university president. That was all well and good, but Parker hated it. He came to the realization that he could be inspired by people like Martin Luther King and Gandhi, but that didn’t mean he had to walk their same path. He ended up redesigning his life as a thought leader and writer—still working for the same goals[…]\n\n### ...\n\nthe same things in life—a healthy and long life, work we enjoy and that matters, loving and meaningful relationships, and a hell of a lot of fun along the way—but how we think we’ll get them is very different.\n\n### Excerpts From\n\n*Designing Your Life*\n\nBill Burnett\n\nThis material may be protected by copyright.\nuse-case\nuse-case\nuse-case\nuse-case\nuse-case"
+      documentTitle: "Untitled"
+    assert:
+      - type: "contains"
+        value: "Personal/Book Notes"
+
+  - vars:
+      content: |
+        | Setting                  | Value                                                      |
+        | ------------------------ | ---------------------------------------------------------- |
+        | Film Simulation          | Classic Chrome                                             |
+        | Grain Effect             | Weak, Small                                                |
+        | Color Chrome Effect      | Strong                                                     |
+        | Color Chrome Effect Blue | Strong                                                     |
+        | White Balance            | Fluorescent 3 (“Cool White Fluorescent”), +4 Red & -6 Blue |
+        | Dynamic Range            | DR400                                                      |
+        | Highlight                | 0                                                          |
+        | Shadow                   | -2                                                         |
+        | Color                    | +4                                                         |
+        | Sharpness                | 0                                                          |
+        | Noise Reduction          | -4                                                         |
+        | Clarity                  | -3                                                         |
+        | ISO                      | Auto, up to ISO 6400                                       |
+        | Exposure Compensation    | 0 to -2/3 (typically)                                      |
+      documentTitle: "Retro Gold Low Contrast Settings"
+    assert:
+      - type: "contains"
+        value: "Personal/Hobbys/Photography/Fuji Film Simulations"
+
+  - vars:
+      content: |
+        ---
+        tags: "#expenses"
+        ---
+        | Item                                 |                                             Cost (USD) |
+        | ------------------------------------ | -----------------------------------------------------: |
+        | Camera filter                        |                                                     50 |
+        | Camera hood                          |                                                     40 |
+        | Camera filter                        |                                                     65 |
+        | Camera strap                         |                                                     50 |
+        | Wifi on Gulf Air plane               |                                                     15 |
+        | Beachub access for 15 days + 1 month |                                                    200 |
+        | Outpost Bali                         |                                                  15.35 |
+        | Outpost Bali                         |                                                  89.09 |
+        | Outpost monitor for 1 day            |                                                     15 |
+        | Outpost 50 hours                     |       83.64 *(Assumed conversion: 1 EUR = 1.0468 USD)* |
+        | Internet in Bali with Telekomsel     |                                      120 *(12 months)* |
+        | Internet Bali Telekomsel 62 GB       | 12.48 *(201,000 IDR to USD at assumed rate: 0.000062)* |
+        | Screen cleaner                       |         8.66 *(39 MYR to USD at assumed rate:  0.222)* |
+        | iPhone care                          |                            104.40 *(8.70 x 12 months)* |
+        | Icloud                               |                                                    120 |
+        | Mac care                             |                                                     99 |
+        | Outpost cowork 25 hours              |                                                   58.8 |
+        | Paris hotel                          |                                                    340 |
+        | Paris TGV                            |                       195.88 *(178 EUR to USD at 1.1)* |
+        | Paris food expenses                  |                         88.40 *(80 EUR to USD at 1.1)* |
+        | chatGPT subscription                 |                                     180 *(9 x 20 USD)* |
+        | CoPilot subscription                 |                                                    100 |
+        | Xiaomi Fan                           |                                                     70 |
+        | Shopify subscription                 |                                                 107.00 |
+        | Phone unlocks                        |                                                     50 |
+        | Webflow                              |                                                 636.10 |
+        | Bali-Lux flights Summer 2023         |                                                1554.54 |
+        | Namecheap domains                    |                                                     15 |
+        | Health Insurance                     |                                 504 *(42 x 12 months)* |
+        | Tribal                               |                                                     20 |
+        | Camera accessory fuji bali           |                                                  47.08 |
+        | Bali- Madrid                         |                                                    620 |
+        | Lux- Bali                            |                 740.86 *(708.61 EUR to USD at 1.0468)* |
+        | Madrid Airbnb                        |                                                 123.66 |
+        | Madrid hotel                         |                 109.28 *(104.76 EUR to USD at 1.0468)* |
+        | K3 Keychron Keyboard                 |                                                     91 |
+        | Skype                                |                                     97 *(47 + 45 + 5)* |
+
+        | **Total** | **8111.04** |
+      documentTitle: "Expenses for Travel and Work"
+    assert:
+      - type: "contains"
+        value: "Personal/Finance"
+
+  - vars:
+      content: |
+        ---
+        tags: "#maintenance"
+        ---
+        dunlop 605
+
+        | kPa, psi | kPa, psi |
+        |----------|----------|
+        | 150, 22  | 150, 22  |
+        | 150, 22  | 150, 22  |
+      documentTitle: "Dunlop 605 Pressure Data"
+    assert:
+      - type: "contains"
+        value: "Personal/Hobbys/Motorcycle"
+
+  - vars:
+      content: |
+        ---
+        tags:
+          - "#book"
+          - "#ideas"
+          - "#blog"
+        ---
+        **BOOK III A Nonpredictive View of the World**
+
+        **Chapter 9 – Fat Tony and the Fragilistas**
+
+        **The worst thing one can do to feel one knows things a bit deeper is to try to go into them a bit deeper.**
+
+        - The sea gets deeper as you go further into it, according to a Venetian proverb.
+        - Curiosity is antifragile, like an addiction, and is magnified by attempts to satisfy it. For example, books.
+        - **A system built on illusions of understanding probability is bound to collapse.**
+
+        **Excess wealth, if you don’t need it, is a heavy burden.**
+
+        - Wealth is nonlinear. Beyond some level it forces people into endless complications of their lives, creating worries..
+
+        **There are two schools of thought.**
+
+        - To Nero one should first warn people that they are suckers
+        - Tony was against the very notion of warning. “You will be ridiculed,” he said; “words are for sissies.”
+
+        _The need to focus on actions and avoid words:_
+
+        _the health-eroding dependence on external recognition._
+
+        **A man is honorable in proportion to the personal risks he takes for his opinion.**
+
+        - You can’t predict in general, but you can predict that those who rely on predictions are taking more risks, will have some trouble, perhaps even go bust.
+        - Someone who predicts will be fragile to prediction errors.
+        - Numerical prediction leads people to take more risks.
+
+        **Chapter 10 – Seneca’s Upside and Downside**
+
+        **Seneca is a prominent member of the** [**philosophical school of Stoicism**](https://www.reading.guru/stoicism-a-philosophy-for-living/)**, which advanced a certain indifference to fate.**
+
+        **Because Seneca was into practical decision making, he has been described—by academics—as not theoretical or philosophical enough.**
+
+        **Wisdom in decision making is vastly more important—not just practically, but philosophically—than knowledge.**
+
+        - To become a successful philosopher king, it is much better to start as a king than as a philosopher.
+        - Key phrase reverberating in Seneca’s oeuvre is nihil perditi, “I lost nothing,” after an adverse event.
+
+        _“He is in debt, whether he borrowed from another person or from fortune.”_
+
+        _Seneca_
+
+        **Stoicism, seen this way, becomes pure robustness—for the attainment of a state of immunity from one’s external circumstances, good or bad, and an absence of fragility to decisions made by fate, is robustness. Seneca’s version of that Stoicism is antifragility from fate.**
+
+        _Success brings an asymmetry:_
+
+        _You now have a lot more to lose than to gain._
+
+        _You are hence fragile._
+
+        - Possessions make us worry about downside, thus acting as a punishment as we depend on them.
+        - Dependence on circumstances—rather, the emotions that arise from circumstances—induces a form of slavery.
+        - Seneca’s practical method to counter such fragility was to go through **mental exercises to write off possessions, so when losses occurred he would not feel the sting**—a way to wrest one’s freedom from circumstances.
+        - Stoicism is about the domestication, not necessarily the elimination, of emotions.
+
+        **An intelligent life is all about such emotional positioning to eliminate the sting of harm, which as we saw is done by mentally writing off belongings so one does not feel any pain from losses.**
+
+        **My idea of the modern Stoic sage is someone who:**
+
+        - Transforms fear into prudence,
+        - Pain into information,
+        - Mistakes into initiation, and
+        - Desire into undertaking.
+
+        **Seneca also provides us a catalogue of social deeds: invest in good actions. Things can be taken away from us—not good deeds and acts of virtue.**
+
+        - Seneca was all deeds, and we cannot ignore the fact that he kept the wealth.
+        - It is central that he showed **his preference of wealth without harm** and for wealth instead of poverty.
+
+        _“The bookkeeping of benefits is simple: it is all expenditure; if any one returns it, that is clear gain (my emphasis); if he does not return it, it is not lost, I gave it for the sake of giving.”_
+
+        **If I have “nothing to lose” then it is all gain and I am antifragile.**
+
+        - Fragility implies more to lose than to gain, equals more downside than upside, equals (unfavorable) asymmetry.
+        - Antifragility implies more to gain than to lose, equals more upside than downside, equals (favorable) asymmetry.
+      documentTitle: "Antifragility Stoic Principles"
+    assert:
+      - type: "contains"
+        value: "Personal/Book Notes/Antifragility"
+
+  - vars:
+      content: |
+        ---
+        aliases:
+        tags: []
+        ---
+        Possibilities of new hardware capable of running powerful local LLMs
+
+        - privacy
+        - speed
+        - autonomy
+      documentTitle: "Blog idea on the go"
+    assert:
+      - type: "contains"
+        value: "Pro/fo2k/Blog Ideas"
+
+  - vars:
+      content: |
+        - [x] Add Ribbon
+        - [x] UI Updates
+        - [x] Sending Emails
+        - [x] Come up with video ideas
+        - [ ] Record video
+      documentTitle: "09.05.24"
+    assert:
+      - type: "contains"
+        value: "Personal/Youtube video ideas"
