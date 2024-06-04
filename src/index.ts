@@ -59,7 +59,12 @@ class FileOrganizerSettings {
   processedTag = false;
   // new formatting
   templatePaths = "_FileOrganizer2000/Templates";
+  // experimental features settings
   transcribeEmbeddedAudio = false;
+  enableAliasGeneration = false;
+  enableAtomicNotes = false;
+  enableSimilarFiles = false;
+
   enableDocumentClassification = false;
   renameUntitledOnly = true;
 

@@ -15,7 +15,6 @@ export class CustomizationTab {
       cls: "setting-tab-content",
     });
 
-
     new Setting(customizationTabContent)
       .setName("FileOrganizer logs")
       .setDesc(
@@ -103,8 +102,6 @@ export class CustomizationTab {
           })
       );
 
-
-
     new Setting(customizationTabContent)
       .setName("Processed File Tag")
       .setDesc("Specify the tag to be added to processed files.")
@@ -120,6 +117,42 @@ export class CustomizationTab {
     new Setting(customizationTabContent)
       .setName("Experimental features")
       .setHeading();
+
+    new Setting(customizationTabContent)
+      .setName("Enable Alias Generation")
+      .setDesc("Enable the generation of aliases in the assistant sidebar.")
+      .addToggle((toggle) =>
+        toggle
+          .setValue(this.plugin.settings.enableAliasGeneration)
+          .onChange(async (value) => {
+            this.plugin.settings.enableAliasGeneration = value;
+            await this.plugin.saveSettings();
+          })
+      );
+    new Setting(customizationTabContent)
+      .setName("Enable Similar Files")
+      .setDesc("Enable the display of similar files in the assistant sidebar.")
+      .addToggle((toggle) =>
+        toggle
+          .setValue(this.plugin.settings.enableSimilarFiles)
+          .onChange(async (value) => {
+            this.plugin.settings.enableSimilarFiles = value;
+            await this.plugin.saveSettings();
+          })
+      );
+    new Setting(customizationTabContent)
+      .setName("Enable Atomic Notes")
+      .setDesc(
+        "Enable the generation of atomic notes in the assistant sidebar."
+      )
+      .addToggle((toggle) =>
+        toggle
+          .setValue(this.plugin.settings.enableAtomicNotes)
+          .onChange(async (value) => {
+            this.plugin.settings.enableAtomicNotes = value;
+            await this.plugin.saveSettings();
+          })
+      );
 
     new Setting(customizationTabContent)
       .setName("Transcribe Embedded Audio")

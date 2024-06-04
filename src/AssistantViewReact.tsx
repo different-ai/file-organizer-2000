@@ -518,12 +518,18 @@ export const AssistantView: React.FC<AssistantViewProps> = ({ plugin }) => {
         file={activeFile}
         content={noteContent}
       />
-      <SectionHeader text="Suggested aliases" icon="💡" />
-      <AliasSuggestionBox
-        plugin={plugin}
-        file={activeFile}
-        content={noteContent}
-      />
+      {plugin.settings.enableAliasGeneration && (
+        <>
+          <SectionHeader text="Suggested aliases" icon="💡" />
+
+          <AliasSuggestionBox
+            plugin={plugin}
+            file={activeFile}
+            content={noteContent}
+          />
+        </>
+      )}
+
       <SectionHeader text="Suggested folder" icon="📁" />
       <SimilarFolderBox
         plugin={plugin}
@@ -531,11 +537,18 @@ export const AssistantView: React.FC<AssistantViewProps> = ({ plugin }) => {
         content={noteContent}
       />
 
-      <SectionHeader text="Similar files" icon="📄" />
-      <SimilarFilesBox plugin={plugin} file={activeFile} />
-
-      <SectionHeader text="Atomic notes" icon="✂️" />
-      <DocumentChunks plugin={plugin} activeFile={activeFile} />
+      {plugin.settings.enableSimilarFiles && (
+        <>
+          <SectionHeader text="Similar files" icon="📄" />
+          <SimilarFilesBox plugin={plugin} file={activeFile} />
+        </>
+      )}
+      {plugin.settings.enableAtomicNotes && (
+        <>
+          <SectionHeader text="Atomic notes" icon="✂️" />
+          <DocumentChunks plugin={plugin} activeFile={activeFile} />
+        </>
+      )}
     </div>
   );
 };
