@@ -518,12 +518,17 @@ export const AssistantView: React.FC<AssistantViewProps> = ({ plugin }) => {
         file={activeFile}
         content={noteContent}
       />
-      <SectionHeader text="Suggested aliases" icon="💡" />
-      <AliasSuggestionBox
-        plugin={plugin}
-        file={activeFile}
-        content={noteContent}
-      />
+      {plugin.settings.enableAliasGeneration && (
+        <SectionHeader text="Suggested aliases" icon="💡" />
+      )}
+      {plugin.settings.enableAliasGeneration && (
+        <AliasSuggestionBox
+          plugin={plugin}
+          file={activeFile}
+          content={noteContent}
+        />
+      )}
+
       <SectionHeader text="Suggested folder" icon="📁" />
       <SimilarFolderBox
         plugin={plugin}
