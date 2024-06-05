@@ -54,8 +54,8 @@ class FileOrganizerSettings {
   usePro = true;
   useCustomServer = false;
   useSimilarTagsInFrontmatter = false;
-  enableEarlyAccess = false;
-  earlyAccessCode = "";
+  // enableEarlyAccess = false;
+  // earlyAccessCode = "";
   processedTag = false;
   // new formatting
   templatePaths = "_FileOrganizer2000/Templates";

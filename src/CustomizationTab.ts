@@ -156,9 +156,7 @@ export class CustomizationTab {
 
     new Setting(customizationTabContent)
       .setName("Transcribe Embedded Audio")
-      .setDesc(
-        "This features automatically add transcriptions inside your files where you record a fresh audio recording or drop a audio file."
-      )
+      .setDesc("Enable automatic transcription of embedded audios.")
       .addToggle((toggle) =>
         toggle
           .setValue(this.plugin.settings.transcribeEmbeddedAudio)
@@ -166,14 +164,6 @@ export class CustomizationTab {
             if (!value) {
               this.plugin.settings.transcribeEmbeddedAudio = false;
               await this.plugin.saveSettings();
-              return;
-            }
-            if (!this.plugin.settings.enableEarlyAccess) {
-              new Notice(
-                "You need to be a supporter to enable this feature.",
-                6000
-              );
-              toggle.setValue(false);
               return;
             }
             this.plugin.settings.transcribeEmbeddedAudio = true;
@@ -186,8 +176,10 @@ export class CustomizationTab {
       .setHeading();
 
     new Setting(customizationTabContent)
-      .setName("Enable Document Classification")
-      .setDesc("Automatically classify and format documents in the inbox.")
+      .setName("Enable Document Auto-Formatting")
+      .setDesc(
+        "Automatically format documents processed through the inbox when content matches a category of your AI templates."
+      )
       .addToggle((toggle) =>
         toggle
           .setValue(this.plugin.settings.enableDocumentClassification)
@@ -197,14 +189,7 @@ export class CustomizationTab {
               await this.plugin.saveSettings();
               return;
             }
-            if (!this.plugin.settings.enableEarlyAccess) {
-              new Notice(
-                "You need to be a supporter to enable this feature.",
-                6000
-              );
-              toggle.setValue(false);
-              return;
-            }
+
             this.plugin.settings.enableDocumentClassification = value;
             await this.plugin.saveSettings();
           })
