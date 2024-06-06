@@ -40,7 +40,21 @@ export default async function Component() {
   }
 
   return (
-    <div className="flex min-h-screen bg-black py-12 px-4 sm:px-6 lg:px-8 flex-col-reverse sm:flex-row-reverse">
+    <div className="flex min-h-screen bg-black py-12 px-4 sm:px-6 lg:px-8 flex-col">
+      <div className="flex-1 mb-8 flex flex-col items-center justify-center pt-16 px-56">
+        <div
+          className="relative w-full  rounded-lg overflow-hidden"
+          style={{ paddingTop: "56.25%" }}
+        >
+          <iframe
+            className="absolute top-0 left-0 w-full h-full"
+            src="https://www.youtube.com/embed/XZTpbECqZps?controls=0?modestbranding=1?showinfo=0"
+            frameBorder="0"
+            allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture"
+            allowFullScreen
+          ></iframe>
+        </div>
+      </div>
       <div className="flex-1 space-y-8 flex flex-col justify-center">
         <div className="text-center flex flex-col justify-center items-center">
           {process.env.ENABLE_USER_MANAGEMENT == "true" ? (
@@ -54,30 +68,16 @@ export default async function Component() {
         </div>
         <div className="text-center">
           <ArrowDownIcon className="mx-auto h-12 w-12 text-gray-400" />
-          <p className="text-gray-300 mt-6 text-2xl font-extrabold mt-2 mb-4 ">
+          <p className="text-gray-300 mt-6 text-2xl font-extrabold mt-2 mb-4">
             Get the plugin
           </p>
 
           <a href="obsidian://show-plugin?id=fileorganizer2000">
-            <Button className=" max-w-xs border border-violet-500 text-violet-500 ">
+            <Button className="max-w-xs border border-violet-500 text-violet-500">
               Download
             </Button>
           </a>
           <p className="mt-3 text-sm text-gray-600">Requires Obsidian app.</p>
-        </div>
-      </div>
-      <div className="flex-1 ml-8 flex flex-col items-center justify-center">
-        <div
-          className="relative w-full rounded-lg overflow-hidden"
-          style={{ paddingTop: "56.25%" }}
-        >
-          <iframe
-            className="absolute top-0 left-0 w-full h-full"
-            src="https://www.youtube.com/embed/XZTpbECqZps?controls=0?modestbranding=1?showinfo=0"
-            frameBorder="0"
-            allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture"
-            allowFullScreen
-          ></iframe>
         </div>
       </div>
       {process.env.ENABLE_USER_MANAGEMENT == "true" ? (
