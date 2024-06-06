@@ -53,7 +53,7 @@ export default function Component() {
           Special offer! Save $50 on the yearly plan. Only valid in June.
         </div>
         <div className="flex justify-center space-x-4 md:space-x-8">
-          <Card className="w-[350px] p-6 bg-white rounded-lg shadow-md text-black md:w-[400px] relative border border-gray-300">
+          <Card className="w-[350px] p-6 bg-white rounded-lg shadow-md text-black md:w-[400px] relative border border-gray-500">
             <div className="space-y-4">
               <div className="text-sm uppercase tracking-wide text-gray-600 text-center">
                 Cloud hosted
@@ -100,7 +100,7 @@ export default function Component() {
               </div>
             </div>
           </Card>
-          <Card className="w-[350px] p-6 bg-white rounded-lg shadow-md text-black md:w-[400px] relative border border-gray-900">
+          <Card className="w-[350px] p-6 bg-white rounded-lg shadow-md text-black md:w-[400px] relative border border-gray-300">
             <div className="space-y-4">
               <div className="text-sm uppercase tracking-wide text-gray-600 text-center">
                 Cloud hosted
