@@ -49,7 +49,7 @@ const APIKEYForm = () => {
   const isPaidUser = user?.publicMetadata.stripe?.status === "complete";
 
   return (
-    <div className="mt-8">
+    <div className="mt-8 ">
       {isPaidUser ? (
         <>
           <Card className="w-[350px]">
@@ -86,10 +86,10 @@ const APIKEYForm = () => {
         </>
       ) : (
         <div>
-          <p className="text-gray-500 dark:text-gray-400">
-            You need to be a pro user to create a File Organizer API key.
-          </p>
-          <div className="mt-4">
+          <h1 className="text-gray-300 text-5xl font-extrabold dark:text-gray-500">
+            Become a Pro user
+          </h1>
+          <div className="mt-6">
             <CheckoutButton />
           </div>
         </div>
