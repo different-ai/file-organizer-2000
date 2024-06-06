@@ -77,9 +77,7 @@ export default async function Component() {
           </p>
 
           <a href="obsidian://show-plugin?id=fileorganizer2000">
-            <Button className="max-w-xs border border-violet-500 text-violet-500">
-              Download
-            </Button>
+            <Button className="max-w-xs">Download</Button>
           </a>
           <p className="mt-3 text-sm text-gray-600">Requires Obsidian app.</p>
         </div>
