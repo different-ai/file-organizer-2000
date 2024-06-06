@@ -78,7 +78,6 @@ export default async function Component() {
           </div>
         </div>
       </div>
-
       {process.env.ENABLE_USER_MANAGEMENT == "true" ? (
         <UserManagement />
       ) : (
