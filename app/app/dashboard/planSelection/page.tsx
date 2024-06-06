@@ -8,18 +8,20 @@
 import { useState } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import Logo from "@/components/ui/logo";
 
 export default function Component() {
   const [selectedPlan, setSelectedPlan] = useState("14.99");
   return (
     <main className="min-h-screen bg-black text-white">
       <section className="container mx-auto px-4 py-16">
-        <h1 className="text-4xl font-bold mb-8 text-center">
+        <Logo />
+        <h1 className="text-4xl font-bold mt-4 mb-8 text-center">
           Choose Your Plan
         </h1>
-        <div className="bg-violet-900 p-2 rounded-md text-violet-50 text-center mb-8 max-w-md mx-auto">
+        <div className="bg-emerald-900 p-2 rounded-md text-emerald-50 text-center mb-8 max-w-md mx-auto">
           <SparkleIcon className="h-5 w-5 inline-block mr-2" />
-          Special offer! Save $50 on the yearly plan. Only valid for June.
+          Special offer! Save $50 on the yearly plan. Only valid in June.
         </div>
         <div className="flex justify-center space-x-4 md:space-x-8">
           <Card className="w-[350px] p-6 bg-black rounded-lg shadow-md text-white md:w-[400px] relative border border-gray-500 ">
