@@ -89,7 +89,7 @@ export const checkApiUsage = async (userId: string) => {
     console.log("User Usage Results for User ID:", userId, userUsage);
     if (userUsage.length === 0) {
       console.log("No usage record found for User ID:", userId);
-      await createOrUpdateUserUsage(userId, 10000, "monthly");
+      await createOrUpdateUserUsage(userId, 2000, "monthly");
     }
     if (userUsage[0].apiUsage >= userUsage[0].maxUsage) {
       console.log("User has exceeded their API usage limit");
