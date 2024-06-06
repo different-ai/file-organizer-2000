@@ -4,7 +4,7 @@ export default function Logo() {
   return (
     <div className="flex-1 flex justify-center">
       <div
-        className="logo rounded-full opacity-100"
+        className="logo rounded-full opacity-100 px-3 py-1"
         style={{ backgroundColor: "rgba(158, 84, 255, 0.15)" }}
       >
         <div className="filter-hue-rotate-0 rounded-full opacity-100">
