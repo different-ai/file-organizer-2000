@@ -92,7 +92,7 @@ export default function Component() {
                   }}
                   className={`flex items-center justify-center gap-2  text-white px-6 py-3 rounded-md font-semibold border border-white `}
                 >
-                  <span>Get Monthly Plan</span>
+                  <span>Let's go!</span>
                 </Button>
               </div>
             </div>
