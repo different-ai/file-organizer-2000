@@ -15,8 +15,7 @@ async function UserManagement() {
 
   return (
     <div className="absolute top-4 right-4 flex items-center gap-4">
-      {/* Join our discord */}
-      {/* https://discord.gg/udQnCRFyus */}
+      <CheckoutButton />
       <a href="https://discord.gg/udQnCRFyus" target="_blank">
         <Button className="border border-blue-500 text-blue-500">
           Join our discord
