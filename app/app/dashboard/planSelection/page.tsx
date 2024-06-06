@@ -42,9 +42,12 @@ export default function Component() {
     <main className="min-h-screen bg-black text-white">
       <section className="container mx-auto px-4 py-16">
         <Logo />
-        <h1 className="text-4xl font-bold mt-4 mb-8 text-center">
+        <h1 className="text-4xl font-bold mt-4 mb-4 text-center">
           Choose Your Plan
         </h1>
+        <p className="text-xl text-gray-300 font-bold mt-2 mb-8 text-center">
+          Includes 3 day free trial
+        </p>
         <div className="bg-emerald-900 p-2 rounded-md text-emerald-50 text-center mb-8 max-w-md mx-auto">
           <SparkleIcon className="h-5 w-5 inline-block mr-2" />
           Special offer! Save $50 on the yearly plan. Only valid in June.
