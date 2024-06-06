@@ -1,17 +1,43 @@
-/**
- * v0 by Vercel.
- * @see https://v0.dev/t/3ICQmCzQBYx
- * Documentation: https://v0.dev/docs#integrating-generated-code-into-your-nextjs-app
- */
 "use client";
 
 import { useState } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import Logo from "@/components/ui/logo";
-
+import { loadStripe } from "@stripe/stripe-js";
+const stripePromise = loadStripe(
+  process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY as string
+);
 export default function Component() {
-  const [selectedPlan, setSelectedPlan] = useState("14.99");
+  const [selectedPlan, setSelectedPlan] = useState(null);
+
+  const handlePlanSelection = async (plan) => {
+    setSelectedPlan(plan);
+    handleCheckout(plan);
+  };
+
+  const handleCheckout = async (plan) => {
+    console.log(plan);
+    let priceId;
+    if (plan === "yearly") {
+      priceId = process.env.NEXT_PUBLIC_STRIPE_YEARLY_PRICE_ID;
+    } else {
+      priceId = process.env.NEXT_PUBLIC_STRIPE_MONTHLY_PRICE_ID;
+    }
+    const response = await fetch("/api/create-checkout-session", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        priceId: priceId,
+      }),
+    });
+    const { session } = await response.json();
+
+    const stripe = await stripePromise;
+    await stripe?.redirectToCheckout({ sessionId: session.id });
+  };
   return (
     <main className="min-h-screen bg-black text-white">
       <section className="container mx-auto px-4 py-16">
@@ -25,7 +51,6 @@ export default function Component() {
         </div>
         <div className="flex justify-center space-x-4 md:space-x-8">
           <Card className="w-[350px] p-6 bg-black rounded-lg shadow-md text-white md:w-[400px] relative border border-gray-500 ">
-            <div className="absolute top-0 left-0 w-full h-full rounded-lg bg-gradient-to-br from-emerald-500 to-emerald-900 opacity-10 blur-sm" />
             <div className="space-y-4">
               <div className="text-sm uppercase tracking-wide text-gray-400 text-center">
                 Cloud hosted
@@ -62,7 +87,9 @@ export default function Component() {
               </ul>
               <div className="flex justify-center">
                 <Button
-                  onClick={() => setSelectedPlan("monthly")}
+                  onClick={() => {
+                    handlePlanSelection("monthly");
+                  }}
                   className={`flex items-center justify-center gap-2  text-white px-6 py-3 rounded-md font-semibold border border-white `}
                 >
                   <span>Get Monthly Plan</span>
@@ -71,7 +98,6 @@ export default function Component() {
             </div>
           </Card>
           <Card className="w-[350px] p-6 bg-black rounded-lg shadow-md text-white md:w-[400px] relative  border border-white">
-            <div className="absolute top-0 left-0 w-full h-full rounded-lg bg-gradient-to-br from-emerald-500 to-emerald-900 opacity-10 blur-sm" />
             <div className="space-y-4">
               <div className="text-sm uppercase tracking-wide text-gray-400 text-center">
                 Cloud hosted
@@ -113,7 +139,9 @@ export default function Component() {
               </ul>
               <div className="flex justify-center">
                 <Button
-                  onClick={() => setSelectedPlan("yearly")}
+                  onClick={() => {
+                    handlePlanSelection("yearly");
+                  }}
                   className={`flex items-center justify-center gap-2 bg-gray-900 text-white px-6 py-3 rounded-md font-semibold border border-white transition-colors hover:bg-gray-800 `}
                 >
                   <span>I'm in!</span>

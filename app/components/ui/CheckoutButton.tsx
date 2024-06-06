@@ -16,20 +16,6 @@ export default function CheckoutButton() {
   const handleCheckout = async () => {
     setLoading(true);
 
-    // const response = await fetch("/api/create-checkout-session", {
-    //   method: "POST",
-    //   headers: {
-    //     "Content-Type": "application/json",
-    //   },
-    //   body: JSON.stringify({
-    //     priceId: process.env.NEXT_PUBLIC_STRIPE_MONTHLY_PRICE_ID,
-    //   }),
-    // });
-
-    // const { session } = await response.json();
-
-    // const stripe = await stripePromise;
-    // await stripe?.redirectToCheckout({ sessionId: session.id });
     router.push("/dashboard/planSelection");
 
     setLoading(false);

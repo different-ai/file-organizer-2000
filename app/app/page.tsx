@@ -40,9 +40,9 @@ export default async function Component() {
 
   return (
     <div className="flex min-h-screen bg-black py-7 px-4 sm:px-6 lg:px-8 flex-col">
-      <Logo />
+      {/* <Logo /> */}
 
-      <div className="flex-1 mb-8 flex flex-col items-center justify-center pt-16 px-56">
+      <div className="flex-1 mb-8 flex flex-col items-center justify-center pt-16 lg:px-56">
         <div
           className="relative w-full  rounded-lg overflow-hidden"
           style={{ paddingTop: "56.25%" }}
