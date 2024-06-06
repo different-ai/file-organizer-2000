@@ -52,14 +52,14 @@ const APIKEYForm = () => {
     <div className="mt-8 ">
       {isPaidUser ? (
         <>
-          <Card className="w-[350px]">
+          <Card className="w-[350px] bg-black">
             <CardHeader></CardHeader>
             <form action={onCreate} onSubmit={handleSubmit}>
               <CardFooter className="flex justify-between">
                 <Button
                   type="submit"
                   disabled={loading}
-                  className="w-full mt-4"
+                  className="w-full mt-4 border border-violet-500"
                 >
                   {loading ? "Generating Key..." : "Create Key"}{" "}
                 </Button>{" "}
@@ -72,11 +72,15 @@ const APIKEYForm = () => {
           </Card>
           {key && key.length > 0 && (
             <>
-              <Card className="w-[350px] mt-8">
+              <Card className="w-[350px] mt-8 rounded-lg">
                 <CardContent>
                   <div className="grid items-center w-full gap-4">
                     <div className="flex flex-col space-y-1.5">
-                      <Input name="name" value={key} />
+                      <Input
+                        name="name"
+                        value={key}
+                        className="bg-gray-900 text-white"
+                      />
                     </div>
                   </div>
                 </CardContent>
