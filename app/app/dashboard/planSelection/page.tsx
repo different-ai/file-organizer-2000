@@ -82,7 +82,7 @@ export default function Component() {
                 </li>
                 <li className="flex items-center space-x-2">
                   <CheckIcon className="h-5 w-5 text-green-500" />
-                  <span>30 days money-back guarantee</span>
+                  <span>30 day money-back guarantee</span>
                 </li>
               </ul>
               <div className="flex justify-center">
@@ -134,7 +134,7 @@ export default function Component() {
                 </li>
                 <li className="flex items-center space-x-2">
                   <CheckIcon className="h-5 w-5 text-green-500" />
-                  <span>30 days money-back guarantee</span>
+                  <span>30 day money-back guarantee</span>
                 </li>
               </ul>
               <div className="flex justify-center">
