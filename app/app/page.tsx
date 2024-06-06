@@ -37,47 +37,45 @@ export default async function Component() {
   }
 
   return (
-    <div
-      className="flex min-h-screen
-     py-7 px-4 sm:px-6 lg:px-8 flex-col"
-    >
-      {/* <Logo /> */}
+    <div className="flex min-h-screen py-7 px-4 sm:px-6 lg:px-8 flex-col">
+      <div className="flex-1 mb-8 flex items-center justify-center pt-16 ">
+        <div className="flex w-full">
+          <div className="relative w-1/2 rounded-lg overflow-hidden">
+            <iframe
+              className="absolute top-0 left-0 w-full h-full"
+              width="640"
+              height="360"
+              src="https://www.youtube.com/embed/XZTpbECqZps?controls=0?modestbranding=1?showinfo=0"
+              frameBorder="0"
+              allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture"
+              allowFullScreen
+            ></iframe>
+          </div>
+          <div className="flex-1 space-y-8 flex flex-col justify-center pl-8">
+            <div className="text-center flex flex-col justify-center items-center">
+              {process.env.ENABLE_USER_MANAGEMENT == "true" ? (
+                <UnkeyElements />
+              ) : (
+                <p className="text-gray-500 dark:text-gray-400">
+                  Just paste this URL in the plugin settings in Obsidian and
+                  you're good to go!
+                </p>
+              )}
+            </div>
+            <div className="text-center">
+              <ArrowDownIcon className="mx-auto h-12 w-12 text-gray-400" />
+              <p className="text-gray-800 mt-6 text-2xl font-extrabold mt-2 mb-4">
+                Get the plugin
+              </p>
 
-      <div className="flex-1 mb-8 flex flex-col items-center justify-center pt-16 lg:px-56">
-        <div
-          className="relative w-full  rounded-lg overflow-hidden"
-          style={{ paddingTop: "56.25%" }}
-        >
-          <iframe
-            className="absolute top-0 left-0 w-full h-full"
-            src="https://www.youtube.com/embed/XZTpbECqZps?controls=0?modestbranding=1?showinfo=0"
-            frameBorder="0"
-            allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture"
-            allowFullScreen
-          ></iframe>
-        </div>
-      </div>
-      <div className="flex-1 space-y-8 flex flex-col justify-center">
-        <div className="text-center flex flex-col justify-center items-center">
-          {process.env.ENABLE_USER_MANAGEMENT == "true" ? (
-            <UnkeyElements />
-          ) : (
-            <p className="text-gray-500 dark:text-gray-400">
-              Just paste this URL in the plugin settings in Obsidian and you're
-              good to go!
-            </p>
-          )}
-        </div>
-        <div className="text-center">
-          <ArrowDownIcon className="mx-auto h-12 w-12 text-gray-400" />
-          <p className="text-gray-800  mt-6 text-2xl font-extrabold mt-2 mb-4">
-            Get the plugin
-          </p>
-
-          <a href="obsidian://show-plugin?id=fileorganizer2000">
-            <Button className="max-w-xs">Download</Button>
-          </a>
-          <p className="mt-3 text-sm text-gray-600">Requires Obsidian app.</p>
+              <a href="obsidian://show-plugin?id=fileorganizer2000">
+                <Button className="max-w-xs">Download</Button>
+              </a>
+              <p className="mt-3 text-sm text-gray-600">
+                Requires Obsidian app.
+              </p>
+            </div>
+          </div>
         </div>
       </div>
 
