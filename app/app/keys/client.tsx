@@ -52,14 +52,14 @@ const APIKEYForm = () => {
     <div className="mt-8 ">
       {isPaidUser ? (
         <>
-          <Card className="w-[350px] bg-black">
+          <Card className="w-[350px] ">
             <CardHeader></CardHeader>
             <form action={onCreate} onSubmit={handleSubmit}>
               <CardFooter className="flex justify-between">
                 <Button
                   type="submit"
                   disabled={loading}
-                  className="w-full mt-4 border border-violet-500"
+                  className="w-full mt-4 "
                 >
                   {loading ? "Generating Key..." : "Create Key"}{" "}
                 </Button>{" "}
@@ -76,11 +76,7 @@ const APIKEYForm = () => {
                 <CardContent>
                   <div className="grid items-center w-full gap-4">
                     <div className="flex flex-col space-y-1.5">
-                      <Input
-                        name="name"
-                        value={key}
-                        className="bg-gray-900 text-white"
-                      />
+                      <Input name="name" value={key} />
                     </div>
                   </div>
                 </CardContent>
@@ -90,7 +86,7 @@ const APIKEYForm = () => {
         </>
       ) : (
         <div>
-          <h1 className="text-gray-300 text-5xl font-extrabold dark:text-gray-500">
+          <h1 className="text-gray-800 text-5xl font-extrabold dark:text-gray-500">
             Become a Pro user
           </h1>
           <div className="mt-6">

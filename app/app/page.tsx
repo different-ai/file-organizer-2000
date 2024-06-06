@@ -17,9 +17,7 @@ async function UserManagement() {
     <div className="absolute top-4 right-4 flex items-center gap-4">
       <CheckoutButton />
       <a href="https://discord.gg/udQnCRFyus" target="_blank">
-        <Button className="border border-blue-500 text-blue-500">
-          Join our discord
-        </Button>
+        <Button className="border ">Join our discord</Button>
       </a>
       {isPaidUser && (
         <a href={process.env.NEXT_PUBLIC_STRIPE_CUSTOMER_PORTAL_URL}>
@@ -40,7 +38,7 @@ export default async function Component() {
 
   return (
     <div
-      className="flex min-h-screen bg-black
+      className="flex min-h-screen
      py-7 px-4 sm:px-6 lg:px-8 flex-col"
     >
       {/* <Logo /> */}
@@ -72,7 +70,7 @@ export default async function Component() {
         </div>
         <div className="text-center">
           <ArrowDownIcon className="mx-auto h-12 w-12 text-gray-400" />
-          <p className="text-gray-300 mt-6 text-2xl font-extrabold mt-2 mb-4">
+          <p className="text-gray-800  mt-6 text-2xl font-extrabold mt-2 mb-4">
             Get the plugin
           </p>
 

@@ -25,11 +25,7 @@ export default function CheckoutButton() {
   }
 
   return (
-    <Button
-      onClick={handleCheckout}
-      disabled={loading}
-      className="border border-violet-500 text-violet-500"
-    >
+    <Button onClick={handleCheckout} disabled={loading} className="border ">
       {loading ? "Processing..." : "Start free trial"}
     </Button>
   );
