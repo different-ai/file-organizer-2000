@@ -49,17 +49,17 @@ const APIKEYForm = () => {
   const isPaidUser = user?.publicMetadata.stripe?.status === "complete";
 
   return (
-    <div className="mt-8">
+    <div className="mt-8 ">
       {isPaidUser ? (
         <>
-          <Card className="w-[350px]">
+          <Card className="w-[350px] ">
             <CardHeader></CardHeader>
             <form action={onCreate} onSubmit={handleSubmit}>
               <CardFooter className="flex justify-between">
                 <Button
                   type="submit"
                   disabled={loading}
-                  className="w-full mt-4"
+                  className="w-full mt-4 "
                 >
                   {loading ? "Generating Key..." : "Create Key"}{" "}
                 </Button>{" "}
@@ -72,7 +72,7 @@ const APIKEYForm = () => {
           </Card>
           {key && key.length > 0 && (
             <>
-              <Card className="w-[350px] mt-8">
+              <Card className="w-[350px] mt-8 rounded-lg">
                 <CardContent>
                   <div className="grid items-center w-full gap-4">
                     <div className="flex flex-col space-y-1.5">
@@ -86,10 +86,10 @@ const APIKEYForm = () => {
         </>
       ) : (
         <div>
-          <p className="text-gray-500 dark:text-gray-400">
-            You need to be a pro user to create a File Organizer API key.
-          </p>
-          <div className="mt-4">
+          <h1 className="text-gray-800 text-5xl font-extrabold dark:text-gray-500">
+            Become a Pro user
+          </h1>
+          <div className="mt-6">
             <CheckoutButton />
           </div>
         </div>
