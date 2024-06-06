@@ -45,7 +45,7 @@ export default function Component() {
         <h1 className="text-4xl font-bold mt-4 mb-2 text-center">
           Choose Your Plan
         </h1>
-        <p className="text-lg text-gray-700 font-bold mt-2 mb-8 text-center">
+        <p className="text-lg text-gray-500 font-bold mt-2 mb-8 text-center">
           Includes 3 day free trial. Cancel anytime.
         </p>
         <div className="bg-emerald-100 p-2 rounded-md text-emerald-900 text-center mb-8 max-w-md mx-auto">
