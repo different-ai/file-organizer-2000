@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { UserButton } from "@clerk/nextjs";
 import { auth, clerkClient } from "@clerk/nextjs/server";
 import FolderSelector from "@/components/ui/FolderSelection";
-
+import Logo from "@/components/ui/logo";
 async function UserManagement() {
   const { userId } = auth();
   const user = await clerkClient.users.getUser(userId);
@@ -14,11 +14,11 @@ async function UserManagement() {
       ?.status === "complete";
 
   return (
-    <div className="absolute top-4 right-4 flex items-center gap-4 ">
+    <div className="absolute top-4 right-4 flex items-center gap-4">
       {/* Join our discord */}
       {/* https://discord.gg/udQnCRFyus */}
       <a href="https://discord.gg/udQnCRFyus" target="_blank">
-        <Button className=" border border-blue-500 text-blue-500">
+        <Button className="border border-blue-500 text-blue-500">
           Join our discord
         </Button>
       </a>
@@ -40,7 +40,9 @@ export default async function Component() {
   }
 
   return (
-    <div className="flex min-h-screen bg-black py-12 px-4 sm:px-6 lg:px-8 flex-col">
+    <div className="flex min-h-screen bg-black py-7 px-4 sm:px-6 lg:px-8 flex-col">
+      <Logo />
+
       <div className="flex-1 mb-8 flex flex-col items-center justify-center pt-16 px-56">
         <div
           className="relative w-full  rounded-lg overflow-hidden"
@@ -80,6 +82,7 @@ export default async function Component() {
           <p className="mt-3 text-sm text-gray-600">Requires Obsidian app.</p>
         </div>
       </div>
+
       {process.env.ENABLE_USER_MANAGEMENT == "true" ? (
         <UserManagement />
       ) : (

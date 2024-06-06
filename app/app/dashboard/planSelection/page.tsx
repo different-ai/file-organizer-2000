@@ -1,3 +1,10 @@
+/**
+ * v0 by Vercel.
+ * @see https://v0.dev/t/3ICQmCzQBYx
+ * Documentation: https://v0.dev/docs#integrating-generated-code-into-your-nextjs-app
+ */
+"use client";
+
 import { useState } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -10,12 +17,12 @@ export default function Component() {
         <h1 className="text-4xl font-bold mb-8 text-center">
           Choose Your Plan
         </h1>
-        <div className="bg-emerald-900 p-2 rounded-md text-emerald-50 text-center mb-8 max-w-md mx-auto">
+        <div className="bg-violet-900 p-2 rounded-md text-violet-50 text-center mb-8 max-w-md mx-auto">
           <SparkleIcon className="h-5 w-5 inline-block mr-2" />
-          Special offer! Save $50 on the yearly plan. Only valid in June.
+          Special offer! Save $50 on the yearly plan. Only valid for June.
         </div>
         <div className="flex justify-center space-x-4 md:space-x-8">
-          <Card className="w-[350px] p-6 bg-black rounded-lg shadow-md text-white md:w-[400px] relative">
+          <Card className="w-[350px] p-6 bg-black rounded-lg shadow-md text-white md:w-[400px] relative border border-gray-500 ">
             <div className="absolute top-0 left-0 w-full h-full rounded-lg bg-gradient-to-br from-emerald-500 to-emerald-900 opacity-10 blur-sm" />
             <div className="space-y-4">
               <div className="text-sm uppercase tracking-wide text-gray-400 text-center">
@@ -53,15 +60,15 @@ export default function Component() {
               </ul>
               <div className="flex justify-center">
                 <Button
-                  onClick={() => setSelectedPlan("14.99")}
-                  className={`flex items-center justify-center gap-2 bg-gray-900 text-white px-6 py-3 rounded-md font-semibold border border-white transition-colors hover:bg-gray-800`}
+                  onClick={() => setSelectedPlan("monthly")}
+                  className={`flex items-center justify-center gap-2  text-white px-6 py-3 rounded-md font-semibold border border-white `}
                 >
                   <span>Get Monthly Plan</span>
                 </Button>
               </div>
             </div>
           </Card>
-          <Card className="w-[350px] p-6 bg-black rounded-lg shadow-md text-white md:w-[400px] relative">
+          <Card className="w-[350px] p-6 bg-black rounded-lg shadow-md text-white md:w-[400px] relative  border border-white">
             <div className="absolute top-0 left-0 w-full h-full rounded-lg bg-gradient-to-br from-emerald-500 to-emerald-900 opacity-10 blur-sm" />
             <div className="space-y-4">
               <div className="text-sm uppercase tracking-wide text-gray-400 text-center">
@@ -104,8 +111,8 @@ export default function Component() {
               </ul>
               <div className="flex justify-center">
                 <Button
-                  onClick={() => setSelectedPlan("99.99")}
-                  className={`flex items-center justify-center gap-2 bg-gray-900 text-white px-6 py-3 rounded-md font-semibold border border-white transition-colors hover:bg-gray-800`}
+                  onClick={() => setSelectedPlan("yearly")}
+                  className={`flex items-center justify-center gap-2 bg-gray-900 text-white px-6 py-3 rounded-md font-semibold border border-white transition-colors hover:bg-gray-800 `}
                 >
                   <span>I'm in!</span>
                 </Button>
