@@ -95,7 +95,7 @@ export default function Component() {
                   }}
                   className={`flex items-center justify-center gap-2 text-white bg-gray-900 px-6 py-3 rounded-md font-semibold border border-gray-900`}
                 >
-                  <span>Let's go!</span>
+                  <span>Get organized</span>
                 </Button>
               </div>
             </div>
