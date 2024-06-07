@@ -1,5 +1,7 @@
 import { LanguageModel, generateObject, generateText, streamObject } from "ai";
 import { z } from "zod";
+import { makeApiRequest } from "../src/index";
+import { requestUrl } from "obsidian";
 
 // Function to generate tags
 export async function generateTags(
@@ -237,10 +239,38 @@ export async function generateDocumentTitle(
 // Function to transcribe audio
 export async function transcribeAudio(
   audioBase64: string,
-  extension: string
+  extension: string,
+  useCustomServer: boolean,
+  customServerUrl: string,
+  defaultServerUrl: string,
+  apiKey: string
 ): Promise<string> {
-  throw new Error("This function is not implemented yet.");
-  // Implementation remains the same as before
+  try {
+    console.log("transcribeAudio runs");
+    const response = await makeApiRequest(() =>
+      requestUrl({
+        url: `${
+          useCustomServer ? customServerUrl : defaultServerUrl
+        }/api/audio`,
+        method: "POST",
+        body: JSON.stringify({
+          file: audioBase64,
+          extension: extension,
+        }),
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${apiKey}`,
+        },
+      })
+    );
+
+    const data = await response.json;
+    const transcription = data.transcription;
+    return transcription;
+  } catch (error) {
+    console.error("Error generating transcript:", error);
+    throw error;
+  }
 }
 
 // Function to extract text from image
