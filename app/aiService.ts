@@ -238,41 +238,35 @@ export async function generateDocumentTitle(
 
 // Function to transcribe audio
 export async function transcribeAudio(
-  audioBase64: string,
-  extension: string,
-  useCustomServer: boolean,
-  customServerUrl: string,
-  defaultServerUrl: string,
-  apiKey: string
+  encodedAudio: string,
+  extension: string
 ): Promise<string> {
   try {
-    console.log("transcribeAudio runs");
     const response = await makeApiRequest(() =>
-      requestUrl({
-        url: `${
-          useCustomServer ? customServerUrl : defaultServerUrl
+      fetch(
+        `${
+          process.env.CUSTOM_SERVER_URL || process.env.DEFAULT_SERVER_URL
         }/api/audio`,
-        method: "POST",
-        body: JSON.stringify({
-          file: audioBase64,
-          extension: extension,
-        }),
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${apiKey}`,
-        },
-      })
+        {
+          method: "POST",
+          body: JSON.stringify({
+            file: encodedAudio,
+            extension: extension,
+          }),
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${process.env.API_KEY}`,
+          },
+        }
+      )
     );
-
-    const data = await response.json;
-    const transcription = data.transcription;
-    return transcription;
+    const data = await response.json();
+    return data.transcription;
   } catch (error) {
-    console.error("Error generating transcript:", error);
+    console.error("Error generating transcript", error);
     throw error;
   }
 }
-
 // Function to extract text from image
 export async function extractTextFromImage(
   image: ArrayBuffer,
