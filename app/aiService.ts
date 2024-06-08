@@ -236,11 +236,13 @@ export async function generateDocumentTitle(
 }
 
 // Function to transcribe audio
+// Function to transcribe audio
 export async function transcribeAudio(
-  encodedAudio: string,
+  audioBase64: string,
   extension: string
 ): Promise<string> {
-  console.log("encodedAudio", encodedAudio);
+  throw new Error("This function is not implemented yet.");
+  // Implementation remains the same as before
 }
 // Function to extract text from image
 export async function extractTextFromImage(
