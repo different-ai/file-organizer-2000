@@ -239,7 +239,7 @@ export async function transcribeAudio(
   audioBase64: string,
   extension: string
 ): Promise<string> {
-  throw new Error("This function is not implemented yet.");
+  throw new Error("This function is not implemented yet");
   // Implementation remains the same as before
 }
 
