@@ -611,7 +611,10 @@ export default class FileOrganizer extends Plugin {
 
       const postProcessedText = await transcribeAudio(
         encodedAudio,
-        file.extension
+        file.extension,
+        this.settings.useCustomServer
+          ? this.settings.customServerUrl
+          : this.settings.defaultServerUrl
       );
       return postProcessedText;
     } catch (e) {
