@@ -240,34 +240,7 @@ export async function transcribeAudio(
   encodedAudio: string,
   extension: string
 ): Promise<string> {
-  try {
-    const response = await fetch(
-      `${
-        process.env.CUSTOM_SERVER_URL || process.env.DEFAULT_SERVER_URL
-      }/api/audio`,
-      {
-        method: "POST",
-        body: JSON.stringify({
-          file: encodedAudio,
-          extension: extension,
-        }),
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${process.env.API_KEY}`,
-        },
-      }
-    );
-
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
-    }
-
-    const data = await response.json();
-    return data.transcription;
-  } catch (error) {
-    console.error("Error generating transcript", error);
-    throw error;
-  }
+  console.log("encodedAudio", encodedAudio);
 }
 // Function to extract text from image
 export async function extractTextFromImage(
