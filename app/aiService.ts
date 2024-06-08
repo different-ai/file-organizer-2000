@@ -237,6 +237,7 @@ export async function generateDocumentTitle(
 // Function to transcribe audio
 export async function transcribeAudio(
   encodedAudio: string,
+
   extension: string,
   url: string
 ): Promise<string> {
