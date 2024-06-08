@@ -1,7 +1,6 @@
 import { LanguageModel, generateObject, generateText, streamObject } from "ai";
 import { z } from "zod";
 import { makeApiRequest } from "../src/index";
-import { requestUrl } from "obsidian";
 
 // Function to generate tags
 export async function generateTags(
