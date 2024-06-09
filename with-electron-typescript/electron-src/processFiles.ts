@@ -1,20 +1,10 @@
-// src/processFiles.ts
+// electron-src/processFiles.ts
 import fs from "fs";
 import path from "path";
 import { generateDocumentTitle, guessRelevantFolder } from "./aiService";
 import { readdir } from "fs/promises";
 import { ollama } from "ollama-ai-provider";
-
-interface FileMetadata {
-  newName: string;
-  previousName: string;
-  newFodler: string;
-  previousFolder: string;
-  metadata: {
-    content: string;
-  };
-  shouldCreateNewFolder: boolean;
-}
+import { FileMetadata } from "./preload";
 
 async function getTextFromFile(filePath: string): Promise<string> {
   const fileContent = await fs.promises.readFile(filePath, "utf-8");
@@ -27,7 +17,7 @@ async function processFileV2(filePath: string): Promise<FileMetadata> {
   const folderPath = path.dirname(filePath);
   const allFolders = await getAllFolders(folderPath);
   const text = await getTextFromFile(filePath);
-  const model = ollama("codellama:7b");
+  const model = ollama("codegemma");
   const generatedName = await generateDocumentTitle(text, model);
   const suggestedFolder = await guessRelevantFolder(
     text,
@@ -37,13 +27,16 @@ async function processFileV2(filePath: string): Promise<FileMetadata> {
   );
   const metadata: FileMetadata = {
     newName: generatedName,
-    newFodler: suggestedFolder,
+    newFolder: suggestedFolder,
     metadata: {
       content: text,
     },
     previousFolder: folderPath,
     previousName: fileName,
     shouldCreateNewFolder: suggestedFolder === "None",
+    moved: false,
+    originalFolder: folderPath,
+    originalName: fileName,
   };
   return metadata;
 }
@@ -60,7 +53,11 @@ export async function processFiles(folderPath: string) {
     if (file.name === ".DS_Store") {
       continue;
     }
-    
+    // if a dot file ignore
+    if (file.name.startsWith(".")) {
+      continue;
+    }
+
     // Check if the entry is a file
     if (file.isFile()) {
       const filePath = path.join(folderPath, file.name);

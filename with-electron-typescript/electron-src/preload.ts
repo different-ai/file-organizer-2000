@@ -1,17 +1,33 @@
-/* eslint-disable @typescript-eslint/no-namespace */
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-import { contextBridge, ipcRenderer } from "electron";
-import { IpcRendererEvent } from "electron/main";
+// electron-src/preload.ts
+import { contextBridge, ipcRenderer, IpcRendererEvent } from "electron";
 
-// We are using the context bridge to securely expose NodeAPIs.
-// Please note that many Node APIs grant access to local system resources.
-// Be very cautious about which globals and APIs you expose to untrusted remote content.
+export interface FileMetadata {
+  newName: string;
+  previousName: string;
+  newFolder: string;
+  previousFolder: string;
+  metadata: {
+    content: string;
+  };
+  shouldCreateNewFolder: boolean;
+  moved: boolean;
+  originalFolder: string;
+  originalName: string;
+}
+
 contextBridge.exposeInMainWorld("electron", {
   selectFolder: () => ipcRenderer.send("select-folder"),
-  onFolderSelected: (handler: (event: IpcRendererEvent, folderPath: string) => void) =>
-    ipcRenderer.on("folder-selected", handler),
-  onNewFile: (handler: (event: IpcRendererEvent, file: any) => void) =>
-    ipcRenderer.on("new-file", handler),
-  stopOnNewFile: (handler: (event: IpcRendererEvent, file: any) => void) =>
-    ipcRenderer.removeListener("new-file", handler),
+  onFolderSelected: (
+    callback: (event: IpcRendererEvent, folderPath: string) => void
+  ) => ipcRenderer.on("folder-selected", callback),
+  validateChange: (change: FileMetadata) =>
+    ipcRenderer.send("validate-change", change),
+  applyChanges: () => ipcRenderer.send("apply-changes"),
+  undo: () => ipcRenderer.send("undo"),
+  onProposedChanges: (
+    callback: (event: IpcRendererEvent, changes: FileMetadata[]) => void
+  ) => ipcRenderer.on("proposed-changes", callback),
+  stopOnFolderSelected: (
+    callback: (event: Electron.IpcRendererEvent, folderPath: string) => void
+  ) => ipcRenderer.removeListener("folder-selected", callback),
 });

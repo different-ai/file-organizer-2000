@@ -1,18 +1,20 @@
-// Native
-import { join, dirname } from "path";
-import { format } from "url";
-import { BrowserWindow, app, ipcMain, IpcMainEvent, dialog } from "electron";
+// electron-src/index.ts
+import { app, BrowserWindow, ipcMain, dialog, IpcMainEvent } from "electron";
 import isDev from "electron-is-dev";
-import prepareNext from "electron-next";
-import chokidar from "chokidar";
-import { guessRelevantFolder } from "./aiService";
-import { ollama } from "ollama-ai-provider";
+import { join } from "path";
+import { format } from "url";
 import { processFiles } from "./processFiles";
+import { FileMetadata } from "./preload";
+import fs from "fs";
+import prepareNext from "electron-next";
 
-// Prepare the renderer once the app is ready
-app.on("ready", async () => {
+
+let mainWindow: BrowserWindow | null;
+let selectedFolderPath = "";
+
+async function createWindow() {
   await prepareNext("./renderer");
-  const mainWindow = new BrowserWindow({
+  mainWindow = new BrowserWindow({
     width: 800,
     height: 600,
     webPreferences: {
@@ -21,36 +23,120 @@ app.on("ready", async () => {
       preload: join(__dirname, "preload.js"),
     },
   });
+
+  // Load your React app
   const url = isDev
-    ? "http://localhost:8000/"
+    ? "http://localhost:8000"
     : format({
         pathname: join(__dirname, "../renderer/out/index.html"),
         protocol: "file:",
         slashes: true,
       });
   mainWindow.loadURL(url);
-});
 
-// Quit the app once all windows are closed
-app.on("window-all-closed", app.quit);
-
-// listen the channel message and resend the received message to the renderer process
-ipcMain.on("message", (event: IpcMainEvent, message: any) => {
-  console.log(message);
-  setTimeout(() => event.sender.send("message", "hi from electron"), 500);
-});
-
-// Handle folder selection and file watching
-ipcMain.on("select-folder", async (event) => {
-  const result = await dialog.showOpenDialog({
-    properties: ["openDirectory"],
+  mainWindow.on("closed", () => {
+    mainWindow = null;
   });
-  if (!result.canceled) {
-    const folderPath = result.filePaths[0];
-    event.reply("folder-selected", folderPath);
-    processFiles(folderPath);
-    chokidar.watch(folderPath).on("add", async (filePath) => {
-      // Add your logic here for handling new files
-    });
+}
+
+app.on("ready", createWindow);
+
+app.on("window-all-closed", () => {
+  if (process.platform !== "darwin") {
+    app.quit();
   }
 });
+
+app.on("activate", () => {
+  if (mainWindow === null) {
+    createWindow();
+  }
+});
+
+ipcMain.on("select-folder", async (event: IpcMainEvent) => {
+  const result = await dialog.showOpenDialog(mainWindow!, {
+    properties: ["openDirectory"],
+  });
+
+  if (!result.canceled && result.filePaths.length > 0) {
+    selectedFolderPath = result.filePaths[0];
+    event.reply("folder-selected", selectedFolderPath);
+    processFiles(selectedFolderPath);
+    readMetadataFile();
+  }
+});
+
+ipcMain.on("validate-change", (event: IpcMainEvent, change: FileMetadata) => {
+  const metadataPath = join(selectedFolderPath, "metadata.json");
+  const metadata = readMetadataFromFile(metadataPath);
+  const updatedMetadata = metadata.map((entry) =>
+    entry.previousName === change.previousName && entry.previousFolder === change.previousFolder
+      ? { ...entry, moved: true }
+      : entry
+  );
+  writeMetadataToFile(metadataPath, updatedMetadata);
+});
+
+ipcMain.on("apply-changes", () => {
+  const metadataPath = join(selectedFolderPath, "metadata.json");
+  const metadata = readMetadataFromFile(metadataPath);
+  const validatedChanges = metadata.filter((change) => change.moved);
+  applyChangesToFileSystem(validatedChanges);
+});
+
+ipcMain.on("undo", () => {
+  const metadataPath = join(selectedFolderPath, "metadata.json");
+  const metadata = readMetadataFromFile(metadataPath);
+  const movedChanges = metadata.filter((change) => change.moved);
+  undoChangesInFileSystem(movedChanges);
+  const updatedMetadata = metadata.map((entry) => ({ ...entry, moved: false }));
+  writeMetadataToFile(metadataPath, updatedMetadata);
+});
+
+function readMetadataFile() {
+  const metadataPath = join(selectedFolderPath, "metadata.json");
+  const metadata = readMetadataFromFile(metadataPath);
+  console.log("Metadata", metadata);
+  if (mainWindow) {
+    console.log("Sending proposed changes to renderer");
+    mainWindow.webContents.send("proposed-changes", metadata);
+  }
+}
+
+function readMetadataFromFile(filePath: string): FileMetadata[] {
+  try {
+    const data = fs.readFileSync(filePath, "utf-8");
+    const metadataEntries = data.split("\n").filter((entry) => entry.trim() !== "");
+    return metadataEntries.map((entry) => JSON.parse(entry));
+  } catch (error) {
+    console.error("Error reading metadata file:", error);
+    return [];
+  }
+}
+
+function writeMetadataToFile(filePath: string, metadata: FileMetadata[]) {
+  const jsonString = metadata.map((entry) => JSON.stringify(entry)).join("\n");
+  fs.writeFileSync(filePath, jsonString, "utf-8");
+}
+
+function applyChangesToFileSystem(changes: FileMetadata[]) {
+  changes.forEach((change) => {
+    const oldPath = join(change.previousFolder, change.previousName);
+    const newFolderPath = join(selectedFolderPath, change.newFolder);
+    const newFilePath = join(newFolderPath, change.newName);
+
+    if (change.shouldCreateNewFolder) {
+      fs.mkdirSync(newFolderPath, { recursive: true });
+    }
+
+    fs.renameSync(oldPath, newFilePath);
+  });
+}
+
+function undoChangesInFileSystem(changes: FileMetadata[]) {
+  changes.forEach((change) => {
+    const currentPath = join(change.newFolder, change.newName);
+    const originalPath = join(change.originalFolder, change.originalName);
+    fs.renameSync(currentPath, originalPath);
+  });
+}
