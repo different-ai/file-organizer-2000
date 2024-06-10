@@ -8,9 +8,10 @@ import { FileMetadata } from "./preload";
 import fs from "fs";
 import prepareNext from "electron-next";
 
-
 let mainWindow: BrowserWindow | null;
 let selectedFolderPath = "";
+
+export const CONFIG_FOLDER_NAME = ".fileorganizer2000";
 
 async function createWindow() {
   await prepareNext("./renderer");
@@ -61,16 +62,21 @@ ipcMain.on("select-folder", async (event: IpcMainEvent) => {
   if (!result.canceled && result.filePaths.length > 0) {
     selectedFolderPath = result.filePaths[0];
     event.reply("folder-selected", selectedFolderPath);
-    processFiles(selectedFolderPath);
+    await processFiles(selectedFolderPath);
     readMetadataFile();
   }
 });
 
 ipcMain.on("validate-change", (event: IpcMainEvent, change: FileMetadata) => {
-  const metadataPath = join(selectedFolderPath, "metadata.json");
+  const metadataPath = join(
+    selectedFolderPath,
+    CONFIG_FOLDER_NAME,
+    "metadata.json"
+  );
   const metadata = readMetadataFromFile(metadataPath);
   const updatedMetadata = metadata.map((entry) =>
-    entry.previousName === change.previousName && entry.previousFolder === change.previousFolder
+    entry.originalName === change.originalName &&
+    entry.originalFolder === change.originalFolder
       ? { ...entry, moved: true }
       : entry
   );
@@ -85,7 +91,11 @@ ipcMain.on("apply-changes", () => {
 });
 
 ipcMain.on("undo", () => {
-  const metadataPath = join(selectedFolderPath, "metadata.json");
+  const metadataPath = join(
+    selectedFolderPath,
+    CONFIG_FOLDER_NAME,
+    "metadata.json"
+  );
   const metadata = readMetadataFromFile(metadataPath);
   const movedChanges = metadata.filter((change) => change.moved);
   undoChangesInFileSystem(movedChanges);
@@ -94,7 +104,12 @@ ipcMain.on("undo", () => {
 });
 
 function readMetadataFile() {
-  const metadataPath = join(selectedFolderPath, "metadata.json");
+  const metadataPath = join(
+    selectedFolderPath,
+    CONFIG_FOLDER_NAME,
+    "metadata.json"
+  );
+  console.log(`Reading metadata from: ${metadataPath}`);
   const metadata = readMetadataFromFile(metadataPath);
   console.log("Metadata", metadata);
   if (mainWindow) {
@@ -105,8 +120,18 @@ function readMetadataFile() {
 
 function readMetadataFromFile(filePath: string): FileMetadata[] {
   try {
+    if (!fs.existsSync(filePath)) {
+      console.warn(`Metadata file does not exist at path: ${filePath}`);
+      return [];
+    }
     const data = fs.readFileSync(filePath, "utf-8");
-    const metadataEntries = data.split("\n").filter((entry) => entry.trim() !== "");
+    if (!data) {
+      console.warn(`Metadata file is empty at path: ${filePath}`);
+      return [];
+    }
+    const metadataEntries = data
+      .split("\n")
+      .filter((entry) => entry.trim() !== "");
     return metadataEntries.map((entry) => JSON.parse(entry));
   } catch (error) {
     console.error("Error reading metadata file:", error);
@@ -115,13 +140,19 @@ function readMetadataFromFile(filePath: string): FileMetadata[] {
 }
 
 function writeMetadataToFile(filePath: string, metadata: FileMetadata[]) {
+  const configFolderPath = join(selectedFolderPath, CONFIG_FOLDER_NAME);
+  console.log(configFolderPath);
+  if (!fs.existsSync(configFolderPath)) {
+    console.log(`Creating config folder at path: ${configFolderPath}`);
+    fs.mkdirSync(configFolderPath);
+  }
   const jsonString = metadata.map((entry) => JSON.stringify(entry)).join("\n");
   fs.writeFileSync(filePath, jsonString, "utf-8");
 }
 
 function applyChangesToFileSystem(changes: FileMetadata[]) {
   changes.forEach((change) => {
-    const oldPath = join(change.previousFolder, change.previousName);
+    const oldPath = join(change.originalFolder, change.originalName);
     const newFolderPath = join(selectedFolderPath, change.newFolder);
     const newFilePath = join(newFolderPath, change.newName);
 

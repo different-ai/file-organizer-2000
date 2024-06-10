@@ -64,12 +64,12 @@ function SelectFolder() {
         </div>
         <div className="grid gap-4">
           {proposedChanges.map((change, index) => (
-            <Card key={`${change.previousFolder}/${change.previousName}`}>
+            <Card key={`${change.originalFolder}/${change.originalName}`}>
               <CardHeader>
                 <div className="flex items-center gap-4">
                   <FileIcon className="w-8 h-8" />
                   <div className="grid gap-1">
-                    <CardTitle>{change.previousName} → {change.newName}</CardTitle>
+                    <CardTitle>{change.originalName} → {change.newName}</CardTitle>
                     <CardDescription>
                       <div className="flex items-center gap-2">
                         <span className="text-gray-500 dark:text-gray-400">Previous location:</span>

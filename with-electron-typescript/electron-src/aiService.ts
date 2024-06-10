@@ -1,3 +1,6 @@
+//@ts-nocheck
+
+
 import { LanguageModel, generateObject, generateText, streamObject } from "ai";
 import { z } from "zod";
 
@@ -50,10 +53,11 @@ export async function generateAliasVariations(
     case "gpt-4o": {
       const response = await generateObject({
         model,
+
         schema: z.object({
           aliases: z.array(z.string()).default([]),
         }),
-        prompt: `Generate a list of 3 closely related names (aliases) for the given document name: "${fileName}". The aliases should include variations in capitalization.  Consider the context provided by the content "${content}".`,
+        prompt: `Generate a list of 3 closely related names (aliases) for the given document name: "${fileName}". The aliases should include variations in capitalization. Consider the context provided by the content "${content}".`,
         system:
           "only answer with good names that could refer to a title of this document",
       });
@@ -92,7 +96,7 @@ export async function guessRelevantFolder(
           ", "
         )}. Base your decision on the relevance of the content and the file name to the folder themes. If no existing folder is suitable, respond with null.`,
       });
-      return response.object.suggestedFolder ;
+      return response.object.suggestedFolder;
     default:
       // eslint-disable-next-line no-case-declarations
       const defaultResponse = await generateText({
@@ -226,10 +230,12 @@ export async function generateDocumentTitle(
           Respond with a short title (less than 60 chars) using only filename characters (including spaces). Use something very specific to the content, not a generic title. Respond with only the title, no other text.`,
       });
 
-      return defaultResponse.text
-        .replace(/[^\w\s]/gi, "")
-        .trim()
-        .slice(0, 60) || ""; // Ensure a string is returned even if text is empty
+      return (
+        defaultResponse.text
+          .replace(/[^\w\s]/gi, "")
+          .trim()
+          .slice(0, 60) || ""
+      ); // Ensure a string is returned even if text is empty
     }
   }
 }

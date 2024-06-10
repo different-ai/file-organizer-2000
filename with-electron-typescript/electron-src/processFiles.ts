@@ -5,6 +5,7 @@ import { generateDocumentTitle, guessRelevantFolder } from "./aiService";
 import { readdir } from "fs/promises";
 import { ollama } from "ollama-ai-provider";
 import { FileMetadata } from "./preload";
+import { CONFIG_FOLDER_NAME } from ".";
 
 async function getTextFromFile(filePath: string): Promise<string> {
   const fileContent = await fs.promises.readFile(filePath, "utf-8");
@@ -31,8 +32,6 @@ async function processFileV2(filePath: string): Promise<FileMetadata> {
     metadata: {
       content: text,
     },
-    previousFolder: folderPath,
-    previousName: fileName,
     shouldCreateNewFolder: suggestedFolder === "None",
     moved: false,
     originalFolder: folderPath,
@@ -46,14 +45,20 @@ async function writeMetadataToFile(metadata: FileMetadata, outputPath: string) {
   await fs.promises.appendFile(outputPath, jsonString + "\n");
 }
 
-export async function processFiles(folderPath: string) {
+export async function processFiles(
+  folderPath: string
+): Promise<FileMetadata[]> {
   const files = await fs.promises.readdir(folderPath, { withFileTypes: true });
+  const allMetadata: FileMetadata[] = [];
+
+  // Create the config folder if it doesn't exist
+  const configFolderPath = path.join(folderPath, CONFIG_FOLDER_NAME);
+  if (!fs.existsSync(configFolderPath)) {
+    fs.mkdirSync(configFolderPath);
+  }
+
   for (const file of files) {
-    // if dsstore ignore
-    if (file.name === ".DS_Store") {
-      continue;
-    }
-    // if a dot file ignore
+    // Ignore dotfiles and dot folders
     if (file.name.startsWith(".")) {
       continue;
     }
@@ -63,16 +68,22 @@ export async function processFiles(folderPath: string) {
       const filePath = path.join(folderPath, file.name);
       const metadata = await processFileV2(filePath);
       console.log(metadata);
-      await writeMetadataToFile(metadata, path.join(folderPath, "metadata.json"));
+      await writeMetadataToFile(
+        metadata,
+        path.join(folderPath, CONFIG_FOLDER_NAME, "metadata.json")
+      );
+      allMetadata.push(metadata);
     }
   }
+
+  return allMetadata;
 }
 
 async function getAllFolders(folderPath: string): Promise<string[]> {
   const entries = await readdir(folderPath, { withFileTypes: true });
   const folders = [];
   for (const entry of entries) {
-    if (entry.isDirectory()) {
+    if (entry.isDirectory() && !entry.name.startsWith(".")) {
       folders.push(entry.name);
     }
   }
