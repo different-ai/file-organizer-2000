@@ -22,6 +22,11 @@ export const UserUsageTable = pgTable(
     maxUsage: integer("maxUsage").notNull(),
     createdAt: timestamp("createdAt").defaultNow().notNull(),
     billingCycle: text("billingCycle").notNull(),
+    tokenUsage: integer("tokenUsage").notNull().default(0),
+    // 1 million tokens
+    maxTokenUsage: integer("maxTokenUsage")
+      .notNull()
+      .default(1000 * 1000),
   },
   (userUsage) => {
     return {
@@ -113,3 +118,27 @@ export const checkApiUsage = async (userId: string) => {
     };
   }
 };
+
+export async function incrementTokenUsage(
+  userId: string,
+  tokens: number
+): Promise<void> {
+  console.log("Incrementing API Usage for User ID:", userId);
+  // get current apiUsage
+
+  try {
+    await db
+      .update(UserUsageTable)
+      .set({
+        tokenUsage: sql`${UserUsageTable.tokenUsage} + ${tokens}`,
+      })
+      .where(eq(UserUsageTable.userId, userId));
+
+    console.log("Incremented tokens Usage for User ID:", userId);
+  } catch (error) {
+    console.error("Error incrementing tokens Usage for User ID:", userId);
+    console.error(error);
+  }
+
+  // Increment successful, exit the retry loop
+}

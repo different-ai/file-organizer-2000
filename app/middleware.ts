@@ -18,7 +18,7 @@ console.log(
   "middleware"
 );
 
-async function handleAuthorization(req: NextRequest) {
+export async function handleAuthorization(req: NextRequest) {
   const header = req.headers.get("authorization");
   const { url, method } = req;
   console.log({ url, method });
@@ -165,9 +165,13 @@ export default async function middleware(
   Object.entries(corsOptions).forEach(([key, value]) => {
     res.headers.set(key, value);
   });
-
+  console.log(
+    "enabled user management ENVAR",
+    process.env.ENABLE_USER_MANAGEMENT
+  );
   // case 1: user management requires clerk
   if (process.env.ENABLE_USER_MANAGEMENT === "true") {
+    console.log("enabled user management 2");
     return userManagementMiddleware()(req, event);
   }
 

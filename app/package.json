@@ -5,11 +5,12 @@
   "main": "./desktop/electron.js",
   "scripts": {
     "dev": "next dev",
-    "build": "next build",
+    "build": "npm run db:migrate && next build",
     "start": "next start",
     "lint": "next lint",
-    "electron-dev": "concurrently \"next dev\" \"wait-on http://localhost:3000 && electron .\"",
-    "electron-pack": "next build && electron-builder "
+    "db:generate": "drizzle-kit generate",
+    "db:migrate": "dotenv -c -- drizzle-kit migrate",
+    "db:studio": "dotenv -c -- drizzle-kit studio"
   },
   "build": {
     "appId": "com.file-organizer.app",
@@ -42,8 +43,10 @@
     "class-variance-authority": "^0.7.0",
     "clsx": "^2.0.0",
     "concurrently": "^8.2.2",
-    "drizzle-kit": "^0.20.18",
-    "drizzle-orm": "^0.30.10",
+    "dotenv": "^16.4.5",
+    "dotenv-cli": "^7.4.2",
+    "drizzle-kit": "^0.22.7",
+    "drizzle-orm": "^0.31.2",
     "electron-is-dev": "^3.0.1",
     "eslint": "8.51.0",
     "eslint-config-next": "13.5.4",
