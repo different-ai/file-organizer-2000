@@ -103,14 +103,7 @@ export async function guessRelevantFolder(
         model,
         temperature: 0,
         system: "only answer with a pathname from the list",
-        prompt: `    Given the content: "${content}" and the file name: "${fileName}",
-        determine the most appropriate folder from the following list:
-        "${folders.join(
-          ", "
-        )}". Based on the main topic and purpose of the content, return
-        only the name of the most relevant folder from the list. If none of the
-        existing folders are suitable, respond with 'null'. Your response must
-        contain only the folder name.`,
+        prompt: `Given the content: "${content}" and the file name: "${fileName}", determine the most appropriate folder from the following list: ${folders.join(", ")}. Base your decision on the main topic and purpose of the content. Respond with only the folder name. If none of the folders are suitable, respond with 'null'.`,
       });
       return defaultResponse.text.trim() === "null"
         ? null

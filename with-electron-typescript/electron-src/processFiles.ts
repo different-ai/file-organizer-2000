@@ -12,27 +12,27 @@ async function getTextFromFile(filePath: string): Promise<string> {
   return fileContent;
 }
 
-async function processFileV2(filePath: string): Promise<FileMetadata> {
+async function processFileV2(filePath: string, destinationFolderPath: string): Promise<FileMetadata> {
   const fileExtension = path.extname(filePath).slice(1);
   const fileName = path.basename(filePath, `.${fileExtension}`);
   const folderPath = path.dirname(filePath);
-  const allFolders = await getAllFolders(folderPath);
+  const allFolders = await getAllFolders(destinationFolderPath); // Use destinationFolderPath here
   const text = await getTextFromFile(filePath);
-  const model = ollama("codegemma");
-  const generatedName = await generateDocumentTitle(text, model);
+  const model = ollama("dolphin-mistral");
   const suggestedFolder = await guessRelevantFolder(
     text,
     filePath,
     allFolders,
     model
   );
+
   const metadata: FileMetadata = {
-    newName: generatedName,
-    newFolder: suggestedFolder,
     metadata: {
       content: text,
     },
-    shouldCreateNewFolder: suggestedFolder === "None",
+    newName: fileName,
+    newFolder: suggestedFolder,
+   shouldCreateNewFolder: suggestedFolder === "None",
     moved: false,
     originalFolder: folderPath,
     originalName: fileName,
@@ -46,37 +46,33 @@ async function writeMetadataToFile(metadata: FileMetadata, outputPath: string) {
 }
 
 export async function processFiles(
-  folderPath: string
-): Promise<FileMetadata[]> {
+  folderPath: string,
+  destinationFolderPath: string
+): Promise<void> {
   const files = await fs.promises.readdir(folderPath, { withFileTypes: true });
-  const allMetadata: FileMetadata[] = [];
-
-  // Create the config folder if it doesn't exist
-  const configFolderPath = path.join(folderPath, CONFIG_FOLDER_NAME);
-  if (!fs.existsSync(configFolderPath)) {
-    fs.mkdirSync(configFolderPath);
-  }
 
   for (const file of files) {
-    // Ignore dotfiles and dot folders
     if (file.name.startsWith(".")) {
       continue;
     }
 
-    // Check if the entry is a file
     if (file.isFile()) {
       const filePath = path.join(folderPath, file.name);
-      const metadata = await processFileV2(filePath);
+      const metadata = await processFileV2(filePath, destinationFolderPath); // Pass it here
       console.log(metadata);
       await writeMetadataToFile(
         metadata,
-        path.join(folderPath, CONFIG_FOLDER_NAME, "metadata.json")
+        path.join(folderPath, "metadata.json")
       );
-      allMetadata.push(metadata);
+
+      const destinationFilePath = path.join(
+        destinationFolderPath,
+        metadata.newFolder,
+        file.name
+      );
+      fs.copyFileSync(filePath, destinationFilePath);
     }
   }
-
-  return allMetadata;
 }
 
 async function getAllFolders(folderPath: string): Promise<string[]> {

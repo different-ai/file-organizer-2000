@@ -13,19 +13,20 @@ export interface FileMetadata {
   originalName: string;
 }
 
+
 contextBridge.exposeInMainWorld("electron", {
   selectFolder: () => ipcRenderer.send("select-folder"),
-  onFolderSelected: (
-    callback: (event: IpcRendererEvent, folderPath: string) => void
-  ) => ipcRenderer.on("folder-selected", callback),
-  validateChange: (change: FileMetadata) =>
-    ipcRenderer.send("validate-change", change),
-  applyChanges: () => ipcRenderer.send("apply-changes"),
-  undo: () => ipcRenderer.send("undo"),
-  onProposedChanges: (
-    callback: (event: IpcRendererEvent, changes: FileMetadata[]) => void
-  ) => ipcRenderer.on("proposed-changes", callback),
-  stopOnFolderSelected: (
-    callback: (event: Electron.IpcRendererEvent, folderPath: string) => void
-  ) => ipcRenderer.removeListener("folder-selected", callback),
+  onFolderSelected: (callback: (event: any, folderPath: string) => void) =>
+    ipcRenderer.on("folder-selected", callback),
+  stopOnFolderSelected: () => ipcRenderer.removeAllListeners("folder-selected"),
+
+  selectDestinationFolder: () => ipcRenderer.send("select-destination-folder"),
+  onDestinationFolderSelected: (
+    callback: (event: any, folderPath: string) => void
+  ) => ipcRenderer.on("destination-folder-selected", callback),
+  stopOnDestinationFolderSelected: () =>
+    ipcRenderer.removeAllListeners("destination-folder-selected"),
+
+  processFiles: (sourceFolder: string, destinationFolder: string) =>
+    ipcRenderer.send("process-files", sourceFolder, destinationFolder),
 });

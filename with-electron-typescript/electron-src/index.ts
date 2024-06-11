@@ -10,6 +10,7 @@ import prepareNext from "electron-next";
 
 let mainWindow: BrowserWindow | null;
 let selectedFolderPath = "";
+export let destinationFolderPath = "";
 
 export const CONFIG_FOLDER_NAME = ".fileorganizer2000";
 
@@ -25,7 +26,6 @@ async function createWindow() {
     },
   });
 
-  // Load your React app
   const url = isDev
     ? "http://localhost:8000"
     : format({
@@ -54,6 +54,11 @@ app.on("activate", () => {
   }
 });
 
+ipcMain.on("process-files", async (event: IpcMainEvent) => {
+  const result = await processFiles(selectedFolderPath, destinationFolderPath);
+  event.reply("proposed-changes", result);
+});
+
 ipcMain.on("select-folder", async (event: IpcMainEvent) => {
   const result = await dialog.showOpenDialog(mainWindow!, {
     properties: ["openDirectory"],
@@ -62,46 +67,35 @@ ipcMain.on("select-folder", async (event: IpcMainEvent) => {
   if (!result.canceled && result.filePaths.length > 0) {
     selectedFolderPath = result.filePaths[0];
     event.reply("folder-selected", selectedFolderPath);
-    await processFiles(selectedFolderPath);
-    readMetadataFile();
+    // const allMetadata = await processFiles(
+    //   selectedFolderPath,
+    //   destinationFolderPath
+    // );
+    // // allMetadata.forEach((metadata) => {
+    // event.reply("proposed-change", metadata);
+    // });
+    // event.reply("processing-completed");
   }
 });
 
-ipcMain.on("validate-change", (event: IpcMainEvent, change: FileMetadata) => {
-  const metadataPath = join(
-    selectedFolderPath,
-    CONFIG_FOLDER_NAME,
-    "metadata.json"
-  );
-  const metadata = readMetadataFromFile(metadataPath);
-  const updatedMetadata = metadata.map((entry) =>
-    entry.originalName === change.originalName &&
-    entry.originalFolder === change.originalFolder
-      ? { ...entry, moved: true }
-      : entry
-  );
-  writeMetadataToFile(metadataPath, updatedMetadata);
+ipcMain.on("select-destination-folder", async (event: IpcMainEvent) => {
+  const result = await dialog.showOpenDialog(mainWindow!, {
+    properties: ["openDirectory"],
+  });
+
+  if (!result.canceled && result.filePaths.length > 0) {
+    destinationFolderPath = result.filePaths[0];
+    event.reply("destination-folder-selected", destinationFolderPath);
+  }
 });
 
-ipcMain.on("apply-changes", () => {
-  const metadataPath = join(selectedFolderPath, "metadata.json");
-  const metadata = readMetadataFromFile(metadataPath);
-  const validatedChanges = metadata.filter((change) => change.moved);
-  applyChangesToFileSystem(validatedChanges);
-});
-
-ipcMain.on("undo", () => {
-  const metadataPath = join(
-    selectedFolderPath,
-    CONFIG_FOLDER_NAME,
-    "metadata.json"
-  );
-  const metadata = readMetadataFromFile(metadataPath);
-  const movedChanges = metadata.filter((change) => change.moved);
-  undoChangesInFileSystem(movedChanges);
-  const updatedMetadata = metadata.map((entry) => ({ ...entry, moved: false }));
-  writeMetadataToFile(metadataPath, updatedMetadata);
-});
+function applyChangesToFileSystem(changes: FileMetadata[]) {
+  changes.forEach((change) => {
+    const oldPath = join(change.originalFolder, change.originalName);
+    const newFilePath = join(destinationFolderPath, change.newName);
+    fs.copyFileSync(oldPath, newFilePath);
+  });
+}
 
 function readMetadataFile() {
   const metadataPath = join(
@@ -148,20 +142,6 @@ function writeMetadataToFile(filePath: string, metadata: FileMetadata[]) {
   }
   const jsonString = metadata.map((entry) => JSON.stringify(entry)).join("\n");
   fs.writeFileSync(filePath, jsonString, "utf-8");
-}
-
-function applyChangesToFileSystem(changes: FileMetadata[]) {
-  changes.forEach((change) => {
-    const oldPath = join(change.originalFolder, change.originalName);
-    const newFolderPath = join(selectedFolderPath, change.newFolder);
-    const newFilePath = join(newFolderPath, change.newName);
-
-    if (change.shouldCreateNewFolder) {
-      fs.mkdirSync(newFolderPath, { recursive: true });
-    }
-
-    fs.renameSync(oldPath, newFilePath);
-  });
 }
 
 function undoChangesInFileSystem(changes: FileMetadata[]) {
