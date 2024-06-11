@@ -151,11 +151,11 @@ export async function guessRelevantFolderRouter(
   content: string,
   filePath: string,
   folders: string[],
-  useCustomServer: boolean,
+  useServer: boolean,
   customServerUrl: string,
   apiKey: string
 ): Promise<string | null> {
-  if (useCustomServer) {
+  if (useServer) {
     const response = await makeApiRequest(() =>
       requestUrl({
         url: `${customServerUrl}/api/folders`,
@@ -175,7 +175,13 @@ export async function guessRelevantFolderRouter(
     return guessedFolder;
   } else {
     const model = getModelFromTask("folders");
-    return await guessRelevantFolder(content, filePath, folders, model);
+    const response = await guessRelevantFolder(
+      content,
+      filePath,
+      folders,
+      model
+    );
+    return response.object.suggestedFolder;
   }
 }
 

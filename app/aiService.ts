@@ -1,4 +1,10 @@
-import { LanguageModel, generateObject, generateText, streamObject } from "ai";
+import {
+  GenerateObjectResult,
+  LanguageModel,
+  generateObject,
+  generateText,
+  streamObject,
+} from "ai";
 import { z } from "zod";
 
 // Function to generate tags
@@ -77,41 +83,21 @@ export async function guessRelevantFolder(
   fileName: string,
   folders: string[],
   model: LanguageModel
-): Promise<string | null> {
+) {
   console.log("modelazo", model.modelId);
 
-  switch (model.modelId) {
-    case "gpt-4o":
-      // eslint-disable-next-line no-case-declarations
-      const response = await generateObject({
-        model,
-        schema: z.object({
-          suggestedFolder: z.string().nullable(),
-        }),
-        prompt: `Review the content: "${content}" and the file name: "${fileName}". Decide which of the following folders is the most suitable: ${folders.join(
-          ", "
-        )}. Base your decision on the relevance of the content and the file name to the folder themes. If no existing folder is suitable, respond with null.`,
-      });
-      return response.object.suggestedFolder;
-    default:
-      // eslint-disable-next-line no-case-declarations
-      const defaultResponse = await generateText({
-        model,
-        temperature: 0,
-        system: "only answer with a pathname from the list",
-        prompt: `    Given the content: "${content}" and the file name: "${fileName}",
-        determine the most appropriate folder from the following list:
-        "${folders.join(
-          ", "
-        )}". Based on the main topic and purpose of the content, return
-        only the name of the most relevant folder from the list. If none of the
-        existing folders are suitable, respond with 'null'. Your response must
-        contain only the folder name.`,
-      });
-      return defaultResponse.text.trim() === "null"
-        ? null
-        : defaultResponse.text.trim();
-  }
+  // eslint-disable-next-line no-case-declarations
+  const response = await generateObject({
+    model,
+    schema: z.object({
+      suggestedFolder: z.string().nullable(),
+    }),
+    prompt: `Review the content: "${content}" and the file name: "${fileName}". Decide which of the following folders is the most suitable: ${folders.join(
+      ", "
+    )}. Base your decision on the relevance of the content and the file name to the folder themes. If no existing folder is suitable, respond with null.`,
+  });
+
+  return response;
 }
 
 // Function to create a new folder if none is found
