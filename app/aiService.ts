@@ -13,37 +13,20 @@ export async function generateTags(
   fileName: string,
   tags: string[],
   model: LanguageModel
-): Promise<string[]> {
+) {
   const modelName = model.modelId;
 
-  switch (modelName) {
-    case "gpt-4o": {
-      const response = await generateObject({
-        model,
-        schema: z.object({
-          tags: z.array(z.string()).default(["none"]),
-        }),
-        prompt: `Given the text "${content}" (and if relevant ${fileName}), identify the at most 3 relevant tags from the following list, sorted from most commonly found to least commonly found: ${tags.join(
-          ", "
-        )}`,
-      });
+  const response = await generateObject({
+    model,
+    schema: z.object({
+      tags: z.array(z.string()).default(["none"]),
+    }),
+    prompt: `Given the text "${content}" (and if relevant ${fileName}), identify the at most 3 relevant tags from the following list, sorted from most commonly found to least commonly found: ${tags.join(
+      ", "
+    )}`,
+  });
 
-      return response.object.tags ?? [];
-    }
-    default: {
-      const defaultResponse = await generateText({
-        model,
-        prompt: `Given the text "${content}" (and if relevant ${fileName}), identify the at most 3 relevant tags from the following list, sorted from most commonly found to least commonly found: ${tags.join(
-          ", "
-        )}. Respond with only the tags, no other text.`,
-      });
-
-      return defaultResponse.text
-        .split(",")
-        .map((tag) => tag.trim())
-        .filter((tag) => tags.includes(tag));
-    }
-  }
+  return response;
 }
 
 // Function to generate alias variations

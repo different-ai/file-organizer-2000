@@ -1,23 +1,22 @@
 import { generateTags } from "../../../../aiService";
-import { NextResponse } from "next/server";
+import { NextResponse, NextRequest } from "next/server";
 import { openai } from "@ai-sdk/openai";
+import { incrementTokenUsage } from "@/drizzle/schema";
+import { handleAuthorization } from "@/middleware";
+export async function POST(request: NextRequest) {
+  const { userId } = await handleAuthorization(request);
 
-export async function POST(request: Request) {
   const { content, fileName, tags } = await request.json();
   const model = openai("gpt-4o");
-  const generatedTags = await generateTags(content, fileName, tags, model);
+  const generateTagsData = await generateTags(content, fileName, tags, model);
+  const generatedTags = generateTagsData.object.tags;
+  // Increment token usage
+  const tokens = generateTagsData.usage.totalTokens;
+  console.log("incrementing token usage tags", userId, tokens);
+  await incrementTokenUsage(userId, tokens);
 
   const response = NextResponse.json({ tags: generatedTags });
   response.headers.set("Access-Control-Allow-Origin", "*");
-
-  return response;
-}
-
-export async function OPTIONS() {
-  const response = new NextResponse(null, { status: 204 });
-  response.headers.set("Access-Control-Allow-Origin", "app://obsidian.md");
-  response.headers.set("Access-Control-Allow-Methods", "POST, OPTIONS");
-  response.headers.set("Access-Control-Allow-Headers", "Content-Type");
 
   return response;
 }

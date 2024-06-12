@@ -61,7 +61,7 @@ export async function generateTagsRouter(
   useCustomServer: boolean,
   customServerUrl: string,
   apiKey: string
-): Promise<string[]> {
+): Promise<string[] | undefined> {
   if (useCustomServer) {
     const response = await makeApiRequest(() =>
       requestUrl({
@@ -82,7 +82,8 @@ export async function generateTagsRouter(
     return generatedTags;
   } else {
     const model = getModelFromTask("tagging");
-    return await generateTags(content, fileName, tags, model);
+    const response = await generateTags(content, fileName, tags, model);
+    return response.object.tags;
   }
 }
 export async function createNewFolderRouter(
