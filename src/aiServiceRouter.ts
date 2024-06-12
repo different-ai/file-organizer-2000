@@ -23,7 +23,7 @@ export async function classifyDocumentRouter(
   useCustomServer: boolean,
   customServerUrl: string,
   apiKey: string
-): Promise<string | null> {
+): Promise<string | undefined> {
   if (useCustomServer) {
     const response = await makeApiRequest(() =>
       requestUrl({
@@ -44,13 +44,14 @@ export async function classifyDocumentRouter(
     return documentType;
   } else {
     const model = getModelFromTask("classify");
-    const documentType = await classifyDocument(
+    const response = await classifyDocument(
       content,
       name,
       templateNames,
       model
     );
-    return documentType;
+
+    return response.object.documentType;
   }
 }
 
@@ -114,7 +115,13 @@ export async function createNewFolderRouter(
     return folderName;
   } else {
     const model = getModelFromTask("folders");
-    return await createNewFolder(content, fileName, existingFolders, model);
+    const response = await createNewFolder(
+      content,
+      fileName,
+      existingFolders,
+      model
+    );
+    return response.object.newFolderName;
   }
 }
 
@@ -144,7 +151,8 @@ export async function generateAliasVariationsRouter(
     return aliases;
   } else {
     const model = getModelFromTask("name");
-    return await generateAliasVariations(fileName, content, model);
+    const response = await generateAliasVariations(fileName, content, model);
+    return response.object.aliases ?? [];
   }
 }
 
@@ -212,7 +220,12 @@ export async function generateRelationshipsRouter(
     return similarFiles;
   } else {
     const model = getModelFromTask("relationships");
-    return await generateRelationships(activeFileContent, files, model);
+    const response = await generateRelationships(
+      activeFileContent,
+      files,
+      model
+    );
+    return response.object.similarFiles;
   }
 }
 
@@ -269,7 +282,12 @@ export async function formatDocumentContentRouter(
     return formattedContent;
   } else {
     const model = getModelFromTask("format");
-    return await formatDocumentContent(content, formattingInstruction, model);
+    const response = await formatDocumentContent(
+      content,
+      formattingInstruction,
+      model
+    );
+    return response.object.formattedContent;
   }
 }
 
@@ -295,7 +313,8 @@ export async function identifyConceptsRouter(
     return concepts;
   } else {
     const model = getModelFromTask("format");
-    return await identifyConcepts(content, model);
+    const response = await identifyConcepts(content, model);
+    return response.object.concepts;
   }
 }
 
@@ -305,7 +324,7 @@ export async function fetchChunksForConceptRouter(
   useCustomServer: boolean,
   customServerUrl: string,
   apiKey: string
-): Promise<{ content: string }> {
+): Promise<{ content: string | undefined }> {
   if (useCustomServer) {
     const response = await makeApiRequest(() =>
       requestUrl({
@@ -322,7 +341,8 @@ export async function fetchChunksForConceptRouter(
     return { content: chunkContent };
   } else {
     const model = getModelFromTask("chunks");
-    return await fetchChunksForConcept(content, concept, model);
+    const response = await fetchChunksForConcept(content, concept, model);
+    return { content: response.object.content };
   }
 }
 

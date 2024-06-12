@@ -34,30 +34,18 @@ export async function generateAliasVariations(
   fileName: string,
   content: string,
   model: LanguageModel
-): Promise<string[]> {
-  switch (model.modelId) {
-    case "gpt-4o": {
-      const response = await generateObject({
-        model,
-        schema: z.object({
-          aliases: z.array(z.string()).default([]),
-        }),
-        prompt: `Generate a list of 3 closely related names (aliases) for the given document name: "${fileName}". The aliases should include variations in capitalization.  Consider the context provided by the content "${content}".`,
-        system:
-          "only answer with good names that could refer to a title of this document",
-      });
+) {
+  const response = await generateObject({
+    model,
+    schema: z.object({
+      aliases: z.array(z.string()).default([]),
+    }),
+    prompt: `Generate a list of 3 closely related names (aliases) for the given document name: "${fileName}". The aliases should include variations in capitalization.  Consider the context provided by the content "${content}".`,
+    system:
+      "only answer with good names that could refer to a title of this document",
+  });
 
-      return response.object.aliases ?? [];
-    }
-    default: {
-      const defaultResponse = await generateText({
-        model,
-        prompt: `Generate a list of 3 closely related names (aliases) for the given document name: "${fileName}". The aliases should include variations in capitalization. Consider the context provided by the content "${content}". Respond with only the aliases, no other text.`,
-      });
-
-      return defaultResponse.text.split("\n").map((alias) => alias.trim());
-    }
-  }
+  return response;
 }
 
 // Function to guess the relevant folder
@@ -89,32 +77,18 @@ export async function createNewFolder(
   fileName: string,
   existingFolders: string[],
   model: LanguageModel
-): Promise<string> {
-  switch (model.modelId) {
-    case "gpt-4o": {
-      const response = await generateObject({
-        model,
-        schema: z.object({
-          newFolderName: z.string(),
-        }),
-        prompt: `Given the content: "${content}" and the file name: "${fileName}", suggest a new folder name that would appropriately categorize this file. Consider the existing folder structure: ${existingFolders.join(
-          ", "
-        )}.`,
-      });
+) {
+  const response = await generateObject({
+    model,
+    schema: z.object({
+      newFolderName: z.string(),
+    }),
+    prompt: `Given the content: "${content}" and the file name: "${fileName}", suggest a new folder name that would appropriately categorize this file. Consider the existing folder structure: ${existingFolders.join(
+      ", "
+    )}.`,
+  });
 
-      return response.object.newFolderName;
-    }
-    default: {
-      const defaultResponse = await generateText({
-        model,
-        prompt: `Given the content: "${content}" and the file name: "${fileName}", suggest a new folder name that would appropriately categorize this file. Consider the existing folder structure: ${existingFolders.join(
-          ", "
-        )}. Respond with only the new folder name, no other text.`,
-      });
-
-      return defaultResponse.text.trim();
-    }
-  }
+  return response;
 }
 
 // Function to generate relationships between files
@@ -122,17 +96,15 @@ export async function generateRelationships(
   activeFileContent: string,
   files: { name: string }[],
   model: LanguageModel
-): Promise<string[]> {
+) {
   const modelName = model.modelId;
 
-  switch (modelName) {
-    case "gpt-4o": {
-      const response = await generateObject({
-        model,
-        schema: z.object({
-          similarFiles: z.array(z.string()),
-        }),
-        prompt: `Analyze the content of the active file and compare it with the following files:
+  const response = await generateObject({
+    model,
+    schema: z.object({
+      similarFiles: z.array(z.string()),
+    }),
+    prompt: `Analyze the content of the active file and compare it with the following files:
 
           Active File Content:
           ${activeFileContent}
@@ -141,29 +113,9 @@ export async function generateRelationships(
           ${files.map((file: { name: string }) => `${file.name}`).join(", ")}
           
           Determine which five files are most similar to the active file based on their content. Provide a ranked list of the top 5 similar file names, each on a new line. If no files are similar, return null.`,
-      });
+  });
 
-      return response.object.similarFiles || [];
-    }
-    default: {
-      const defaultResponse = await generateText({
-        model,
-        prompt: `Analyze the content of the active file and compare it with the following files:
-
-          Active File Content:
-          ${activeFileContent}
-          
-          List of Files:
-          ${files.map((file: { name: string }) => `${file.name}`).join(", ")}
-          
-          Determine which five files are most similar to the active file based on their content. Provide a ranked list of the top 5 similar file names, each on a new line. If no files are similar, respond with an empty string. Respond with only the file names or an empty string, no other text.`,
-      });
-
-      return defaultResponse.text.trim() === ""
-        ? []
-        : defaultResponse.text.split("\n").map((line) => line.trim());
-    }
-  }
+  return response;
 }
 
 // Function to generate document titles
@@ -245,20 +197,18 @@ export async function classifyDocument(
   fileName: string,
   templateNames: string[],
   model: LanguageModel
-): Promise<string> {
+) {
   console.log("content", content);
   console.log("fileName", fileName);
   console.log("templateNames", templateNames);
   const modelName = model.modelId;
 
-  switch (modelName) {
-    case "gpt-4o": {
-      const response = await generateObject({
-        model,
-        schema: z.object({
-          documentType: z.string().optional(),
-        }),
-        prompt: `Given the text content:
+  const response = await generateObject({
+    model,
+    schema: z.object({
+      documentType: z.string().optional(),
+    }),
+    prompt: `Given the text content:
 
           "${content}"
           
@@ -272,32 +222,9 @@ export async function classifyDocument(
           ${templateNames.join(", ")}
           
           If the content clearly matches one of the provided template types, respond with the name of that document type. If the content does not clearly match any of the template types, respond with an empty string.`,
-      });
+  });
 
-      return response.object.documentType || "";
-    }
-    default: {
-      const defaultResponse = await generateText({
-        model,
-        prompt: `Given the text content:
-
-          "${content}"
-          
-          and if relevant, the file name:
-          
-          "${fileName}"
-          
-          Please identify which of the following document types best matches the content:
-          
-          Template Types:
-          ${templateNames.join(", ")}
-          
-          If the content clearly matches one of the provided template types, respond with the name of that document type. If the content does not clearly match any of the template types, respond with an empty string. Respond with only the document type or an empty string, no other text.`,
-      });
-
-      return defaultResponse.text.trim();
-    }
-  }
+  return response;
 }
 
 // Function to format document content
@@ -305,77 +232,41 @@ export async function formatDocumentContent(
   content: string,
   formattingInstruction: string,
   model: LanguageModel
-): Promise<string> {
+) {
   const modelName = model.modelId;
-  switch (modelName) {
-    case "gpt-4o": {
-      const response = await generateObject({
-        model,
-        schema: z.object({
-          formattedContent: z.string(),
-        }),
-        prompt: `Format the following content according to the given instruction:
+
+  const response = await generateObject({
+    model,
+    schema: z.object({
+      formattedContent: z.string(),
+    }),
+    prompt: `Format the following content according to the given instruction:
         
         Content:
         "${content}"
         
         Formatting Instruction:
         "${formattingInstruction}"`,
-      });
+  });
 
-      return response.object.formattedContent;
-    }
-    default: {
-      const defaultResponse = await generateText({
-        model,
-        prompt: `Format the following content according to the given instruction:
-        
-        Content:
-        "${content}"
-        
-        Formatting Instruction:
-        "${formattingInstruction}"
-        
-        Respond with only the formatted content, no other text.`,
-      });
-
-      return defaultResponse.text.trim();
-    }
-  }
+  return response;
 }
 
 // Function to identify concepts in the document
-export async function identifyConcepts(
-  content: string,
-  model: LanguageModel
-): Promise<string[]> {
-  switch (model.modelId) {
-    case "gpt-4o": {
-      const response = await generateObject({
-        model,
-        schema: z.object({
-          concepts: z.array(z.string()),
-        }),
-        prompt: `Split documents into the fewest atomic chunks possible. The goal is to identify the key concepts in the document.
+export async function identifyConcepts(content: string, model: LanguageModel) {
+  const response = await generateObject({
+    model,
+    schema: z.object({
+      concepts: z.array(z.string()),
+    }),
+    prompt: `Split documents into the fewest atomic chunks possible. The goal is to identify the key concepts in the document.
 
       ${content}
 
       `,
-      });
+  });
 
-      return response.object.concepts;
-    }
-    default: {
-      const defaultResponse = await generateText({
-        model,
-        prompt: `Split the following document into the fewest atomic chunks possible. The goal is to identify the key concepts in the document. Respond with only the concepts, each on a new line, no other text.
-
-      ${content}`,
-      });
-
-      return defaultResponse.text.split("\n").map((concept) => concept.trim());
-    }
-  }
+  return response;
 }
 
 // Function to fetch chunks for a given concept
@@ -383,38 +274,21 @@ export async function fetchChunksForConcept(
   content: string,
   concept: string,
   model: LanguageModel
-): Promise<{ content?: string }> {
-  switch (model.modelId) {
-    case "gpt-4o": {
-      const response = await generateObject({
-        model,
-        schema: z.object({
-          content: z.string(),
-        }),
-        prompt: `Given the document content and the concept "${concept}", extract the relevant chunks of information:
+) {
+  const response = await generateObject({
+    model,
+    schema: z.object({
+      content: z.string(),
+    }),
+    prompt: `Given the document content and the concept "${concept}", extract the relevant chunks of information:
 
-      Document Content:
-      ${content}
+    Document Content:
+    ${content}
 
-      Concept: ${concept}
+    Concept: ${concept}
 
-      `,
-      });
+    `,
+  });
 
-      return response.object;
-    }
-    default: {
-      const defaultResponse = await generateText({
-        model,
-        prompt: `Given the document content and the concept "${concept}", extract the relevant chunks of information. Respond with only the extracted chunks, no other text.
-
-      Document Content:
-      ${content}
-
-      Concept: ${concept}`,
-      });
-
-      return { content: defaultResponse.text.trim() };
-    }
-  }
+  return response;
 }

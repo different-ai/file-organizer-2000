@@ -10,7 +10,7 @@ export async function POST(request: NextRequest) {
   const response = await guessRelevantFolder(content, fileName, folders, model);
   // increment tokenUsage
   const tokens = response.usage.totalTokens;
-  console.log("incrementing token usage", userId, tokens);
+  console.log("incrementing token usage folders", userId, tokens);
   await incrementTokenUsage(userId, tokens);
   return NextResponse.json({
     folder: response.object.suggestedFolder,
