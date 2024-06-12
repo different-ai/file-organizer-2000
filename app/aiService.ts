@@ -170,37 +170,18 @@ export async function generateRelationships(
 export async function generateDocumentTitle(
   document: string,
   model: LanguageModel
-): Promise<string> {
-  const modelName = model.modelId;
+) {
+  const response = await generateObject({
+    model,
+    schema: z.object({
+      name: z.string().max(60),
+    }),
+    prompt: `You are a helpful assistant. You only answer short (less than 30 chars titles). You do not use any special character just text. Use something very specific to the content not a generic title.
+      Give a title to this document:  
+      ${document}`,
+  });
 
-  switch (modelName) {
-    case "gpt-4o": {
-      const response = await generateObject({
-        model,
-        schema: z.object({
-          name: z.string().max(60),
-        }),
-        prompt: `You are a helpful assistant. You only answer short (less than 30 chars titles). You do not use any special character just text. Use something very specific to the content not a generic title.
-          Give a title to this document:  
-          ${document}`,
-      });
-
-      return response.object.name;
-    }
-    default: {
-      const defaultResponse = await generateText({
-        model,
-        prompt: `Give a title to this document: 
-          ${document}
-          Respond with a short title (less than 60 chars) using only filename characters (including spaces). Use something very specific to the content, not a generic title. Respond with only the title, no other text.`,
-      });
-
-      return defaultResponse.text
-        .replace(/[^\w\s]/gi, "")
-        .trim()
-        .slice(0, 60);
-    }
-  }
+  return response;
 }
 
 // Function to transcribe audio

@@ -238,7 +238,8 @@ export async function generateDocumentTitleRouter(
     return title;
   } else {
     const model = getModelFromTask("name");
-    return await generateDocumentTitle(content, model);
+    const response = await generateDocumentTitle(content, model);
+    return response.object.name;
   }
 }
 
