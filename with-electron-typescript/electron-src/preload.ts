@@ -27,6 +27,6 @@ contextBridge.exposeInMainWorld("electron", {
   stopOnDestinationFolderSelected: () =>
     ipcRenderer.removeAllListeners("destination-folder-selected"),
 
-  processFiles: (sourceFolder: string, destinationFolder: string) =>
+processFiles: (sourceFolder: string, destinationFolder: string) =>
     ipcRenderer.send("process-files", sourceFolder, destinationFolder),
 });

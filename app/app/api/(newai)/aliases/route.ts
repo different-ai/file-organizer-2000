@@ -1,7 +1,7 @@
 import { openai } from "@ai-sdk/openai";
 import { generateAliasVariations } from "../../../../aiService";
 import { NextResponse, NextRequest } from "next/server";
-import { handleAuthorization } from "@/middleware";
+import { handleAuthorization } from "@/lib/handleAuthorization";
 import { incrementAndLogTokenUsage } from "@/lib/incrementAndLogTokenUsage";
 
 export async function POST(request: NextRequest) {

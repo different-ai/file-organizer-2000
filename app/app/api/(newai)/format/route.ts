@@ -2,7 +2,7 @@ import { formatDocumentContent } from "../../../../aiService";
 import { openai } from "@ai-sdk/openai";
 import { NextResponse, NextRequest } from "next/server";
 import { incrementAndLogTokenUsage } from "@/lib/incrementAndLogTokenUsage";
-import { handleAuthorization } from "@/middleware";
+import { handleAuthorization } from "@/lib/handleAuthorization";
 
 export async function POST(request: NextRequest) {
   const { userId } = await handleAuthorization(request);

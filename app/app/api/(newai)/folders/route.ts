@@ -2,7 +2,7 @@ import { openai } from "@ai-sdk/openai";
 import { guessRelevantFolder } from "../../../../aiService";
 import { NextRequest, NextResponse } from "next/server";
 import { incrementAndLogTokenUsage } from "@/lib/incrementAndLogTokenUsage";
-import { handleAuthorization } from "@/middleware";
+import { handleAuthorization } from "@/lib/handleAuthorization";
 export async function POST(request: NextRequest) {
   const { userId } = await handleAuthorization(request);
   const { content, fileName, folders } = await request.json();

@@ -1,7 +1,7 @@
 import { openai } from "@ai-sdk/openai";
 import { generateRelationships } from "../../../../aiService";
 import { NextRequest, NextResponse } from "next/server";
-import { handleAuthorization } from "@/middleware";
+import { handleAuthorization } from "@/lib/handleAuthorization";
 import { incrementAndLogTokenUsage } from "@/lib/incrementAndLogTokenUsage";
 
 export async function POST(request: NextRequest) {

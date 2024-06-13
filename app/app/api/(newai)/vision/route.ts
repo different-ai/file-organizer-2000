@@ -2,7 +2,7 @@ import { NextResponse, NextRequest } from "next/server";
 import { generateText } from "ai"; // Assuming generateText is the method from the AI SDK
 import { getModel } from "@/lib/models";
 import { generateMessages } from "./prompt";
-import { handleAuthorization } from "@/middleware";
+import { handleAuthorization } from "@/lib/handleAuthorization";
 import { incrementAndLogTokenUsage } from "@/lib/incrementAndLogTokenUsage";
 import { openai } from "@ai-sdk/openai";
 

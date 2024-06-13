@@ -255,7 +255,7 @@ export default class FileOrganizer extends Plugin {
     const metadataFolderPath = "_FileOrganizer2000/.metadata";
     await this.ensureFolderExists(metadataFolderPath);
 
-    const metadataFilePath = `${metadataFolderPath}/${file.basename}.json`;
+    const metadataFilePath = `${metadataFolderPath}/.${file.basename}.json`;
     const metadataContent = JSON.stringify(metadata, null, 2);
 
     await this.app.vault.create(metadataFilePath, metadataContent);

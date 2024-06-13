@@ -1,11 +1,9 @@
-// electron-src/processFiles.ts
 import fs from "fs";
 import path from "path";
-import { generateDocumentTitle, guessRelevantFolder } from "./aiService";
+import {  guessRelevantFolder } from "./aiService";
 import { readdir } from "fs/promises";
 import { ollama } from "ollama-ai-provider";
 import { FileMetadata } from "./preload";
-import { CONFIG_FOLDER_NAME } from ".";
 
 async function getTextFromFile(filePath: string): Promise<string> {
   const fileContent = await fs.promises.readFile(filePath, "utf-8");
@@ -32,7 +30,9 @@ async function processFileV2(filePath: string, destinationFolderPath: string): P
     },
     newName: fileName,
     newFolder: suggestedFolder,
+    // does not work at the moment
    shouldCreateNewFolder: suggestedFolder === "None",
+   // not sure if it work
     moved: false,
     originalFolder: folderPath,
     originalName: fileName,
@@ -60,6 +60,7 @@ export async function processFiles(
       const filePath = path.join(folderPath, file.name);
       const metadata = await processFileV2(filePath, destinationFolderPath); // Pass it here
       console.log(metadata);
+      // not important at the moment for later
       await writeMetadataToFile(
         metadata,
         path.join(folderPath, "metadata.json")
