@@ -135,7 +135,7 @@ export async function incrementTokenUsage(
       })
       .where(eq(UserUsageTable.userId, userId));
 
-    console.log("Incremented tokens Usage for User ID:", userId);
+    console.log("Incremented tokens Usage for User ID:", userId, tokens);
     return {
       remaining: userUsage[0].maxTokenUsage - userUsage[0].tokenUsage,
       usageError: false,
