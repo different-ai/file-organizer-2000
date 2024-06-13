@@ -722,7 +722,9 @@ export default class FileOrganizer extends Plugin {
       fileName,
       tags,
       this.settings.usePro,
-      this.settings.customServerUrl,
+      this.settings.useCustomServer
+        ? this.settings.customServerUrl
+        : this.settings.defaultServerUrl,
       this.settings.API_KEY
     );
   }
