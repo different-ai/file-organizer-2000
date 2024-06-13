@@ -15,6 +15,7 @@ export async function incrementAndLogTokenUsage(
         event: "token_usage",
         properties: {
           remaining,
+          tokens,
         },
       });
     }
