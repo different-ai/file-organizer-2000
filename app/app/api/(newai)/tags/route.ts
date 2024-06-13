@@ -8,7 +8,7 @@ export async function POST(request: NextRequest) {
   const { content, fileName, tags } = await request.json();
   const model = openai("gpt-4o");
   const generateTagsData = await generateTags(content, fileName, tags, model);
-  const generatedTags = generateTagsData.object.tags ?? "[]";
+  const generatedTags = generateTagsData.object.tags ?? [];
   // Increment token usage
   const tokens = generateTagsData.usage.totalTokens;
   console.log("incrementing token usage tags", userId, tokens);

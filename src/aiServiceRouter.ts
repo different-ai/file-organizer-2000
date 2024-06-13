@@ -85,7 +85,7 @@ export async function generateTagsRouter(
   } else {
     const model = getModelFromTask("tagging");
     const response = await generateTags(content, fileName, tags, model);
-    return response.object.tags;
+    return response.object.tags ?? [];
   }
 }
 export async function createNewFolderRouter(
