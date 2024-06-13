@@ -462,6 +462,7 @@ export default class FileOrganizer extends Plugin {
       content = await this.app.vault.read(file);
     } else if (validImageExtensions.includes(file.extension)) {
       content = await this.generateImageAnnotation(file);
+    }
     return content;
   }
 
