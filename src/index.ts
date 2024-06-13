@@ -875,7 +875,7 @@ export default class FileOrganizer extends Plugin {
 
     createOpenAIInstance(
       this.settings.openAIApiKey,
-      this.settings.openAIModel,
+      this.settings.openAIModel || "gpt-4o",
       this.settings.openAIBaseUrl
     );
 
