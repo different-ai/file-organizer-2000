@@ -15,6 +15,7 @@ import {
 } from "../app/aiService";
 import { requestUrl } from "obsidian";
 import { getModelFromTask } from "../standalone/models";
+import { arrayBufferToBase64 } from "obsidian";
 
 export async function classifyDocumentRouter(
   content: string,
@@ -62,7 +63,7 @@ export async function generateTagsRouter(
   useCustomServer: boolean,
   customServerUrl: string,
   apiKey: string
-): Promise<string[] | undefined> {
+): Promise<string[]> {
   if (useCustomServer) {
     const response = await makeApiRequest(() =>
       requestUrl({
@@ -353,12 +354,14 @@ export async function extractTextFromImageRouter(
   apiKey: string
 ): Promise<string> {
   if (useCustomServer) {
+    const base64Image = arrayBufferToBase64(image);
+
     const response = await makeApiRequest(() =>
       requestUrl({
         url: `${customServerUrl}/api/vision`,
         method: "POST",
         contentType: "application/json",
-        body: JSON.stringify({ image }),
+        body: JSON.stringify({ image: base64Image }),
         headers: {
           Authorization: `Bearer ${apiKey}`,
         },
@@ -368,6 +371,7 @@ export async function extractTextFromImageRouter(
     return text;
   } else {
     const model = getModelFromTask("vision");
+    console.log("image", image);
     return await extractTextFromImage(image, model);
   }
 }
