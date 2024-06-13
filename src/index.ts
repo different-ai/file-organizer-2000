@@ -462,9 +462,6 @@ export default class FileOrganizer extends Plugin {
       content = await this.app.vault.read(file);
     } else if (validImageExtensions.includes(file.extension)) {
       content = await this.generateImageAnnotation(file);
-    } else if (validAudioExtensions.includes(file.extension)) {
-      content = await this.generateTranscriptFromAudio(file);
-    }
     return content;
   }
 
@@ -979,29 +976,6 @@ export default class FileOrganizer extends Plugin {
     );
   }
 
-  async processEmbeddedAudioFile(audioFile: TFile, parentFile: TFile) {
-    try {
-      const transcript = await this.generateTranscriptFromAudio(audioFile);
-      await this.appendTranscriptToActiveFile(
-        parentFile,
-        audioFile.basename,
-        transcript
-      );
-      new Notice(
-        `Generated transcript for ${audioFile.basename} and appended to ${parentFile.basename}`,
-        3000
-      );
-    } catch (error) {
-      console.error(
-        `Error processing embedded audio file ${audioFile.basename}:`,
-        error
-      );
-      new Notice(
-        `Error processing embedded audio file ${audioFile.basename}`,
-        3000
-      );
-    }
-  }
   async appendTranscriptToActiveFile(
     parentFile: TFile,
     audioFileName: string,

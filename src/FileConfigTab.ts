@@ -32,7 +32,7 @@ export class FileConfigTab {
     new Setting(fileConfigTabContent)
       .setName("Attachments folder")
       .setDesc(
-        "Enter the path to the folder where the original images and audio will be moved."
+        "Enter the path to the folder where the original images will be moved."
       )
       .addText((text) =>
         text

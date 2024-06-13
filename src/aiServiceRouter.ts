@@ -12,7 +12,6 @@ import {
   fetchChunksForConcept,
   createNewFolder,
   extractTextFromImage,
-  transcribeAudio,
 } from "../app/aiService";
 import { requestUrl } from "obsidian";
 import { getModelFromTask } from "../standalone/models";
