@@ -133,11 +133,14 @@ export async function incrementTokenUsage(
       .set({
         tokenUsage: sql`${UserUsageTable.tokenUsage} + ${tokens}`,
       })
-      .where(eq(UserUsageTable.userId, userId));
+      .where(eq(UserUsageTable.userId, userId))
+      .returning({
+        remaining: sql<number>`${UserUsageTable.maxTokenUsage} - ${UserUsageTable.tokenUsage}`,
+      });
 
     console.log("Incremented tokens Usage for User ID:", userId, tokens);
     return {
-      remaining: userUsage[0].maxTokenUsage - userUsage[0].tokenUsage,
+      remaining: userUsage[0].remaining,
       usageError: false,
     };
   } catch (error) {
