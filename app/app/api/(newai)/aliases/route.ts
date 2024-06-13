@@ -2,7 +2,7 @@ import { openai } from "@ai-sdk/openai";
 import { generateAliasVariations } from "../../../../aiService";
 import { NextResponse, NextRequest } from "next/server";
 import { handleAuthorization } from "@/middleware";
-import { incrementTokenUsage } from "@/drizzle/schema";
+import { incrementAndLogTokenUsage } from "@/lib/incrementAndLogTokenUsage";
 
 export async function POST(request: NextRequest) {
   const { userId } = await handleAuthorization(request);
@@ -16,7 +16,7 @@ export async function POST(request: NextRequest) {
   const tokens = generateAliasData.usage.totalTokens;
   console.log("incrementing token usage aliases", userId, tokens);
   const aliases = generateAliasData.object.aliases;
-  await incrementTokenUsage(userId, tokens);
+  await incrementAndLogTokenUsage(userId, tokens);
   const response = NextResponse.json({ aliases });
   response.headers.set("Access-Control-Allow-Origin", "*");
 

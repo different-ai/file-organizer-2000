@@ -1,7 +1,7 @@
 import { generateTags } from "../../../../aiService";
 import { NextResponse, NextRequest } from "next/server";
 import { openai } from "@ai-sdk/openai";
-import { incrementTokenUsage } from "@/drizzle/schema";
+import { incrementAndLogTokenUsage } from "@/lib/incrementAndLogTokenUsage";
 import { handleAuthorization } from "@/middleware";
 export async function POST(request: NextRequest) {
   const { userId } = await handleAuthorization(request);
@@ -12,7 +12,7 @@ export async function POST(request: NextRequest) {
   // Increment token usage
   const tokens = generateTagsData.usage.totalTokens;
   console.log("incrementing token usage tags", userId, tokens);
-  await incrementTokenUsage(userId, tokens);
+  await incrementAndLogTokenUsage(userId, tokens);
 
   return NextResponse.json({ generatedTags });
 }

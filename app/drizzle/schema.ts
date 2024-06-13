@@ -63,7 +63,6 @@ export async function createOrUpdateUserUsage(
 
 export async function incrementApiUsage(userId: string): Promise<void> {
   console.log("Incrementing API Usage for User ID:", userId);
-  // get current apiUsage
 
   try {
     await db
@@ -81,9 +80,6 @@ export async function incrementApiUsage(userId: string): Promise<void> {
 
   // Increment successful, exit the retry loop
 }
-
-
-
 
 export const checkApiUsage = async (userId: string) => {
   console.log("Checking API Usage for User ID:", userId);
@@ -111,7 +107,7 @@ export const checkApiUsage = async (userId: string) => {
     console.log("User has not exceeded their API usage limit");
     return {
       remaining: userUsage[0].maxUsage - userUsage[0].apiUsage,
-      
+
       usageError: false,
     };
   } catch (error) {
@@ -127,12 +123,12 @@ export const checkApiUsage = async (userId: string) => {
 export async function incrementTokenUsage(
   userId: string,
   tokens: number
-): Promise<void> {
+): Promise<{ remaining: number; usageError: boolean }> {
   console.log("Incrementing API Usage for User ID:", userId);
   // get current apiUsage
 
   try {
-    await db
+    const userUsage = await db
       .update(UserUsageTable)
       .set({
         tokenUsage: sql`${UserUsageTable.tokenUsage} + ${tokens}`,
@@ -140,14 +136,15 @@ export async function incrementTokenUsage(
       .where(eq(UserUsageTable.userId, userId));
 
     console.log("Incremented tokens Usage for User ID:", userId);
+    return {
+      remaining: userUsage[0].maxTokenUsage - userUsage[0].tokenUsage,
+      usageError: false,
+    };
   } catch (error) {
     console.error("Error incrementing tokens Usage for User ID:", userId);
     console.error(error);
   }
-
-  // Increment successful, exit the retry loop
 }
-
 export const checkTokenUsage = async (userId: string) => {
   console.log("Checking token usage for User ID:", userId);
   try {

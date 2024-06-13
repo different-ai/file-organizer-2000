@@ -1,7 +1,7 @@
 import { openai } from "@ai-sdk/openai";
 import { guessRelevantFolder } from "../../../../aiService";
 import { NextRequest, NextResponse } from "next/server";
-import { incrementTokenUsage } from "@/drizzle/schema";
+import { incrementAndLogTokenUsage } from "@/lib/incrementAndLogTokenUsage";
 import { handleAuthorization } from "@/middleware";
 export async function POST(request: NextRequest) {
   const { userId } = await handleAuthorization(request);
@@ -11,7 +11,7 @@ export async function POST(request: NextRequest) {
   // increment tokenUsage
   const tokens = response.usage.totalTokens;
   console.log("incrementing token usage folders", userId, tokens);
-  await incrementTokenUsage(userId, tokens);
+  await incrementAndLogTokenUsage(userId, tokens);
   return NextResponse.json({
     folder: response.object.suggestedFolder,
   });

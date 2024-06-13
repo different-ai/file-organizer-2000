@@ -3,7 +3,7 @@ import { generateText } from "ai"; // Assuming generateText is the method from t
 import { getModel } from "@/lib/models";
 import { generateMessages } from "./prompt";
 import { handleAuthorization } from "@/middleware";
-import { incrementTokenUsage } from "@/drizzle/schema";
+import { incrementAndLogTokenUsage } from "@/lib/incrementAndLogTokenUsage";
 import { openai } from "@ai-sdk/openai";
 
 export const maxDuration = 60; // This function can run for a maximum of 5 seconds
@@ -22,7 +22,7 @@ export async function POST(request: NextRequest) {
     });
     const tokens = response.usage.totalTokens;
     console.log("incrementing token usage vision", userId, tokens);
-    await incrementTokenUsage(userId, tokens);
+    await incrementAndLogTokenUsage(userId, tokens);
 
     return NextResponse.json({ text: response.text });
   } catch (error) {

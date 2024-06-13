@@ -1,7 +1,7 @@
 import { createNewFolder } from "../../../../aiService";
 import { NextResponse, NextRequest } from "next/server";
 import { openai } from "@ai-sdk/openai";
-import { incrementTokenUsage } from "@/drizzle/schema";
+import { incrementAndLogTokenUsage } from "@/lib/incrementAndLogTokenUsage";
 import { handleAuthorization } from "@/middleware";
 export async function POST(request: NextRequest) {
   const { userId } = await handleAuthorization(request);
@@ -17,7 +17,7 @@ export async function POST(request: NextRequest) {
   // increment tokenUsage
   const tokens = newFolderData.usage.totalTokens;
   console.log("incrementing token usage create folders", userId, tokens);
-  await incrementTokenUsage(userId, tokens);
+  await incrementAndLogTokenUsage(userId, tokens);
   const newFolderName = newFolderData.object.newFolderName;
   const response = NextResponse.json({ folderName: newFolderName });
   response.headers.set("Access-Control-Allow-Origin", "*");

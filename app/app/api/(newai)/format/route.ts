@@ -1,7 +1,7 @@
 import { formatDocumentContent } from "../../../../aiService";
 import { openai } from "@ai-sdk/openai";
 import { NextResponse, NextRequest } from "next/server";
-import { incrementTokenUsage } from "@/drizzle/schema";
+import { incrementAndLogTokenUsage } from "@/lib/incrementAndLogTokenUsage";
 import { handleAuthorization } from "@/middleware";
 
 export async function POST(request: NextRequest) {
@@ -15,7 +15,7 @@ export async function POST(request: NextRequest) {
   );
   const tokens = response.usage.totalTokens;
   console.log("incrementing token usage format", userId, tokens);
-  await incrementTokenUsage(userId, tokens);
+  await incrementAndLogTokenUsage(userId, tokens);
 
   return NextResponse.json({ content: response.object.formattedContent });
 }

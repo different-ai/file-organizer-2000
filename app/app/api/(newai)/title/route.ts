@@ -1,7 +1,7 @@
 import { NextResponse, NextRequest } from "next/server";
 import { generateDocumentTitle } from "../../../../aiService";
 import { openai } from "@ai-sdk/openai";
-import { incrementTokenUsage } from "@/drizzle/schema";
+import { incrementAndLogTokenUsage } from "@/lib/incrementAndLogTokenUsage";
 import { handleAuthorization } from "@/middleware";
 
 export async function POST(request: NextRequest) {
@@ -14,7 +14,7 @@ export async function POST(request: NextRequest) {
   // Increment token usage
   const tokens = generateTitleData.usage.totalTokens;
   console.log("incrementing token usage title", userId, tokens);
-  await incrementTokenUsage(userId, tokens);
+  await incrementAndLogTokenUsage(userId, tokens);
 
   const response = NextResponse.json({ title });
   response.headers.set("Access-Control-Allow-Origin", "*");
