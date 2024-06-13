@@ -80,7 +80,7 @@ export async function generateTagsRouter(
         },
       })
     );
-    const { tags: generatedTags } = await response.json;
+    const { generatedTags } = await response.json;
     return generatedTags;
   } else {
     const model = getModelFromTask("tagging");
