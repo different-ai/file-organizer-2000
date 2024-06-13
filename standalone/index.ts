@@ -37,7 +37,6 @@ class FileOrganizerSettings {
   earlyAccessCode = "";
   processedTag = false;
   templatePaths = `${folderToWatch}/Templates`;
-  transcribeEmbeddedAudio = false;
   enableDocumentClassification = false;
   renameUntitledOnly = false;
   ignoreFolders = ["_FileOrganizer2000"];

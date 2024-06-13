@@ -20,7 +20,6 @@ import {
   createOpenAIInstance,
 } from "../standalone/models";
 
-import { extractTextFromImage, transcribeAudio } from "../app/aiService";
 import {
   classifyDocumentRouter,
   createNewFolderRouter,
@@ -60,7 +59,6 @@ class FileOrganizerSettings {
   // new formatting
   templatePaths = "_FileOrganizer2000/Templates";
   // experimental features settings
-  transcribeEmbeddedAudio = false;
   enableAliasGeneration = false;
   enableAtomicNotes = false;
   enableSimilarFiles = false;
@@ -97,9 +95,8 @@ class FileOrganizerSettings {
   openAIBaseUrl = "https://api.openai.com/v1";
 }
 
-const validAudioExtensions = ["mp3", "wav", "webm", "m4a"];
 const validImageExtensions = ["png", "jpg", "jpeg", "gif", "svg", "webp"];
-const validMediaExtensions = [...validAudioExtensions, ...validImageExtensions];
+const validMediaExtensions = [...validImageExtensions];
 const validTextExtensions = ["md", "txt"];
 const validExtensions = [...validMediaExtensions, ...validTextExtensions];
 
@@ -598,32 +595,6 @@ export default class FileOrganizer extends Plugin {
     return formatToSafeName(name);
   }
 
-  async generateTranscriptFromAudio(file: TFile) {
-    new Notice(
-      `Generating transcription for ${file.basename} this can take up to a minute`,
-      8000
-    );
-    try {
-      const arrayBuffer = await this.app.vault.readBinary(file);
-      const fileContent = Buffer.from(arrayBuffer);
-      const encodedAudio = fileContent.toString("base64");
-      logMessage(`Encoded: ${encodedAudio.substring(0, 20)}...`);
-
-      const postProcessedText = await transcribeAudio(
-        encodedAudio,
-        file.extension,
-        this.settings.useCustomServer
-          ? this.settings.customServerUrl
-          : this.settings.defaultServerUrl
-      );
-      return postProcessedText;
-    } catch (e) {
-      console.error("Error generating transcript", e);
-      new Notice("Error generating transcript", 3000);
-      return "";
-    }
-  }
-
   async compressImage(fileContent: Buffer): Promise<Buffer> {
     const image = await Jimp.read(fileContent);
 
@@ -1041,21 +1012,6 @@ export default class FileOrganizer extends Plugin {
   }
 
   registerEventHandlers() {
-    // audio append events
-    this.registerEvent(
-      this.app.vault.on("create", async (file) => {
-        if (!this.settings.transcribeEmbeddedAudio) return;
-        const activeFile = this.app.workspace.getActiveFile();
-        if (
-          activeFile &&
-          file instanceof TFile &&
-          validAudioExtensions.includes(file.extension)
-        ) {
-          await this.processEmbeddedAudioFile(file, activeFile);
-        }
-      })
-    );
-
     // inbox events
     this.registerEvent(
       this.app.vault.on("create", (file) => {

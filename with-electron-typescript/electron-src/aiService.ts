@@ -1,6 +1,5 @@
 //@ts-nocheck
 
-
 import { LanguageModel, generateObject, generateText, streamObject } from "ai";
 import { z } from "zod";
 
@@ -103,7 +102,9 @@ export async function guessRelevantFolder(
         model,
         temperature: 0,
         system: "only answer with a pathname from the list",
-        prompt: `Given the content: "${content}" and the file name: "${fileName}", determine the most appropriate folder from the following list: ${folders.join(", ")}. Base your decision on the main topic and purpose of the content. Respond with only the folder name. If none of the folders are suitable, respond with 'null'.`,
+        prompt: `Given the content: "${content}" and the file name: "${fileName}", determine the most appropriate folder from the following list: ${folders.join(
+          ", "
+        )}. Base your decision on the main topic and purpose of the content. Respond with only the folder name. If none of the folders are suitable, respond with 'null'.`,
       });
       return defaultResponse.text.trim() === "null"
         ? null
@@ -231,15 +232,6 @@ export async function generateDocumentTitle(
       ); // Ensure a string is returned even if text is empty
     }
   }
-}
-
-// Function to transcribe audio
-export async function transcribeAudio(
-  audioBase64: string,
-  extension: string
-): Promise<string> {
-  throw new Error("This function is not implemented yet.");
-  // Implementation remains the same as before
 }
 
 // Function to extract text from image

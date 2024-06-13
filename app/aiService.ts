@@ -6,7 +6,12 @@ import {
   streamObject,
 } from "ai";
 import { z } from "zod";
-
+import { NextResponse } from "next/server";
+import fs from "fs";
+import { promises as fsPromises } from "fs";
+import { tmpdir } from "os";
+import { join } from "path";
+import OpenAI from "openai";
 // Function to generate tags
 export async function generateTags(
   content: string,
@@ -134,16 +139,6 @@ export async function generateDocumentTitle(
   });
 
   return response;
-}
-
-// Function to transcribe audio
-export async function transcribeAudio(
-  encodedAudio: string,
-
-  extension: string,
-  url: string
-): Promise<string> {
-  throw new Error("Transcription is not available in the current version");
 }
 
 // Function to extract text from image

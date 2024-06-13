@@ -155,23 +155,6 @@ export class CustomizationTab {
       );
 
     new Setting(customizationTabContent)
-      .setName("Transcribe Embedded Audio")
-      .setDesc("Enable automatic transcription of embedded audios.")
-      .addToggle((toggle) =>
-        toggle
-          .setValue(this.plugin.settings.transcribeEmbeddedAudio)
-          .onChange(async (value) => {
-            if (!value) {
-              this.plugin.settings.transcribeEmbeddedAudio = false;
-              await this.plugin.saveSettings();
-              return;
-            }
-            this.plugin.settings.transcribeEmbeddedAudio = true;
-            await this.plugin.saveSettings();
-          })
-      );
-
-    new Setting(customizationTabContent)
       .setName("Custom Formatting")
       .setHeading();
 

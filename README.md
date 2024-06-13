@@ -4,7 +4,7 @@ We ship daily - try to keep F02k version up to date
 
 # AI File Organizer 2000
 
-This is an Obsidian Plugin that uses AI to help you keep your files organized. It tags, renames, and moves files to the most appropriate folders in your vault. You'll also be able to transcribe audios, to have your images annotated, and to create AI templates.
+This is an Obsidian Plugin that uses AI to help you keep your files organized. It tags, renames, and moves files to the most appropriate folders in your vault. You'll also be able to have your images annotated, and to create AI templates.
 
 ### Features
 
@@ -22,7 +22,7 @@ This is an Obsidian Plugin that uses AI to help you keep your files organized.
 
 ## How to use
 
-### A. Get suggestions and choose what to apply with AI Assistant View 
+### A. Get suggestions and choose what to apply with AI Assistant View
 
 1. Click on the Assistant View Icon or set up the "Show Assistant" hotkey to open the Sidebar
 2. Select any of your files and choose which changes to apply
@@ -43,11 +43,9 @@ It takes a sec, and then renames, and organizes your file.
 
 See plugin settings to customize the changes AI Inbox applies to your files.
 
-
 ### C. Create custom AI Templates
 
 See video: https://www.youtube.com/watch?v=rommuUXRgUw&t=17s
-
 
 ## Setup
 
@@ -67,8 +65,6 @@ Choose between any of the three setups below
 4. That's it you should be ready to go!
 
 <img width="836" alt="byok" src="https://github.com/different-ai/file-organizer-2000/assets/46509400/2bcc6824-236d-40ae-895b-d501401238bd">
-
-
 
 ### C. Self-hosting
 
@@ -102,7 +98,6 @@ Choose between any of the three setups below
 
 For those who would like to play around with different models, there is a promptfoo.yaml file in the project including examples with local LLMS.
 See link for more info: https://promptfoo.dev/docs/configuration/guide/
-
 
 ## Community
 
