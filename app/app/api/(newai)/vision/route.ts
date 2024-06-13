@@ -1,9 +1,10 @@
 import { NextResponse, NextRequest } from "next/server";
 import { generateText } from "ai"; // Assuming generateText is the method from the AI SDK
-import { getModel, models } from "@/lib/models";
+import { getModel } from "@/lib/models";
 import { generateMessages } from "./prompt";
 import { handleAuthorization } from "@/middleware";
 import { incrementTokenUsage } from "@/drizzle/schema";
+import { openai } from "@ai-sdk/openai";
 
 export const maxDuration = 60; // This function can run for a maximum of 5 seconds
 
@@ -12,10 +13,8 @@ export async function POST(request: NextRequest) {
     const payload = await request.json();
     const { userId } = await handleAuthorization(request);
 
-    const modelName = process.env.MODEL_VISION || "gpt-4o";
-    const model = getModel(modelName);
-    console.log("vision is using model", modelName);
-    const messages = generateMessages(model, payload.image);
+    const model = openai("gpt-4o");
+    const messages = generateMessages("gpt-4o", payload.image);
     // Using the AI SDK's generateText method
     const response = await generateText({
       model,

@@ -36,18 +36,7 @@ export async function handleAuthorization(req: NextRequest) {
       response: new Response(`Unauthorized ${result.code}`, { status: 401 }),
     };
   }
-  const { remaining, usageError } = await checkApiUsage(result.ownerId);
-  if (error || usageError) {
-    console.error(error.message);
-    return { response: new Response("Internal Server Error", { status: 500 }) };
-  }
-  if (remaining <= 0) {
-    return {
-      response: new Response("No remaining credits", {
-        status: 429,
-      }),
-    };
-  }
+
   await incrementApiUsage(result.ownerId);
 
   // get user from api key
@@ -55,16 +44,15 @@ export async function handleAuthorization(req: NextRequest) {
   // check if customer or not
   //@ts-ignore
   const isCustomer = user?.publicMetadata?.stripe?.status === "complete";
-  await handleLogging(req, result.ownerId, isCustomer, result.remaining);
+  await handleLogging(req, result.ownerId, isCustomer);
 
-  return { userId: result.ownerId, isCustomer, remaining: result.remaining };
+  return { userId: result.ownerId, isCustomer };
 }
 
 async function handleLogging(
   req: NextRequest,
   userId: string,
-  isCustomer: boolean,
-  reamining: number
+  isCustomer: boolean
 ) {
   const user = await clerkClient.users.getUser(userId);
   console.log("user", user.emailAddresses[0]?.emailAddress);
@@ -83,7 +71,6 @@ async function handleLogging(
       properties: {
         endpoint: req.nextUrl.pathname.replace("/api/", ""),
         isCustomer,
-        remaining: reamining,
         email: user?.emailAddresses[0]?.emailAddress,
       },
     });
@@ -101,15 +88,7 @@ const userManagementMiddleware = () =>
     }
 
     if (isApiRoute(req)) {
-      try {
-        const { userId, isCustomer, response, remaining } =
-          await handleAuthorization(req);
-        if (response) return response;
-
-        return NextResponse.next();
-      } catch (error) {
-        return new Response("Unauthorized Internal", { status: 401 });
-      }
+      return NextResponse.next();
     }
 
     if (isAuthRoute(req)) auth().protect();
