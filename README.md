@@ -1,7 +1,3 @@
-We ship daily - try to keep F02k version up to date
-
-<a href="https://discord.gg/udQnCRFyus"><img src="https://raw.githubusercontent.com/unslothai/unsloth/main/images/Discord button.png" height="48"></a>
-
 # AI File Organizer 2000
 
 This is an Obsidian Plugin that uses AI to help you keep your files organized. It tags, renames, and moves files to the most appropriate folders in your vault. You'll also be able to have your images annotated, and to create AI templates.
