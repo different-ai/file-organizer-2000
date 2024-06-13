@@ -81,6 +81,10 @@ export async function incrementApiUsage(userId: string): Promise<void> {
 
   // Increment successful, exit the retry loop
 }
+
+
+
+
 export const checkApiUsage = async (userId: string) => {
   console.log("Checking API Usage for User ID:", userId);
   try {
@@ -107,6 +111,7 @@ export const checkApiUsage = async (userId: string) => {
     console.log("User has not exceeded their API usage limit");
     return {
       remaining: userUsage[0].maxUsage - userUsage[0].apiUsage,
+      
       usageError: false,
     };
   } catch (error) {
@@ -142,3 +147,37 @@ export async function incrementTokenUsage(
 
   // Increment successful, exit the retry loop
 }
+
+export const checkTokenUsage = async (userId: string) => {
+  console.log("Checking token usage for User ID:", userId);
+  try {
+    const userUsage = await db
+      .select()
+      .from(UserUsageTable)
+      .where(eq(UserUsageTable.userId, userId))
+      .limit(1)
+      .execute();
+
+    console.log("User Usage Results for User ID:", userId, userUsage);
+
+    if (userUsage[0].tokenUsage >= userUsage[0].maxTokenUsage) {
+      console.log("User has exceeded their token usage limit");
+      return {
+        remaining: 0,
+        usageError: false,
+      };
+    }
+    console.log("User has not exceeded their token usage limit");
+    return {
+      remaining: userUsage[0].maxTokenUsage - userUsage[0].tokenUsage,
+      usageError: false,
+    };
+  } catch (error) {
+    console.error("Error checking token usage for User ID:", userId);
+    console.error(error);
+    return {
+      remaining: 0,
+      usageError: true,
+    };
+  }
+};

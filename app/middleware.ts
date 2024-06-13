@@ -6,7 +6,11 @@ import {
 import { verifyKey } from "@unkey/api";
 import { NextFetchEvent, NextRequest, NextResponse } from "next/server";
 import PostHogClient from "./lib/posthog";
-import { checkApiUsage, incrementApiUsage } from "./drizzle/schema";
+import {
+  checkApiUsage,
+  checkTokenUsage,
+  incrementApiUsage,
+} from "./drizzle/schema";
 const isApiRoute = createRouteMatcher(["/api(.*)"]);
 const isAuthRoute = createRouteMatcher(["/(.*)"]);
 const isCheckoutApiRoute = createRouteMatcher(["/api/create-checkout-session"]);
@@ -36,14 +40,27 @@ export async function handleAuthorization(req: NextRequest) {
       response: new Response(`Unauthorized ${result.code}`, { status: 401 }),
     };
   }
+  const { remaining, usageError } = await checkTokenUsage(result.ownerId);
+  if (usageError) {
+    return {
+      response: new Response("Error checking token usage", { status: 500 }),
+    };
+  }
+  if (remaining <= 0) {
+    return {
+      response: new Response("Token usage exceeded", { status: 429 }),
+    };
+  }
 
   await incrementApiUsage(result.ownerId);
 
   // get user from api key
   const user = await clerkClient.users.getUser(result.ownerId);
   // check if customer or not
-  //@ts-ignore
-  const isCustomer = user?.publicMetadata?.stripe?.status === "complete";
+  const isCustomer =
+    (user?.publicMetadata as CustomJwtSessionClaims["publicMetadata"])?.stripe
+      ?.status === "complete";
+
   await handleLogging(req, result.ownerId, isCustomer);
 
   return { userId: result.ownerId, isCustomer };
