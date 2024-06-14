@@ -46,7 +46,8 @@ export default function Component() {
           Choose Your Plan
         </h1>
         <p className="text-lg text-gray-500  mt-2 mb-6 text-center">
-          Includes 3 day free trial. Cancel anytime.
+          Try out File Organizer 2000 for 3 days to get your Obsidian organized.
+          Cancel anytime.
         </p>
         <div className="bg-emerald-100 p-2 rounded-md text-emerald-900 text-center mb-8 max-w-md mx-auto">
           <SparkleIcon className="h-5 w-5 inline-block mr-2" />
