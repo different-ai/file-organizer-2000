@@ -74,7 +74,7 @@ export default function Component() {
                 </li>
                 <li className="flex items-center space-x-2">
                   <CheckIcon className="h-5 w-5 text-green-500" />
-                  <span>5000 files per month</span>
+                  <span>800 files per month</span>
                 </li>
                 <li className="flex items-center space-x-2">
                   <CheckIcon className="h-5 w-5 text-green-500" />
@@ -126,7 +126,7 @@ export default function Component() {
                 </li>
                 <li className="flex items-center space-x-2">
                   <CheckIcon className="h-5 w-5 text-green-500" />
-                  <span>5000 files per month</span>
+                  <span>800 files per month</span>
                 </li>
                 <li className="flex items-center space-x-2">
                   <CheckIcon className="h-5 w-5 text-green-500" />
