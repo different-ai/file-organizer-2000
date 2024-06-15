@@ -21,14 +21,14 @@ export async function classifyDocumentRouter(
   content: string,
   name: string,
   templateNames: string[],
-  useCustomServer: boolean,
-  customServerUrl: string,
+  usePro: boolean,
+  serverUrl: string,
   apiKey: string
 ): Promise<string | undefined> {
-  if (useCustomServer) {
+  if (usePro) {
     const response = await makeApiRequest(() =>
       requestUrl({
-        url: `${customServerUrl}/api/classify1`,
+        url: `${serverUrl}/api/classify1`,
         method: "POST",
         contentType: "application/json",
         body: JSON.stringify({
@@ -60,14 +60,15 @@ export async function generateTagsRouter(
   content: string,
   fileName: string,
   tags: string[],
-  useCustomServer: boolean,
-  customServerUrl: string,
+  usePro: boolean,
+  serverUrl: string,
   apiKey: string
 ): Promise<string[]> {
-  if (useCustomServer) {
+  if (usePro) {
+    console.log("serverUrl tag", serverUrl);
     const response = await makeApiRequest(() =>
       requestUrl({
-        url: `${customServerUrl}/api/tags`,
+        url: `${serverUrl}/api/tags`,
         method: "POST",
         contentType: "application/json",
         body: JSON.stringify({
@@ -92,14 +93,14 @@ export async function createNewFolderRouter(
   content: string,
   fileName: string,
   existingFolders: string[],
-  useCustomServer: boolean,
-  customServerUrl: string,
+  usePro: boolean,
+  serverUrl: string,
   apiKey: string
 ): Promise<string> {
-  if (useCustomServer) {
+  if (usePro) {
     const response = await makeApiRequest(() =>
       requestUrl({
-        url: `${customServerUrl}/api/create-folder`,
+        url: `${serverUrl}/api/create-folder`,
         method: "POST",
         contentType: "application/json",
         body: JSON.stringify({
@@ -129,14 +130,14 @@ export async function createNewFolderRouter(
 export async function generateAliasVariationsRouter(
   fileName: string,
   content: string,
-  useCustomServer: boolean,
-  customServerUrl: string,
+  usePro: boolean,
+  serverUrl: string,
   apiKey: string
 ): Promise<string[]> {
-  if (useCustomServer) {
+  if (usePro) {
     const response = await makeApiRequest(() =>
       requestUrl({
-        url: `${customServerUrl}/api/aliases`,
+        url: `${serverUrl}/api/aliases`,
         method: "POST",
         contentType: "application/json",
         body: JSON.stringify({
@@ -162,13 +163,15 @@ export async function guessRelevantFolderRouter(
   filePath: string,
   folders: string[],
   useServer: boolean,
-  customServerUrl: string,
+  serverUrl: string,
   apiKey: string
 ): Promise<string | null> {
+  console.log("useServer", useServer);
+
   if (useServer) {
     const response = await makeApiRequest(() =>
       requestUrl({
-        url: `${customServerUrl}/api/folders`,
+        url: `${serverUrl}/api/folders`,
         method: "POST",
         contentType: "application/json",
         body: JSON.stringify({
@@ -198,14 +201,14 @@ export async function guessRelevantFolderRouter(
 export async function generateRelationshipsRouter(
   activeFileContent: string,
   files: { name: string }[],
-  useCustomServer: boolean,
-  customServerUrl: string,
+  usePro: boolean,
+  serverUrl: string,
   apiKey: string
 ): Promise<string[]> {
-  if (useCustomServer) {
+  if (usePro) {
     const response = await makeApiRequest(() =>
       requestUrl({
-        url: `${customServerUrl}/api/relationships`,
+        url: `${serverUrl}/api/relationships`,
         method: "POST",
         contentType: "application/json",
         body: JSON.stringify({
@@ -232,14 +235,14 @@ export async function generateRelationshipsRouter(
 
 export async function generateDocumentTitleRouter(
   content: string,
-  useCustomServer: boolean,
-  customServerUrl: string,
+  usePro: boolean,
+  serverUrl: string,
   apiKey: string
 ): Promise<string> {
-  if (useCustomServer) {
+  if (usePro) {
     const response = await makeApiRequest(() =>
       requestUrl({
-        url: `${customServerUrl}/api/title`,
+        url: `${serverUrl}/api/title`,
         method: "POST",
         contentType: "application/json",
         body: JSON.stringify({ document: content }),
@@ -260,14 +263,14 @@ export async function generateDocumentTitleRouter(
 export async function formatDocumentContentRouter(
   content: string,
   formattingInstruction: string,
-  useCustomServer: boolean,
-  customServerUrl: string,
+  usePro: boolean,
+  serverUrl: string,
   apiKey: string
 ): Promise<string> {
-  if (useCustomServer) {
+  if (usePro) {
     const response = await makeApiRequest(() =>
       requestUrl({
-        url: `${customServerUrl}/api/format`,
+        url: `${serverUrl}/api/format`,
         method: "POST",
         contentType: "application/json",
         body: JSON.stringify({
@@ -294,14 +297,14 @@ export async function formatDocumentContentRouter(
 
 export async function identifyConceptsRouter(
   content: string,
-  useCustomServer: boolean,
-  customServerUrl: string,
+  usePro: boolean,
+  serverUrl: string,
   apiKey: string
 ): Promise<string[]> {
-  if (useCustomServer) {
+  if (usePro) {
     const response = await makeApiRequest(() =>
       requestUrl({
-        url: `${customServerUrl}/api/concepts`,
+        url: `${serverUrl}/api/concepts`,
         method: "POST",
         contentType: "application/json",
         body: JSON.stringify({ content }),
@@ -322,14 +325,14 @@ export async function identifyConceptsRouter(
 export async function fetchChunksForConceptRouter(
   content: string,
   concept: string,
-  useCustomServer: boolean,
-  customServerUrl: string,
+  usePro: boolean,
+  serverUrl: string,
   apiKey: string
 ): Promise<{ content: string | undefined }> {
-  if (useCustomServer) {
+  if (usePro) {
     const response = await makeApiRequest(() =>
       requestUrl({
-        url: `${customServerUrl}/api/chunks`,
+        url: `${serverUrl}/api/chunks`,
         method: "POST",
         contentType: "application/json",
         body: JSON.stringify({ content, concept }),
@@ -349,16 +352,16 @@ export async function fetchChunksForConceptRouter(
 
 export async function extractTextFromImageRouter(
   image: ArrayBuffer,
-  useCustomServer: boolean,
-  customServerUrl: string,
+  usePro: boolean,
+  serverUrl: string,
   apiKey: string
 ): Promise<string> {
-  if (useCustomServer) {
+  if (usePro) {
     const base64Image = arrayBufferToBase64(image);
 
     const response = await makeApiRequest(() =>
       requestUrl({
-        url: `${customServerUrl}/api/vision`,
+        url: `${serverUrl}/api/vision`,
         method: "POST",
         contentType: "application/json",
         body: JSON.stringify({ image: base64Image }),

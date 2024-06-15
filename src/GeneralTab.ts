@@ -63,35 +63,6 @@ export class ModelTab {
           })
       );
 
-    // Custom Server Toggle
-    new Setting(fileOrganizerSettingsEl)
-      .setName("Use Custom Server")
-      .setDesc("Enable this to use a custom server URL.")
-      .addToggle((toggle) =>
-        toggle
-          .setValue(this.plugin.settings.useCustomServer)
-          .onChange(async (value) => {
-            this.plugin.settings.useCustomServer = value;
-            await this.plugin.saveSettings();
-            this.updateSettingsVisibility();
-          })
-      );
-
-    // Custom Server Settings Section
-    const customServerSettingsEl = modelTabContent.createEl("div", {
-      cls: "custom-server-settings",
-    });
-    new Setting(customServerSettingsEl)
-      .setName("Custom Server URL")
-      .addText((text) =>
-        text
-          .setPlaceholder("Enter your custom server URL")
-          .setValue(this.plugin.settings.customServerUrl)
-          .onChange(async (value) => {
-            this.plugin.settings.customServerUrl = value;
-            await this.plugin.saveSettings();
-          })
-      );
     // DONT THINK WE NEED THIS ANYMORE, WE HAVE THE LOGIN BUTTON
     // Special message for File Organizer
     // const fileOrganizerMessageEl = fileOrganizerSettingsEl.createEl("div", {
@@ -138,16 +109,19 @@ export class ModelTab {
         })
     );
 
-    new Setting(openAISettingsEl).setName("OpenAI Base URL").addText((text) =>
-      text
-        .setPlaceholder("Enter the OpenAI base URL")
-        .setValue(this.plugin.settings.openAIBaseUrl)
-        .onChange(async (value) => {
-          this.plugin.settings.openAIBaseUrl = value;
-          await this.plugin.saveSettings();
-          this.plugin.updateOpenAIConfig();
-        })
-    );
+    new Setting(openAISettingsEl)
+      .setName("OpenAI Base URL")
+      .setDesc("Default should be https://api.openai.com/v1")
+      .addText((text) =>
+        text
+          .setPlaceholder("Enter the OpenAI base URL")
+          .setValue(this.plugin.settings.openAIBaseUrl)
+          .onChange(async (value) => {
+            this.plugin.settings.openAIBaseUrl = value;
+            await this.plugin.saveSettings();
+            this.plugin.updateOpenAIConfig();
+          })
+      );
 
     const openAIInfoEl = openAISettingsEl.createEl("div", {
       cls: "openai-settings",
@@ -195,8 +169,7 @@ export class ModelTab {
     }
 
     if (customServerSettingsEl) {
-      customServerSettingsEl.style.display = this.plugin.settings
-        .useCustomServer
+      customServerSettingsEl.style.display = this.plugin.settings.usePro
         ? "block"
         : "none";
     }

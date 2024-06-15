@@ -49,9 +49,10 @@ class FileOrganizerSettings {
 
   useAutoAppend = false;
   defaultServerUrl = "https://app.fileorganizer2000.com";
-  customServerUrl = "https://app.fileorganizer2000.com";
+  localServerUrl = "http://localhost:3000";
   usePro = true;
-  useCustomServer = false;
+  // set to true for dev mode
+  useLocalServer = false;
   useSimilarTagsInFrontmatter = false;
   // enableEarlyAccess = false;
   // earlyAccessCode = "";
@@ -242,8 +243,8 @@ export default class FileOrganizer extends Plugin {
       name,
       content,
       this.settings.usePro,
-      this.settings.useCustomServer
-        ? this.settings.customServerUrl
+      this.settings.useLocalServer
+        ? this.settings.localServerUrl
         : this.settings.defaultServerUrl,
       this.settings.API_KEY
     );
@@ -286,8 +287,8 @@ export default class FileOrganizer extends Plugin {
       content,
       formattingInstruction,
       this.settings.usePro,
-      this.settings.useCustomServer
-        ? this.settings.customServerUrl
+      this.settings.useLocalServer
+        ? this.settings.localServerUrl
         : this.settings.defaultServerUrl,
       this.settings.API_KEY
     );
@@ -320,8 +321,8 @@ export default class FileOrganizer extends Plugin {
     return await identifyConceptsRouter(
       content,
       this.settings.usePro,
-      this.settings.useCustomServer
-        ? this.settings.customServerUrl
+      this.settings.useLocalServer
+        ? this.settings.localServerUrl
         : this.settings.defaultServerUrl,
       this.settings.API_KEY
     );
@@ -335,8 +336,8 @@ export default class FileOrganizer extends Plugin {
       content,
       concept,
       this.settings.usePro,
-      this.settings.useCustomServer
-        ? this.settings.customServerUrl
+      this.settings.useLocalServer
+        ? this.settings.localServerUrl
         : this.settings.defaultServerUrl,
       this.settings.API_KEY
     );
@@ -389,8 +390,8 @@ export default class FileOrganizer extends Plugin {
       name,
       templateNames,
       this.settings.usePro,
-      this.settings.useCustomServer
-        ? this.settings.customServerUrl
+      this.settings.useLocalServer
+        ? this.settings.localServerUrl
         : this.settings.defaultServerUrl,
       this.settings.API_KEY
     );
@@ -560,8 +561,8 @@ export default class FileOrganizer extends Plugin {
       activeFileContent,
       fileContents,
       this.settings.usePro,
-      this.settings.useCustomServer
-        ? this.settings.customServerUrl
+      this.settings.useLocalServer
+        ? this.settings.localServerUrl
         : this.settings.defaultServerUrl,
       this.settings.API_KEY
     );
@@ -585,8 +586,8 @@ export default class FileOrganizer extends Plugin {
     const name = await generateDocumentTitleRouter(
       content,
       this.settings.usePro,
-      this.settings.useCustomServer
-        ? this.settings.customServerUrl
+      this.settings.useLocalServer
+        ? this.settings.localServerUrl
         : this.settings.defaultServerUrl,
       this.settings.API_KEY
     );
@@ -641,8 +642,8 @@ export default class FileOrganizer extends Plugin {
     const processedContent = await extractTextFromImageRouter(
       processedArrayBuffer,
       this.settings.usePro,
-      this.settings.useCustomServer
-        ? this.settings.customServerUrl
+      this.settings.useLocalServer
+        ? this.settings.localServerUrl
         : this.settings.defaultServerUrl,
       this.settings.API_KEY
     );
@@ -691,8 +692,8 @@ export default class FileOrganizer extends Plugin {
       fileName,
       tags,
       this.settings.usePro,
-      this.settings.useCustomServer
-        ? this.settings.customServerUrl
+      this.settings.useLocalServer
+        ? this.settings.localServerUrl
         : this.settings.defaultServerUrl,
       this.settings.API_KEY
     );
@@ -768,8 +769,8 @@ export default class FileOrganizer extends Plugin {
       filePath,
       filteredFolders,
       this.settings.usePro,
-      this.settings.useCustomServer
-        ? this.settings.customServerUrl
+      this.settings.useLocalServer
+        ? this.settings.localServerUrl
         : this.settings.defaultServerUrl,
       this.settings.API_KEY
     );
