@@ -157,21 +157,13 @@ export class ModelTab {
       ".file-organizer-settings"
     );
     const openAISettingsEl = this.containerEl.querySelector(".openai-settings");
-    const customServerSettingsEl = this.containerEl.querySelector(
-      ".custom-server-settings"
-    );
+
     if (fileOrganizerSettingsEl) {
       fileOrganizerSettingsEl.style.display = isPro ? "block" : "none";
     }
 
     if (openAISettingsEl) {
       openAISettingsEl.style.display = isPro ? "none" : "block";
-    }
-
-    if (customServerSettingsEl) {
-      customServerSettingsEl.style.display = this.plugin.settings.usePro
-        ? "block"
-        : "none";
     }
   }
 }
