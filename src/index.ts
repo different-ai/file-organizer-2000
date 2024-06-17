@@ -48,11 +48,8 @@ class FileOrganizerSettings {
   renameDocumentTitle = false; // default value is true
 
   useAutoAppend = false;
-  defaultServerUrl = "https://app.fileorganizer2000.com";
-  localServerUrl = "http://localhost:3000";
   usePro = true;
   // set to true for dev mode
-  useLocalServer = false;
   useSimilarTagsInFrontmatter = false;
   // enableEarlyAccess = false;
   // earlyAccessCode = "";
@@ -108,6 +105,13 @@ const isValidExtension = (extension: string) => {
   }
   return true;
 };
+// determine sever url
+const serverUrl =
+  process.env.NODE_ENV == "development"
+    ? "http://localhost:3000"
+    : "https://app.fileorganizer2000.com";
+
+logMessage(`Server URL: ${serverUrl}`);
 
 // move to utils later
 // @ts-ignore
@@ -243,9 +247,7 @@ export default class FileOrganizer extends Plugin {
       name,
       content,
       this.settings.usePro,
-      this.settings.useLocalServer
-        ? this.settings.localServerUrl
-        : this.settings.defaultServerUrl,
+      serverUrl,
       this.settings.API_KEY
     );
   }
@@ -287,9 +289,7 @@ export default class FileOrganizer extends Plugin {
       content,
       formattingInstruction,
       this.settings.usePro,
-      this.settings.useLocalServer
-        ? this.settings.localServerUrl
-        : this.settings.defaultServerUrl,
+      serverUrl,
       this.settings.API_KEY
     );
     await this.app.vault.modify(file, formattedContent);
@@ -321,9 +321,7 @@ export default class FileOrganizer extends Plugin {
     return await identifyConceptsRouter(
       content,
       this.settings.usePro,
-      this.settings.useLocalServer
-        ? this.settings.localServerUrl
-        : this.settings.defaultServerUrl,
+      serverUrl,
       this.settings.API_KEY
     );
   }
@@ -336,9 +334,7 @@ export default class FileOrganizer extends Plugin {
       content,
       concept,
       this.settings.usePro,
-      this.settings.useLocalServer
-        ? this.settings.localServerUrl
-        : this.settings.defaultServerUrl,
+      serverUrl,
       this.settings.API_KEY
     );
   }
@@ -390,9 +386,7 @@ export default class FileOrganizer extends Plugin {
       name,
       templateNames,
       this.settings.usePro,
-      this.settings.useLocalServer
-        ? this.settings.localServerUrl
-        : this.settings.defaultServerUrl,
+      serverUrl,
       this.settings.API_KEY
     );
 
@@ -561,9 +555,7 @@ export default class FileOrganizer extends Plugin {
       activeFileContent,
       fileContents,
       this.settings.usePro,
-      this.settings.useLocalServer
-        ? this.settings.localServerUrl
-        : this.settings.defaultServerUrl,
+      serverUrl,
       this.settings.API_KEY
     );
 
@@ -586,9 +578,7 @@ export default class FileOrganizer extends Plugin {
     const name = await generateDocumentTitleRouter(
       content,
       this.settings.usePro,
-      this.settings.useLocalServer
-        ? this.settings.localServerUrl
-        : this.settings.defaultServerUrl,
+      serverUrl,
       this.settings.API_KEY
     );
     return formatToSafeName(name);
@@ -642,9 +632,7 @@ export default class FileOrganizer extends Plugin {
     const processedContent = await extractTextFromImageRouter(
       processedArrayBuffer,
       this.settings.usePro,
-      this.settings.useLocalServer
-        ? this.settings.localServerUrl
-        : this.settings.defaultServerUrl,
+      serverUrl,
       this.settings.API_KEY
     );
 
@@ -692,9 +680,7 @@ export default class FileOrganizer extends Plugin {
       fileName,
       tags,
       this.settings.usePro,
-      this.settings.useLocalServer
-        ? this.settings.localServerUrl
-        : this.settings.defaultServerUrl,
+      serverUrl,
       this.settings.API_KEY
     );
   }
@@ -769,9 +755,7 @@ export default class FileOrganizer extends Plugin {
       filePath,
       filteredFolders,
       this.settings.usePro,
-      this.settings.useLocalServer
-        ? this.settings.localServerUrl
-        : this.settings.defaultServerUrl,
+      serverUrl,
       this.settings.API_KEY
     );
 
@@ -782,9 +766,7 @@ export default class FileOrganizer extends Plugin {
         filePath,
         filteredFolders,
         this.settings.usePro,
-        this.settings.useCustomServer
-          ? this.settings.customServerUrl
-          : this.settings.defaultServerUrl,
+        serverUrl,
         this.settings.API_KEY
       );
       destinationFolder = newFolderName;
