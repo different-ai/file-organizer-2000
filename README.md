@@ -18,18 +18,22 @@ This is an Obsidian Plugin that uses AI to help you keep your files organized.
 
 ## How to use
 
-### A. Get suggestions and choose what to apply with AI Assistant View
+### A.  AI Assistant View
+
+Get suggestions and choose what to apply with the Assistant view. Here's how to use it:
 
 1. Click on the Assistant View Icon or set up the "Show Assistant" hotkey to open the Sidebar
 2. Select any of your files and choose which changes to apply
 
 <img width="1277" alt="Screenshot 2024-05-24 at 11 42 17 PM" src="https://github.com/different-ai/file-organizer-2000/assets/46509400/dc06a61f-64d0-4e10-898d-3e0330004e94">
 
-### B. or Auto-Organize with the AI Inbox
+### B.  AI Inbox
+
+Auto-organize with the AI Inbox.
 
 We recommend the AI Assistant view for more control. But the AI Inbox can be handy as well. Simply move any of your files to the "Inbox" folder and the plugin will automatically move it to the folder it belongs. Additional configuration can also be specified within the plugin settings.
 
-Place your unorganized files into `_FileOrganizer2000/Inbox`
+Move your unorganized files into `_FileOrganizer2000/Inbox`
 
 ![image](https://github.com/different-ai/file-organizer-2000/assets/11430621/295038f0-170c-456e-8e0a-e89c31719b95)
 
