@@ -6,8 +6,8 @@ import {
   TAbstractFile,
   moment,
   WorkspaceLeaf,
-  requestUrl,
   normalizePath,
+  loadPdfJs,
 } from "obsidian";
 import { logMessage, formatToSafeName } from "../utils";
 import { FileOrganizerSettingTab } from "./FileOrganizerSettingTab";
@@ -33,6 +33,8 @@ import {
   guessRelevantFolderRouter,
   identifyConceptsRouter,
 } from "./aiServiceRouter";
+import { getEncoding } from "js-tiktoken";
+
 type TagCounts = {
   [key: string]: number;
 };
@@ -92,10 +94,17 @@ class FileOrganizerSettings {
   openAIBaseUrl = "https://api.openai.com/v1";
 }
 
+const contextLimit = 128 * 1024; // 128kb
+
 const validImageExtensions = ["png", "jpg", "jpeg", "gif", "svg", "webp"];
 const validMediaExtensions = [...validImageExtensions];
 const validTextExtensions = ["md", "txt"];
-const validExtensions = [...validMediaExtensions, ...validTextExtensions];
+
+const validExtensions = [
+  ...validMediaExtensions,
+  ...validTextExtensions,
+  "pdf",
+];
 
 const isValidExtension = (extension: string) => {
   if (!validExtensions.includes(extension)) {
@@ -151,7 +160,10 @@ export default class FileOrganizer extends Plugin {
 
       await this.checkAndCreateFolders();
 
-      const text = await this.getTextFromFile(originalFile);
+      let text = await this.getTextFromFile(originalFile);
+
+      // Trim content to 128k tokens
+      text = await this.trimContentToTokenLimit(text, 128 * 1000);
 
       let documentName = originalFile.basename;
 
@@ -168,7 +180,6 @@ export default class FileOrganizer extends Plugin {
           this.settings.disableImageAnnotation &&
           validImageExtensions.includes(originalFile.extension)
         ) {
-          // If image annotation is disabled and the file is an image, move the image to the AI-classified folder
           const destinationFolder = await this.getAIClassifiedFolder(
             text,
             processedFile.path
@@ -180,15 +191,11 @@ export default class FileOrganizer extends Plugin {
           );
           return;
         } else {
-          // If image annotation is enabled or the file is an audio, proceed with the existing logic
           const annotatedMarkdownFile = await this.createMarkdownFileFromText(
             text
           );
-          console.log("annotatedMarkdownFile", annotatedMarkdownFile);
           await this.moveToAttachmentFolder(attachmentFile, documentName);
-          console.log("moved to attachment folder");
           await this.appendAttachment(annotatedMarkdownFile, originalFile);
-          console.log("appended attachment");
           processedFile = annotatedMarkdownFile;
           this.appendToCustomLogFile(
             `Generated annotation for [[${annotatedMarkdownFile.basename}]]`
@@ -225,14 +232,26 @@ export default class FileOrganizer extends Plugin {
       await this.appendSimilarTags(text, movedFile);
 
       await this.tagAsProcessed(movedFile);
-
-      // Create a metadata file to store processing information
-      // await this.createMetadataFile(movedFile, { originalPath: oldPath });
     } catch (error) {
       new Notice(`Error processing ${originalFile.basename}`, 3000);
       new Notice(error.message, 6000);
       console.error(error);
     }
+  }
+  // Function to count tokens and trim content
+  async trimContentToTokenLimit(
+    content: string,
+    tokenLimit: number
+  ): Promise<string> {
+    const encoding = getEncoding("cl100k_base");
+    const tokens = encoding.encode(content);
+    console.log("tokens", tokens);
+
+    if (tokens.length > tokenLimit) {
+      const trimmedTokens = tokens.slice(0, tokenLimit);
+      return encoding.decode(trimmedTokens);
+    }
+    return content;
   }
   updateOpenAIConfig() {
     createOpenAIInstance(
@@ -372,6 +391,26 @@ export default class FileOrganizer extends Plugin {
 
     return classifications;
   }
+  async extractTextFromPDF(file: TFile): Promise<string> {
+    const pdfjsLib = await loadPdfJs(); // Ensure PDF.js is loaded
+    console.log("extracting text from pdf");
+    try {
+      const arrayBuffer = await this.app.vault.readBinary(file);
+      const bytes = new Uint8Array(arrayBuffer);
+      const doc = await pdfjsLib.getDocument({ data: bytes }).promise;
+      let text = "";
+      for (let pageNum = 1; pageNum <= doc.numPages; pageNum++) {
+        const page = await doc.getPage(pageNum);
+        const textContent = await page.getTextContent();
+        console.log("textContent", textContent);
+        text += textContent.items.map((item) => item.str).join(" ");
+      }
+      return text;
+    } catch (error) {
+      console.error(`Error extracting text from PDF: ${error}`);
+      return "";
+    }
+  }
 
   async classifyContent(
     content: string,
@@ -456,6 +495,10 @@ export default class FileOrganizer extends Plugin {
       content = await this.app.vault.read(file);
     } else if (validImageExtensions.includes(file.extension)) {
       content = await this.generateImageAnnotation(file);
+    } else if (file.extension === "pdf") {
+      console.log("pdf");
+      content = await this.extractTextFromPDF(file);
+      console.log("content", content);
     }
     return content;
   }

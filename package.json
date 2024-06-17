@@ -32,13 +32,14 @@
     "chokidar": "^3.6.0",
     "form-data": "^4.0.0",
     "jimp": "^0.22.12",
+    "js-tiktoken": "^1.0.12",
     "moment": "^2.29.4",
     "node-fetch": "^3.3.2",
     "ollama-ai-provider": "^0.7.0",
     "openai": "^4.19.0",
-    "pdf-lib": "^1.17.1",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
+    "tiktoken": "^1.0.15",
     "ts-node": "^10.9.2",
     "zod": "^3.23.8"
   }
