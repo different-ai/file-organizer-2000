@@ -49,7 +49,6 @@ class FileOrganizerSettings {
 
   useAutoAppend = false;
   usePro = true;
-  // set to true for dev mode
   useSimilarTagsInFrontmatter = false;
   // enableEarlyAccess = false;
   // earlyAccessCode = "";
