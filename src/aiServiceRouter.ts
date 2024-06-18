@@ -12,6 +12,7 @@ import {
   fetchChunksForConcept,
   createNewFolder,
   extractTextFromImage,
+  generateTranscriptFromAudio,
 } from "../app/aiService";
 import { requestUrl } from "obsidian";
 import { getModelFromTask } from "../standalone/models";
@@ -376,5 +377,39 @@ export async function extractTextFromImageRouter(
     const model = getModelFromTask("vision");
     console.log("image", image);
     return await extractTextFromImage(image, model);
+  }
+}
+
+export async function transcribeAudioRouter(
+  encodedAudio: string,
+  fileExtension: string,
+  { usePro, serverUrl, fileOrganizerApiKey, openAIApiKey }: {
+    usePro: boolean;
+    serverUrl: string;
+    fileOrganizerApiKey: string;
+    openAIApiKey: string;
+  }
+): Promise<string> {
+  if (usePro) {
+    const response = await makeApiRequest(() =>
+      requestUrl({
+        url: `${serverUrl}/api/transcribe`,
+        method: "POST",
+        contentType: "application/json",
+        body: JSON.stringify({
+          audio: encodedAudio,
+          extension: fileExtension,
+        }),
+        headers: {
+          Authorization: `Bearer ${fileOrganizerApiKey}`,
+        },
+      })
+    );
+    const { text } = await response.json;
+    return text;
+  } else {
+    const audioBuffer = Buffer.from(encodedAudio, "base64");
+    const response = await generateTranscriptFromAudio(audioBuffer, openAIApiKey);
+    return response;
   }
 }

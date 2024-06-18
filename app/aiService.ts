@@ -287,3 +287,34 @@ export async function fetchChunksForConcept(
 
   return response;
 }
+
+// Function to generate transcript from audio
+export async function generateTranscriptFromAudio(
+  audioBuffer: ArrayBuffer,
+  openaiApiKey: string
+): Promise<string> {
+  const openai = new OpenAI({ apiKey: openaiApiKey });
+
+  // Save the audio buffer to a temporary file
+  const tempFilePath = join(tmpdir(), `audio_${Date.now()}.mp3`);
+  await fsPromises.writeFile(tempFilePath, Buffer.from(audioBuffer));
+
+  // Create a readable stream from the temporary file
+  const audioStream = fs.createReadStream(tempFilePath);
+
+  try {
+    // Use the OpenAI API to generate the transcript
+    const response = await openai.audio.transcriptions.create({
+      file: audioStream,
+      model: "whisper-1",
+    });
+
+    return response.text;
+  } catch (error) {
+    console.error("Error generating transcript:", error);
+    throw error;
+  } finally {
+    // Clean up the temporary file
+    await fsPromises.unlink(tempFilePath);
+  }
+}

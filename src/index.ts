@@ -15,7 +15,6 @@ import { ASSISTANT_VIEW_TYPE, AssistantViewWrapper } from "./AssistantView";
 import Jimp from "jimp";
 import {
   configureTask,
-  createAnthropicInstance,
   createOllamaInstance,
   createOpenAIInstance,
 } from "../standalone/models";
@@ -32,6 +31,7 @@ import {
   generateTagsRouter,
   guessRelevantFolderRouter,
   identifyConceptsRouter,
+  transcribeAudioRouter,
 } from "./aiServiceRouter";
 import { getEncoding } from "js-tiktoken";
 
@@ -64,8 +64,6 @@ class FileOrganizerSettings {
 
   enableDocumentClassification = false;
   renameUntitledOnly = true;
-
-  OPENAI_API_KEY_2 = "";
 
   ignoreFolders = [""];
   stagingFolder = ".fileorganizer2000/staging";
@@ -413,6 +411,35 @@ export default class FileOrganizer extends Plugin {
       return text;
     } catch (error) {
       console.error(`Error extracting text from PDF: ${error}`);
+      return "";
+    }
+  }
+
+  async generateTranscriptFromAudio(file: TFile) {
+    new Notice(
+      `Generating transcription for ${file.basename} this can take up to a minute`,
+      8000
+    );
+    try {
+      const arrayBuffer = await this.app.vault.readBinary(file);
+      const fileContent = Buffer.from(arrayBuffer);
+      const encodedAudio = fileContent.toString("base64");
+      logMessage(`Encoded: ${encodedAudio.substring(0, 20)}...`);
+
+      const postProcessedText = await transcribeAudioRouter(
+        encodedAudio,
+        file.extension,
+        {
+          usePro: this.settings.usePro,
+          serverUrl,
+          fileOrganizerApiKey: this.settings.API_KEY,
+          openAIApiKey: this.settings.openAIApiKey,
+        }
+      );
+      return postProcessedText;
+    } catch (e) {
+      console.error("Error generating transcript", e);
+      new Notice("Error generating transcript", 3000);
       return "";
     }
   }
