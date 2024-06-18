@@ -303,14 +303,19 @@ export default class FileOrganizer extends Plugin {
     content: string,
     formattingInstruction: string
   ): Promise<void> {
-    const formattedContent = await formatDocumentContentRouter(
-      content,
-      formattingInstruction,
-      this.settings.usePro,
-      serverUrl,
-      this.settings.API_KEY
-    );
-    await this.app.vault.modify(file, formattedContent);
+    try {
+      const formattedContent = await formatDocumentContentRouter(
+        content,
+        formattingInstruction,
+        this.settings.usePro,
+        serverUrl,
+        this.settings.API_KEY
+      );
+      await this.app.vault.modify(file, formattedContent);
+    } catch (error) {
+      console.error("Error formatting content:", error); // Added error logging
+      new Notice("An error occurred while formatting the content.", 6000); // Added user notice
+    }
   }
 
   async classifyAndFormatDocument(file: TFile, content: string) {

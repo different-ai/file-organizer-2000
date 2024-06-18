@@ -377,7 +377,7 @@ const SimilarFilesBox: React.FC<{
 
 export interface Classification {
   type: string;
-  formattingInstructions: string;
+  formattingInstruction: string;
 }
 
 const ClassificationBox: React.FC<{
@@ -420,8 +420,11 @@ const ClassificationBox: React.FC<{
             setFormatting(true);
             logMessage("ClassificationBox class", classification);
             logMessage("ClassificationBox content", content);
-            await plugin.formatContent(file!, content, classification);
-            setFormatting(false);
+            await plugin.formatContent(
+              file!,
+              content,
+              classification.formattingInstruction
+            );
           } catch (error) {
             console.error(error);
           } finally {
