@@ -92,10 +92,17 @@ class FileOrganizerSettings {
   openAIBaseUrl = "https://api.openai.com/v1";
 }
 
-const contextLimit = 128 * 1024; // 128kb
-
 const validImageExtensions = ["png", "jpg", "jpeg", "gif", "svg", "webp"];
-const validMediaExtensions = [...validImageExtensions];
+const validAudioExtensions = [
+  "mp3",
+  "mp4",
+  "mpeg",
+  "mpga",
+  "m4a",
+  "wav",
+  "webm",
+];
+const validMediaExtensions = [...validImageExtensions, ...validAudioExtensions];
 const validTextExtensions = ["md", "txt"];
 
 const validExtensions = [
@@ -522,17 +529,22 @@ export default class FileOrganizer extends Plugin {
   }
 
   async getTextFromFile(file: TFile): Promise<string> {
-    let content = "";
-    if (file.extension === "md") {
-      content = await this.app.vault.read(file);
-    } else if (validImageExtensions.includes(file.extension)) {
-      content = await this.generateImageAnnotation(file);
-    } else if (file.extension === "pdf") {
-      console.log("pdf");
-      content = await this.extractTextFromPDF(file);
-      console.log("content", content);
+    switch (true) {
+      case file.extension === "md":
+        return await this.app.vault.read(file);
+      case file.extension === "pdf": {
+        console.log("pdf");
+        const pdfContent = await this.extractTextFromPDF(file);
+        console.log("content", pdfContent);
+        return pdfContent;
+      }
+      case validImageExtensions.includes(file.extension):
+        return await this.generateImageAnnotation(file);
+      case validAudioExtensions.includes(file.extension):
+        return await this.generateTranscriptFromAudio(file);
+      default:
+        throw new Error(`Unsupported file type: ${file.extension}`);
     }
-    return content;
   }
 
   // adds an attachment to a file using the ![[attachment]] syntax
@@ -921,13 +933,6 @@ export default class FileOrganizer extends Plugin {
 
   initalizeModels() {
     this.updateOpenAIConfig();
-    if (this.settings.enableAnthropic) {
-      createAnthropicInstance(
-        this.settings.anthropicApiKey,
-        this.settings.anthropicModel
-      );
-    }
-
     createOpenAIInstance(
       this.settings.openAIApiKey,
       this.settings.openAIModel || "gpt-4o",
@@ -942,15 +947,16 @@ export default class FileOrganizer extends Plugin {
     }
 
     // Configure tasks with default models
-    configureTask("tagging", this.settings.taggingModel);
-    configureTask("folders", this.settings.foldersModel);
-    configureTask("relationships", this.settings.relationshipsModel);
-    configureTask("name", this.settings.nameModel);
-    configureTask("classify", this.settings.classifyModel);
-    configureTask("vision", this.settings.visionModel);
-    configureTask("format", this.settings.formatModel);
-
-    // ...
+    configureTask("tagging", this.settings.taggingModel || "gpt-4o");
+    configureTask("folders", this.settings.foldersModel || "gpt-4o");
+    configureTask(
+      "relationships",
+      this.settings.relationshipsModel || "gpt-4o"
+    );
+    configureTask("name", this.settings.nameModel || "gpt-4o");
+    configureTask("classify", this.settings.classifyModel || "gpt-4o");
+    configureTask("vision", this.settings.visionModel || "gpt-4o");
+    configureTask("format", this.settings.formatModel || "gpt-4o");
   }
 
   async onload() {

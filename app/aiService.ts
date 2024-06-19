@@ -60,7 +60,6 @@ export async function guessRelevantFolder(
   folders: string[],
   model: LanguageModel
 ) {
-  console.log("modelazo", model.modelId);
 
   // eslint-disable-next-line no-case-declarations
   const response = await generateObject({
@@ -133,6 +132,7 @@ export async function generateDocumentTitle(
     schema: z.object({
       name: z.string().max(60),
     }),
+    system: 'Only answer with human readable title',
     prompt: `You are a helpful assistant. You only answer short (less than 30 chars titles). You do not use any special character just text. Use something very specific to the content not a generic title.
       Give a title to this document:  
       ${document}`,
@@ -293,7 +293,10 @@ export async function generateTranscriptFromAudio(
   audioBuffer: ArrayBuffer,
   openaiApiKey: string
 ): Promise<string> {
-  const openai = new OpenAI({ apiKey: openaiApiKey });
+  const openai = new OpenAI({
+    apiKey: openaiApiKey,
+    dangerouslyAllowBrowser: true,
+  });
 
   // Save the audio buffer to a temporary file
   const tempFilePath = join(tmpdir(), `audio_${Date.now()}.mp3`);
