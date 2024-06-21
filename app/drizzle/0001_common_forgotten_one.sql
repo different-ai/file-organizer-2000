@@ -1,1 +1,0 @@
-ALTER TABLE "user_usage" ADD COLUMN "dummy" text NOT NULL;
