@@ -337,24 +337,6 @@ export default class FileOrganizer extends Plugin {
     }
   }
 
-  async storeFileMetadata(metadata: FileMetadata): Promise<void> {
-    const metadataFilePath = "_FileOrganizer2000/.metadata/.history.json";
-    let existingMetadata: FileMetadata[] = [];
-
-    if (await this.app.vault.adapter.exists(metadataFilePath)) {
-      const metadataContent = await this.app.vault.adapter.read(
-        metadataFilePath
-      );
-      existingMetadata = JSON.parse(metadataContent);
-    }
-
-    existingMetadata.push(metadata);
-    await this.app.vault.adapter.write(
-      metadataFilePath,
-      JSON.stringify(existingMetadata, null, 2)
-    );
-  }
-
   async trimContentToTokenLimit(
     content: string,
     tokenLimit: number
