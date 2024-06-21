@@ -27,6 +27,7 @@ export const UserUsageTable = pgTable(
     maxTokenUsage: integer("maxTokenUsage")
       .notNull()
       .default(1000 * 1000),
+    dummy: text("dummy").notNull(),
   },
   (userUsage) => {
     return {
