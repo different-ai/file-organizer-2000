@@ -15,6 +15,13 @@
       "when": 1718976785239,
       "tag": "0001_numerous_famine",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1718976888462,
+      "tag": "0002_tired_phantom_reporter",
+      "breakpoints": true
     }
   ]
 }
