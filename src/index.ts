@@ -147,12 +147,32 @@ export async function makeApiRequest<T>(
     throw error;
   }
 }
+export interface FileMetadata {
+  instructions: {
+    shouldAnnotate: boolean;
+    shouldClassify: boolean;
+    shouldAppendAlias: boolean;
+    shouldAppendSimilarTags: boolean;
+    shouldRename: boolean;
+  };
+  classification?: string;
+  originalText: string;
+  originalPath: string | undefined;
+  originalName: string;
+  aiFormattedText: string;
+  newName: string;
+  newPath: string;
+  markAsProcessed: boolean;
+  isMedia: boolean;
+  aliases: string[];
+  similarTags: string[];
+}
 
 export default class FileOrganizer extends Plugin {
   settings: FileOrganizerSettings;
 
   // all files in inbox will go through this function
-  async processFileV2(originalFile: TFile, oldPath?: string) {
+  async processFileV2(originalFile: TFile, oldPath?: string): Promise<void> {
     try {
       new Notice(`Looking at ${originalFile.basename}`, 3000);
 
@@ -165,85 +185,176 @@ export default class FileOrganizer extends Plugin {
 
       await this.checkAndCreateFolders();
 
-      let text = await this.getTextFromFile(originalFile);
-
-      // Trim content to 128k tokens
-      text = await this.trimContentToTokenLimit(text, 128 * 1000);
-
-      let documentName = originalFile.basename;
-
-      if (this.shouldRename(originalFile)) {
-        new Notice(`Generating name for ${text.substring(0, 20)}...`, 3000);
-        documentName = await this.generateNameFromContent(text);
-      }
-
-      let processedFile = originalFile;
-
-      if (validMediaExtensions.includes(originalFile.extension)) {
-        const attachmentFile = originalFile;
-        if (
-          this.settings.disableImageAnnotation &&
-          validImageExtensions.includes(originalFile.extension)
-        ) {
-          const destinationFolder = await this.getAIClassifiedFolder(
-            text,
-            processedFile.path
-          );
-          new Notice(`Moving file to ${destinationFolder} folder`, 3000);
-          await this.moveFile(attachmentFile, documentName, destinationFolder);
-          await this.appendToCustomLogFile(
-            `Moved [[${documentName}.${attachmentFile.extension}]] to ${destinationFolder}`
-          );
-          return;
-        } else {
-          const annotatedMarkdownFile = await this.createMarkdownFileFromText(
-            text
-          );
-          await this.moveToAttachmentFolder(attachmentFile, documentName);
-          await this.appendAttachment(annotatedMarkdownFile, originalFile);
-          processedFile = annotatedMarkdownFile;
-          this.appendToCustomLogFile(
-            `Generated annotation for [[${annotatedMarkdownFile.basename}]]`
-          );
-        }
-      }
-
-      if (this.settings.enableDocumentClassification) {
-        const classification = await this.classifyAndFormatDocument(
-          processedFile,
-          text
-        );
-        classification &&
-          this.appendToCustomLogFile(
-            `Classified [[${processedFile.basename}]] as ${classification.type}`
-          );
-      }
-
-      const destinationFolder = await this.getAIClassifiedFolder(
-        text,
-        processedFile.path
+      const text = await this.getTextFromFile(originalFile);
+      // we trim text to 128k tokens before passing it to the model
+      const trimmedText = await this.trimContentToTokenLimit(text, 128 * 1000);
+      const instructions = await this.generateInstructions(
+        originalFile,
+        trimmedText
       );
-      new Notice(`Most similar folder: ${destinationFolder}`, 3000);
-      await this.appendAlias(processedFile, processedFile.basename);
-      const movedFile = await this.moveFile(
-        processedFile,
-        documentName,
-        destinationFolder
+      const metadata = await this.generateMetadata(
+        originalFile,
+        instructions,
+        trimmedText,
+        oldPath
       );
-      await this.appendToCustomLogFile(
-        `Organized [[${movedFile.basename}]] into ${destinationFolder}`
-      );
-
-      await this.appendSimilarTags(text, movedFile);
-
-      await this.tagAsProcessed(movedFile);
+      await this.executeInstructions(metadata, originalFile, text);
     } catch (error) {
       new Notice(`Error processing ${originalFile.basename}`, 3000);
       new Notice(error.message, 6000);
       console.error(error);
     }
   }
-  // Function to count tokens and trim content
+
+  async generateInstructions(
+    file: TFile,
+    text: string
+  ): Promise<FileMetadata["instructions"]> {
+    const shouldAnnotate =
+      !this.settings.disableImageAnnotation &&
+      validImageExtensions.includes(file.extension);
+    const shouldClassify = this.settings.enableDocumentClassification;
+    const shouldAppendAlias = this.settings.enableAliasGeneration;
+    const shouldAppendSimilarTags = this.settings.useSimilarTags;
+    const shouldRename = this.shouldRename(file);
+
+    return {
+      shouldAnnotate,
+      shouldClassify,
+      shouldAppendAlias,
+      shouldAppendSimilarTags,
+      shouldRename,
+    };
+  }
+
+  async generateMetadata(
+    file: TFile,
+    instructions: FileMetadata["instructions"],
+    textToFeedAi: string,
+    oldPath?: string
+  ): Promise<FileMetadata> {
+    const documentName = instructions.shouldRename
+      ? await this.generateNameFromContent(textToFeedAi)
+      : file.basename;
+
+    const classificationResult = instructions.shouldClassify
+      ? await this.classifyAndFormatDocumentV2(file, textToFeedAi)
+      : null;
+
+    const classification = classificationResult?.type;
+    const aiFormattedText = classificationResult?.formattedText || "";
+
+    const newPath = await this.getAIClassifiedFolder(textToFeedAi, file.path);
+
+    const aliases = instructions.shouldAppendAlias
+      ? await this.generateAliasses(documentName, textToFeedAi)
+      : [];
+
+    const similarTags = instructions.shouldAppendSimilarTags
+      ? await this.getSimilarTags(textToFeedAi, documentName)
+      : [];
+
+    return {
+      instructions,
+      classification,
+      originalText: textToFeedAi,
+      originalPath: oldPath,
+      originalName: file.basename,
+      aiFormattedText,
+      isMedia: validMediaExtensions.includes(file.extension),
+      markAsProcessed: true,
+      newName: documentName,
+      newPath,
+      aliases,
+      similarTags,
+    };
+  }
+
+  async retrieveFileToModify(originalFile: TFile, isMedia: boolean) {
+    if (isMedia) {
+      this.appendToCustomLogFile(`Created markdown find to annotate media`);
+      return await this.app.vault.create(
+        `${this.settings.defaultDestinationPath}/${originalFile.basename}.md`,
+        ""
+      );
+    }
+
+    return originalFile;
+  }
+
+  async executeInstructions(
+    metadata: FileMetadata,
+    fileBeingProcessed: TFile,
+    text: string
+  ): Promise<void> {
+    // create a new markdown file in default folder
+    const fileToOrganize = await this.retrieveFileToModify(
+      fileBeingProcessed,
+      metadata.isMedia
+    );
+
+    // if it should be renamed replace the file name with the new name
+    if (metadata.instructions.shouldRename) {
+      await this.moveFile(fileToOrganize, metadata.newName, metadata.newPath);
+      this.appendToCustomLogFile(
+        `Renamed ${metadata.originalName} to [[${fileToOrganize.basename}]]`
+      );
+      this.appendToCustomLogFile(
+        `Organized [[${fileToOrganize.basename}]] into ${metadata.newPath}`
+      );
+    }
+
+    // if it should be classified replace the content with the formatted text
+    if (metadata.instructions.shouldClassify && metadata.classification) {
+      await this.app.vault.modify(fileToOrganize, metadata.aiFormattedText);
+      this.appendToCustomLogFile(
+        `Classified [[${metadata.newName}]] as ${metadata.classification} and formatted it with [[${this.settings.templatePaths}/${metadata.classification}]]`
+      );
+    }
+
+    if (metadata.isMedia) {
+      const mediaFile = fileBeingProcessed;
+      await this.app.vault.append(fileToOrganize, text);
+      await this.moveToAttachmentFolder(fileBeingProcessed, metadata.newName);
+      this.appendToCustomLogFile(
+        `Moved [[${mediaFile.basename}.${mediaFile.extension}]] to attachments folders`
+      );
+
+      await this.appendAttachment(fileToOrganize, mediaFile);
+      this.appendToCustomLogFile(`Added attachment to [[${metadata.newName}]]`);
+    }
+
+    if (
+      metadata.instructions.shouldAppendSimilarTags &&
+      metadata.similarTags.length > 0
+    ) {
+      for (const tag of metadata.similarTags) {
+        await this.appendTag(fileToOrganize, tag);
+      }
+      this.appendToCustomLogFile(
+        `Appended similar tags to [[${fileToOrganize.basename}]]`
+      );
+    }
+  }
+
+  async storeFileMetadata(metadata: FileMetadata): Promise<void> {
+    const metadataFilePath = "_FileOrganizer2000/.metadata/.history.json";
+    let existingMetadata: FileMetadata[] = [];
+
+    if (await this.app.vault.adapter.exists(metadataFilePath)) {
+      const metadataContent = await this.app.vault.adapter.read(
+        metadataFilePath
+      );
+      existingMetadata = JSON.parse(metadataContent);
+    }
+
+    existingMetadata.push(metadata);
+    await this.app.vault.adapter.write(
+      metadataFilePath,
+      JSON.stringify(existingMetadata, null, 2)
+    );
+  }
+
   async trimContentToTokenLimit(
     content: string,
     tokenLimit: number
@@ -301,6 +412,42 @@ export default class FileOrganizer extends Plugin {
     }
 
     return true;
+  }
+  async formatContentV2(
+    file: TFile,
+    content: string,
+    formattingInstruction: string
+  ): Promise<string> {
+    try {
+      const formattedContent = await formatDocumentContentRouter(
+        content,
+        formattingInstruction,
+        this.settings.usePro,
+        serverUrl,
+        this.settings.API_KEY
+      );
+      return formattedContent;
+    } catch (error) {
+      console.error("Error formatting content:", error); // Added error logging
+      new Notice("An error occurred while formatting the content.", 6000); // Added user notice
+    }
+    return "";
+  }
+  async classifyAndFormatDocumentV2(file: TFile, content: string) {
+    const classification = await this.classifyContent(content, file.basename);
+    if (classification) {
+      const formattedText = await this.formatContentV2(
+        file,
+        content,
+        classification.formattingInstruction
+      );
+      return {
+        type: classification.type,
+        formattingInstruction: classification.formattingInstruction,
+        formattedText,
+      };
+    }
+    return null;
   }
 
   async formatContent(
@@ -506,15 +653,6 @@ export default class FileOrganizer extends Plugin {
     await this.appendSimilarTags(content, file);
   }
 
-  async createBackup(file: TFile) {
-    const destinationFolder = this.settings.defaultDestinationPath;
-    const destinationPath = `${destinationFolder}/${file.name}`;
-    await this.app.vault.copy(file, destinationPath);
-    this.appendToCustomLogFile(
-      `Backed Up [[${file.name}]] to ${destinationPath}`
-    );
-  }
-
   async showAssistantSidebar() {
     this.app.workspace.detachLeavesOfType(ASSISTANT_VIEW_TYPE);
 
@@ -599,11 +737,12 @@ export default class FileOrganizer extends Plugin {
   ) {
     let destinationPath = `${destinationFolder}/${humanReadableFileName}.${file.extension}`;
     if (await this.app.vault.adapter.exists(normalizePath(destinationPath))) {
-      await this.appendToCustomLogFile(
-        `File [[${humanReadableFileName}]] already exists. Renaming to [[${humanReadableFileName}]]`
-      );
       const timestamp = Date.now();
       const timestampedFileName = `${humanReadableFileName}_${timestamp}`;
+
+      await this.appendToCustomLogFile(
+        `File [[${humanReadableFileName}]] already exists. Renaming to [[${timestampedFileName}]]`
+      );
       destinationPath = `${destinationFolder}/${timestampedFileName}.${file.extension}`;
     }
     await this.ensureFolderExists(destinationFolder);
@@ -654,10 +793,7 @@ export default class FileOrganizer extends Plugin {
 
   async moveToAttachmentFolder(file: TFile, newFileName: string) {
     const destinationFolder = this.settings.attachmentsPath;
-    await this.moveFile(file, newFileName, destinationFolder);
-    await this.appendToCustomLogFile(
-      `Moved [[${newFileName}.${file.extension}]] to attachments`
-    );
+    return await this.moveFile(file, newFileName, destinationFolder);
   }
 
   async generateNameFromContent(content: string): Promise<string> {
@@ -872,9 +1008,6 @@ export default class FileOrganizer extends Plugin {
   }
 
   async appendSimilarTags(content: string, file: TFile) {
-    if (!this.settings.useSimilarTags) {
-      return;
-    }
     // Get similar tags
     const similarTags = await this.getSimilarTags(content, file.basename);
 

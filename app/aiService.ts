@@ -60,7 +60,6 @@ export async function guessRelevantFolder(
   folders: string[],
   model: LanguageModel
 ) {
-
   // eslint-disable-next-line no-case-declarations
   const response = await generateObject({
     model,
@@ -71,6 +70,13 @@ export async function guessRelevantFolder(
       ", "
     )}. Base your decision on the relevance of the content and the file name to the folder themes. If no existing folder is suitable, respond with null.`,
   });
+  console.log(
+    `${
+      response.object.suggestedFolder
+        ? "Suggested folder: " + response.object.suggestedFolder
+        : "No suggested folder"
+    }`
+  );
 
   return response;
 }
@@ -91,6 +97,7 @@ export async function createNewFolder(
       ", "
     )}.`,
   });
+  console.log("Suggesting a new folder: ", response.object.newFolderName);
 
   return response;
 }
@@ -132,7 +139,7 @@ export async function generateDocumentTitle(
     schema: z.object({
       name: z.string().max(60),
     }),
-    system: 'Only answer with human readable title',
+    system: "Only answer with human readable title",
     prompt: `You are a helpful assistant. You only answer short (less than 30 chars titles). You do not use any special character just text. Use something very specific to the content not a generic title.
       Give a title to this document:  
       ${document}`,
@@ -196,13 +203,14 @@ export async function classifyDocument(
   console.log("content", content);
   console.log("fileName", fileName);
   console.log("templateNames", templateNames);
-  const modelName = model.modelId;
 
   const response = await generateObject({
     model,
     schema: z.object({
       documentType: z.string().optional(),
     }),
+    system:
+      "Only answer with the name of the document type if it matches one of the template types. Otherwise, answer with an empty string.",
     prompt: `Given the text content:
 
           "${content}"
@@ -228,13 +236,12 @@ export async function formatDocumentContent(
   formattingInstruction: string,
   model: LanguageModel
 ) {
-  const modelName = model.modelId;
-
   const response = await generateObject({
     model,
     schema: z.object({
       formattedContent: z.string(),
     }),
+    system: "Answer in markdown",
     prompt: `Format the following content according to the given instruction:
         
         Content:
