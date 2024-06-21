@@ -50,10 +50,18 @@ async function release() {
 
     // Git commands
     executeCommand('git add .');
-    executeCommand(`git commit -m "Release ${newVersion}"`);
+    executeCommand(`git commit -m "Release ${newVersion}: ${description}"`);
     executeCommand(`git tag -a ${newVersion} -m "${description}"`);
     executeCommand('git push');
     executeCommand(`git push origin ${newVersion}`);
+
+    // Create GitHub release
+    const releaseCommand = `gh release create ${newVersion} \
+    --title "${newVersion}" \
+    --notes "${description}" \
+    --generate-notes`;
+
+    executeCommand(releaseCommand);
 
     console.log(`Version ${newVersion} has been released!`);
     rl.close();
