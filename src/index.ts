@@ -33,7 +33,6 @@ import {
   identifyConceptsRouter,
   transcribeAudioRouter,
 } from "./aiServiceRouter";
-import { getEncoding } from "js-tiktoken";
 
 type TagCounts = {
   [key: string]: number;
@@ -187,17 +186,18 @@ export default class FileOrganizer extends Plugin {
 
       const text = await this.getTextFromFile(originalFile);
       // we trim text to 128k tokens before passing it to the model
-      const trimmedText = await this.trimContentToTokenLimit(text, 128 * 1000);
+      // const trimmedText = await this.trimContentToTokenLimit(text, 128 * 1000);
       const instructions = await this.generateInstructions(
         originalFile,
-        trimmedText
+        text
       );
       const metadata = await this.generateMetadata(
         originalFile,
         instructions,
-        trimmedText,
+        text,
         oldPath
       );
+      console.log({metadata})
       await this.executeInstructions(metadata, originalFile, text);
     } catch (error) {
       new Notice(`Error processing ${originalFile.basename}`, 3000);
@@ -314,7 +314,7 @@ export default class FileOrganizer extends Plugin {
 
     if (metadata.isMedia) {
       const mediaFile = fileBeingProcessed;
-      await this.app.vault.append(fileToOrganize, text);
+      metadata.instructions.shouldClassify && metadata.classification && await this.app.vault.append(fileToOrganize, text);
       await this.moveToAttachmentFolder(fileBeingProcessed, metadata.newName);
       this.appendToCustomLogFile(
         `Moved [[${mediaFile.basename}.${mediaFile.extension}]] to attachments folders`
