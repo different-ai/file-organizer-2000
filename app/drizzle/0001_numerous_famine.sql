@@ -1,0 +1,1 @@
+ALTER TABLE "user_usage" ADD COLUMN "dummy" integer DEFAULT 0;
