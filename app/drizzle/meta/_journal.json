@@ -15,6 +15,13 @@
       "when": 1718976503452,
       "tag": "0001_common_forgotten_one",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1718976624113,
+      "tag": "0002_red_morlun",
+      "breakpoints": true
     }
   ]
 }

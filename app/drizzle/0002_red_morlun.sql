@@ -1,0 +1,1 @@
+ALTER TABLE "user_usage" ALTER COLUMN "dummy" SET DEFAULT 'test';
