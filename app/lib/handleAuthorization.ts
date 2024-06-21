@@ -1,10 +1,7 @@
 import { clerkClient } from "@clerk/nextjs/server";
 import { verifyKey } from "@unkey/api";
 import { NextRequest } from "next/server";
-import {
-  checkTokenUsage,
-  incrementApiUsage
-} from "../drizzle/schema";
+import { checkTokenUsage, incrementApiUsage } from "../drizzle/schema";
 import PostHogClient from "./posthog";
 
 async function handleLogging(
@@ -28,9 +25,13 @@ async function handleLogging(
   }
 }
 
-
-
 export async function handleAuthorization(req: NextRequest) {
+  // this is to allow people to self host it easily without
+  // setting up clerk
+  if (!(process.env.ENABLE_USER_MANAGEMENT === "true")) {
+    return { userId: "user", isCustomer: true };
+  }
+
   const header = req.headers.get("authorization");
   const { url, method } = req;
   console.log({ url, method });
@@ -65,8 +66,9 @@ export async function handleAuthorization(req: NextRequest) {
   // get user from api key
   const user = await clerkClient.users.getUser(result.ownerId);
   // check if customer or not
-  const isCustomer = (user?.publicMetadata as CustomJwtSessionClaims["publicMetadata"])?.stripe
-    ?.status === "complete";
+  const isCustomer =
+    (user?.publicMetadata as CustomJwtSessionClaims["publicMetadata"])?.stripe
+      ?.status === "complete";
 
   await handleLogging(req, result.ownerId, isCustomer);
 

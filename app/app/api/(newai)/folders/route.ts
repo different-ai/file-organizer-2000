@@ -1,12 +1,14 @@
 import { openai } from "@ai-sdk/openai";
 import { guessRelevantFolder } from "../../../../aiService";
 import { NextRequest, NextResponse } from "next/server";
-import { incrementAndLogTokenUsage } from "@/lib/incrementAndLogTokenUsage";
 import { handleAuthorization } from "@/lib/handleAuthorization";
+import { incrementAndLogTokenUsage } from "@/lib/incrementAndLogTokenUsage";
+import { getModel } from "@/lib/models";
+
 export async function POST(request: NextRequest) {
   const { userId } = await handleAuthorization(request);
   const { content, fileName, folders } = await request.json();
-  const model = openai("gpt-4o");
+  const model = getModel(process.env.MODEL_NAME);
   const response = await guessRelevantFolder(content, fileName, folders, model);
   // increment tokenUsage
   const tokens = response.usage.totalTokens;

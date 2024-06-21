@@ -1,12 +1,12 @@
-import { openai } from "@ai-sdk/openai";
 import { generateRelationships } from "../../../../aiService";
 import { NextRequest, NextResponse } from "next/server";
 import { handleAuthorization } from "@/lib/handleAuthorization";
 import { incrementAndLogTokenUsage } from "@/lib/incrementAndLogTokenUsage";
+import { getModel } from "@/lib/models";
 
 export async function POST(request: NextRequest) {
   const { activeFileContent, files } = await request.json();
-  const model = openai("gpt-4o");
+  const model = getModel(process.env.MODEL_NAME);
   const { userId } = await handleAuthorization(request);
 
   const relationshipsData = await generateRelationships(

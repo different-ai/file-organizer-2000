@@ -5,6 +5,9 @@ export async function incrementAndLogTokenUsage(
   userId: string,
   tokens: number
 ) {
+  if (process.env.ENABLE_USER_MANAGEMENT !== "true") {
+    return { remaining: 0, usageError: false };
+  }
   const { remaining, usageError } = await incrementTokenUsage(userId, tokens);
 
   if (!usageError) {
