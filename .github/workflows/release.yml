@@ -1,34 +1,59 @@
-name: Release Obsidian plugin
+name: Release Obsidian Plugin
 
 on:
-    push:
-        tags:
-            - "*"
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'New version number (e.g., 1.0.1)'
+        required: true
+      description:
+        description: 'Release description'
+        required: true
 
 jobs:
-    build:
-        runs-on: ubuntu-latest
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
 
-        steps:
-            - uses: actions/checkout@v3
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
 
-            - name: Use Node.js
-              uses: actions/setup-node@v3
-              with:
-                  node-version: "18.x"
+      - name: Install dependencies
+        run: npm ci
 
-            - name: Build plugin
-              run: |
-                  npm install
-                  npm run build
+      - name: Update version
+        run: |
+          npm version ${{ github.event.inputs.version }} --no-git-tag-version
+          node version-bump.mjs
+          git config user.name github-actions
+          git config user.email github-actions@github.com
+          git add .
+          git commit -m "Bump version to ${{ github.event.inputs.version }}"
 
-            - name: Create release
-              env:
-                  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-                run: |
-                    tag="${GITHUB_REF#refs/tags/}"
-                    description=$(git tag -l --format='%(contents)' $tag)
-                    gh release create "$tag" \
-                    --title="$tag" \
-                    --notes="$description" \
-                    main.js manifest.json styles.css
+      - name: Push changes
+        run: git push
+
+      - name: Build plugin
+        run: npm run build
+
+      - name: Create Release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh release create ${{ github.event.inputs.version }} \
+            --title "${{ github.event.inputs.version }}" \
+            --notes "${{ github.event.inputs.description }}" \
+            main.js manifest.json styles.css
+
+      - name: Upload source code
+        run: |
+          git archive --format=zip HEAD > source-code.zip
+          git archive --format=tar.gz HEAD > source-code.tar.gz
+          gh release upload ${{ github.event.inputs.version }} source-code.zip source-code.tar.gz
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
