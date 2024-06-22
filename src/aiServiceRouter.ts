@@ -15,7 +15,7 @@ import {
   generateTranscriptFromAudio,
 } from "../app/aiService";
 import { requestUrl } from "obsidian";
-import { getModelFromTask } from "../standalone/models";
+import { getModelForTaskV2 } from "./models";
 import { arrayBufferToBase64 } from "obsidian";
 
 export async function classifyDocumentRouter(
@@ -45,7 +45,7 @@ export async function classifyDocumentRouter(
     const { documentType } = await response.json;
     return documentType;
   } else {
-    const model = getModelFromTask("classify");
+    const model = getModelForTaskV2("text");
     const response = await classifyDocument(
       content,
       name,
@@ -85,7 +85,7 @@ export async function generateTagsRouter(
     const { generatedTags } = await response.json;
     return generatedTags;
   } else {
-    const model = getModelFromTask("tagging");
+    const model = getModelForTaskV2("text");
     const response = await generateTags(content, fileName, tags, model);
     return response.object.tags ?? [];
   }
@@ -117,7 +117,7 @@ export async function createNewFolderRouter(
     const { folderName } = await response.json;
     return folderName;
   } else {
-    const model = getModelFromTask("folders");
+    const model = getModelForTaskV2("text");
     const response = await createNewFolder(
       content,
       fileName,
@@ -153,7 +153,7 @@ export async function generateAliasVariationsRouter(
     const { aliases } = await response.json;
     return aliases;
   } else {
-    const model = getModelFromTask("name");
+    const model = getModelForTaskV2("text");
     const response = await generateAliasVariations(fileName, content, model);
     return response.object.aliases ?? [];
   }
@@ -188,7 +188,7 @@ export async function guessRelevantFolderRouter(
     const { folder: guessedFolder } = await response.json;
     return guessedFolder;
   } else {
-    const model = getModelFromTask("folders");
+    const model = getModelForTaskV2("text");
     const response = await guessRelevantFolder(
       content,
       filePath,
@@ -224,7 +224,7 @@ export async function generateRelationshipsRouter(
     const { similarFiles } = await response.json;
     return similarFiles;
   } else {
-    const model = getModelFromTask("relationships");
+    const model = getModelForTaskV2("text");
     const response = await generateRelationships(
       activeFileContent,
       files,
@@ -255,7 +255,7 @@ export async function generateDocumentTitleRouter(
     const { title } = await response.json;
     return title;
   } else {
-    const model = getModelFromTask("name");
+    const model = getModelForTaskV2("text");
     const response = await generateDocumentTitle(content, model);
     return response.object.name;
   }
@@ -286,7 +286,7 @@ export async function formatDocumentContentRouter(
     const { content: formattedContent } = await response.json;
     return formattedContent;
   } else {
-    const model = getModelFromTask("format");
+    const model = getModelForTaskV2("text");
     const response = await formatDocumentContent(
       content,
       formattingInstruction,
@@ -317,7 +317,7 @@ export async function identifyConceptsRouter(
     const { concepts } = await response.json;
     return concepts;
   } else {
-    const model = getModelFromTask("format");
+    const model = getModelForTaskV2("text");
     const response = await identifyConcepts(content, model);
     return response.object.concepts;
   }
@@ -345,7 +345,7 @@ export async function fetchChunksForConceptRouter(
     const { content: chunkContent } = await response.json;
     return { content: chunkContent };
   } else {
-    const model = getModelFromTask("chunks");
+    const model = getModelForTaskV2("text");
     const response = await fetchChunksForConcept(content, concept, model);
     return { content: response.object.content };
   }
@@ -374,7 +374,7 @@ export async function extractTextFromImageRouter(
     const { text } = await response.json;
     return text;
   } else {
-    const model = getModelFromTask("vision");
+    const model = getModelForTaskV2("vision");
     console.log("image", image);
     return await extractTextFromImage(image, model);
   }
@@ -405,8 +405,9 @@ export async function transcribeAudioRouter(
         },
       })
     );
-    const { text } = await response.json;
-    return text;
+    const { transcription } = await response.json;
+    console.log({ transcription });
+    return transcription;
   } else {
     const audioBuffer = Buffer.from(encodedAudio, "base64");
     const response = await generateTranscriptFromAudio(audioBuffer, openAIApiKey);

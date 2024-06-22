@@ -1,5 +1,4 @@
 import { Setting } from "obsidian";
-import { configureTask } from "../standalone/models";
 import FileOrganizer from "./index";
 
 export class ModelTab {
@@ -24,7 +23,7 @@ export class ModelTab {
     new Setting(openAISettingsEl)
       .setName("User Pro Account")
       .setDesc(
-        "Enable this to route OpenAI API calls through the File Organizer 2000 server."
+        "Disable to use your own LLM api keys"
       )
       .addToggle((toggle) =>
         toggle

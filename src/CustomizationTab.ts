@@ -17,9 +17,7 @@ export class CustomizationTab {
 
     new Setting(customizationTabContent)
       .setName("FileOrganizer logs")
-      .setDesc(
-        "Allows you to keep track of the changes made by file Organizer."
-      )
+      .setDesc("Allows you to keep track of the changes made by file organizer.")
       .addToggle((toggle) =>
         toggle
           .setValue(this.plugin.settings.useLogs)
@@ -31,7 +29,7 @@ export class CustomizationTab {
 
     new Setting(customizationTabContent)
       .setName("Rename untitled files only")
-      .setDesc("Only rename files that have 'Untitled' in their name.")
+      .setDesc("Only rename files that have 'untitled' in their name.")
       .addToggle((toggle) =>
         toggle
           .setValue(this.plugin.settings.renameUntitledOnly)
@@ -79,7 +77,7 @@ export class CustomizationTab {
       );
 
     new Setting(customizationTabContent)
-      .setName("Disable Image Annotation")
+      .setName("Disable image annotation")
       .setDesc("Disable the annotation of images during file processing.")
       .addToggle((toggle) =>
         toggle
@@ -103,7 +101,7 @@ export class CustomizationTab {
       );
 
     new Setting(customizationTabContent)
-      .setName("Processed File Tag")
+      .setName("Processed file tag")
       .setDesc("Specify the tag to be added to processed files.")
       .addToggle((toggle) =>
         toggle
@@ -119,7 +117,7 @@ export class CustomizationTab {
       .setHeading();
 
     new Setting(customizationTabContent)
-      .setName("Enable Alias Generation")
+      .setName("Enable alias generation")
       .setDesc("Enable the generation of aliases in the assistant sidebar.")
       .addToggle((toggle) =>
         toggle
@@ -130,7 +128,7 @@ export class CustomizationTab {
           })
       );
     new Setting(customizationTabContent)
-      .setName("Enable Similar Files")
+      .setName("Enable similar files")
       .setDesc("Enable the display of similar files in the assistant sidebar.")
       .addToggle((toggle) =>
         toggle
@@ -141,10 +139,8 @@ export class CustomizationTab {
           })
       );
     new Setting(customizationTabContent)
-      .setName("Enable Atomic Notes")
-      .setDesc(
-        "Enable the generation of atomic notes in the assistant sidebar."
-      )
+      .setName("Enable atomic notes")
+      .setDesc("Enable the generation of atomic notes in the assistant sidebar.")
       .addToggle((toggle) =>
         toggle
           .setValue(this.plugin.settings.enableAtomicNotes)
@@ -155,14 +151,12 @@ export class CustomizationTab {
       );
 
     new Setting(customizationTabContent)
-      .setName("Custom Formatting")
+      .setName("Custom formatting")
       .setHeading();
 
     new Setting(customizationTabContent)
-      .setName("Enable Document Auto-Formatting")
-      .setDesc(
-        "Automatically format documents processed through the inbox when content matches a category of your AI templates."
-      )
+      .setName("Enable document auto-formatting")
+      .setDesc("Automatically format documents processed through the inbox when content matches a category of your AI templates.")
       .addToggle((toggle) =>
         toggle
           .setValue(this.plugin.settings.enableDocumentClassification)
@@ -179,10 +173,8 @@ export class CustomizationTab {
       );
 
     new Setting(customizationTabContent)
-      .setName("Document Type Configuration")
-      .setDesc(
-        "To specify the document type for AI formatting, please add a file inside the template folder of File Organizer. Each file should be named according to the document type it represents (e.g., 'workout'). The content of each file should be the prompt that will be applied to the formatting. Additionally, you can access and manage these document types directly through the AI sidebar in the application."
-      )
+      .setName("Document type configuration")
+      .setDesc("To specify the document type for AI formatting, please add a file inside the template folder of File Organizer. Each file should be named according to the document type it represents (e.g., 'workout'). The content of each file should be the prompt that will be applied to the formatting. Additionally, you can access and manage these document types directly through the AI sidebar in the application.")
       .setDisabled(true);
 
     return customizationTabContent;
