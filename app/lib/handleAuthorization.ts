@@ -25,6 +25,16 @@ async function handleLogging(
   }
 }
 
+class AuthorizationError extends Error {
+  status: number;
+
+  constructor(message: string, status: number) {
+    super(message);
+    this.name = "AuthorizationError";
+    this.status = status;
+  }
+}
+
 export async function handleAuthorization(req: NextRequest) {
   // this is to allow people to self host it easily without
   // setting up clerk
@@ -35,34 +45,30 @@ export async function handleAuthorization(req: NextRequest) {
   const header = req.headers.get("authorization");
   const { url, method } = req;
   console.log({ url, method });
+
   if (!header) {
-    console.error("No Authorization header");
-    return {
-      response: new Response("No Authorization header", { status: 401 }),
-    };
+    throw new AuthorizationError("No Authorization header", 401);
   }
+
   const token = header.replace("Bearer ", "");
   const { result, error } = await verifyKey(token);
+
   if (!result.valid) {
     console.error(result);
-    return {
-      response: new Response(`Unauthorized ${result.code}`, { status: 401 }),
-    };
+    throw new AuthorizationError(`Unauthorized: ${result.code}`, 401);
   }
+
   const { remaining, usageError } = await checkTokenUsage(result.ownerId);
+
   if (usageError) {
-    return {
-      response: new Response("Error checking token usage", { status: 500 }),
-    };
+    throw new AuthorizationError("Error checking token usage", 500);
   }
+
   if (remaining <= 0) {
-    return {
-      response: new Response("Token usage exceeded", { status: 429 }),
-    };
+    throw new AuthorizationError("Rate limit exceeded", 429);
   }
 
   await incrementApiUsage(result.ownerId);
-
   // get user from api key
   const user = await clerkClient.users.getUser(result.ownerId);
   // check if customer or not
