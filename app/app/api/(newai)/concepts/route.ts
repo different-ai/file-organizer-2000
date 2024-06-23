@@ -5,7 +5,15 @@ import { getModel } from "@/lib/models";
 import { identifyConcepts } from "@/aiService";
 
 export async function POST(request: NextRequest) {
-  const { userId } = await handleAuthorization(request);
+  const authResult = await handleAuthorization(request);
+
+  if (authResult.response && authResult.response.status === 429) {
+    return NextResponse.json(
+      { error: "User Reached Monthly Token Limit" },
+      { status: 429 }
+    );
+  }
+  const { userId } = authResult;
   const { document } = await request.json();
   const model = getModel(process.env.MODEL_NAME);
   const generateConceptsData = await identifyConcepts(document, model);

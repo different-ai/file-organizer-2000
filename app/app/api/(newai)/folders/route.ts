@@ -6,7 +6,16 @@ import { incrementAndLogTokenUsage } from "@/lib/incrementAndLogTokenUsage";
 import { getModel } from "@/lib/models";
 
 export async function POST(request: NextRequest) {
-  const { userId } = await handleAuthorization(request);
+  const authResult = await handleAuthorization(request);
+
+  if (authResult.response && authResult.response.status === 429) {
+    return NextResponse.json(
+      { error: "User Reached Monthly Token Limit" },
+      { status: 429 }
+    );
+  }
+
+  const { userId } = authResult;
   const { content, fileName, folders } = await request.json();
   const model = getModel(process.env.MODEL_NAME);
   const response = await guessRelevantFolder(content, fileName, folders, model);

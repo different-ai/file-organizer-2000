@@ -10,7 +10,16 @@ export const maxDuration = 60; // This function can run for a maximum of 5 secon
 export async function POST(request: NextRequest) {
   try {
     const payload = await request.json();
-    const { userId } = await handleAuthorization(request);
+
+    const authResult = await handleAuthorization(request);
+
+    if (authResult.response && authResult.response.status === 429) {
+      return NextResponse.json(
+        { error: "User Reached Monthly Token Limit" },
+        { status: 429 }
+      );
+    }
+    const { userId } = authResult;
 
     const model = getModel(process.env.VISION_MODEL_NAME);
     const messages = generateMessages("gpt-4o", payload.image);

@@ -72,7 +72,7 @@ class FileOrganizerSettings {
   visionModel = "gpt-4o";
   openAIBaseUrl = "https://api.openai.com/v1";
   openAIApiKey = "";
-  
+
   userModels: {
     [key: string]: {
       url: string;
@@ -127,7 +127,7 @@ export async function makeApiRequest<T>(
     console.error("API request error:", error);
     if (error.status === 429) {
       new Notice(
-        "You have run out of credits. Please upgrade your plan.",
+        "File Organizer 2000: You have reached your monthly limit. It will be reset on the first day of the next month.",
         6000
       );
     } else {
