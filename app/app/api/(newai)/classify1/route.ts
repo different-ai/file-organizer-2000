@@ -6,19 +6,28 @@ import { incrementAndLogTokenUsage } from "@/lib/incrementAndLogTokenUsage";
 import { getModel } from "@/lib/models";
 
 export async function POST(request: NextRequest) {
-  const { userId } = await handleAuthorization(request);
-  const { content, fileName, templateNames } = await request.json();
-  const model = getModel(process.env.MODEL_NAME);
-  const response = await classifyDocument(
-    content,
-    fileName,
-    templateNames,
-    model
-  );
-  // increment tokenUsage
-  const tokens = response.usage.totalTokens;
-  console.log("incrementing token usage classify", userId, tokens);
-  await incrementAndLogTokenUsage(userId, tokens);
-  const documentType = response.object.documentType;
-  return NextResponse.json({ documentType });
+  try {
+    const { userId } = await handleAuthorization(request);
+    const { content, fileName, templateNames } = await request.json();
+    const model = getModel(process.env.MODEL_NAME);
+    const response = await classifyDocument(
+      content,
+      fileName,
+      templateNames,
+      model
+    );
+    // increment tokenUsage
+    const tokens = response.usage.totalTokens;
+    console.log("incrementing token usage classify", userId, tokens);
+    await incrementAndLogTokenUsage(userId, tokens);
+    const documentType = response.object.documentType;
+    return NextResponse.json({ documentType });
+  } catch (error) {
+    if (error) {
+      return NextResponse.json(
+        { error: error.message },
+        { status: error.status }
+      );
+    }
+  }
 }
