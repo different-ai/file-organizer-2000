@@ -75,9 +75,10 @@ export async function handleAuthorization(req: NextRequest) {
       },
     });
   }
-  // if (!hasActiveSubscription) {
-  //   throw new AuthorizationError("No active subscription", 401);
-  // }
+  console.log("hasActiveSubscription", hasActiveSubscription, result.ownerId);
+  if (!hasActiveSubscription) {
+    throw new AuthorizationError("No active subscription", 401);
+  }
 
   const { remaining, usageError } = await checkTokenUsage(result.ownerId);
 

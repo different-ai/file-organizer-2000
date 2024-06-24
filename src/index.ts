@@ -153,7 +153,7 @@ export async function makeApiRequest<T>(
   }
 
   // if error throw
-  throw new Error(response.json.error);
+  throw new Error("Unknown error");
 }
 export interface FileMetadata {
   instructions: {
