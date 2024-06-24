@@ -89,7 +89,6 @@ class FileOrganizerSettings {
   formatModel = "gpt-4o";
   ollamaModels: string[] = ["codegemma"];
   openAIBaseUrl = "https://api.openai.com/v1";
-  openAIApiKey = "";
 
   userModels: {
     [key: string]: {

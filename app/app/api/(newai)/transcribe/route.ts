@@ -1,28 +1,32 @@
-import { NextResponse, NextRequest } from "next/server";
-import { generateTranscriptFromAudio } from "../../../../aiService";
-import { incrementAndLogTokenUsage } from "@/lib/incrementAndLogTokenUsage";
-import { handleAuthorization } from "@/lib/handleAuthorization";
+import fs from "fs";
+import OpenAI from "openai";
+import { tmpdir } from "os";
+import { join } from "path";
+import { promises as fsPromises } from "fs";
+import { NextResponse } from "next/server";
 
-export async function POST(request: NextRequest) {
-  const { userId } = await handleAuthorization(request);
-  const { audio } = await request.json();
+export const maxDuration = 60; // This function can run for a maximum of 5 seconds
 
-  try {
-    const transcript = await generateTranscriptFromAudio(
-      audio,
-      process.env.OPENAI_API_KEY as string
-    );
+export async function POST(request: Request) {
+  console.log("transcribe");
+  const { audio, extension } = await request.json();
+  console.log({ audio, extension });
+  const base64Data = audio.split(";base64,").pop();
+  console.log({ extension });
+  const tempFilePath = join(tmpdir(), `upload_${Date.now()}.${extension}`);
+  await fsPromises.writeFile(tempFilePath, base64Data, {
+    encoding: "base64",
+  });
 
-    // Estimate the token usage (you can adjust this based on your needs)
-    const estimatedTokens = transcript.length / 4;
-    await incrementAndLogTokenUsage(userId, estimatedTokens);
+  const apiKey = process.env.OPENAI_API_KEY;
+  const openai = new OpenAI({ apiKey });
 
-    return NextResponse.json({ transcript });
-  } catch (error) {
-    console.error("Error generating transcript:", error);
-    return NextResponse.json(
-      { message: "Error generating transcript" },
-      { status: 500 }
-    );
-  }
+  const transcription = await openai.audio.transcriptions.create({
+    file: fs.createReadStream(tempFilePath),
+    model: "whisper-1",
+  });
+
+  await fsPromises.unlink(tempFilePath);
+
+  return NextResponse.json({ text: transcription.text });
 }
