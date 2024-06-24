@@ -65,9 +65,9 @@ export async function handleAuthorization(req: NextRequest) {
   const hasActiveSubscription = await checkUserSubscriptionStatus(
     result.ownerId
   );
-  if (!hasActiveSubscription) {
-    throw new AuthorizationError("No active subscription", 401);
-  }
+  // if (!hasActiveSubscription) {
+  //   throw new AuthorizationError("No active subscription", 401);
+  // }
 
   const { remaining, usageError } = await checkTokenUsage(result.ownerId);
 
