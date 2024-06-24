@@ -1,7 +1,11 @@
 import { clerkClient } from "@clerk/nextjs/server";
 import { verifyKey } from "@unkey/api";
 import { NextRequest } from "next/server";
-import { checkTokenUsage, incrementApiUsage } from "../drizzle/schema";
+import {
+  checkTokenUsage,
+  checkUserSubscriptionStatus,
+  incrementApiUsage,
+} from "../drizzle/schema";
 import PostHogClient from "./posthog";
 
 async function handleLogging(
@@ -56,6 +60,13 @@ export async function handleAuthorization(req: NextRequest) {
   if (!result.valid) {
     console.error(result);
     throw new AuthorizationError(`Unauthorized: ${result.code}`, 401);
+  }
+  // check if has active subscription
+  const hasActiveSubscription = await checkUserSubscriptionStatus(
+    result.ownerId
+  );
+  if (!hasActiveSubscription) {
+    throw new AuthorizationError("No active subscription", 401);
   }
 
   const { remaining, usageError } = await checkTokenUsage(result.ownerId);

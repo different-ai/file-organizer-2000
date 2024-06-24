@@ -26,7 +26,9 @@ export const UserUsageTable = pgTable(
     maxTokenUsage: integer("maxTokenUsage")
       .notNull()
       .default(1000 * 1000),
-    subscriptionStatus: text("subscriptionStatus").notNull().default("inactive"),
+    subscriptionStatus: text("subscriptionStatus")
+      .notNull()
+      .default("inactive"),
     paymentStatus: text("paymentStatus").notNull().default("unpaid"),
   },
   (userUsage) => {
@@ -183,6 +185,26 @@ export const checkTokenUsage = async (userId: string) => {
   }
 };
 
+// check if has active subscription
+export const checkUserSubscriptionStatus = async (userId: string) => {
+  console.log("Checking subscription status for User ID:", userId);
+  try {
+    const userUsage = await db
+      .select()
+      .from(UserUsageTable)
+      .where(eq(UserUsageTable.userId, userId))
+      .limit(1)
+      .execute();
+    if (userUsage[0].subscriptionStatus === "active") {
+      return true;
+    }
+    return false;
+  } catch (error) {
+    console.error("Error checking subscription status for User ID:", userId);
+    console.error(error);
+  }
+};
+
 export async function updateUserSubscriptionStatus(
   userId: string,
   subscriptionStatus: string,
@@ -197,7 +219,7 @@ export async function updateUserSubscriptionStatus(
         paymentStatus,
         apiUsage: 0, // default values for other fields
         maxUsage: 0,
-        billingCycle: '',
+        billingCycle: "",
         tokenUsage: 0,
         maxTokenUsage: 1000 * 1000,
         createdAt: new Date(),
@@ -210,9 +232,14 @@ export async function updateUserSubscriptionStatus(
         },
       });
 
-    console.log(`Updated or created subscription status for User ID: ${userId}`);
+    console.log(
+      `Updated or created subscription status for User ID: ${userId}`
+    );
   } catch (error) {
-    console.error("Error updating or creating subscription status for User ID:", userId);
+    console.error(
+      "Error updating or creating subscription status for User ID:",
+      userId
+    );
     console.error(error);
   }
 }
