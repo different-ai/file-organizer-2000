@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import Stripe from "stripe";
-import { clerkClient } from "@clerk/nextjs/server";
+import { updateUserSubscriptionStatus } from "@/drizzle/schema";
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY as string, {
   apiVersion: "2024-04-10",
@@ -38,22 +38,33 @@ export async function POST(req: NextRequest) {
     case "checkout.session.completed": {
       const session = event.data.object;
       console.log(`Payment successful for session ID: ${session.id}`);
-      // print user id
       console.log(`User ID: ${session.metadata?.userId}`);
       console.log(session.status);
       console.log(session.payment_status);
-      await clerkClient.users.updateUserMetadata(
-        event.data.object.metadata?.userId as string,
-        {
-          publicMetadata: {
-            stripe: {
-              status: session.status,
-              payment: session.payment_status,
-            },
-          },
-        }
+      await updateUserSubscriptionStatus(
+        session.metadata?.userId,
+        session.status,
+        session.payment_status
       );
-      console.log("metadata updated");
+      console.log("User subscription status updated");
+      break;
+    }
+    case "customer.subscription.deleted": {
+      const subscription = event.data.object;
+      const userId = subscription.metadata?.userId;
+      if (userId) {
+        await updateUserSubscriptionStatus(userId, "canceled", "canceled");
+        console.log(`Subscription canceled for user ${userId}`);
+      }
+      break;
+    }
+    case "invoice.payment_failed": {
+      const invoice = event.data.object;
+      const userId = invoice.metadata?.userId;
+      if (userId) {
+        await updateUserSubscriptionStatus(userId, "incomplete", "failed");
+        console.log(`Payment failed for user ${userId}`);
+      }
       break;
     }
     default:

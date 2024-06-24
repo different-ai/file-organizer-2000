@@ -28,5 +28,5 @@ export async function POST(request: Request) {
 
   await fsPromises.unlink(tempFilePath);
 
-  return NextResponse.json({ transcription: transcription.text });
+  return NextResponse.json({ text: transcription.text });
 }

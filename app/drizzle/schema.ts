@@ -23,10 +23,11 @@ export const UserUsageTable = pgTable(
     createdAt: timestamp("createdAt").defaultNow().notNull(),
     billingCycle: text("billingCycle").notNull(),
     tokenUsage: integer("tokenUsage").notNull().default(0),
-    // 1 million tokens
     maxTokenUsage: integer("maxTokenUsage")
       .notNull()
       .default(1000 * 1000),
+    subscriptionStatus: text("subscriptionStatus").notNull().default("inactive"),
+    paymentStatus: text("paymentStatus").notNull().default("unpaid"),
   },
   (userUsage) => {
     return {
@@ -181,3 +182,37 @@ export const checkTokenUsage = async (userId: string) => {
     };
   }
 };
+
+export async function updateUserSubscriptionStatus(
+  userId: string,
+  subscriptionStatus: string,
+  paymentStatus: string
+): Promise<void> {
+  try {
+    await db
+      .insert(UserUsageTable)
+      .values({
+        userId,
+        subscriptionStatus,
+        paymentStatus,
+        apiUsage: 0, // default values for other fields
+        maxUsage: 0,
+        billingCycle: '',
+        tokenUsage: 0,
+        maxTokenUsage: 1000 * 1000,
+        createdAt: new Date(),
+      })
+      .onConflictDoUpdate({
+        target: [UserUsageTable.userId],
+        set: {
+          subscriptionStatus,
+          paymentStatus,
+        },
+      });
+
+    console.log(`Updated or created subscription status for User ID: ${userId}`);
+  } catch (error) {
+    console.error("Error updating or creating subscription status for User ID:", userId);
+    console.error(error);
+  }
+}
