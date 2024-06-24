@@ -23,20 +23,20 @@ export class FileOrganizerSettingTab extends PluginSettingTab {
     const tabContents = tabs.createEl("div", { cls: "setting-tab-contents" });
 
     const modelTabHeader = tabHeaders.createEl("div", {
-      text: "Pro",
+      text: "General",
       cls: "setting-tab-header",
     });
     const fileConfigTabHeader = tabHeaders.createEl("div", {
-      text: "Folders",
+      text: "File Configuration",
       cls: "setting-tab-header",
     });
     const customizationTabHeader = tabHeaders.createEl("div", {
-      text: "Make it yours",
+      text: "Customization",
       cls: "setting-tab-header",
     });
     const modelForXTabHeader = tabHeaders.createEl("div", {
-      text: "Advanced",
-      cls: "setting-tab-header",
+      text: "Advanced Config",
+      cls: "setting-tab-header advanced-settings",
     });
     
 

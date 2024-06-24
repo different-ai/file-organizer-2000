@@ -13,7 +13,11 @@ import { logMessage, formatToSafeName } from "../utils";
 import { FileOrganizerSettingTab } from "./FileOrganizerSettingTab";
 import { ASSISTANT_VIEW_TYPE, AssistantViewWrapper } from "./AssistantView";
 import Jimp from "jimp";
-import { configureTaskV2 } from "./models";
+import {
+  configureTask,
+  createOllamaInstance,
+  createOpenAIInstance,
+} from "../standalone/models";
 
 import {
   classifyDocumentRouter,
@@ -29,7 +33,6 @@ import {
   identifyConceptsRouter,
   transcribeAudioRouter,
 } from "./aiServiceRouter";
-import { LanguageModel } from "ai";
 
 type TagCounts = {
   [key: string]: number;
@@ -65,11 +68,26 @@ class FileOrganizerSettings {
   stagingFolder = ".fileorganizer2000/staging";
   disableImageAnnotation = false;
 
+  enableAnthropic = false;
+  anthropicApiKey = "";
+  anthropicModel = "claude-3-opus-20240229";
+
+  enableOpenAI = true;
+  openAIApiKey = "";
+  openAIModel = "gpt-4o";
+
   enableOllama = false;
   ollamaUrl = "http://localhost:11434/api";
+  // ollamaModel = "mistral";
 
-  textModel = "gpt-4o";
+  taggingModel = "gpt-4o";
+  foldersModel = "gpt-4o";
+  relationshipsModel = "gpt-4o";
+  nameModel = "gpt-4o";
+  classifyModel = "gpt-4o";
   visionModel = "gpt-4o";
+  formatModel = "gpt-4o";
+  ollamaModels: string[] = ["codegemma"];
   openAIBaseUrl = "https://api.openai.com/v1";
   openAIApiKey = "";
 
@@ -178,14 +196,17 @@ export default class FileOrganizer extends Plugin {
       const text = await this.getTextFromFile(originalFile);
       // we trim text to 128k tokens before passing it to the model
       // const trimmedText = await this.trimContentToTokenLimit(text, 128 * 1000);
-      const instructions = await this.generateInstructions(originalFile, text);
+      const instructions = await this.generateInstructions(
+        originalFile,
+        text
+      );
       const metadata = await this.generateMetadata(
         originalFile,
         instructions,
         text,
         oldPath
       );
-      console.log({ metadata });
+      console.log({metadata})
       await this.executeInstructions(metadata, originalFile, text);
     } catch (error) {
       new Notice(`Error processing ${originalFile.basename}`, 3000);
@@ -343,7 +364,13 @@ export default class FileOrganizer extends Plugin {
     }
     return content;
   }
-
+  updateOpenAIConfig() {
+    createOpenAIInstance(
+      this.settings.openAIApiKey,
+      this.settings.openAIModel,
+      this.settings.openAIBaseUrl
+    );
+  }
   async generateAliasses(name: string, content: string): Promise<string[]> {
     return await generateAliasVariationsRouter(
       name,
@@ -1033,45 +1060,40 @@ export default class FileOrganizer extends Plugin {
   }
 
   initalizeModels() {
-    if (this.settings.usePro) {
-      return;
-    }
-    if (Object.keys(this.settings.userModels).length === 0) {
-      new Notice("No models found, please add a model to the settings", 3000);
-      return;
-    }
-    logMessage(
-      "Using model",
-      this.settings.userModels[this.settings.textModel]
+    this.updateOpenAIConfig();
+    createOpenAIInstance(
+      this.settings.openAIApiKey,
+      this.settings.openAIModel || "gpt-4o",
+      this.settings.openAIBaseUrl
     );
-    configureTaskV2({
-      task: "text",
-      provider: this.settings.userModels[this.settings.textModel].provider,
-      apiKey: this.settings.userModels[this.settings.textModel].apiKey,
-      modelName: this.settings.textModel,
-      baseUrl: this.settings.userModels[this.settings.textModel].url,
-    });
-    logMessage(
-      "Using model",
-      this.settings.userModels[this.settings.visionModel]
+
+    if (this.settings.enableOllama) {
+      const ollamaModel = this.settings.ollamaModels[0];
+      createOllamaInstance(ollamaModel, {
+        baseURL: this.settings.ollamaUrl,
+      });
+    }
+
+    // Configure tasks with default models
+    configureTask("tagging", this.settings.taggingModel || "gpt-4o");
+    configureTask("folders", this.settings.foldersModel || "gpt-4o");
+    configureTask(
+      "relationships",
+      this.settings.relationshipsModel || "gpt-4o"
     );
-    configureTaskV2({
-      task: "vision",
-      provider: this.settings.userModels[this.settings.visionModel].provider,
-      apiKey: this.settings.userModels[this.settings.visionModel].apiKey,
-      modelName: this.settings.visionModel,
-      baseUrl: this.settings.userModels[this.settings.visionModel].url,
-    });
+    configureTask("name", this.settings.nameModel || "gpt-4o");
+    configureTask("classify", this.settings.classifyModel || "gpt-4o");
+    configureTask("vision", this.settings.visionModel || "gpt-4o");
+    configureTask("format", this.settings.formatModel || "gpt-4o");
   }
 
   async onload() {
-    logMessage("Initializing plugin");
     await this.initializePlugin();
 
-    logMessage("Initializing models");
     this.initalizeModels();
 
-    logMessage("Adding ribbon icon");
+    // configureTask("audio", "whisper-1");
+
     this.addRibbonIcon("sparkle", "Fo2k Assistant View", () => {
       this.showAssistantSidebar();
     });
@@ -1120,10 +1142,9 @@ export default class FileOrganizer extends Plugin {
       },
     });
 
-    logMessage("FileOrganizer2000 loaded");
-    logMessage("Settings", this.settings);
+    console.log("FileOrganizer2000 loaded");
+    console.log("Settings", this.settings);
     this.app.workspace.onLayoutReady(this.registerEventHandlers.bind(this));
-    logMessage("Processing backlog");
     this.processBacklog();
   }
   async loadSettings() {

@@ -13,6 +13,7 @@ export class FileConfigTab {
 
   create(): HTMLElement {
     const fileConfigTabContent = this.containerEl.createEl("div", {
+      cls: "setting-tab-content",
     });
 
     new Setting(fileConfigTabContent)
