@@ -10,6 +10,7 @@
     "test": "ts-node ./standalone/index.test.ts",
     "generate-prompt": "ts-node ./standalone/auto-fix.ts",
     "release": "node release.js"
+
   },
   "author": "",
   "license": "MIT",
