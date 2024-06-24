@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import Stripe from "stripe";
 import { updateUserSubscriptionStatus } from "@/drizzle/schema";
+import { clerkClient } from "@clerk/nextjs/server";
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY as string, {
   apiVersion: "2024-04-10",
@@ -41,6 +42,26 @@ export async function POST(req: NextRequest) {
       console.log(`User ID: ${session.metadata?.userId}`);
       console.log(session.status);
       console.log(session.payment_status);
+      try {
+        console.log(
+          "updating clerk metadata for user",
+          session.metadata?.userId
+        );
+        await clerkClient.users.updateUserMetadata(
+          event.data.object.metadata?.userId as string,
+          {
+            publicMetadata: {
+              stripe: {
+                status: session.status,
+                payment: session.payment_status,
+              },
+            },
+          }
+        );
+      } catch (error) {
+        console.error(`Error updating user metadata: ${error}`);
+      }
+      console.log("metadata updated");
       await updateUserSubscriptionStatus(
         session.metadata?.userId,
         session.status,
