@@ -72,7 +72,7 @@ class FileOrganizerSettings {
   visionModel = "gpt-4o";
   openAIBaseUrl = "https://api.openai.com/v1";
   openAIApiKey = "";
-  
+
   userModels: {
     [key: string]: {
       url: string;
@@ -282,8 +282,8 @@ export default class FileOrganizer extends Plugin {
     );
 
     // if it should be renamed replace the file name with the new name
+    await this.moveFile(fileToOrganize, metadata.newName, metadata.newPath);
     if (metadata.instructions.shouldRename) {
-      await this.moveFile(fileToOrganize, metadata.newName, metadata.newPath);
       this.appendToCustomLogFile(
         `Renamed ${metadata.originalName} to [[${fileToOrganize.basename}]]`
       );
@@ -302,9 +302,11 @@ export default class FileOrganizer extends Plugin {
 
     if (metadata.isMedia) {
       const mediaFile = fileBeingProcessed;
-      metadata.instructions.shouldClassify &&
+
+      !metadata.instructions.shouldClassify &&
         metadata.classification &&
         (await this.app.vault.append(fileToOrganize, text));
+
       await this.moveToAttachmentFolder(fileBeingProcessed, metadata.newName);
       this.appendToCustomLogFile(
         `Moved [[${mediaFile.basename}.${mediaFile.extension}]] to attachments folders`
