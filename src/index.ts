@@ -8,6 +8,9 @@ import {
   WorkspaceLeaf,
   normalizePath,
   loadPdfJs,
+  RequestUrlResponsePromise,
+  RequestUrlParam,
+  RequestUrlResponse,
 } from "obsidian";
 import { logMessage, formatToSafeName } from "../utils";
 import { FileOrganizerSettingTab } from "./FileOrganizerSettingTab";
@@ -33,6 +36,7 @@ import {
   identifyConceptsRouter,
   transcribeAudioRouter,
 } from "./aiServiceRouter";
+import { json } from "stream/consumers";
 
 type TagCounts = {
   [key: string]: number;
@@ -90,7 +94,6 @@ class FileOrganizerSettings {
   ollamaModels: string[] = ["codegemma"];
   openAIBaseUrl = "https://api.openai.com/v1";
 
-
   userModels: {
     [key: string]: {
       url: string;
@@ -135,25 +138,22 @@ const serverUrl =
 logMessage(`Server URL: ${serverUrl}`);
 
 // move to utils later
-// @ts-ignore
 export async function makeApiRequest<T>(
-  requestFn: () => Promise<T>
-): Promise<T> {
-  try {
-    return await requestFn();
-  } catch (error) {
-    console.error("API request error:", error);
-    if (error.status === 429) {
-      new Notice(
-        "File Organizer 2000: You have reached your monthly limit. It will be reset on the first day of the next month.",
-        6000
-      );
-    } else {
-      new Notice("An error occurred while processing the request.", 6000);
-      console.error("API request error:", error);
-    }
-    throw error;
+  requestFn: () => Promise<RequestUrlResponse>
+): Promise<RequestUrlResponse> {
+  const response: RequestUrlResponse = await requestFn();
+  console.log("response", response);
+  // if response status is in good range return
+  if (response.status >= 200 && response.status < 300) {
+    return response;
   }
+  if (response.json.error) {
+    new Notice(`File Organizer error: ${response.json.error}`, 6000);
+    throw new Error(response.json.error);
+  }
+
+  // if error throw
+  throw new Error(response.json.error);
 }
 export interface FileMetadata {
   instructions: {
@@ -196,17 +196,14 @@ export default class FileOrganizer extends Plugin {
       const text = await this.getTextFromFile(originalFile);
       // we trim text to 128k tokens before passing it to the model
       // const trimmedText = await this.trimContentToTokenLimit(text, 128 * 1000);
-      const instructions = await this.generateInstructions(
-        originalFile,
-        text
-      );
+      const instructions = await this.generateInstructions(originalFile, text);
       const metadata = await this.generateMetadata(
         originalFile,
         instructions,
         text,
         oldPath
       );
-      console.log({metadata})
+      console.log({ metadata });
       await this.executeInstructions(metadata, originalFile, text);
     } catch (error) {
       new Notice(`Error processing ${originalFile.basename}`, 3000);

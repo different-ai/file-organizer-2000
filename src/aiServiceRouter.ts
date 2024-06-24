@@ -37,6 +37,7 @@ export async function classifyDocumentRouter(
           fileName: name,
           templateNames,
         }),
+        throw: false,
         headers: {
           Authorization: `Bearer ${apiKey}`,
         },
@@ -77,6 +78,7 @@ export async function generateTagsRouter(
           fileName,
           tags,
         }),
+        throw: false,
         headers: {
           Authorization: `Bearer ${apiKey}`,
         },
@@ -109,6 +111,7 @@ export async function createNewFolderRouter(
           fileName,
           existingFolders,
         }),
+        throw: false,
         headers: {
           Authorization: `Bearer ${apiKey}`,
         },
@@ -145,6 +148,7 @@ export async function generateAliasVariationsRouter(
           fileName,
           content,
         }),
+        throw: false,
         headers: {
           Authorization: `Bearer ${apiKey}`,
         },
@@ -180,6 +184,7 @@ export async function guessRelevantFolderRouter(
           fileName: filePath,
           folders,
         }),
+        throw: false,
         headers: {
           Authorization: `Bearer ${apiKey}`,
         },
@@ -247,6 +252,7 @@ export async function generateDocumentTitleRouter(
         method: "POST",
         contentType: "application/json",
         body: JSON.stringify({ document: content }),
+        throw: false,
         headers: {
           Authorization: `Bearer ${apiKey}`,
         },
@@ -278,6 +284,7 @@ export async function formatDocumentContentRouter(
           content,
           formattingInstruction,
         }),
+        throw: false,
         headers: {
           Authorization: `Bearer ${apiKey}`,
         },
@@ -309,6 +316,7 @@ export async function identifyConceptsRouter(
         method: "POST",
         contentType: "application/json",
         body: JSON.stringify({ content }),
+        throw: false,
         headers: {
           Authorization: `Bearer ${apiKey}`,
         },
@@ -337,6 +345,7 @@ export async function fetchChunksForConceptRouter(
         method: "POST",
         contentType: "application/json",
         body: JSON.stringify({ content, concept }),
+        throw: false,
         headers: {
           Authorization: `Bearer ${apiKey}`,
         },
@@ -366,6 +375,7 @@ export async function extractTextFromImageRouter(
         method: "POST",
         contentType: "application/json",
         body: JSON.stringify({ image: base64Image }),
+        throw: false,
         headers: {
           Authorization: `Bearer ${apiKey}`,
         },
@@ -383,7 +393,12 @@ export async function extractTextFromImageRouter(
 export async function transcribeAudioRouter(
   encodedAudio: string,
   fileExtension: string,
-  { usePro, serverUrl, fileOrganizerApiKey, openAIApiKey }: {
+  {
+    usePro,
+    serverUrl,
+    fileOrganizerApiKey,
+    openAIApiKey,
+  }: {
     usePro: boolean;
     serverUrl: string;
     fileOrganizerApiKey: string;
@@ -400,6 +415,7 @@ export async function transcribeAudioRouter(
           audio: encodedAudio,
           extension: fileExtension,
         }),
+        throw: false,
         headers: {
           Authorization: `Bearer ${fileOrganizerApiKey}`,
         },
@@ -409,7 +425,10 @@ export async function transcribeAudioRouter(
     return text;
   } else {
     const audioBuffer = Buffer.from(encodedAudio, "base64");
-    const response = await generateTranscriptFromAudio(audioBuffer, openAIApiKey);
+    const response = await generateTranscriptFromAudio(
+      audioBuffer,
+      openAIApiKey
+    );
     return response;
   }
 }

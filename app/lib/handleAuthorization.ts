@@ -65,6 +65,16 @@ export async function handleAuthorization(req: NextRequest) {
   const hasActiveSubscription = await checkUserSubscriptionStatus(
     result.ownerId
   );
+  const client = PostHogClient();
+  if (client) {
+    client.capture({
+      distinctId: result.ownerId,
+      event: "subscription-status",
+      properties: {
+        status: hasActiveSubscription ? "active" : "inactive",
+      },
+    });
+  }
   // if (!hasActiveSubscription) {
   //   throw new AuthorizationError("No active subscription", 401);
   // }
