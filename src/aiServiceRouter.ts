@@ -437,7 +437,8 @@ export async function transcribeAudioRouter(
     const audioBuffer = Buffer.from(encodedAudio, "base64");
     const response = await generateTranscriptFromAudio(
       audioBuffer,
-      openAIApiKey
+      fileExtension,
+      openAIApiKey,
     );
     return response;
   }
