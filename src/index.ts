@@ -933,12 +933,15 @@ export default class FileOrganizer extends Plugin {
   }
 
   async appendTag(file: TFile, tag: string) {
+    // Ensure the tag starts with a hash symbol
+    const formattedTag = tag.startsWith('#') ? tag : `#${tag}`;
+
     // Append similar tags
     if (this.settings.useSimilarTagsInFrontmatter) {
-      await this.appendToFrontMatter(file, "tags", tag);
+      await this.appendToFrontMatter(file, "tags", formattedTag);
       return;
     }
-    await this.app.vault.append(file, `\n${tag}`);
+    await this.app.vault.append(file, `\n${formattedTag}`);
   }
 
   async appendSimilarTags(content: string, file: TFile) {
