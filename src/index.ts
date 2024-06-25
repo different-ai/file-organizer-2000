@@ -161,7 +161,6 @@ export interface FileMetadata {
     shouldClassify: boolean;
     shouldAppendAlias: boolean;
     shouldAppendSimilarTags: boolean;
-    shouldRename: boolean;
   };
   classification?: string;
   originalText: string;
@@ -214,7 +213,6 @@ export default class FileOrganizer extends Plugin {
 
   async generateInstructions(
     file: TFile,
-    text: string
   ): Promise<FileMetadata["instructions"]> {
     const shouldAnnotate =
       !this.settings.disableImageAnnotation &&
@@ -222,14 +220,12 @@ export default class FileOrganizer extends Plugin {
     const shouldClassify = this.settings.enableDocumentClassification;
     const shouldAppendAlias = this.settings.enableAliasGeneration;
     const shouldAppendSimilarTags = this.settings.useSimilarTags;
-    const shouldRename = this.shouldRename(file);
 
     return {
       shouldAnnotate,
       shouldClassify,
       shouldAppendAlias,
       shouldAppendSimilarTags,
-      shouldRename,
     };
   }
 
@@ -239,9 +235,7 @@ export default class FileOrganizer extends Plugin {
     textToFeedAi: string,
     oldPath?: string
   ): Promise<FileMetadata> {
-    const documentName = instructions.shouldRename
-      ? await this.generateNameFromContent(textToFeedAi)
-      : file.basename;
+    const documentName = await this.generateNameFromContent(textToFeedAi);
 
     const classificationResult = instructions.shouldClassify
       ? await this.classifyAndFormatDocumentV2(file, textToFeedAi)
@@ -301,14 +295,12 @@ export default class FileOrganizer extends Plugin {
 
     // if it should be renamed replace the file name with the new name
     await this.moveFile(fileToOrganize, metadata.newName, metadata.newPath);
-    if (metadata.instructions.shouldRename) {
       this.appendToCustomLogFile(
         `Renamed ${metadata.originalName} to [[${fileToOrganize.basename}]]`
       );
       this.appendToCustomLogFile(
         `Organized [[${fileToOrganize.basename}]] into ${metadata.newPath}`
       );
-    }
 
     // if it should be classified replace the content with the formatted text
     if (metadata.instructions.shouldClassify && metadata.classification) {
@@ -387,24 +379,7 @@ export default class FileOrganizer extends Plugin {
 
     await this.app.vault.create(metadataFilePath, metadataContent);
   }
-  shouldRename(file: TFile): boolean {
-    const isRenameEnabled = this.settings.renameDocumentTitle;
-    const isUntitledFile = /^untitled/i.test(file.basename);
-    if (file.extension !== "md") {
-      console.log("renaming non markdown file");
-      return true;
-    }
 
-    if (!isRenameEnabled) {
-      return false;
-    }
-
-    if (this.settings.renameUntitledOnly && !isUntitledFile) {
-      return false;
-    }
-
-    return true;
-  }
   async formatContentV2(
     file: TFile,
     content: string,
@@ -462,19 +437,7 @@ export default class FileOrganizer extends Plugin {
     }
   }
 
-  async classifyAndFormatDocument(file: TFile, content: string) {
-    const classification = await this.classifyContent(content, file.basename);
 
-    if (classification) {
-      await this.formatContent(
-        file,
-        content,
-        classification.formattingInstruction
-      );
-      return classification;
-    }
-    return null;
-  }
   async createFileInInbox(content: string): Promise<void> {
     const fileName = `chunk_${Date.now()}.md`;
     const filePath = `${this.settings.pathToWatch}/${fileName}`;
@@ -697,30 +660,6 @@ export default class FileOrganizer extends Plugin {
     this.appendToFrontMatter(file, "aliases", alias);
   }
 
-  // creates a .md file with a humean readable name guessed from the content
-  async createMarkdownFileFromText(content: string) {
-    const now = new Date();
-    const formattedNow = now.toISOString().replace(/[-:.TZ]/g, "");
-    let name = formattedNow;
-    try {
-      name = await this.generateNameFromContent(content);
-    } catch (error) {
-      console.error("Error processing file:", error.status);
-      new Notice("Could not set a human readable name.");
-    }
-    const safeName = formatToSafeName(name);
-
-    let outputFilePath = `/${this.settings.defaultDestinationPath}/${safeName}.md`;
-    const existingFile = this.app.vault.getAbstractFileByPath(outputFilePath);
-
-    if (existingFile) {
-      const timestamp = Date.now();
-      const timestampedFileName = `${safeName}_${timestamp}`;
-      outputFilePath = `/${this.settings.defaultDestinationPath}/${timestampedFileName}.md`;
-    }
-    const file = await this.app.vault.create(outputFilePath, content);
-    return file;
-  }
 
   async moveFile(
     file: TFile,
