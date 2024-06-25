@@ -119,7 +119,7 @@ export async function generateRelationships(
 
           Active File Content:
           ${activeFileContent}
-          
+
           List of Files:
           ${files.map((file: { name: string }) => `${file.name}`).join(", ")}
           
@@ -132,17 +132,20 @@ export async function generateRelationships(
 // Function to generate document titles
 export async function generateDocumentTitle(
   document: string,
-  model: LanguageModel
+  model: LanguageModel,
+  renameInstructions: string
 ) {
+  console.log("renameInstructions", renameInstructions);
   const response = await generateObject({
     model,
     schema: z.object({
       name: z.string().max(60),
     }),
-    system: "Only answer with human readable title",
+    system: `Only answer with human readable title, ${renameInstructions}`,
     prompt: `You are a helpful assistant. You only answer short (less than 30 chars titles). You do not use any special character just text. Use something very specific to the content not a generic title.
       Give a title to this document:  
-      ${document}`,
+      ${document}
+      `,
   });
 
   return response;

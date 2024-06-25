@@ -8,9 +8,13 @@ export async function POST(request: NextRequest) {
   try {
     const { userId } = await handleAuthorization(request);
 
-    const { document } = await request.json();
+    const { document, instructions } = await request.json();
     const model = getModel(process.env.MODEL_NAME);
-    const generateTitleData = await generateDocumentTitle(document, model);
+    const generateTitleData = await generateDocumentTitle(
+      document,
+      model,
+      instructions
+    );
     const title = generateTitleData.object.name;
     // Increment token usage
     const tokens = generateTitleData.usage.totalTokens;

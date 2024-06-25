@@ -50,7 +50,8 @@ class FileOrganizerSettings {
   pathToWatch = "_FileOrganizer2000/Inbox";
   logFolderPath = "_FileOrganizer2000/Logs";
   useSimilarTags = true; // default value is true
-  renameDocumentTitle = false; // default value is true
+  renameInstructions =
+    "Rename the document based on the content. Keep it short and relevant.";
 
   useAutoAppend = false;
   usePro = true;
@@ -66,7 +67,6 @@ class FileOrganizerSettings {
   enableSimilarFiles = false;
 
   enableDocumentClassification = false;
-  renameUntitledOnly = true;
 
   ignoreFolders = [""];
   stagingFolder = ".fileorganizer2000/staging";
@@ -789,11 +789,14 @@ export default class FileOrganizer extends Plugin {
   }
 
   async generateNameFromContent(content: string): Promise<string> {
+    const renameInstructions = this.settings.renameInstructions;
+    logMessage("renameInstructions", renameInstructions);
     const name = await generateDocumentTitleRouter(
       content,
       this.settings.usePro,
       serverUrl,
-      this.settings.API_KEY
+      this.settings.API_KEY,
+      renameInstructions
     );
     return formatToSafeName(name);
   }
