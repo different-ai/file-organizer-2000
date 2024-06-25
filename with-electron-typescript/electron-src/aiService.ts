@@ -21,8 +21,9 @@ export async function generateTags(
         }),
         prompt: `Given the text "${content}" (and if relevant ${fileName}), identify the at most 3 relevant tags from the following list, sorted from most commonly found to least commonly found: ${tags.join(
           ", "
-        )}. Make sure they include a # at the beginning of each tag.`,
+        )}`,
       });
+
       return response.object.tags ?? [];
     }
     default: {
@@ -30,7 +31,7 @@ export async function generateTags(
         model,
         prompt: `Given the text "${content}" (and if relevant ${fileName}), identify the at most 3 relevant tags from the following list, sorted from most commonly found to least commonly found: ${tags.join(
           ", "
-        )}. Respond with only the tags, no other text. Make sure they include a # at the beginning of each tag.`,
+        )}. Respond with only the tags, no other text.`,
       });
 
       return defaultResponse.text
