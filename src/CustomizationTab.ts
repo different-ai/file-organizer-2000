@@ -30,26 +30,15 @@ export class CustomizationTab {
       );
 
     new Setting(customizationTabContent)
-      .setName("Rename untitled files only")
-      .setDesc("Only rename files that have 'Untitled' in their name.")
-      .addToggle((toggle) =>
-        toggle
-          .setValue(this.plugin.settings.renameUntitledOnly)
+      .setName("Rename Instructions")
+      .setDesc(
+        "Provide instructions for renaming the document based on its content."
+      )
+      .addTextArea((text) =>
+        text
+          .setValue(this.plugin.settings.renameInstructions)
           .onChange(async (value) => {
-            if (!value) {
-              this.plugin.settings.renameUntitledOnly = false;
-              await this.plugin.saveSettings();
-              return;
-            }
-            if (!this.plugin.settings.renameDocumentTitle) {
-              new Notice(
-                "Rename document title must be enabled to rename untitled files.",
-                6000
-              );
-              toggle.setValue(false);
-              return;
-            }
-            this.plugin.settings.renameUntitledOnly = value;
+            this.plugin.settings.renameInstructions = value;
             await this.plugin.saveSettings();
           })
       );
@@ -86,18 +75,6 @@ export class CustomizationTab {
           .setValue(this.plugin.settings.disableImageAnnotation)
           .onChange(async (value) => {
             this.plugin.settings.disableImageAnnotation = value;
-            await this.plugin.saveSettings();
-          })
-      );
-
-    new Setting(customizationTabContent)
-      .setName("Rename document title")
-      .setDesc("Rename the document title based on the content.")
-      .addToggle((toggle) =>
-        toggle
-          .setValue(this.plugin.settings.renameDocumentTitle)
-          .onChange(async (value) => {
-            this.plugin.settings.renameDocumentTitle = value;
             await this.plugin.saveSettings();
           })
       );

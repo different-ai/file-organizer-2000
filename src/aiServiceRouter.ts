@@ -17,6 +17,7 @@ import {
 import { requestUrl } from "obsidian";
 import { getModelFromTask } from "../standalone/models";
 import { arrayBufferToBase64 } from "obsidian";
+import { logMessage } from "../utils";
 
 export async function classifyDocumentRouter(
   content: string,
@@ -243,15 +244,20 @@ export async function generateDocumentTitleRouter(
   content: string,
   usePro: boolean,
   serverUrl: string,
-  apiKey: string
+  apiKey: string,
+  renameInstructions: string
 ): Promise<string> {
+  logMessage("renameInstructions", renameInstructions);
   if (usePro) {
     const response = await makeApiRequest(() =>
       requestUrl({
         url: `${serverUrl}/api/title`,
         method: "POST",
         contentType: "application/json",
-        body: JSON.stringify({ document: content }),
+        body: JSON.stringify({
+          document: content,
+          instructions: renameInstructions,
+        }),
         throw: false,
         headers: {
           Authorization: `Bearer ${apiKey}`,
@@ -262,7 +268,11 @@ export async function generateDocumentTitleRouter(
     return title;
   } else {
     const model = getModelFromTask("name");
-    const response = await generateDocumentTitle(content, model);
+    const response = await generateDocumentTitle(
+      content,
+      model,
+      renameInstructions
+    );
     return response.object.name;
   }
 }
