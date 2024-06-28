@@ -212,7 +212,7 @@ export default class FileOrganizer extends Plugin {
   }
 
   async generateInstructions(
-    file: TFile,
+    file: TFile
   ): Promise<FileMetadata["instructions"]> {
     const shouldAnnotate =
       !this.settings.disableImageAnnotation &&
@@ -287,22 +287,13 @@ export default class FileOrganizer extends Plugin {
     fileBeingProcessed: TFile,
     text: string
   ): Promise<void> {
-    // create a new markdown file in default folder
+    // Create a new markdown file in default folder
     const fileToOrganize = await this.retrieveFileToModify(
       fileBeingProcessed,
       metadata.isMedia
     );
 
-    // if it should be renamed replace the file name with the new name
-    await this.moveFile(fileToOrganize, metadata.newName, metadata.newPath);
-      this.appendToCustomLogFile(
-        `Renamed ${metadata.originalName} to [[${fileToOrganize.basename}]]`
-      );
-      this.appendToCustomLogFile(
-        `Organized [[${fileToOrganize.basename}]] into ${metadata.newPath}`
-      );
-
-    // if it should be classified replace the content with the formatted text
+    // If it should be classified replace the content with the formatted text
     if (metadata.instructions.shouldClassify && metadata.classification) {
       await this.app.vault.modify(fileToOrganize, metadata.aiFormattedText);
       this.appendToCustomLogFile(
@@ -313,19 +304,36 @@ export default class FileOrganizer extends Plugin {
     if (metadata.isMedia) {
       const mediaFile = fileBeingProcessed;
 
-      !metadata.instructions.shouldClassify &&
-        metadata.classification &&
-        (await this.app.vault.append(fileToOrganize, text));
+      // Add the annotation text to the markdown file
+      if (!metadata.instructions.shouldClassify) {
+        await this.app.vault.modify(fileToOrganize, text);
+      }
 
-      await this.moveToAttachmentFolder(fileBeingProcessed, metadata.newName);
+      // New log for successful image annotation
+      if (validImageExtensions.includes(mediaFile.extension)) {
+        this.appendToCustomLogFile(`Annotated image [[${mediaFile.basename}]]`);
+      }
+      await this.moveToAttachmentFolder(mediaFile, metadata.newName);
       this.appendToCustomLogFile(
-        `Moved [[${mediaFile.basename}.${mediaFile.extension}]] to attachments folders`
+        `Moved [[${mediaFile.basename}]] to attachments folder`
       );
 
       await this.appendAttachment(fileToOrganize, mediaFile);
-      this.appendToCustomLogFile(`Added attachment to [[${metadata.newName}]]`);
+      this.appendToCustomLogFile(
+        `Added attachment link to [[${fileToOrganize.basename}]]`
+      );
     }
 
+    // Move the file to its new location
+    await this.moveFile(fileToOrganize, metadata.newName, metadata.newPath);
+    this.appendToCustomLogFile(
+      `Renamed ${metadata.originalName} to [[${fileToOrganize.basename}]]`
+    );
+    this.appendToCustomLogFile(
+      `Organized [[${fileToOrganize.basename}]] into ${metadata.newPath}`
+    );
+
+    // Handle similar tags
     if (
       metadata.instructions.shouldAppendSimilarTags &&
       metadata.similarTags.length > 0
@@ -436,7 +444,6 @@ export default class FileOrganizer extends Plugin {
       new Notice("An error occurred while formatting the content.", 6000); // Added user notice
     }
   }
-
 
   async createFileInInbox(content: string): Promise<void> {
     const fileName = `chunk_${Date.now()}.md`;
@@ -659,7 +666,6 @@ export default class FileOrganizer extends Plugin {
   async appendAlias(file: TFile, alias: string) {
     this.appendToFrontMatter(file, "aliases", alias);
   }
-
 
   async moveFile(
     file: TFile,
@@ -934,7 +940,7 @@ export default class FileOrganizer extends Plugin {
 
   async appendTag(file: TFile, tag: string) {
     // Ensure the tag starts with a hash symbol
-    const formattedTag = tag.startsWith('#') ? tag : `#${tag}`;
+    const formattedTag = tag.startsWith("#") ? tag : `#${tag}`;
 
     // Append similar tags
     if (this.settings.useSimilarTagsInFrontmatter) {
