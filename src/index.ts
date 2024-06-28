@@ -315,13 +315,11 @@ export default class FileOrganizer extends Plugin {
       }
       await this.moveToAttachmentFolder(mediaFile, metadata.newName);
       this.appendToCustomLogFile(
-        `Moved [[${mediaFile.basename}]] to attachments folder`
+        `Moved [[${mediaFile.basename}.${mediaFile.extension}]] to attachments folders`
       );
 
       await this.appendAttachment(fileToOrganize, mediaFile);
-      this.appendToCustomLogFile(
-        `Added attachment link to [[${fileToOrganize.basename}]]`
-      );
+      this.appendToCustomLogFile(`Added attachment to [[${metadata.newName}]]`);
     }
 
     // Move the file to its new location
