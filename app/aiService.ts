@@ -132,20 +132,31 @@ export async function generateRelationships(
 // Function to generate document titles
 export async function generateDocumentTitle(
   document: string,
+  currentName: string,
   model: LanguageModel,
   renameInstructions: string
 ) {
   console.log("renameInstructions", renameInstructions);
+  // console log the prompt and system
+  const prompt = `You are an AI specialized in generating concise and relevant document titles. Ensure the title is under 50 characters, contains no special characters, and is highly specific to the document's content.
+      Additional context:
+      Time: ${new Date().toISOString()}
+      Current Name: ${currentName}
+      Document Content: ${document}
+      Provide a suitable title
+      ${renameInstructions}
+      `;
+  const system = `Only answer with human readable title`;
+
+  console.log("prompt", prompt);
+  console.log("system", system);
   const response = await generateObject({
     model,
     schema: z.object({
       name: z.string().max(60),
     }),
-    system: `Only answer with human readable title, ${renameInstructions}`,
-    prompt: `You are a helpful assistant. You only answer short (less than 30 chars titles). You do not use any special character just text. Use something very specific to the content not a generic title.
-      Give a title to this document:  
-      ${document}
-      `,
+    system,
+    prompt,
   });
 
   return response;

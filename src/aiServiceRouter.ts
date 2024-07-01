@@ -242,6 +242,7 @@ export async function generateRelationshipsRouter(
 
 export async function generateDocumentTitleRouter(
   content: string,
+  currentName: string,
   usePro: boolean,
   serverUrl: string,
   apiKey: string,
@@ -257,6 +258,7 @@ export async function generateDocumentTitleRouter(
         body: JSON.stringify({
           document: content,
           instructions: renameInstructions,
+          currentName,
         }),
         throw: false,
         headers: {
@@ -270,6 +272,7 @@ export async function generateDocumentTitleRouter(
     const model = getModelFromTask("name");
     const response = await generateDocumentTitle(
       content,
+      currentName,
       model,
       renameInstructions
     );
@@ -438,7 +441,7 @@ export async function transcribeAudioRouter(
     const response = await generateTranscriptFromAudio(
       audioBuffer,
       fileExtension,
-      openAIApiKey,
+      openAIApiKey
     );
     return response;
   }

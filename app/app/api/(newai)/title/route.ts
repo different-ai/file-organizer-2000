@@ -8,10 +8,11 @@ export async function POST(request: NextRequest) {
   try {
     const { userId } = await handleAuthorization(request);
 
-    const { document, instructions } = await request.json();
+    const { document, instructions, currentName } = await request.json();
     const model = getModel(process.env.MODEL_NAME);
     const generateTitleData = await generateDocumentTitle(
       document,
+      currentName,
       model,
       instructions
     );

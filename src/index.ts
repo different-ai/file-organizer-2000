@@ -235,7 +235,10 @@ export default class FileOrganizer extends Plugin {
     textToFeedAi: string,
     oldPath?: string
   ): Promise<FileMetadata> {
-    const documentName = await this.generateNameFromContent(textToFeedAi);
+    const documentName = await this.generateNameFromContent(
+      textToFeedAi,
+      file.basename
+    );
 
     const classificationResult = instructions.shouldClassify
       ? await this.classifyAndFormatDocumentV2(file, textToFeedAi)
@@ -731,11 +734,15 @@ export default class FileOrganizer extends Plugin {
     return await this.moveFile(file, newFileName, destinationFolder);
   }
 
-  async generateNameFromContent(content: string): Promise<string> {
+  async generateNameFromContent(
+    content: string,
+    currentName: string
+  ): Promise<string> {
     const renameInstructions = this.settings.renameInstructions;
     logMessage("renameInstructions", renameInstructions);
     const name = await generateDocumentTitleRouter(
       content,
+      currentName,
       this.settings.usePro,
       serverUrl,
       this.settings.API_KEY,

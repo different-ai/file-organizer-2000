@@ -161,7 +161,10 @@ const RenameSuggestion: React.FC<{
       setLoading(true);
       setError(null);
       try {
-        const suggestedAlias = await plugin.generateNameFromContent(content);
+        const suggestedAlias = await plugin.generateNameFromContent(
+          content,
+          file.basename
+        );
         setTitle(suggestedAlias);
         if (!suggestedAlias) {
           setError("No alias could be generated.");
