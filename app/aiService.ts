@@ -268,6 +268,34 @@ export async function formatDocumentContent(
   return response;
 }
 
+export async function identifyConceptsAndFetchChunks(
+  content: string,
+  model: LanguageModel
+) {
+  const response = await generateObject({
+    model,
+    schema: z.object({
+      concepts: z.array(
+        z.object({
+          name: z.string(),
+          chunk: z.string(),
+        })
+      ),
+    }),
+    prompt: `Analyze the following content:
+
+    ${content}
+
+    1. Identify the key concepts in the document.
+    2. For each concept, extract the most relevant chunk of information.
+    3. Return a list of concepts, each with its name and associated chunk of information.
+    
+    Aim to split the document into the fewest atomic chunks possible while capturing all key concepts.`,
+  });
+
+  return response;
+}
+
 // Function to identify concepts in the document
 export async function identifyConcepts(content: string, model: LanguageModel) {
   const response = await generateObject({

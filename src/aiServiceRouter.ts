@@ -13,6 +13,7 @@ import {
   createNewFolder,
   extractTextFromImage,
   generateTranscriptFromAudio,
+  identifyConceptsAndFetchChunks,
 } from "../app/aiService";
 import { requestUrl } from "obsidian";
 import { getModelFromTask } from "../standalone/models";
@@ -400,6 +401,34 @@ export async function extractTextFromImageRouter(
     const model = getModelFromTask("vision");
     console.log("image", image);
     return await extractTextFromImage(image, model);
+  }
+}
+
+export async function identifyConceptsAndFetchChunksRouter(
+  content: string,
+  usePro: boolean,
+  serverUrl: string,
+  apiKey: string
+): Promise<{ name: string; chunk: string }[]> {
+  if (usePro) {
+    const response = await makeApiRequest(() =>
+    requestUrl({
+        url: `${serverUrl}/api/concepts-and-chunks`,
+        method: "POST",
+        contentType: "application/json",
+        body: JSON.stringify({ content }),
+        throw: false,
+        headers: {
+          Authorization: `Bearer ${apiKey}`,
+        },
+      })
+    );
+    const { concepts } = await response.json;
+    return concepts;
+  } else {
+    const model = getModelFromTask("format"); // You might want to create a specific task for this
+    const response = await identifyConceptsAndFetchChunks(content, model);
+    return response.object.concepts;
   }
 }
 

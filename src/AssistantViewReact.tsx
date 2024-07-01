@@ -84,19 +84,16 @@ const DocumentChunks: React.FC<{
     setLoading(true);
     try {
       const content = await plugin.app.vault.read(activeFile);
-      const identifiedConcepts = await plugin.identifyConcepts(content);
-      setConcepts(identifiedConcepts);
+      const result = await plugin.identifyConceptsAndFetchChunks(content);
+      console.log("result", result);
 
-      for (const concept of identifiedConcepts) {
-        const conceptChunk = await plugin.fetchChunkForConcept(
-          content,
-          concept
-        );
-        setChunks((prevChunks) => [
-          ...prevChunks,
-          { concept, content: conceptChunk.content },
-        ]);
-      }
+      setConcepts(result.object.concepts.map((c) => c.name));
+      setChunks(
+        result.object.concepts.map((c) => ({
+          concept: c.name,
+          content: c.chunk,
+        }))
+      );
     } catch (error) {
       console.error("Error parsing document:", error);
     } finally {

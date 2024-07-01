@@ -20,6 +20,7 @@ import {
   configureTask,
   createOllamaInstance,
   createOpenAIInstance,
+  getModelFromTask,
 } from "../standalone/models";
 
 import {
@@ -33,10 +34,13 @@ import {
   generateRelationshipsRouter,
   generateTagsRouter,
   guessRelevantFolderRouter,
+  identifyConceptsAndFetchChunksRouter,
   identifyConceptsRouter,
   transcribeAudioRouter,
 } from "./aiServiceRouter";
 import { json } from "stream/consumers";
+import { identifyConceptsAndFetchChunks } from "../app/aiService";
+import { openai } from "@ai-sdk/openai";
 
 type TagCounts = {
   [key: string]: number;
@@ -271,6 +275,22 @@ export default class FileOrganizer extends Plugin {
       aliases,
       similarTags,
     };
+  }
+
+  async identifyConceptsAndFetchChunks(content: string) {
+    try {
+      const result = await identifyConceptsAndFetchChunksRouter(
+        content,
+        this.settings.usePro,
+        serverUrl,
+        this.settings.API_KEY
+      );
+      return result;
+    } catch (error) {
+      console.error("Error in identifyConceptsAndFetchChunks:", error);
+      new Notice("An error occurred while processing the document.", 6000);
+      throw error;
+    }
   }
 
   async retrieveFileToModify(originalFile: TFile, isMedia: boolean) {
