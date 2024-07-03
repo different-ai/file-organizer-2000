@@ -328,7 +328,7 @@ export default class FileOrganizer extends Plugin {
       const mediaFile = fileBeingProcessed;
 
       // Add the annotation text to the markdown file
-      if (!metadata.instructions.shouldClassify) {
+      if (metadata.instructions.shouldAnnotate) {
         await this.app.vault.modify(fileToOrganize, text);
       }
 
