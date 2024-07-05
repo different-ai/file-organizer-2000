@@ -14,7 +14,6 @@ export async function POST(req: NextRequest) {
     console.log("Creating checkout session for user", userId);
     const session = await stripe.checkout.sessions.create({
       subscription_data: {
-        trial_period_days: 3,
         metadata: {
           userId,
         },
