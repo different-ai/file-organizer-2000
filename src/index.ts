@@ -316,26 +316,28 @@ export default class FileOrganizer extends Plugin {
       metadata.isMedia
     );
 
-    // If it should be classified replace the content with the formatted text
-    if (metadata.instructions.shouldClassify && metadata.classification) {
-      await this.app.vault.modify(fileToOrganize, metadata.aiFormattedText);
+    // If it's a media file and should be annotated
+    if (metadata.isMedia && metadata.instructions.shouldAnnotate) {
+      await this.app.vault.modify(fileToOrganize, text);
       this.appendToCustomLogFile(
-        `Classified [[${metadata.newName}]] as ${metadata.classification} and formatted it with [[${this.settings.templatePaths}/${metadata.classification}]]`
+        `Annotated ${metadata.isMedia ? "media" : "file"} [[${
+          metadata.newName
+        }]]`
       );
+    }
+
+    // If it should be classified/formatted
+    if (metadata.instructions.shouldClassify && metadata.classification) {
+      if (!metadata.isMedia || metadata.isMedia) {
+        await this.app.vault.modify(fileToOrganize, metadata.aiFormattedText);
+        this.appendToCustomLogFile(
+          `Classified [[${metadata.newName}]] as ${metadata.classification} and formatted it with [[${this.settings.templatePaths}/${metadata.classification}]]`
+        );
+      }
     }
 
     if (metadata.isMedia) {
       const mediaFile = fileBeingProcessed;
-
-      // Add the annotation text to the markdown file
-      if (metadata.instructions.shouldAnnotate) {
-        await this.app.vault.modify(fileToOrganize, text);
-      }
-
-      // New log for successful image annotation
-      if (validImageExtensions.includes(mediaFile.extension)) {
-        this.appendToCustomLogFile(`Annotated image [[${mediaFile.basename}]]`);
-      }
       await this.moveToAttachmentFolder(mediaFile, metadata.newName);
       this.appendToCustomLogFile(
         `Moved [[${mediaFile.basename}.${mediaFile.extension}]] to attachments folders`
@@ -430,20 +432,29 @@ export default class FileOrganizer extends Plugin {
     return "";
   }
   async classifyAndFormatDocumentV2(file: TFile, content: string) {
-    const classification = await this.classifyContent(content, file.basename);
-    if (classification) {
-      const formattedText = await this.formatContentV2(
-        file,
-        content,
-        classification.formattingInstruction
+    try {
+      const classification = await this.classifyContent(content, file.basename);
+      if (classification) {
+        const formattedText = await this.formatContentV2(
+          file,
+          content,
+          classification.formattingInstruction
+        );
+        return {
+          type: classification.type,
+          formattingInstruction: classification.formattingInstruction,
+          formattedText,
+        };
+      }
+      return null;
+    } catch (error) {
+      console.error("Error in classifyAndFormatDocumentV2:", error);
+      new Notice(
+        "An error occurred while classifying and formatting the document.",
+        6000
       );
-      return {
-        type: classification.type,
-        formattingInstruction: classification.formattingInstruction,
-        formattedText,
-      };
+      return null;
     }
-    return null;
   }
 
   async formatContent(
