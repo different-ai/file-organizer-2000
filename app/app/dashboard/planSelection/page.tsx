@@ -49,10 +49,11 @@ export default function Component() {
           Try out File Organizer 2000 for 3 days to get your Obsidian organized.
           Cancel anytime.
         </p> */}
-        {/* <div className="bg-emerald-100 p-2 rounded-md text-emerald-900 text-center mb-8 max-w-md mx-auto">
+        <div className="bg-emerald-100 p-2 rounded-md text-emerald-900 text-center mb-8 max-w-md mx-auto">
           <SparkleIcon className="h-5 w-5 inline-block mr-2" />
-          Special offer! Save $50 on the yearly plan. Only valid in June.
-        </div> */}
+          Special offer! Save $100 on the yearly plan. And over 45% off on the
+          monthly plan. Only valid till end of July.
+        </div>
         <div className="flex justify-center space-x-4 md:space-x-8">
           <Card className="w-[350px] p-6 bg-white rounded-lg shadow-md text-black md:w-[400px] relative border border-gray-500">
             <div className="space-y-4">
@@ -60,7 +61,12 @@ export default function Component() {
                 Cloud hosted
               </div>
               <div className="text-center">
-                <span className="text-5xl font-bold">$14.99</span>
+                <div className="flex items-center justify-center gap-2">
+                  <span className="text-5xl font-bold">$8</span>
+                  <span className="text-lg text-gray-600 line-through">
+                    $14.99
+                  </span>
+                </div>
               </div>
               <div className="flex justify-center">
                 <span className="inline-flex items-center px-3 py-0.5 rounded-full text-sm font-medium bg-gray-200 text-gray-800">
@@ -108,7 +114,7 @@ export default function Component() {
               </div>
               <div className="text-center">
                 <div className="flex items-center justify-center gap-2">
-                  <span className="text-5xl font-bold">$99.99</span>
+                  <span className="text-5xl font-bold">$50</span>
                   <span className="text-lg text-gray-600 line-through">
                     $149.99
                   </span>
