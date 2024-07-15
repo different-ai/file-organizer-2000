@@ -1,6 +1,11 @@
 import { ClerkProvider } from "@clerk/nextjs";
 import type { Metadata } from "next";
 import { PHProvider } from "./providers";
+import dynamic from "next/dynamic";
+
+const PostHogPageView = dynamic(() => import("./PostHogPageView"), {
+  ssr: false,
+});
 
 import "./globals.css";
 
@@ -18,7 +23,10 @@ export default function RootLayout({
     <ClerkProvider>
       <html lang="en">
         <PHProvider>
-          <body>{children}</body>
+          <body>
+            <PostHogPageView />
+            {children}
+          </body>
         </PHProvider>
       </html>
     </ClerkProvider>
