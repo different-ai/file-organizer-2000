@@ -85,66 +85,6 @@ export class ModelTab {
     // add separation bar
     openAISettingsEl.createEl("div", { cls: "separation-bar" });
     // add OpenAI title
-    openAISettingsEl.createEl("h6", { text: "Bring your own key Settings" });
-
-    new Setting(openAISettingsEl).setName("OpenAI API Key").addText((text) =>
-      text
-        .setPlaceholder("Enter your OpenAI API Key")
-        .setValue(this.plugin.settings.openAIApiKey)
-        .onChange(async (value) => {
-          this.plugin.settings.openAIApiKey = value;
-          await this.plugin.saveSettings();
-          this.plugin.updateOpenAIConfig();
-        })
-    );
-
-    new Setting(openAISettingsEl).setName("OpenAI Model").addText((text) =>
-      text
-        .setPlaceholder("Enter the OpenAI model name")
-        .setValue(this.plugin.settings.openAIModel)
-        .onChange(async (value) => {
-          this.plugin.settings.openAIModel = value;
-          await this.plugin.saveSettings();
-          this.plugin.updateOpenAIConfig();
-        })
-    );
-
-    new Setting(openAISettingsEl)
-      .setName("OpenAI Base URL")
-      .setDesc("Default should be https://api.openai.com/v1")
-      .addText((text) =>
-        text
-          .setPlaceholder("Enter the OpenAI base URL")
-          .setValue(this.plugin.settings.openAIBaseUrl)
-          .onChange(async (value) => {
-            this.plugin.settings.openAIBaseUrl = value;
-            await this.plugin.saveSettings();
-            this.plugin.updateOpenAIConfig();
-          })
-      );
-
-    const openAIInfoEl = openAISettingsEl.createEl("div", {
-      cls: "openai-settings",
-    });
-    openAIInfoEl
-      .createEl("p", {
-        text: "To obtain an OpenAI API key, visit the ",
-      })
-      .createEl("a", {
-        href: "https://platform.openai.com/",
-        text: "OpenAI API Platform*",
-        target: "_blank",
-      });
-
-    openAIInfoEl.createEl("p", {
-      text: "*Requires a minimum top up of $6 USD for use",
-      //make text small
-      cls: "small-text",
-    });
-
-    openAIInfoEl.createEl("p", {
-      text: "For more advanced settings, go to the Advanced Models tab.",
-    });
 
     this.updateSettingsVisibility();
 
