@@ -83,9 +83,9 @@ class FileOrganizerSettings {
   enableOpenAI = true;
   openAIApiKey = "";
   openAIModel = "gpt-4o";
-
+  enableSelfHosting = false;
   enableOllama = false;
-  ollamaUrl = "http://localhost:11434/api";
+  selfHostingURL = "http://localhost:3000/api";
   // ollamaModel = "mistral";
 
   taggingModel = "gpt-4o";

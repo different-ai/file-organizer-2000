@@ -8,7 +8,6 @@ This is an Obsidian Plugin that uses AI to help you keep your files organized.
 - AI suggestions to organize your files. Apply tags, aliases, rename & more
 - Supports text and images
 - Create and apply custom AI templates
-- Local-first LLM support (see advanced settings in plugin)
 
   <img width="900" alt="Screenshot 2024-04-30 at 14 05 30" src="https://github.com/different-ai/file-organizer-2000/assets/11430621/2e2cdf14-c6d0-4fd0-8e02-268928ad7ef3">
 
@@ -18,7 +17,7 @@ This is an Obsidian Plugin that uses AI to help you keep your files organized.
 
 ## How to use
 
-### A.  AI Assistant View
+### A. AI Assistant View
 
 Get suggestions and choose what to apply with the Assistant view. Here's how to use it:
 
@@ -27,7 +26,7 @@ Get suggestions and choose what to apply with the Assistant view. Here's how to 
 
 <img width="1277" alt="Screenshot 2024-05-24 at 11 42 17 PM" src="https://github.com/different-ai/file-organizer-2000/assets/46509400/dc06a61f-64d0-4e10-898d-3e0330004e94">
 
-### B.  AI Inbox
+### B. AI Inbox
 
 Auto-organize with the AI Inbox.
 
