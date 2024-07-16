@@ -28,7 +28,6 @@ export class CustomizationTab {
             await this.plugin.saveSettings();
           })
       );
-
     new Setting(customizationTabContent)
       .setName("Rename Instructions")
       .setDesc(

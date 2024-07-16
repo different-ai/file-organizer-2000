@@ -28,7 +28,6 @@ export class FileConfigTab {
             await this.plugin.saveSettings();
           })
       );
-
     new Setting(fileConfigTabContent)
       .setName("Attachments folder")
       .setDesc(
@@ -83,7 +82,9 @@ export class FileConfigTab {
           .setPlaceholder("Enter folder paths")
           .setValue(this.plugin.settings.ignoreFolders.join(","))
           .onChange(async (value) => {
-            this.plugin.settings.ignoreFolders = value.split(",").map(cleanPath);
+            this.plugin.settings.ignoreFolders = value
+              .split(",")
+              .map(cleanPath);
             await this.plugin.saveSettings();
           })
       );

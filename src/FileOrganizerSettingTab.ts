@@ -3,7 +3,6 @@ import FileOrganizer from "./index";
 import { FileConfigTab } from "./FileConfigTab";
 import { CustomizationTab } from "./CustomizationTab";
 import { ModelTab } from "./GeneralTab";
-import { ModelForXTab } from "./ModelTaskTab"; // Import the new tab
 
 export class FileOrganizerSettingTab extends PluginSettingTab {
   plugin: FileOrganizer;
@@ -21,7 +20,6 @@ export class FileOrganizerSettingTab extends PluginSettingTab {
     const tabs = containerEl.createEl("div", { cls: "setting-tabs" });
     const tabHeaders = tabs.createEl("div", { cls: "setting-tab-headers" });
     const tabContents = tabs.createEl("div", { cls: "setting-tab-contents" });
-
     const modelTabHeader = tabHeaders.createEl("div", {
       text: "General",
       cls: "setting-tab-header",
@@ -34,10 +32,6 @@ export class FileOrganizerSettingTab extends PluginSettingTab {
       text: "Customization",
       cls: "setting-tab-header",
     });
-    const modelForXTabHeader = tabHeaders.createEl("div", {
-      text: "Advanced Config",
-      cls: "setting-tab-header advanced-settings",
-    });
 
     const modelTabContent = new ModelTab(tabContents, this.plugin).create();
     const fileConfigTabContent = new FileConfigTab(
@@ -48,16 +42,11 @@ export class FileOrganizerSettingTab extends PluginSettingTab {
       tabContents,
       this.plugin
     ).create();
-    const modelForXTabContent = new ModelForXTab(
-      tabContents,
-      this.plugin
-    ).create();
 
     modelTabHeader.addEventListener("click", () => {
       this.showTab(modelTabContent, [
         fileConfigTabContent,
         customizationTabContent,
-        modelForXTabContent,
       ]);
     });
 
@@ -65,7 +54,6 @@ export class FileOrganizerSettingTab extends PluginSettingTab {
       this.showTab(fileConfigTabContent, [
         modelTabContent,
         customizationTabContent,
-        modelForXTabContent,
       ]);
     });
 
@@ -73,15 +61,6 @@ export class FileOrganizerSettingTab extends PluginSettingTab {
       this.showTab(customizationTabContent, [
         modelTabContent,
         fileConfigTabContent,
-        modelForXTabContent,
-      ]);
-    });
-
-    modelForXTabHeader.addEventListener("click", () => {
-      this.showTab(modelForXTabContent, [
-        modelTabContent,
-        fileConfigTabContent,
-        customizationTabContent,
       ]);
     });
 
@@ -89,7 +68,6 @@ export class FileOrganizerSettingTab extends PluginSettingTab {
     this.showTab(modelTabContent, [
       fileConfigTabContent,
       customizationTabContent,
-      modelForXTabContent,
     ]);
 
     // CSS for tooltips and validation

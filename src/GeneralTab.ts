@@ -41,7 +41,6 @@ export class ModelTab {
             await this.plugin.saveSettings();
           })
       );
-    fileOrganizerSettingsEl.style.marginTop = "1rem";
     const loginButton = fileOrganizerSettingsEl.createEl("button", {
       text: "Login to File Organizer",
       cls: "file-organizer-login-button",
