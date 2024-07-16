@@ -30,7 +30,7 @@ export class ModelTab {
     new Setting(fileOrganizerSettingsEl)
       .setName("File Organizer Serial Key")
       .setDesc(
-        "Login to start a free trial to generate a key and paste it here."
+        "Login to start a free trial, generate a key, and paste it here."
       )
       .addText((text) =>
         text
