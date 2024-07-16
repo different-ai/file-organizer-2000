@@ -4,7 +4,6 @@ import FileOrganizer from "./index";
 export class ModelForXTab {
   private plugin: FileOrganizer;
   private containerEl: HTMLElement;
-  private tempSettings: Partial<FileOrganizer["settings"]> = {};
 
   constructor(containerEl: HTMLElement, plugin: FileOrganizer) {
     this.containerEl = containerEl;
@@ -18,11 +17,17 @@ export class ModelForXTab {
 
     const selfHostSettings = new Setting(modelTabContent)
       .setName("Enable Self-Hosting")
+      .setDesc(
+        "Enable Self-Hosting to host the server on your own machine. Requires technical skills and an external OpenAI API Key + credits. Keep disabled for default version of the plugin."
+      )
       .addToggle((toggle) => {
-        toggle.setValue(this.plugin.settings.enableOllama).onChange((value) => {
-          this.tempSettings.enableOllama = value;
-          this.toggleSettingsVisibility(selfHostSettingsEl, value);
-        });
+        toggle
+          .setValue(this.plugin.settings.enableSelfHosting)
+          .onChange(async (value) => {
+            this.plugin.settings.enableSelfHosting = value;
+            this.toggleSettingsVisibility(selfHostSettingsEl, value);
+            await this.plugin.saveSettings();
+          });
       });
 
     const selfHostSettingsEl = modelTabContent.createEl("div");
@@ -36,12 +41,10 @@ export class ModelForXTab {
         .setPlaceholder("Enter your Server URL")
         .setValue(this.plugin.settings.selfHostingURL)
         .onChange(async (value) => {
-          this.tempSettings.selfHostingURL = value;
-          // save settings
+          this.plugin.settings.selfHostingURL = value;
           await this.plugin.saveSettings();
         })
     );
-    // add separator
 
     return modelTabContent;
   }

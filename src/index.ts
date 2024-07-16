@@ -38,9 +38,6 @@ import {
   identifyConceptsRouter,
   transcribeAudioRouter,
 } from "./aiServiceRouter";
-import { json } from "stream/consumers";
-import { identifyConceptsAndFetchChunks } from "../app/aiService";
-import { openai } from "@ai-sdk/openai";
 
 type TagCounts = {
   [key: string]: number;
@@ -134,12 +131,6 @@ const isValidExtension = (extension: string) => {
   return true;
 };
 // determine sever url
-const serverUrl =
-  process.env.NODE_ENV == "development"
-    ? "http://localhost:3000"
-    : "https://app.fileorganizer2000.com";
-
-logMessage(`Server URL: ${serverUrl}`);
 
 // move to utils later
 export async function makeApiRequest<T>(
@@ -181,6 +172,18 @@ export interface FileMetadata {
 
 export default class FileOrganizer extends Plugin {
   settings: FileOrganizerSettings;
+
+  getServerUrl(): string {
+    const serverUrl = this.settings.enableSelfHosting
+      ? this.settings.selfHostingURL
+      : process.env.NODE_ENV === "development"
+      ? "http://localhost:3000"
+      : "https://app.fileorganizer2000.com";
+
+    console.log(`Current server URL: ${serverUrl}`);
+
+    return serverUrl;
+  }
 
   // all files in inbox will go through this function
   async processFileV2(originalFile: TFile, oldPath?: string): Promise<void> {
@@ -282,7 +285,7 @@ export default class FileOrganizer extends Plugin {
       const result = await identifyConceptsAndFetchChunksRouter(
         content,
         this.settings.usePro,
-        serverUrl,
+        this.getServerUrl(),
         this.settings.API_KEY
       );
       return result;
@@ -396,7 +399,7 @@ export default class FileOrganizer extends Plugin {
       name,
       content,
       this.settings.usePro,
-      serverUrl,
+      this.getServerUrl(),
       this.settings.API_KEY
     );
   }
@@ -421,7 +424,7 @@ export default class FileOrganizer extends Plugin {
         content,
         formattingInstruction,
         this.settings.usePro,
-        serverUrl,
+        this.getServerUrl(),
         this.settings.API_KEY
       );
       return formattedContent;
@@ -467,7 +470,7 @@ export default class FileOrganizer extends Plugin {
         content,
         formattingInstruction,
         this.settings.usePro,
-        serverUrl,
+        this.getServerUrl(),
         this.settings.API_KEY
       );
       await this.app.vault.modify(file, formattedContent);
@@ -490,7 +493,7 @@ export default class FileOrganizer extends Plugin {
     return await identifyConceptsRouter(
       content,
       this.settings.usePro,
-      serverUrl,
+      this.getServerUrl(),
       this.settings.API_KEY
     );
   }
@@ -503,7 +506,7 @@ export default class FileOrganizer extends Plugin {
       content,
       concept,
       this.settings.usePro,
-      serverUrl,
+      this.getServerUrl(),
       this.settings.API_KEY
     );
   }
@@ -579,7 +582,7 @@ export default class FileOrganizer extends Plugin {
         file.extension,
         {
           usePro: this.settings.usePro,
-          serverUrl,
+          serverUrl: this.getServerUrl(),
           fileOrganizerApiKey: this.settings.API_KEY,
           openAIApiKey: this.settings.openAIApiKey,
         }
@@ -604,7 +607,7 @@ export default class FileOrganizer extends Plugin {
       name,
       templateNames,
       this.settings.usePro,
-      serverUrl,
+      this.getServerUrl(),
       this.settings.API_KEY
     );
 
@@ -749,7 +752,7 @@ export default class FileOrganizer extends Plugin {
       activeFileContent,
       fileContents,
       this.settings.usePro,
-      serverUrl,
+      this.getServerUrl(),
       this.settings.API_KEY
     );
 
@@ -775,7 +778,7 @@ export default class FileOrganizer extends Plugin {
       content,
       currentName,
       this.settings.usePro,
-      serverUrl,
+      this.getServerUrl(),
       this.settings.API_KEY,
       renameInstructions
     );
@@ -830,7 +833,7 @@ export default class FileOrganizer extends Plugin {
     const processedContent = await extractTextFromImageRouter(
       processedArrayBuffer,
       this.settings.usePro,
-      serverUrl,
+      this.getServerUrl(),
       this.settings.API_KEY
     );
 
@@ -878,7 +881,7 @@ export default class FileOrganizer extends Plugin {
       fileName,
       tags,
       this.settings.usePro,
-      serverUrl,
+      this.getServerUrl(),
       this.settings.API_KEY
     );
   }
@@ -953,7 +956,7 @@ export default class FileOrganizer extends Plugin {
       filePath,
       filteredFolders,
       this.settings.usePro,
-      serverUrl,
+      this.getServerUrl(),
       this.settings.API_KEY
     );
 
@@ -964,7 +967,7 @@ export default class FileOrganizer extends Plugin {
         filePath,
         filteredFolders,
         this.settings.usePro,
-        serverUrl,
+        this.getServerUrl(),
         this.settings.API_KEY
       );
       destinationFolder = newFolderName;
@@ -1050,13 +1053,6 @@ export default class FileOrganizer extends Plugin {
       this.settings.openAIModel || "gpt-4o",
       this.settings.openAIBaseUrl
     );
-
-    if (this.settings.enableOllama) {
-      const ollamaModel = this.settings.ollamaModels[0];
-      createOllamaInstance(ollamaModel, {
-        baseURL: this.settings.ollamaUrl,
-      });
-    }
 
     // Configure tasks with default models
     configureTask("tagging", this.settings.taggingModel || "gpt-4o");
