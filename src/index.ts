@@ -953,7 +953,6 @@ export default class FileOrganizer extends Plugin {
       content,
       filePath,
       filteredFolders,
-      this.settings.usePro,
       this.getServerUrl(),
       this.settings.API_KEY
     );
