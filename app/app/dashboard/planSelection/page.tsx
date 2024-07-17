@@ -19,25 +19,41 @@ export default function Component() {
   const handleCheckout = async (plan) => {
     console.log(plan);
     let priceId;
-    if (plan === "yearly") {
-      priceId = process.env.NEXT_PUBLIC_STRIPE_YEARLY_PRICE_ID;
-    } else {
-      priceId = process.env.NEXT_PUBLIC_STRIPE_MONTHLY_PRICE_ID;
-    }
-    const response = await fetch("/api/create-checkout-session", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        priceId: priceId,
-      }),
-    });
-    const { session } = await response.json();
+    if (plan === "lifetime") {
+      priceId = process.env.NEXT_PUBLIC_STRIPE_LIFETIME_PRICE_ID;
+      const response = await fetch("/api/create-one-time-payment-session", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          priceId: priceId,
+        }),
+      });
+      const { session } = await response.json();
 
-    const stripe = await stripePromise;
-    await stripe?.redirectToCheckout({ sessionId: session.id });
+      const stripe = await stripePromise;
+      await stripe?.redirectToCheckout({ sessionId: session.id });
+    }
+    if (plan === "monthly") {
+      priceId = process.env.NEXT_PUBLIC_STRIPE_MONTHLY_PRICE_ID;
+      const response = await fetch("/api/create-checkout-session", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          priceId: priceId,
+          priceName: plan,
+        }),
+      });
+      const { session } = await response.json();
+
+      const stripe = await stripePromise;
+      await stripe?.redirectToCheckout({ sessionId: session.id });
+    }
   };
+
   return (
     <main className="min-h-screen bg-white text-black">
       <section className="container mx-auto px-4 py-16">
@@ -45,14 +61,14 @@ export default function Component() {
         <h1 className="text-4xl font-bold mt-8 mb-2 text-center mb-8">
           Choose Your Plan
         </h1>
-        <p className="text-lg text-gray-500  mt-2 mb-6 text-center">
+        {/* <p className="text-lg text-gray-500  mt-2 mb-6 text-center">
           Includes a 3-day free trial to get your Obsidian organized.
-        </p>
-        <div className="bg-emerald-100 p-2 rounded-md text-emerald-900 text-center mb-8 max-w-md mx-auto">
+        </p> */}
+        {/* <div className="bg-emerald-100 p-2 rounded-md text-emerald-900 text-center mb-8 max-w-md mx-auto">
           <SparkleIcon className="h-5 w-5 inline-block mr-2" />
           Special offer! Save $100 on the yearly plan. And over 45% off on the
           monthly plan. Only valid till end of July.
-        </div>
+        </div> */}
         <div className="flex justify-center space-x-4 md:space-x-8">
           <Card className="w-[350px] p-6 bg-white rounded-lg shadow-md text-black md:w-[400px] relative border border-gray-500">
             <div className="space-y-4">
@@ -75,7 +91,7 @@ export default function Component() {
               <ul className="space-y-2">
                 <li className="flex items-center space-x-2">
                   <CheckIcon className="h-5 w-5 text-green-500" />
-                  <span>My personal Whatsapp or Telegram</span>
+                  <span>3-day free trial</span>{" "}
                 </li>
                 <li className="flex items-center space-x-2">
                   <CheckIcon className="h-5 w-5 text-green-500" />
@@ -91,7 +107,7 @@ export default function Component() {
                 </li>
                 <li className="flex items-center space-x-2">
                   <CheckIcon className="h-5 w-5 text-green-500" />
-                  <span>30 day money-back guarantee</span>
+                  <span>30-day money-back guarantee</span>
                 </li>
               </ul>
               <div className="flex justify-center">
@@ -109,7 +125,7 @@ export default function Component() {
           <Card className="w-[350px] p-6 bg-white rounded-lg shadow-md text-black md:w-[400px] relative border border-gray-300">
             <div className="space-y-4">
               <div className="text-sm uppercase tracking-wide text-gray-600 text-center">
-                Cloud hosted
+                Lifetime License{" "}
               </div>
               <div className="text-center">
                 <div className="flex items-center justify-center gap-2">
@@ -121,35 +137,31 @@ export default function Component() {
               </div>
               <div className="flex justify-center">
                 <span className="inline-flex items-center px-3 py-0.5 rounded-full text-sm font-medium bg-gray-200 text-gray-800">
-                  yearly
+                  one-time payment
                 </span>
               </div>
               <ul className="space-y-2">
                 <li className="flex items-center space-x-2">
                   <CheckIcon className="h-5 w-5 text-green-500" />
-                  <span>My personal Whatsapp or Telegram</span>
+                  <span>
+                    Pay-as-you-go with your own OpenAl key. First month's on us!{" "}
+                  </span>
                 </li>
-                <li className="flex items-center space-x-2">
-                  <CheckIcon className="h-5 w-5 text-green-500" />
-                  <span>800 files per month</span>
-                </li>
+
                 <li className="flex items-center space-x-2">
                   <CheckIcon className="h-5 w-5 text-green-500" />
                   <span>Seamless no-sweat setup</span>
                 </li>
+
                 <li className="flex items-center space-x-2">
                   <CheckIcon className="h-5 w-5 text-green-500" />
-                  <span>No external AI subscription needed</span>
-                </li>
-                <li className="flex items-center space-x-2">
-                  <CheckIcon className="h-5 w-5 text-green-500" />
-                  <span>30 day money-back guarantee</span>
+                  <span>30-day money-back guarantee</span>
                 </li>
               </ul>
               <div className="flex justify-center">
                 <Button
                   onClick={() => {
-                    handlePlanSelection("yearly");
+                    handlePlanSelection("lifetime");
                   }}
                   className={`flex items-center justify-center gap-2 bg-white text-gray-900 px-6 py-3 rounded-md font-semibold border border-gray-900 transition-colors hover:bg-gray-100`}
                 >
