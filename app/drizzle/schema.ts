@@ -198,6 +198,9 @@ export const checkUserSubscriptionStatus = async (userId: string) => {
     if (userUsage[0].subscriptionStatus === "active") {
       return true;
     }
+    if (userUsage[0].subscriptionStatus === "complete") {
+      return true;
+    }
     return false;
   } catch (error) {
     console.error("Error checking subscription status for User ID:", userId);

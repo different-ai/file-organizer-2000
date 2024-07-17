@@ -3,7 +3,7 @@ import FileOrganizer from "./index";
 import { FileConfigTab } from "./FileConfigTab";
 import { CustomizationTab } from "./CustomizationTab";
 import { ModelTab } from "./GeneralTab";
-import { ModelForXTab } from "./ModelTaskTab"; // Import the new tab
+import { ModelForXTab } from "./AdvancedTab"; // Import the new tab
 
 export class FileOrganizerSettingTab extends PluginSettingTab {
   plugin: FileOrganizer;
@@ -27,7 +27,7 @@ export class FileOrganizerSettingTab extends PluginSettingTab {
       cls: "setting-tab-header",
     });
     const fileConfigTabHeader = tabHeaders.createEl("div", {
-      text: "File Configuration",
+      text: "File Config",
       cls: "setting-tab-header",
     });
     const customizationTabHeader = tabHeaders.createEl("div", {
@@ -35,7 +35,7 @@ export class FileOrganizerSettingTab extends PluginSettingTab {
       cls: "setting-tab-header",
     });
     const modelForXTabHeader = tabHeaders.createEl("div", {
-      text: "Advanced Config",
+      text: "Advanced",
       cls: "setting-tab-header advanced-settings",
     });
 

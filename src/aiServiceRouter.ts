@@ -68,31 +68,25 @@ export async function generateTagsRouter(
   serverUrl: string,
   apiKey: string
 ): Promise<string[]> {
-  if (usePro) {
-    console.log("serverUrl tag", serverUrl);
-    const response = await makeApiRequest(() =>
-      requestUrl({
-        url: `${serverUrl}/api/tags`,
-        method: "POST",
-        contentType: "application/json",
-        body: JSON.stringify({
-          content,
-          fileName,
-          tags,
-        }),
-        throw: false,
-        headers: {
-          Authorization: `Bearer ${apiKey}`,
-        },
-      })
-    );
-    const { generatedTags } = await response.json;
-    return generatedTags;
-  } else {
-    const model = getModelFromTask("tagging");
-    const response = await generateTags(content, fileName, tags, model);
-    return response.object.tags ?? [];
-  }
+  console.log("serverUrl tag", serverUrl);
+  const response = await makeApiRequest(() =>
+    requestUrl({
+      url: `${serverUrl}/api/tags`,
+      method: "POST",
+      contentType: "application/json",
+      body: JSON.stringify({
+        content,
+        fileName,
+        tags,
+      }),
+      throw: false,
+      headers: {
+        Authorization: `Bearer ${apiKey}`,
+      },
+    })
+  );
+  const { generatedTags } = await response.json;
+  return generatedTags;
 }
 export async function createNewFolderRouter(
   content: string,
@@ -169,41 +163,27 @@ export async function guessRelevantFolderRouter(
   content: string,
   filePath: string,
   folders: string[],
-  useServer: boolean,
   serverUrl: string,
   apiKey: string
 ): Promise<string | null> {
-  console.log("useServer", useServer);
-
-  if (useServer) {
-    const response = await makeApiRequest(() =>
-      requestUrl({
-        url: `${serverUrl}/api/folders`,
-        method: "POST",
-        contentType: "application/json",
-        body: JSON.stringify({
-          content,
-          fileName: filePath,
-          folders,
-        }),
-        throw: false,
-        headers: {
-          Authorization: `Bearer ${apiKey}`,
-        },
-      })
-    );
-    const { folder: guessedFolder } = await response.json;
-    return guessedFolder;
-  } else {
-    const model = getModelFromTask("folders");
-    const response = await guessRelevantFolder(
-      content,
-      filePath,
-      folders,
-      model
-    );
-    return response.object.suggestedFolder;
-  }
+  const response = await makeApiRequest(() =>
+    requestUrl({
+      url: `${serverUrl}/api/folders`,
+      method: "POST",
+      contentType: "application/json",
+      body: JSON.stringify({
+        content,
+        fileName: filePath,
+        folders,
+      }),
+      throw: false,
+      headers: {
+        Authorization: `Bearer ${apiKey}`,
+      },
+    })
+  );
+  const { folder: guessedFolder } = await response.json;
+  return guessedFolder;
 }
 
 export async function generateRelationshipsRouter(
@@ -412,7 +392,7 @@ export async function identifyConceptsAndFetchChunksRouter(
 ): Promise<{ name: string; chunk: string }[]> {
   if (usePro) {
     const response = await makeApiRequest(() =>
-    requestUrl({
+      requestUrl({
         url: `${serverUrl}/api/concepts-and-chunks`,
         method: "POST",
         contentType: "application/json",
