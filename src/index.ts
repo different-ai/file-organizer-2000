@@ -71,7 +71,6 @@ class FileOrganizerSettings {
 
   ignoreFolders = [""];
   stagingFolder = ".fileorganizer2000/staging";
-  disableImageAnnotation = false;
 
   enableAnthropic = false;
   anthropicApiKey = "";
@@ -152,7 +151,6 @@ export async function makeApiRequest<T>(
 }
 export interface FileMetadata {
   instructions: {
-    shouldAnnotate: boolean;
     shouldClassify: boolean;
     shouldAppendAlias: boolean;
     shouldAppendSimilarTags: boolean;
@@ -165,7 +163,7 @@ export interface FileMetadata {
   newName: string;
   newPath: string;
   markAsProcessed: boolean;
-  isMedia: boolean;
+  shouldCreateMarkdownContainer: boolean;
   aliases: string[];
   similarTags: string[];
 }
@@ -200,7 +198,8 @@ export default class FileOrganizer extends Plugin {
       const text = await this.getTextFromFile(originalFile);
       // we trim text to 128k tokens before passing it to the model
       // const trimmedText = await this.trimContentToTokenLimit(text, 128 * 1000);
-      const instructions = await this.generateInstructions(originalFile, text);
+
+      const instructions = await this.generateInstructions(originalFile);
       const metadata = await this.generateMetadata(
         originalFile,
         instructions,
@@ -219,15 +218,11 @@ export default class FileOrganizer extends Plugin {
   async generateInstructions(
     file: TFile
   ): Promise<FileMetadata["instructions"]> {
-    const shouldAnnotate =
-      !this.settings.disableImageAnnotation &&
-      validImageExtensions.includes(file.extension);
-    const shouldClassify = this.settings.enableDocumentClassification;
+   const shouldClassify = this.settings.enableDocumentClassification;
     const shouldAppendAlias = this.settings.enableAliasGeneration;
     const shouldAppendSimilarTags = this.settings.useSimilarTags;
 
     return {
-      shouldAnnotate,
       shouldClassify,
       shouldAppendAlias,
       shouldAppendSimilarTags,
@@ -269,7 +264,7 @@ export default class FileOrganizer extends Plugin {
       originalPath: oldPath,
       originalName: file.basename,
       aiFormattedText,
-      isMedia: validMediaExtensions.includes(file.extension),
+      shouldCreateMarkdownContainer: validMediaExtensions.includes(file.extension) || file.extension === "pdf",
       markAsProcessed: true,
       newName: documentName,
       newPath,
@@ -314,14 +309,14 @@ export default class FileOrganizer extends Plugin {
     // Create a new markdown file in default folder
     const fileToOrganize = await this.retrieveFileToModify(
       fileBeingProcessed,
-      metadata.isMedia
+      metadata.shouldCreateMarkdownContainer
     );
 
-    // If it's a media file and should be annotated
-    if (metadata.isMedia && metadata.instructions.shouldAnnotate) {
+    // If it's a brand new markdown file it should be annotated
+    if (metadata.shouldCreateMarkdownContainer) {
       await this.app.vault.modify(fileToOrganize, text);
       this.appendToCustomLogFile(
-        `Annotated ${metadata.isMedia ? "media" : "file"} [[${
+        `Annotated ${metadata.shouldCreateMarkdownContainer ? "media" : "file"} [[${
           metadata.newName
         }]]`
       );
@@ -329,7 +324,7 @@ export default class FileOrganizer extends Plugin {
 
     // If it should be classified/formatted
     if (metadata.instructions.shouldClassify && metadata.classification) {
-      if (!metadata.isMedia || metadata.isMedia) {
+      if (!metadata.shouldCreateMarkdownContainer || metadata.shouldCreateMarkdownContainer) {
         await this.app.vault.modify(fileToOrganize, metadata.aiFormattedText);
         this.appendToCustomLogFile(
           `Classified [[${metadata.newName}]] as ${metadata.classification} and formatted it with [[${this.settings.templatePaths}/${metadata.classification}]]`
@@ -337,7 +332,7 @@ export default class FileOrganizer extends Plugin {
       }
     }
 
-    if (metadata.isMedia) {
+    if (metadata.shouldCreateMarkdownContainer) {
       const mediaFile = fileBeingProcessed;
       await this.moveToAttachmentFolder(mediaFile, metadata.newName);
       this.appendToCustomLogFile(
@@ -1067,9 +1062,6 @@ export default class FileOrganizer extends Plugin {
   async onload() {
     await this.initializePlugin();
 
-    this.initalizeModels();
-
-    // configureTask("audio", "whisper-1");
 
     this.addRibbonIcon("sparkle", "Fo2k Assistant View", () => {
       this.showAssistantSidebar();

@@ -67,17 +67,7 @@ export class CustomizationTab {
           })
       );
 
-    new Setting(customizationTabContent)
-      .setName("Disable Image Annotation")
-      .setDesc("Disable the annotation of images during file processing.")
-      .addToggle((toggle) =>
-        toggle
-          .setValue(this.plugin.settings.disableImageAnnotation)
-          .onChange(async (value) => {
-            this.plugin.settings.disableImageAnnotation = value;
-            await this.plugin.saveSettings();
-          })
-      );
+
 
     new Setting(customizationTabContent)
       .setName("Processed File Tag")

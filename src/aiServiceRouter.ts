@@ -28,7 +28,7 @@ export async function classifyDocumentRouter(
   serverUrl: string,
   apiKey: string
 ): Promise<string | undefined> {
-  if (usePro) {
+  if (true) {
     const response = await makeApiRequest(() =>
       requestUrl({
         url: `${serverUrl}/api/classify1`,
@@ -96,7 +96,7 @@ export async function createNewFolderRouter(
   serverUrl: string,
   apiKey: string
 ): Promise<string> {
-  if (usePro) {
+  if (true) {
     const response = await makeApiRequest(() =>
       requestUrl({
         url: `${serverUrl}/api/create-folder`,
@@ -134,7 +134,7 @@ export async function generateAliasVariationsRouter(
   serverUrl: string,
   apiKey: string
 ): Promise<string[]> {
-  if (usePro) {
+  if (true) {
     const response = await makeApiRequest(() =>
       requestUrl({
         url: `${serverUrl}/api/aliases`,
@@ -193,7 +193,7 @@ export async function generateRelationshipsRouter(
   serverUrl: string,
   apiKey: string
 ): Promise<string[]> {
-  if (usePro) {
+  if (true) {
     const response = await makeApiRequest(() =>
       requestUrl({
         url: `${serverUrl}/api/relationships`,
@@ -230,7 +230,7 @@ export async function generateDocumentTitleRouter(
   renameInstructions: string
 ): Promise<string> {
   logMessage("renameInstructions", renameInstructions);
-  if (usePro) {
+  if (true) {
     const response = await makeApiRequest(() =>
       requestUrl({
         url: `${serverUrl}/api/title`,
@@ -268,7 +268,7 @@ export async function formatDocumentContentRouter(
   serverUrl: string,
   apiKey: string
 ): Promise<string> {
-  if (usePro) {
+  if (true) {
     const response = await makeApiRequest(() =>
       requestUrl({
         url: `${serverUrl}/api/format`,
@@ -303,7 +303,7 @@ export async function identifyConceptsRouter(
   serverUrl: string,
   apiKey: string
 ): Promise<string[]> {
-  if (usePro) {
+  if (true) {
     const response = await makeApiRequest(() =>
       requestUrl({
         url: `${serverUrl}/api/concepts`,
@@ -332,7 +332,7 @@ export async function fetchChunksForConceptRouter(
   serverUrl: string,
   apiKey: string
 ): Promise<{ content: string | undefined }> {
-  if (usePro) {
+  if (true) {
     const response = await makeApiRequest(() =>
       requestUrl({
         url: `${serverUrl}/api/chunks`,
@@ -360,7 +360,7 @@ export async function extractTextFromImageRouter(
   serverUrl: string,
   apiKey: string
 ): Promise<string> {
-  if (usePro) {
+  if (true) {
     const base64Image = arrayBufferToBase64(image);
 
     const response = await makeApiRequest(() =>
@@ -390,7 +390,7 @@ export async function identifyConceptsAndFetchChunksRouter(
   serverUrl: string,
   apiKey: string
 ): Promise<{ name: string; chunk: string }[]> {
-  if (usePro) {
+  if (true) {
     const response = await makeApiRequest(() =>
       requestUrl({
         url: `${serverUrl}/api/concepts-and-chunks`,
@@ -427,7 +427,7 @@ export async function transcribeAudioRouter(
     openAIApiKey: string;
   }
 ): Promise<string> {
-  if (usePro) {
+  if (true) {
     const response = await makeApiRequest(() =>
       requestUrl({
         url: `${serverUrl}/api/transcribe`,
