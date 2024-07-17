@@ -50,6 +50,35 @@ export class ModelTab {
       window.open("https://app.fileorganizer2000.com", "_blank");
     });
 
+    loginButton.style.marginTop = "1rem";
+    loginButton.addEventListener("click", () => {
+      window.open("https://app.fileorganizer2000.com", "_blank");
+    });
+    const youtubeEmbedEl = modelTabContent.createEl("div", {
+      cls: "youtube-embed",
+    });
+
+    const iframe = youtubeEmbedEl.createEl("iframe", {
+      attr: {
+        width: "100%",
+        height: "315",
+        src: "https://www.youtube.com/embed/dsTdkDRpm80?si=fv9SCV0uvuRYRJ0O",
+        frameborder: "0",
+        allow: "accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture",
+        allowfullscreen: "",
+      },
+    });
+
+    // Adjust iframe height to fill available space
+    const resizeObserver = new ResizeObserver(() => {
+      const availableHeight = modelTabContent.clientHeight - youtubeEmbedEl.offsetTop;
+      iframe.style.height = `${Math.max(315, availableHeight)}px`;
+    });
+
+    resizeObserver.observe(modelTabContent);
+
+
+
     return modelTabContent;
   }
 }
