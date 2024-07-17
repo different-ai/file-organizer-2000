@@ -176,8 +176,6 @@ export default class FileOrganizer extends Plugin {
   getServerUrl(): string {
     const serverUrl = this.settings.enableSelfHosting
       ? this.settings.selfHostingURL
-      : process.env.NODE_ENV === "development"
-      ? "http://localhost:3000"
       : "https://app.fileorganizer2000.com";
 
     console.log(`Current server URL: ${serverUrl}`);
