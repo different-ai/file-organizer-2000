@@ -321,7 +321,7 @@ export default class FileOrganizer extends Plugin {
         }]]`
       );
     }
-
+    
     // If it should be classified/formatted
     if (metadata.instructions.shouldClassify && metadata.classification) {
       if (!metadata.shouldCreateMarkdownContainer || metadata.shouldCreateMarkdownContainer) {
@@ -331,14 +331,14 @@ export default class FileOrganizer extends Plugin {
         );
       }
     }
-
+    
+    // append the attachment as a reference to audio, image, or pdf files.
     if (metadata.shouldCreateMarkdownContainer) {
       const mediaFile = fileBeingProcessed;
       await this.moveToAttachmentFolder(mediaFile, metadata.newName);
       this.appendToCustomLogFile(
         `Moved [[${mediaFile.basename}.${mediaFile.extension}]] to attachments folders`
       );
-
       await this.appendAttachment(fileToOrganize, mediaFile);
       this.appendToCustomLogFile(`Added attachment to [[${metadata.newName}]]`);
     }
