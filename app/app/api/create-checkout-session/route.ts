@@ -5,19 +5,16 @@ import { auth } from "@clerk/nextjs/server";
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY as string, {
   apiVersion: "2024-04-10",
 });
-const handleSubscription = () => {};
 
 export async function POST(req: NextRequest) {
   const { userId } = auth();
-  const { priceName, priceId } = await req.json();
-
-  const isRecurring = priceName === "monthly";
+  const { priceId } = await req.json();
 
   try {
     console.log("Creating checkout session for user", userId);
     const session = await stripe.checkout.sessions.create({
       subscription_data: {
-        trial_period_days: isRecurring ? 3 : undefined,
+        trial_period_days: 3,
         metadata: {
           userId,
         },
