@@ -56,16 +56,9 @@ Choose between any of the three setups below
 2. Choose "Use Pro Account"
 3. Click login and follow instructions
 
-### B. Use your own LLM (without self-hosting)
-
-1. Go to general settings inside the plugin settings
-2. Get your OpenAI API key + top up with credits
-3. Paste the API key in the OpenAI API Key input
-4. That's it you should be ready to go!
-
 <img width="836" alt="byok" src="https://github.com/different-ai/file-organizer-2000/assets/46509400/2bcc6824-236d-40ae-895b-d501401238bd">
 
-### C. Self-hosting
+### B. Self-hosting
 
 1. Run the server
 
