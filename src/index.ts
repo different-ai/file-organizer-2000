@@ -218,7 +218,7 @@ export default class FileOrganizer extends Plugin {
   async generateInstructions(
     file: TFile
   ): Promise<FileMetadata["instructions"]> {
-   const shouldClassify = this.settings.enableDocumentClassification;
+    const shouldClassify = this.settings.enableDocumentClassification;
     const shouldAppendAlias = this.settings.enableAliasGeneration;
     const shouldAppendSimilarTags = this.settings.useSimilarTags;
 
@@ -264,7 +264,9 @@ export default class FileOrganizer extends Plugin {
       originalPath: oldPath,
       originalName: file.basename,
       aiFormattedText,
-      shouldCreateMarkdownContainer: validMediaExtensions.includes(file.extension) || file.extension === "pdf",
+      shouldCreateMarkdownContainer:
+        validMediaExtensions.includes(file.extension) ||
+        file.extension === "pdf",
       markAsProcessed: true,
       newName: documentName,
       newPath,
@@ -316,22 +318,25 @@ export default class FileOrganizer extends Plugin {
     if (metadata.shouldCreateMarkdownContainer) {
       await this.app.vault.modify(fileToOrganize, text);
       this.appendToCustomLogFile(
-        `Annotated ${metadata.shouldCreateMarkdownContainer ? "media" : "file"} [[${
-          metadata.newName
-        }]]`
+        `Annotated ${
+          metadata.shouldCreateMarkdownContainer ? "media" : "file"
+        } [[${metadata.newName}]]`
       );
     }
-    
+
     // If it should be classified/formatted
     if (metadata.instructions.shouldClassify && metadata.classification) {
-      if (!metadata.shouldCreateMarkdownContainer || metadata.shouldCreateMarkdownContainer) {
+      if (
+        !metadata.shouldCreateMarkdownContainer ||
+        metadata.shouldCreateMarkdownContainer
+      ) {
         await this.app.vault.modify(fileToOrganize, metadata.aiFormattedText);
         this.appendToCustomLogFile(
           `Classified [[${metadata.newName}]] as ${metadata.classification} and formatted it with [[${this.settings.templatePaths}/${metadata.classification}]]`
         );
       }
     }
-    
+
     // append the attachment as a reference to audio, image, or pdf files.
     if (metadata.shouldCreateMarkdownContainer) {
       const mediaFile = fileBeingProcessed;
@@ -847,6 +852,48 @@ export default class FileOrganizer extends Plugin {
     // used to store info about changes
     this.ensureFolderExists(this.settings.stagingFolder);
   }
+  async checkAndCreateTemplates() {
+    // add template
+    const meetingNoteTemplatePath = `${this.settings.templatePaths}/meeting_note.md`;
+    
+    if (!(await this.app.vault.adapter.exists(meetingNoteTemplatePath))) {
+      await this.app.vault.create(
+        meetingNoteTemplatePath,
+        `# Meeting Note Template
+
+## Meeting Details
+- Date: {{date}} in format YYYY-MM-DD
+- Participants: 
+
+## Audio Reference
+![[{{audio_file}}]]
+
+## Key Points
+[Summarize the main points discussed in the meeting]
+
+## Action Items
+- [ ] Action item 1
+- [ ] Action item 2
+
+## Notes
+[Add your meeting notes here]
+
+## Transcription
+[Insert the full transcription below]
+
+---
+
+AI Instructions:
+1. Merge the transcription into the content, focusing on key points and action items.
+2. Summarize the main discussion points in the "Key Points" section.
+3. Extract and list any action items or tasks in the "Action Items" section.
+4. Preserve the reference to the original audio file.
+5. Keep the full transcription at the bottom of the note for reference.
+6. Maintain the overall structure of the note, including headers and sections.
+`
+      );
+    }
+  }
 
   async getBacklog() {
     const allFiles = this.app.vault.getFiles();
@@ -1062,7 +1109,6 @@ export default class FileOrganizer extends Plugin {
   async onload() {
     await this.initializePlugin();
 
-
     this.addRibbonIcon("sparkle", "Fo2k Assistant View", () => {
       this.showAssistantSidebar();
     });
@@ -1130,6 +1176,7 @@ export default class FileOrganizer extends Plugin {
   async initializePlugin() {
     await this.loadSettings();
     await this.checkAndCreateFolders();
+    await this.checkAndCreateTemplates();
     this.addSettingTab(new FileOrganizerSettingTab(this.app, this));
     this.registerView(
       ASSISTANT_VIEW_TYPE,

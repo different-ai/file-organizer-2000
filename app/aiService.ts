@@ -257,6 +257,8 @@ export async function formatDocumentContent(
     }),
     system: "Answer in markdown",
     prompt: `Format the following content according to the given instruction:
+
+        Time: ${new Date().toISOString()}
         
         Content:
         "${content}"
