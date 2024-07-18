@@ -1147,7 +1147,7 @@ export default class FileOrganizer extends Plugin {
   }
 
   registerEventHandlers() {
-    // inbox events
+    // inbox event
     this.registerEvent(
       this.app.vault.on("create", (file) => {
         console.log("file created", file);

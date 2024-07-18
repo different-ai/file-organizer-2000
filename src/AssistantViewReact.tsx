@@ -1,5 +1,5 @@
 import * as React from "react";
-import { TFile } from "obsidian";
+import { Notice, TFile } from "obsidian";
 import FileOrganizer from ".";
 import { logMessage } from "../utils";
 import { log } from "console";
@@ -396,7 +396,10 @@ const ClassificationBox: React.FC<{
       try {
         setClassification(null);
         setLoading(true);
-        const result = await plugin.classifyContent(content, file.basename);
+        // if (!file) return
+        const fileContent = await plugin.app.vault.read(file!);
+        console.log(fileContent);
+        const result = await plugin.classifyContent(fileContent, file.basename);
         logMessage("ClassificationBox result", result);
         setClassification(result);
       } catch (error) {
@@ -406,7 +409,7 @@ const ClassificationBox: React.FC<{
       }
     };
     fetchClassification();
-  }, [content]);
+  }, [content, file]);
 
   if (!classification) return null;
 
@@ -419,10 +422,12 @@ const ClassificationBox: React.FC<{
           try {
             setFormatting(true);
             logMessage("ClassificationBox class", classification);
-            logMessage("ClassificationBox content", content);
+
+            const fileContent = await plugin.app.vault.read(file!);
+            console.log({ fileContent });
             await plugin.formatContent(
               file!,
-              content,
+              fileContent,
               classification.formattingInstruction
             );
           } catch (error) {
@@ -438,9 +443,85 @@ const ClassificationBox: React.FC<{
   );
 };
 
+const hasAudioEmbed = (content: string): boolean => {
+  const audioRegex = /!\[\[(.*\.(mp3|wav|m4a|ogg|webm))]]/i;
+  return audioRegex.test(content);
+};
+
+const TranscriptionButton: React.FC<{
+  plugin: FileOrganizer;
+  file: TFile;
+  content: string;
+}> = ({ plugin, file, content }) => {
+  const [transcribing, setTranscribing] = React.useState<boolean>(false);
+
+  const handleTranscribe = async () => {
+    setTranscribing(true);
+    try {
+      const audioRegex = /!\[\[(.*\.(mp3|wav|m4a|ogg|webm))]]/i;
+      const match = content.match(audioRegex);
+      if (match) {
+        const audioFileName = match[1];
+        const audioFile = plugin.app.vault.getAbstractFileByPath(audioFileName);
+        if (audioFile instanceof TFile) {
+          const transcript = await plugin.generateTranscriptFromAudio(
+            audioFile
+          );
+          await plugin.appendTranscriptToActiveFile(
+            file,
+            audioFileName,
+            transcript
+          );
+          new Notice("Transcript added to the file");
+        }
+      }
+    } catch (error) {
+      console.error("Error transcribing audio:", error);
+      new Notice("Error transcribing audio");
+    } finally {
+      setTranscribing(false);
+    }
+  };
+
+  return (
+    <button
+      className="transcribe-button"
+      onClick={handleTranscribe}
+      disabled={transcribing}
+    >
+      {transcribing ? "Transcribing..." : "Transcribe Audio"}
+    </button>
+  );
+};
+
+// Add this new component for the refresh button
+const RefreshButton: React.FC<{ onRefresh: () => void }> = ({ onRefresh }) => (
+  <button className="refresh-button" onClick={onRefresh}>
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      width="24"
+      height="24"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <path d="M21.5 2v6h-6M2.5 22v-6h6M2 11.5a10 10 0 0 1 18.8-4.3M22 12.5a10 10 0 0 1-18.8 4.3" />
+    </svg>
+  </button>
+);
+
 export const AssistantView: React.FC<AssistantViewProps> = ({ plugin }) => {
   const [activeFile, setActiveFile] = React.useState<TFile | null>(null);
   const [noteContent, setNoteContent] = React.useState<string>("");
+  const [hasAudio, setHasAudio] = React.useState<boolean>(false);
+  const [refreshKey, setRefreshKey] = React.useState<number>(0);
+
+  const refreshAssistant = () => {
+    setRefreshKey((prevKey) => prevKey + 1);
+  };
 
   React.useEffect(() => {
     const onFileOpen = async () => {
@@ -481,6 +562,8 @@ export const AssistantView: React.FC<AssistantViewProps> = ({ plugin }) => {
 
       const content = await plugin.getTextFromFile(file);
       setNoteContent(content);
+      console.log("new content", content);
+      setHasAudio(hasAudioEmbed(content));
     };
     const fileOpenEventRef = plugin.app.workspace.on("file-open", onFileOpen);
     onFileOpen();
@@ -488,7 +571,7 @@ export const AssistantView: React.FC<AssistantViewProps> = ({ plugin }) => {
     return () => {
       plugin.app.workspace.offref(fileOpenEventRef);
     };
-  }, []);
+  }, [refreshKey]); // Add refreshKey to the dependency array
 
   if (!activeFile) {
     return (
@@ -502,6 +585,9 @@ export const AssistantView: React.FC<AssistantViewProps> = ({ plugin }) => {
 
   return (
     <div className="assistant-container">
+      <div className="assistant-header">
+        <RefreshButton onRefresh={refreshAssistant} />
+      </div>
       <SectionHeader text="Looking at" icon="👀" />
       <div className="active-note-title">{activeFile.basename}</div>
 
@@ -550,6 +636,16 @@ export const AssistantView: React.FC<AssistantViewProps> = ({ plugin }) => {
         <>
           <SectionHeader text="Atomic notes" icon="✂️" />
           <DocumentChunks plugin={plugin} activeFile={activeFile} />
+        </>
+      )}
+      {hasAudio && (
+        <>
+          <SectionHeader text="Audio Transcription" icon="🎙️" />
+          <TranscriptionButton
+            plugin={plugin}
+            file={activeFile}
+            content={noteContent}
+          />
         </>
       )}
     </div>
