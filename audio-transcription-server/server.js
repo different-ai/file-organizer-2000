@@ -39,14 +39,32 @@ app.post('/transcribe', upload.single('audio'), async (req, res) => {
   }
 
   try {
-    const transcription = await openai.audio.transcriptions.create({
-      file: fs.createReadStream(req.file.path),
-      model: "whisper-1",
-      response_format: "json",
-    });
+    const chunkDuration = 5 * 60; // 5 minutes in seconds
+    const audioInfo = await getAudioDuration(req.file.path);
+    const totalDuration = audioInfo.duration;
+    const chunks = Math.ceil(totalDuration / chunkDuration);
+    
+    let fullTranscript = '';
+
+    for (let i = 0; i < chunks; i++) {
+      const start = i * chunkDuration;
+      const end = Math.min((i + 1) * chunkDuration, totalDuration);
+      
+      const chunkPath = `${req.file.path}_chunk_${i}.${fileExtension}`;
+      await splitAudio(req.file.path, chunkPath, start, end);
+
+      const transcription = await openai.audio.transcriptions.create({
+        file: fs.createReadStream(chunkPath),
+        model: "whisper-1",
+        response_format: "json",
+      });
+
+      fullTranscript += transcription.text + ' ';
+      fs.unlinkSync(chunkPath);
+    }
 
     fs.unlinkSync(req.file.path);
-    res.json({ transcript: transcription.text });
+    res.json({ transcript: fullTranscript.trim() });
   } catch (error) {
     console.error('Error transcribing audio:', error);
     fs.unlinkSync(req.file.path);
@@ -56,3 +74,18 @@ app.post('/transcribe', upload.single('audio'), async (req, res) => {
 
 const PORT = process.env.PORT || 3001;
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+
+const { exec } = require('child_process');
+const util = require('util');
+const execPromise = util.promisify(exec);
+
+async function getAudioDuration(filePath) {
+  const command = `ffprobe -v error -show_entries format=duration -of default=noprint_wrappers=1:nokey=1 "${filePath}"`;
+  const { stdout } = await execPromise(command);
+  return { duration: parseFloat(stdout) };
+}
+
+async function splitAudio(inputPath, outputPath, start, end) {
+  const command = `ffmpeg -i "${inputPath}" -ss ${start} -to ${end} -c copy "${outputPath}"`;
+  await execPromise(command);
+}
