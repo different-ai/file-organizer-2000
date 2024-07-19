@@ -4,6 +4,7 @@ const multer = require('multer');
 const fs = require('fs');
 const cors = require('cors');
 const { OpenAI } = require('openai');
+const { Readable } = require('stream');
 
 const app = express();
 
@@ -26,6 +27,24 @@ const openai = new OpenAI({
 app.use(cors());
 
 app.post('/transcribe', upload.single('audio'), async (req, res) => {
+  const authHeader = req.headers["authorization"]
+  const key = authHeader?.toString().replace("Bearer ", "");
+  if (!key) {
+    return res.status(401).send("Unauthorized")
+  }
+
+  const { result, error } = await verifyKey(key);
+  if (error) {
+    console.error(error);
+    return res.status(500).send("Internal Server Error")
+  }
+
+  if (!result.valid) {
+    return res.status(401).send("Unauthorized")
+  }
+
+  console.log('receiving file')
+
   if (!req.file) {
     return res.status(400).send('No audio file uploaded.');
   }
@@ -43,13 +62,14 @@ app.post('/transcribe', upload.single('audio'), async (req, res) => {
     const audioInfo = await getAudioDuration(req.file.path);
     const totalDuration = audioInfo.duration;
     const chunks = Math.ceil(totalDuration / chunkDuration);
-    
-    let fullTranscript = '';
+
+    res.setHeader('Content-Type', 'text/plain');
+    res.setHeader('Transfer-Encoding', 'chunked');
 
     for (let i = 0; i < chunks; i++) {
       const start = i * chunkDuration;
       const end = Math.min((i + 1) * chunkDuration, totalDuration);
-      
+
       const chunkPath = `${req.file.path}_chunk_${i}.${fileExtension}`;
       await splitAudio(req.file.path, chunkPath, start, end);
 
@@ -59,12 +79,12 @@ app.post('/transcribe', upload.single('audio'), async (req, res) => {
         response_format: "json",
       });
 
-      fullTranscript += transcription.text + ' ';
+      res.write(transcription.text + ' ');
       fs.unlinkSync(chunkPath);
     }
 
     fs.unlinkSync(req.file.path);
-    res.json({ transcript: fullTranscript.trim() });
+    res.end();
   } catch (error) {
     console.error('Error transcribing audio:', error);
     fs.unlinkSync(req.file.path);
