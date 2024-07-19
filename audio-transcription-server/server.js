@@ -27,6 +27,7 @@ const openai = new OpenAI({
 app.use(cors());
 
 app.post('/transcribe', upload.single('audio'), async (req, res) => {
+  console.log('receiving file')
   const authHeader = req.headers["authorization"]
   const key = authHeader?.toString().replace("Bearer ", "");
   if (!key) {
