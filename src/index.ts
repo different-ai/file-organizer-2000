@@ -8,20 +8,13 @@ import {
   WorkspaceLeaf,
   normalizePath,
   loadPdfJs,
-  RequestUrlResponsePromise,
-  RequestUrlParam,
   RequestUrlResponse,
 } from "obsidian";
 import { logMessage, formatToSafeName } from "../utils";
 import { FileOrganizerSettingTab } from "./FileOrganizerSettingTab";
 import { ASSISTANT_VIEW_TYPE, AssistantViewWrapper } from "./AssistantView";
 import Jimp from "jimp";
-import {
-  configureTask,
-  createOllamaInstance,
-  createOpenAIInstance,
-  getModelFromTask,
-} from "../standalone/models";
+import { configureTask, createOpenAIInstance } from "../standalone/models";
 
 import {
   classifyDocumentRouter,
@@ -36,7 +29,6 @@ import {
   guessRelevantFolderRouter,
   identifyConceptsAndFetchChunksRouter,
   identifyConceptsRouter,
-  transcribeAudioRouter,
 } from "./aiServiceRouter";
 
 type TagCounts = {
@@ -563,33 +555,79 @@ export default class FileOrganizer extends Plugin {
       return "";
     }
   }
+  async transcribeAudio(
+    audioBuffer: ArrayBuffer,
+    fileExtension: string,
+    {
+      usePro,
+      serverUrl,
+      fileOrganizerApiKey,
+      openAIApiKey,
+    }: {
+      usePro: boolean;
+      serverUrl: string;
+      fileOrganizerApiKey: string;
+      openAIApiKey: string;
+    }
+  ): Promise<Response> {
+    const formData = new FormData();
+    const blob = new Blob([audioBuffer], { type: `audio/${fileExtension}` });
+    formData.append("audio", blob, `audio.${fileExtension}`);
+    formData.append("fileExtension", fileExtension);
+    // const newServerUrl = "http://localhost:3001/transcribe";
+    const newServerUrl =
+      "https://file-organizer-2000-production.up.railway.app/transcribe";
+    const response = await fetch(newServerUrl, {
+      method: "POST",
+      body: formData,
+      headers: {
+        Authorization: `Bearer ${fileOrganizerApiKey}`,
+        // "Content-Type": "multipart/form-data",
+      },
+    });
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(`Transcription failed: ${errorData.error}`);
+    }
+    return response;
+  }
 
-  async generateTranscriptFromAudio(file: TFile) {
+  async generateTranscriptFromAudio(
+    file: TFile
+  ): Promise<AsyncIterableIterator<string>> {
     new Notice(
-      `Generating transcription for ${file.basename} this can take up to a minute`,
+      `Generating transcription for ${file.basename}. This may take a few minutes.`,
       8000
     );
     try {
-      const arrayBuffer = await this.app.vault.readBinary(file);
-      const fileContent = Buffer.from(arrayBuffer);
-      const encodedAudio = fileContent.toString("base64");
-      logMessage(`Encoded: ${encodedAudio.substring(0, 20)}...`);
+      const audioBuffer = await this.app.vault.readBinary(file);
+      const response = await this.transcribeAudio(audioBuffer, file.extension, {
+        usePro: this.settings.usePro,
+        serverUrl: this.getServerUrl(),
+        fileOrganizerApiKey: this.settings.API_KEY,
+        openAIApiKey: this.settings.openAIApiKey,
+      });
 
-      const postProcessedText = await transcribeAudioRouter(
-        encodedAudio,
-        file.extension,
-        {
-          usePro: this.settings.usePro,
-          serverUrl: this.getServerUrl(),
-          fileOrganizerApiKey: this.settings.API_KEY,
-          openAIApiKey: this.settings.openAIApiKey,
+      if (!response.body) {
+        throw new Error("Response body is null");
+      }
+
+      const reader = response.body.getReader();
+
+      async function* generateTranscript() {
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
+          yield new TextDecoder().decode(value);
         }
-      );
-      return postProcessedText;
+      }
+
+      new Notice(`Transcription started for ${file.basename}`, 5000);
+      return generateTranscript();
     } catch (e) {
       console.error("Error generating transcript", e);
       new Notice("Error generating transcript", 3000);
-      return "";
+      throw e;
     }
   }
 
@@ -855,7 +893,7 @@ export default class FileOrganizer extends Plugin {
   async checkAndCreateTemplates() {
     // add template
     const meetingNoteTemplatePath = `${this.settings.templatePaths}/meeting_note.md`;
-    
+
     if (!(await this.app.vault.adapter.exists(meetingNoteTemplatePath))) {
       await this.app.vault.create(
         meetingNoteTemplatePath,
@@ -1187,12 +1225,18 @@ AI Instructions:
   async appendTranscriptToActiveFile(
     parentFile: TFile,
     audioFileName: string,
-    transcript: string
+    transcriptIterator: AsyncIterableIterator<string>
   ) {
-    const transcriptBlock = `\n\n## Transcript for ${audioFileName}\n\n${transcript}`;
-    await this.app.vault.append(parentFile, transcriptBlock);
-  }
+    const transcriptHeader = `\n\n## Transcript for ${audioFileName}\n\n`;
+    await this.app.vault.append(parentFile, transcriptHeader);
 
+    for await (const chunk of transcriptIterator) {
+      await this.app.vault.append(parentFile, chunk);
+      // Optionally, update UI or perform actions with each chunk
+    }
+
+    new Notice(`Transcription completed for ${audioFileName}`, 5000);
+  }
   registerEventHandlers() {
     // inbox event
     this.registerEvent(

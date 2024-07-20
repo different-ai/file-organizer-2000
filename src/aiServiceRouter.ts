@@ -15,9 +15,8 @@ import {
   generateTranscriptFromAudio,
   identifyConceptsAndFetchChunks,
 } from "../app/aiService";
-import { requestUrl } from "obsidian";
 import { getModelFromTask } from "../standalone/models";
-import { arrayBufferToBase64 } from "obsidian";
+import { arrayBufferToBase64, requestUrl } from "obsidian";
 import { logMessage } from "../utils";
 
 export async function classifyDocumentRouter(
@@ -413,7 +412,7 @@ export async function identifyConceptsAndFetchChunksRouter(
 }
 
 export async function transcribeAudioRouter(
-  encodedAudio: string,
+  audioBuffer: ArrayBuffer,
   fileExtension: string,
   {
     usePro,
@@ -428,25 +427,24 @@ export async function transcribeAudioRouter(
   }
 ): Promise<string> {
   if (true) {
-    const response = await makeApiRequest(() =>
-      requestUrl({
-        url: `${serverUrl}/api/transcribe`,
-        method: "POST",
-        contentType: "application/json",
-        body: JSON.stringify({
-          audio: encodedAudio,
-          extension: fileExtension,
-        }),
-        throw: false,
-        headers: {
-          Authorization: `Bearer ${fileOrganizerApiKey}`,
-        },
-      })
-    );
-    const { text } = await response.json;
-    return text;
+    const formData = new FormData();
+    const blob = new Blob([audioBuffer], { type: `audio/${fileExtension}` });
+    formData.append("audio", blob, `audio.${fileExtension}`);
+    formData.append("fileExtension", fileExtension);
+    const response = await fetch(`http://localhost:3001/transcribe`, {
+      method: "POST",
+      body: formData,
+      headers: {
+        Authorization: `Bearer ${fileOrganizerApiKey}`,
+      },
+    });
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(`Transcription failed: ${errorData.error}`);
+    }
+    const { transcript } = await response.json();
+    return transcript;
   } else {
-    const audioBuffer = Buffer.from(encodedAudio, "base64");
     const response = await generateTranscriptFromAudio(
       audioBuffer,
       fileExtension,
