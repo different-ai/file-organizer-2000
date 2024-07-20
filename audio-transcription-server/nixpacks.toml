@@ -1,5 +1,2 @@
 [phases.setup]
-aptPkgs = ["ffmpeg", "ffprobe"]
-
-[variables]
-PATH = "/usr/bin:$PATH"
+aptPkgs = ["ffmpeg"]
