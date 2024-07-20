@@ -22,6 +22,7 @@ const storage = multer.diskStorage({
 const upload = multer({ storage: storage });
 
 const openai = new OpenAI({
+  
   apiKey: process.env.OPENAI_API_KEY,
 });
 
