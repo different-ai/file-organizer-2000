@@ -456,20 +456,29 @@ export default class FileOrganizer extends Plugin {
     formattingInstruction: string
   ): Promise<void> {
     try {
-      const formattedContent = await formatDocumentContentRouter(
+      new Notice("Formatting content...", 3000);
+      
+      let formattedContent = "";
+      const updateCallback = async (partialContent: string) => {
+        formattedContent = partialContent;
+        await this.app.vault.modify(file, formattedContent);
+      };
+  
+      await this.formatStream(
         content,
         formattingInstruction,
         this.settings.usePro,
         this.getServerUrl(),
-        this.settings.API_KEY
+        this.settings.API_KEY,
+        updateCallback
       );
-      await this.app.vault.modify(file, formattedContent);
+  
+      new Notice("Content formatted successfully", 3000);
     } catch (error) {
-      console.error("Error formatting content:", error); // Added error logging
-      new Notice("An error occurred while formatting the content.", 6000); // Added user notice
+      console.error("Error formatting content:", error);
+      new Notice("An error occurred while formatting the content.", 6000);
     }
   }
-
   async createFileInInbox(content: string): Promise<void> {
     const fileName = `chunk_${Date.now()}.md`;
     const filePath = `${this.settings.pathToWatch}/${fileName}`;
@@ -554,6 +563,48 @@ export default class FileOrganizer extends Plugin {
       console.error(`Error extracting text from PDF: ${error}`);
       return "";
     }
+  }
+  async formatStream(
+    content: string,
+    formattingInstruction: string,
+    usePro: boolean,
+    serverUrl: string,
+    apiKey: string,
+    updateCallback: (partialContent: string) => void
+  ): Promise<string> {
+    const response = await fetch(`${serverUrl}/api/format-stream`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${apiKey}`,
+      },
+      body: JSON.stringify({
+        content,
+        formattingInstruction,
+      }),
+    });
+
+    if (!response.ok) {
+      throw new Error(`Formatting failed: ${response.statusText}`);
+    }
+
+    const reader = response.body?.getReader();
+    const decoder = new TextDecoder();
+    let formattedContent = "";
+
+    while (true) {
+      const { done, value } = (await reader?.read()) ?? {
+        done: true,
+        value: undefined,
+      };
+      if (done) break;
+
+      const chunk = decoder.decode(value, { stream: true });
+      formattedContent += chunk;
+      updateCallback(formattedContent);
+    }
+
+    return formattedContent;
   }
   async transcribeAudio(
     audioBuffer: ArrayBuffer,

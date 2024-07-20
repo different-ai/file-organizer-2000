@@ -250,7 +250,7 @@ export async function formatDocumentContent(
   formattingInstruction: string,
   model: LanguageModel
 ) {
-  const response = await generateObject({
+  const { partialObjectStream } = await streamObject({
     model,
     schema: z.object({
       formattedContent: z.string(),
@@ -267,7 +267,12 @@ export async function formatDocumentContent(
         "${formattingInstruction}"`,
   });
 
-  return response;
+  let formattedContent = '';
+  for await (const partialObject of partialObjectStream) {
+    formattedContent = partialObject.formattedContent || '';
+  }
+
+  return { object: { formattedContent }, usage: { totalTokens: 0 } };
 }
 
 export async function identifyConceptsAndFetchChunks(
