@@ -5,6 +5,7 @@ const fs = require('fs');
 const cors = require('cors');
 const { OpenAI } = require('openai');
 const { Readable } = require('stream');
+const { verifyKey } = require('@unkey/api');
 
 const app = express();
 
@@ -30,11 +31,13 @@ app.post('/transcribe', upload.single('audio'), async (req, res) => {
   console.log('receiving file')
   const authHeader = req.headers["authorization"]
   const key = authHeader?.toString().replace("Bearer ", "");
+  console.log(key)
   if (!key) {
     return res.status(401).send("Unauthorized")
   }
 
   const { result, error } = await verifyKey(key);
+  console.log(result)
   if (error) {
     console.error(error);
     return res.status(500).send("Internal Server Error")
@@ -59,7 +62,7 @@ app.post('/transcribe', upload.single('audio'), async (req, res) => {
   }
 
   try {
-    const chunkDuration = 5 * 60; // 5 minutes in seconds
+    const chunkDuration = 1 * 60; // 5 minutes in seconds
     const audioInfo = await getAudioDuration(req.file.path);
     const totalDuration = audioInfo.duration;
     const chunks = Math.ceil(totalDuration / chunkDuration);
@@ -79,6 +82,7 @@ app.post('/transcribe', upload.single('audio'), async (req, res) => {
         model: "whisper-1",
         response_format: "json",
       });
+      console.log(transcription.text)
 
       res.write(transcription.text + ' ');
       fs.unlinkSync(chunkPath);
