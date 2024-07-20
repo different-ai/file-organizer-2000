@@ -1,2 +1,2 @@
 [phases.setup]
-aptPkgs = ["ffmpeg", "ffprobe"]
+aptPkgs = ["ffmpeg"]
