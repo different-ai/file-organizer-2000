@@ -6,6 +6,7 @@ const cors = require('cors');
 const { OpenAI } = require('openai');
 const { Readable } = require('stream');
 const { verifyKey } = require('@unkey/api');
+const morgan = require('morgan');
 
 const app = express();
 
@@ -26,12 +27,39 @@ const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
 });
 
-// Update CORS configuration
+// Add morgan for general request logging
+app.use(morgan('dev'));
+
+// Update CORS configuration with logging
 app.use(cors({
-  origin: '*',
+  origin: function (origin, callback) {
+    console.log('Request origin:', origin);
+    callback(null, true); // Allow any origin for now
+  },
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization']
 }));
+
+// Log all incoming requests
+app.use((req, res, next) => {
+  console.log('Incoming request:', {
+    method: req.method,
+    path: req.path,
+    headers: req.headers,
+    origin: req.get('origin'),
+  });
+  next();
+});
+
+// Add health check endpoint
+app.get('/health', (req, res) => {
+  res.status(200).json({ status: 'OK' });
+});
+
+// Add root endpoint
+app.get('/', (req, res) => {
+  res.status(200).send('Audio Transcription Server');
+});
 
 app.post('/transcribe', upload.single('audio'), async (req, res) => {
   console.log('receiving file')
