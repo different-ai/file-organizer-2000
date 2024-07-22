@@ -27,8 +27,7 @@ export async function create() {
     (user?.publicMetadata as CustomJwtSessionClaims["publicMetadata"])?.stripe
       ?.status === "complete";
 
-  const refillAmount = isPaidUser ? 2000 : 500;
-
+  const refillAmount = 1000 * 1000;
   console.log("creating with refill amount", refillAmount);
   await createOrUpdateUserUsage(userId, refillAmount, "monthly");
 
@@ -36,11 +35,6 @@ export async function create() {
     name: name,
     ownerId: userId,
     apiId,
-    remaining: refillAmount,
-    refill: {
-      interval: "monthly",
-      amount: refillAmount,
-    },
   });
   return { key: key.result };
 }
