@@ -321,7 +321,7 @@ export default class FileOrganizer extends Plugin {
 
     // If it should be classified/formatted
     if (metadata.instructions.shouldClassify && metadata.classification) {
-      const backupFile = await this.backupTheFileAndAddReferenceToCurrentFile(fileToOrganize);
+      await this.backupTheFileAndAddReferenceToCurrentFile(fileToOrganize);
       await this.app.vault.modify(fileToOrganize, metadata.aiFormattedText);
 
       this.appendToCustomLogFile(
@@ -450,7 +450,6 @@ export default class FileOrganizer extends Plugin {
     }
   }
 
-
   async formatContent(
     file: TFile,
     content: string,
@@ -460,7 +459,7 @@ export default class FileOrganizer extends Plugin {
       new Notice("Formatting content...", 3000);
 
       // Backup the file before formatting and get the backup file
-      const backupFile = await this.backupTheFileAndAddReferenceToCurrentFile(file);
+      await this.backupTheFileAndAddReferenceToCurrentFile(file);
 
       let formattedContent = "";
       const updateCallback = async (partialContent: string) => {
@@ -1350,7 +1349,7 @@ AI Instructions:
     if (!(backupFile instanceof TFile)) {
       throw new Error("Failed to create backup file");
     }
-    const formattedFileTextLink = `\n\n---\n[[${getLinkpath(file.path} | Link to formatted file]]`;
+    const formattedFileTextLink = `\n\n---\n[[${file.path} | Link to formatted file]]`;
 
     // Add the original link to the backup file
     // Add link to the current file in the backup file
