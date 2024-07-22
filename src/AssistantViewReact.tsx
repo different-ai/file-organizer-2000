@@ -499,8 +499,8 @@ const RefreshButton: React.FC<{ onRefresh: () => void }> = ({ onRefresh }) => (
   <button className="refresh-button" onClick={onRefresh}>
     <svg
       xmlns="http://www.w3.org/2000/svg"
-      width="24"
-      height="24"
+      width="15"
+      height="15"
       viewBox="0 0 24 24"
       fill="none"
       stroke="currentColor"
@@ -585,9 +585,6 @@ export const AssistantView: React.FC<AssistantViewProps> = ({ plugin }) => {
 
   return (
     <div className="assistant-container">
-      <div className="assistant-header">
-        <RefreshButton onRefresh={refreshAssistant} />
-      </div>
       <SectionHeader text="Looking at" icon="👀" />
       <div className="active-note-title">{activeFile.basename}</div>
 
@@ -648,6 +645,11 @@ export const AssistantView: React.FC<AssistantViewProps> = ({ plugin }) => {
           />
         </>
       )}
+      <div className="assistant-header">
+        <SectionHeader text="Refresh Suggestions" />
+
+        <RefreshButton onRefresh={refreshAssistant} />
+      </div>
     </div>
   );
 };
