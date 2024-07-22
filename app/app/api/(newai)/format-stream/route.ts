@@ -13,13 +13,13 @@ export async function POST(request: NextRequest) {
 
     const result = await streamText({
       model: openai(process.env.MODEL_NAME || 'gpt-4'),
-      system: "Answer in markdown",
+      system: "Answer directly in markdown",
       messages: [
         {
           role: 'user',
-          content: `Format the following content according to the given instruction:
-
-Time: ${new Date().toISOString()}
+          content: `Format the following content according to the given instruction, only use context if needed for the formatting instruction:
+Context:
+  Time: ${new Date().toISOString()}
 
 Content:
 "${content}"
