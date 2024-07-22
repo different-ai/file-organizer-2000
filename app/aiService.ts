@@ -255,7 +255,7 @@ export async function formatDocumentContent(
     schema: z.object({
       formattedContent: z.string(),
     }),
-    system: "Answer in markdown",
+    system: "Answer directly in markdown",
     prompt: `Format the following content according to the given instruction:
 
         Time: ${new Date().toISOString()}
