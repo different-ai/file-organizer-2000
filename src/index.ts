@@ -9,6 +9,7 @@ import {
   normalizePath,
   loadPdfJs,
   RequestUrlResponse,
+  getLinkpath,
 } from "obsidian";
 import { logMessage, formatToSafeName } from "../utils";
 import { FileOrganizerSettingTab } from "./FileOrganizerSettingTab";
@@ -93,6 +94,8 @@ class FileOrganizerSettings {
       provider: "openai" | "ollama" | "anthropic";
     };
   } = {};
+
+  backupFolderPath = "_FileOrganizer2000/Backups";
 }
 
 const validImageExtensions = ["png", "jpg", "jpeg", "gif", "svg", "webp"];
@@ -318,15 +321,12 @@ export default class FileOrganizer extends Plugin {
 
     // If it should be classified/formatted
     if (metadata.instructions.shouldClassify && metadata.classification) {
-      if (
-        !metadata.shouldCreateMarkdownContainer ||
-        metadata.shouldCreateMarkdownContainer
-      ) {
-        await this.app.vault.modify(fileToOrganize, metadata.aiFormattedText);
-        this.appendToCustomLogFile(
-          `Classified [[${metadata.newName}]] as ${metadata.classification} and formatted it with [[${this.settings.templatePaths}/${metadata.classification}]]`
-        );
-      }
+      await this.backupTheFileAndAddReferenceToCurrentFile(fileToOrganize);
+      await this.app.vault.modify(fileToOrganize, metadata.aiFormattedText);
+
+      this.appendToCustomLogFile(
+        `Classified [[${metadata.newName}]] as ${metadata.classification} and formatted it with [[${this.settings.templatePaths}/${metadata.classification}]]`
+      );
     }
 
     // append the attachment as a reference to audio, image, or pdf files.
@@ -457,13 +457,16 @@ export default class FileOrganizer extends Plugin {
   ): Promise<void> {
     try {
       new Notice("Formatting content...", 3000);
-      
+
+      // Backup the file before formatting and get the backup file
+      await this.backupTheFileAndAddReferenceToCurrentFile(file);
+
       let formattedContent = "";
       const updateCallback = async (partialContent: string) => {
         formattedContent = partialContent;
         await this.app.vault.modify(file, formattedContent);
       };
-  
+
       await this.formatStream(
         content,
         formattingInstruction,
@@ -472,7 +475,7 @@ export default class FileOrganizer extends Plugin {
         this.settings.API_KEY,
         updateCallback
       );
-  
+
       new Notice("Content formatted successfully", 3000);
     } catch (error) {
       console.error("Error formatting content:", error);
@@ -940,6 +943,7 @@ export default class FileOrganizer extends Plugin {
     this.ensureFolderExists(this.settings.templatePaths);
     // used to store info about changes
     this.ensureFolderExists(this.settings.stagingFolder);
+    this.ensureFolderExists(this.settings.backupFolderPath);
   }
   async checkAndCreateTemplates() {
     // add template
@@ -1310,5 +1314,47 @@ AI Instructions:
         }
       })
     );
+  }
+
+  async generateUniqueBackupFileName(originalFile: TFile): Promise<string> {
+    const baseFileName = `${originalFile.basename}_backup_${moment().format(
+      "YYYYMMDD_HHmmss"
+    )}`;
+    let fileName = `${baseFileName}.${originalFile.extension}`;
+    let counter = 1;
+
+    while (
+      await this.app.vault.adapter.exists(
+        normalizePath(`${this.settings.backupFolderPath}/${fileName}`)
+      )
+    ) {
+      fileName = `${baseFileName}_${counter}.${originalFile.extension}`;
+      counter++;
+    }
+
+    return fileName;
+  }
+
+  async backupTheFileAndAddReferenceToCurrentFile(file: TFile): Promise<TFile> {
+    const backupFileName = await this.generateUniqueBackupFileName(file);
+    const backupFilePath = normalizePath(
+      `${this.settings.backupFolderPath}/${backupFileName}`
+    );
+
+    // Create a backup of the file
+    await this.app.vault.copy(file, backupFilePath);
+
+    // Get the TFile object for the backup file
+    const backupFile = this.app.vault.getAbstractFileByPath(backupFilePath);
+    if (!(backupFile instanceof TFile)) {
+      throw new Error("Failed to create backup file");
+    }
+    const formattedFileTextLink = `\n\n---\n[[${file.path} | Link to formatted file]]`;
+
+    // Add the original link to the backup file
+    // Add link to the current file in the backup file
+    await this.app.vault.append(backupFile, formattedFileTextLink);
+
+    return backupFile;
   }
 }
