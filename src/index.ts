@@ -321,8 +321,11 @@ export default class FileOrganizer extends Plugin {
 
     // If it should be classified/formatted
     if (metadata.instructions.shouldClassify && metadata.classification) {
-      await this.backupTheFileAndAddReferenceToCurrentFile(fileToOrganize);
+      const backupFile = await this.backupTheFileAndAddReferenceToCurrentFile(
+        fileToOrganize
+      );
       await this.app.vault.modify(fileToOrganize, metadata.aiFormattedText);
+      await this.appendBackupLinkToCurrentFile(fileToOrganize, backupFile);
 
       this.appendToCustomLogFile(
         `Classified [[${metadata.newName}]] as ${metadata.classification} and formatted it with [[${this.settings.templatePaths}/${metadata.classification}]]`
@@ -449,6 +452,11 @@ export default class FileOrganizer extends Plugin {
       return null;
     }
   }
+  async appendBackupLinkToCurrentFile(currentFile: TFile, backupFile: TFile) {
+    const backupLink = `\n\n---\n[[${backupFile.path} | Link to original file]]`;
+
+    await this.app.vault.append(currentFile, backupLink);
+  }
 
   async formatContent(
     file: TFile,
@@ -459,7 +467,9 @@ export default class FileOrganizer extends Plugin {
       new Notice("Formatting content...", 3000);
 
       // Backup the file before formatting and get the backup file
-      await this.backupTheFileAndAddReferenceToCurrentFile(file);
+      const backupFile = await this.backupTheFileAndAddReferenceToCurrentFile(
+        file
+      );
 
       let formattedContent = "";
       const updateCallback = async (partialContent: string) => {
@@ -475,6 +485,7 @@ export default class FileOrganizer extends Plugin {
         this.settings.API_KEY,
         updateCallback
       );
+      this.appendBackupLinkToCurrentFile(file, backupFile);
 
       new Notice("Content formatted successfully", 3000);
     } catch (error) {
@@ -1342,18 +1353,7 @@ AI Instructions:
     );
 
     // Create a backup of the file
-    await this.app.vault.copy(file, backupFilePath);
-
-    // Get the TFile object for the backup file
-    const backupFile = this.app.vault.getAbstractFileByPath(backupFilePath);
-    if (!(backupFile instanceof TFile)) {
-      throw new Error("Failed to create backup file");
-    }
-    const formattedFileTextLink = `\n\n---\n[[${file.path} | Link to formatted file]]`;
-
-    // Add the original link to the backup file
-    // Add link to the current file in the backup file
-    await this.app.vault.append(backupFile, formattedFileTextLink);
+    const backupFile = await this.app.vault.copy(file, backupFilePath);
 
     return backupFile;
   }
