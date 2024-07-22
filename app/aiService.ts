@@ -256,15 +256,18 @@ export async function formatDocumentContent(
       formattedContent: z.string(),
     }),
     system: "Answer directly in markdown",
-    prompt: `Format the following content according to the given instruction:
-
+    prompt: `Format the following content according to the given instruction, only use context if asked in instruction:
+        Context:
         Time: ${new Date().toISOString()}
+
         
         Content:
         "${content}"
         
         Formatting Instruction:
-        "${formattingInstruction}"`,
+        "${formattingInstruction}"
+        
+        `,
   });
 
   let formattedContent = '';
