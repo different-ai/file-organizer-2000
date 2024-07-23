@@ -1,5 +1,5 @@
 import * as React from "react";
-import { Notice, TFile } from "obsidian";
+import { Notice, TFile, getLinkpath } from "obsidian";
 import FileOrganizer from ".";
 import { logMessage } from "../utils";
 import { log } from "console";
@@ -462,7 +462,17 @@ const TranscriptionButton: React.FC<{
       const match = content.match(audioRegex);
       if (match) {
         const audioFileName = match[1];
-        const audioFile = plugin.app.vault.getAbstractFileByPath(audioFileName);
+
+        const audioFile = plugin.app.metadataCache.getFirstLinkpathDest(
+          audioFileName,
+          "."
+        );
+
+        if (!(audioFile instanceof TFile)) {
+          console.error("Audio file not found");
+          new Notice("Audio file not found");
+          return;
+        }
         if (audioFile instanceof TFile) {
           const transcript = await plugin.generateTranscriptFromAudio(
             audioFile
