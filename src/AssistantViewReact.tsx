@@ -415,6 +415,7 @@ const ClassificationBox: React.FC<{
 
   return (
     <div className="assistant-section classification-section">
+      <SectionHeader text="Templates" icon="🗂️" />
       <button
         className="format-button"
         disabled={formatting}
@@ -504,9 +505,8 @@ const TranscriptionButton: React.FC<{
   );
 };
 
-// Add this new component for the refresh button
 const RefreshButton: React.FC<{ onRefresh: () => void }> = ({ onRefresh }) => (
-  <button className="refresh-button" onClick={onRefresh}>
+  <button className="refresh-button flex items-center" onClick={onRefresh}>
     <svg
       xmlns="http://www.w3.org/2000/svg"
       width="15"
@@ -517,9 +517,11 @@ const RefreshButton: React.FC<{ onRefresh: () => void }> = ({ onRefresh }) => (
       strokeWidth="2"
       strokeLinecap="round"
       strokeLinejoin="round"
+      className="mr-2"
     >
       <path d="M21.5 2v6h-6M2.5 22v-6h6M2 11.5a10 10 0 0 1 18.8-4.3M22 12.5a10 10 0 0 1-18.8 4.3" />
     </svg>
+    <span style={{ marginLeft: "10px" }}>Update Suggestions</span>
   </button>
 );
 
@@ -595,10 +597,11 @@ export const AssistantView: React.FC<AssistantViewProps> = ({ plugin }) => {
 
   return (
     <div className="assistant-container">
-      <SectionHeader text="Looking at" icon="👀" />
-      <div className="active-note-title">{activeFile.basename}</div>
-
-      {/* <SectionHeader text="Classification" icon="🗂️" /> */}
+      <div className="assistant-header">
+        <SectionHeader text="Looking at" icon="👀" />
+        <div className="active-note-title">{activeFile.basename}</div>
+        <RefreshButton onRefresh={refreshAssistant} />
+      </div>
       <ClassificationBox
         plugin={plugin}
         file={activeFile}
@@ -655,11 +658,6 @@ export const AssistantView: React.FC<AssistantViewProps> = ({ plugin }) => {
           />
         </>
       )}
-      <div className="assistant-header">
-        <SectionHeader text="Refresh Suggestions" />
-
-        <RefreshButton onRefresh={refreshAssistant} />
-      </div>
     </div>
   );
 };
