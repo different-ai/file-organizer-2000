@@ -66,7 +66,7 @@ Choose between any of the three setups below
 
    ```sh
    cd ./app
-   npm i && npm run build
+   npm i && npm run build:self-host
    OPENAI_API_KEY=[your open ai api key] npm run start
    ```
 
@@ -76,7 +76,7 @@ Choose between any of the three setups below
 
    ```sh
    cd .\app
-   npm i; npm run build
+   npm i; npm run build:self-host
    $env:OPENAI_API_KEY="your open ai api key"; npm run start
    ```
 
