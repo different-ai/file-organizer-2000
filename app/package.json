@@ -11,8 +11,7 @@
     "lint": "next lint",
     "db:generate": "drizzle-kit generate",
     "db:migrate": "dotenv -c -- drizzle-kit migrate",
-    "db:studio": "dotenv -c -- drizzle-kit studio",
-    "db:studio:prod": "dotenv -c production -- drizzle-kit studio"
+    "db:studio": "dotenv -c -- drizzle-kit studio"
   },
   "build": {
     "appId": "com.file-organizer.app",

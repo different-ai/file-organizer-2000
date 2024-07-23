@@ -1,7 +1,6 @@
 import { defineConfig } from "drizzle-kit";
 import "./drizzle/envConfig";
 
-console.log("POSTGRES_URL", process.env.POSTGRES_URL);
 export default defineConfig({
   schema: "./drizzle/schema.ts",
   dialect: "postgresql",
