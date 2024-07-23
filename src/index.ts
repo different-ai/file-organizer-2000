@@ -45,7 +45,7 @@ class FileOrganizerSettings {
   logFolderPath = "_FileOrganizer2000/Logs";
   useSimilarTags = true; // default value is true
   renameInstructions =
-    "Rename the document based on the content. Keep it short and relevant.";
+    "Create a concise, descriptive name for the document based on its key content. Prioritize clarity and searchability, using specific terms that will make the document easy to find later. Avoid generic words and focus on unique, identifying elements.";
 
   useAutoAppend = false;
   usePro = true;
@@ -769,9 +769,7 @@ export default class FileOrganizer extends Plugin {
       case file.extension === "md":
         return await this.app.vault.read(file);
       case file.extension === "pdf": {
-        console.log("pdf");
         const pdfContent = await this.extractTextFromPDF(file);
-        console.log("content", pdfContent);
         return pdfContent;
       }
       case validImageExtensions.includes(file.extension):
@@ -977,10 +975,14 @@ export default class FileOrganizer extends Plugin {
 
 ## Action Items
 - [ ] Action item 1
+  - [ ] Sub-action 1.1
+  - [ ] Sub-action 1.2
 - [ ] Action item 2
+  - [ ] Sub-action 2.1
+  - [ ] Sub-action 2.2
 
-## Notes
-[Add your meeting notes here]
+## Detailed Notes
+[Add your meeting notes here, maintaining a hierarchical structure]
 
 ## Transcription
 [Insert the full transcription below]
@@ -989,11 +991,18 @@ export default class FileOrganizer extends Plugin {
 
 AI Instructions:
 1. Merge the transcription into the content, focusing on key points and action items.
-2. Summarize the main discussion points in the "Key Points" section.
-3. Extract and list any action items or tasks in the "Action Items" section.
-4. Preserve the reference to the original audio file.
-5. Keep the full transcription at the bottom of the note for reference.
-6. Maintain the overall structure of the note, including headers and sections.
+2. Summarize the main discussion points in the "Key Points" section, using bullet points for clarity.
+3. Extract and list any action items or tasks in the "Action Items" section:
+   - Use a hierarchical structure with main action items and sub-actions.
+   - Maintain the original level of detail from the transcript.
+   - Use indentation to show the relationship between main actions and sub-actions.
+4. In the "Detailed Notes" section, create a hierarchical structure that reflects the meeting's flow:
+   - Use headings (###, ####) for main topics.
+   - Use bullet points and sub-bullets for detailed points under each topic.
+   - Preserve the granularity of the discussion, including specific examples or minor points.
+5. Preserve the reference to the original audio file.
+6. Keep the full transcription at the bottom of the note for reference.
+7. Maintain the overall structure of the note, including all headers and sections.
 `
       );
     }
