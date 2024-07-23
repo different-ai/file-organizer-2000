@@ -5,6 +5,7 @@
   "main": "./desktop/electron.js",
   "scripts": {
     "dev": "next dev",
+    "build:self-host": "next build",
     "build": "npm run db:migrate && next build",
     "start": "next start",
     "lint": "next lint",
