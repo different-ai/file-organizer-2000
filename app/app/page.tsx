@@ -38,25 +38,23 @@ export default async function Component() {
 
   return (
     <div className="flex min-h-screen py-7 px-4 sm:px-6 lg:px-8 flex-col">
-      <div className="flex-1 mb-8 flex items-center justify-center pt-16 ">
-        <div className="flex w-full">
-          <div className="relative w-1/2 rounded-lg overflow-hidden">
+      <div className="flex-1 mb-8 flex items-center justify-center pt-16">
+        <div className="flex flex-col lg:flex-row w-full max-w-6xl">
+          <div className="relative w-full lg:w-1/2 rounded-lg overflow-hidden aspect-video mb-8 lg:mb-0">
             <iframe
               className="absolute top-0 left-0 w-full h-full"
-              width="640"
-              height="360"
               src="https://www.youtube.com/embed/XZTpbECqZps?controls=0?modestbranding=1?showinfo=0"
               frameBorder="0"
               allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture"
               allowFullScreen
             ></iframe>
           </div>
-          <div className="flex-1 space-y-8 flex flex-col justify-center pl-8">
+          <div className="flex-1 space-y-8 flex flex-col justify-center lg:pl-8">
             <div className="text-center flex flex-col justify-center items-center">
               {process.env.ENABLE_USER_MANAGEMENT == "true" ? (
                 <UnkeyElements />
               ) : (
-                <p className="text-gray-500 dark:text-gray-400">
+                <p className="text-gray-500 dark:text-gray-400 px-4">
                   Just paste this URL in the plugin settings in Obsidian and
                   you're good to go!
                 </p>
@@ -64,12 +62,12 @@ export default async function Component() {
             </div>
             <div className="text-center">
               <ArrowDownIcon className="mx-auto h-12 w-12 text-gray-400" />
-              <p className="text-gray-800 mt-6 text-2xl font-extrabold mt-2 mb-4">
+              <p className="text-gray-800 mt-6 text-xl sm:text-2xl font-extrabold mt-2 mb-4">
                 Get the plugin
               </p>
 
               <a href="obsidian://show-plugin?id=fileorganizer2000">
-                <Button className="max-w-xs">Download</Button>
+                <Button className="max-w-xs w-full sm:w-auto">Download</Button>
               </a>
               <p className="mt-3 text-sm text-gray-600">
                 Requires Obsidian app.
