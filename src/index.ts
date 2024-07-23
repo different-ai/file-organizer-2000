@@ -566,7 +566,7 @@ export default class FileOrganizer extends Plugin {
       const bytes = new Uint8Array(arrayBuffer);
       const doc = await pdfjsLib.getDocument({ data: bytes }).promise;
       let text = "";
-      for (let pageNum = 1; pageNum <= Math.min(doc.numPages, 10); pageNum++) {
+      for (let pageNum = 1; pageNum <= doc.numPages; pageNum++) {
         const page = await doc.getPage(pageNum);
         const textContent = await page.getTextContent();
         console.log("textContent", textContent);
