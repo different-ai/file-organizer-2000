@@ -30,6 +30,7 @@ export async function POST(req: NextRequest) {
         userId,
       },
       mode: "subscription",
+      allow_promotion_codes: true,
       success_url: `${req.headers.get("origin")}/members`,
       cancel_url: `${req.headers.get("origin")}/`,
     });
