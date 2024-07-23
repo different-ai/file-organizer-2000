@@ -96,7 +96,7 @@ app.post('/transcribe', upload.single('audio'), async (req, res) => {
   }
 
   try {
-    const chunkDuration = 1 * 60; // 5 minutes in seconds
+    const chunkDuration = 10 * 60; //
     const audioInfo = await getAudioDuration(req.file.path);
     const totalDuration = audioInfo.duration;
     const chunks = Math.ceil(totalDuration / chunkDuration);
