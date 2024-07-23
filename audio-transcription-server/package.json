@@ -12,6 +12,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "@deepgram/sdk": "^3.5.0",
     "@unkey/api": "^0.23.0",
     "cors": "^2.8.5",
     "dotenv": "^16.4.5",
