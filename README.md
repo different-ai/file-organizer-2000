@@ -65,7 +65,8 @@ Choose between any of the three setups below
    For Linux/macOS:
 
    ```sh
-   cd ./app
+
+   npm run dev && cd app
    npm i && npm run build:self-host
    OPENAI_API_KEY=[your open ai api key] npm run start
    ```
@@ -75,7 +76,7 @@ Choose between any of the three setups below
    For Windows (PowerShell):
 
    ```sh
-   cd .\app
+   npm run dev; cd .\app
    npm i; npm run build:self-host
    $env:OPENAI_API_KEY="your open ai api key"; npm run start
    ```
