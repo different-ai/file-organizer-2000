@@ -26,7 +26,7 @@ export default function CheckoutButton() {
 
   return (
     <Button onClick={handleCheckout} disabled={loading} className="border ">
-      {loading ? "Processing..." : "Get organized"}
+      {loading ? "Processing..." : "Start Free Trial"}
     </Button>
   );
 }
