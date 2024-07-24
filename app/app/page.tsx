@@ -15,18 +15,18 @@ async function UserManagement() {
 
   return (
     <div className="absolute top-4 right-4 flex items-center gap-4">
-      {!isPaidUser && <CheckoutButton />}
+      <div className="hidden sm:block">{!isPaidUser && <CheckoutButton />}</div>
       <a href="https://discord.gg/udQnCRFyus" target="_blank">
-        <Button className="border ">Join our discord</Button>
+        <Button className="border whitespace-nowrap">Join our discord</Button>
       </a>
       {isPaidUser && (
         <a href={process.env.NEXT_PUBLIC_STRIPE_CUSTOMER_PORTAL_URL}>
-          <Button variant="secondary">Manage Subscription</Button>
+          <Button variant="secondary">Subscription</Button>
         </a>
       )}
-
-      <div className="text-sm text-gray-500">{email}</div>
-      <UserButton />
+      <div className="flex items-center gap-2 w-full sm:w-auto flex-wrap justify-end">
+        <UserButton />
+      </div>
     </div>
   );
 }
@@ -40,12 +40,21 @@ export default async function Component() {
     <div className="flex min-h-screen py-7 px-4 sm:px-6 lg:px-8 flex-col">
       <div className="flex-1 mb-8 flex items-center justify-center pt-16">
         <div className="flex flex-col lg:flex-row w-full max-w-6xl">
-          <div className="relative w-full sm:hidden md:block lg:w-1/2 rounded-lg overflow-hidden aspect-video mb-8 lg:mb-0">
+          <div className="w-full lg:w-1/2 rounded-lg overflow-hidden aspect-video mb-8 lg:mb-0">
             <iframe
-              className="absolute top-0 left-0 w-full h-full"
-              src="https://www.youtube.com/embed/XZTpbECqZps?controls=0?modestbranding=1?showinfo=0"
+              className="w-full h-full hidden md:block"
+              src="https://www.youtube.com/embed/XZTpbECqZps?controls=0&modestbranding=1&showinfo=0"
               frameBorder="0"
               allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture"
+              allowFullScreen
+            ></iframe>
+            <iframe
+              width="560"
+              height="315"
+              src="https://www.youtube.com/embed/videoseries?list=PLgRcC-DFR5jdUxbSBuNeymwYTH_FSVxio"
+              title="YouTube video player"
+              frameBorder="0"
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
               allowFullScreen
             ></iframe>
           </div>
