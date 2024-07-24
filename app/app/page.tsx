@@ -40,7 +40,7 @@ export default async function Component() {
     <div className="flex min-h-screen py-7 px-4 sm:px-6 lg:px-8 flex-col">
       <div className="flex-1 mb-8 flex items-center justify-center pt-16">
         <div className="flex flex-col lg:flex-row w-full max-w-6xl">
-          <div className="relative w-full lg:w-1/2 rounded-lg overflow-hidden aspect-video mb-8 lg:mb-0">
+          <div className="relative w-full sm:hidden md:block lg:w-1/2 rounded-lg overflow-hidden aspect-video mb-8 lg:mb-0">
             <iframe
               className="absolute top-0 left-0 w-full h-full"
               src="https://www.youtube.com/embed/XZTpbECqZps?controls=0?modestbranding=1?showinfo=0"
