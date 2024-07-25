@@ -967,16 +967,20 @@ export default class FileOrganizer extends Plugin {
         `# Meeting Note Template
 
 ## Meeting Details
+
 - Date: {{date}} in format YYYY-MM-DD
-- Participants: 
+
 
 ## Audio Reference
+
 ![[{{audio_file}}]]
 
 ## Key Points
+
 [Summarize the main points discussed in the meeting]
 
 ## Action Items
+
 - [ ] Action item 1
   - [ ] Sub-action 1.1
   - [ ] Sub-action 1.2
@@ -985,9 +989,11 @@ export default class FileOrganizer extends Plugin {
   - [ ] Sub-action 2.2
 
 ## Detailed Notes
+
 [Add your meeting notes here, maintaining a hierarchical structure]
 
 ## Transcription
+
 [Insert the full transcription below]
 
 ---

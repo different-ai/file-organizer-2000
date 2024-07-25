@@ -267,7 +267,7 @@ export async function extractTextFromImage(
         messages,
       });
 
-      return response.text.trim() + "\n\n";
+      return response.text.trim();
     }
     default: {
       const defaultResponse = await generateText({
@@ -276,7 +276,7 @@ export async function extractTextFromImage(
         messages,
       });
       // add empty line to the end of the response for better readability
-      return response.text.trim() + "\n\n";
+      return response.text.trim();
     }
   }
 }
