@@ -175,7 +175,7 @@ export async function extractTextFromImage(
       content: [
         {
           type: "text",
-          text: "Extract text from image. Write in markdown. If there's a drawing, describe it. Respond with only the extracted text or description, no other text.",
+          text: "Extract text from image. Write in best format for Obsidian. If there's a drawing, describe it. Respond with only the extracted text or description.",
         },
         {
           type: "image",
@@ -270,9 +270,9 @@ export async function formatDocumentContent(
         `,
   });
 
-  let formattedContent = '';
+  let formattedContent = "";
   for await (const partialObject of partialObjectStream) {
-    formattedContent = partialObject.formattedContent || '';
+    formattedContent = partialObject.formattedContent || "";
   }
 
   return { object: { formattedContent }, usage: { totalTokens: 0 } };
