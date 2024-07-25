@@ -175,7 +175,7 @@ export async function extractTextFromImage(
       content: [
         {
           type: "text",
-          text: "Extract text from image. Write in best format for Obsidian. If there's a drawing, describe it. Respond with only the extracted text or description.",
+          text: "Extract text from image. If there's a drawing, describe it. Respond with only the extracted text or description.",
         },
         {
           type: "image",
