@@ -1,7 +1,7 @@
 import { requestUrl } from "obsidian";
 import { makeApiRequest } from "..";
 
-const defaultPrompt = `Extract text from image. Write in markdown. If there's a drawing, describe it.`;
+const defaultPrompt = `Extract text from image. If there's a drawing, describe it. Respond with only the extracted text or description.`;
 // useVision.js
 async function useVision(
   encodedImage,
