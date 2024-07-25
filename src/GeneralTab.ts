@@ -62,7 +62,7 @@ export class ModelTab {
       attr: {
         width: "100%",
         height: "315",
-        src: "https://www.youtube.com/embed/dsTdkDRpm80?si=fv9SCV0uvuRYRJ0O",
+        src: "https://www.youtube.com/embed/dRtLCBFzTAo?si=eo0h8dxTW-AIsNpp",
         frameborder: "0",
         allow: "accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture",
         allowfullscreen: "",
