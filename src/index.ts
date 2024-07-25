@@ -783,7 +783,10 @@ export default class FileOrganizer extends Plugin {
 
   // adds an attachment to a file using the ![[attachment]] syntax
   async appendAttachment(markdownFile: TFile, attachmentFile: TFile) {
-    await this.app.vault.append(markdownFile, `![[${attachmentFile.name}]]`);
+    await this.app.vault.append(
+      markdownFile,
+      `\n\n![[${attachmentFile.name}]]`
+    );
   }
   async appendToFrontMatter(file: TFile, key: string, value: string) {
     await this.app.fileManager.processFrontMatter(file, (frontmatter) => {

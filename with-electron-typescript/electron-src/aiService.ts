@@ -239,6 +239,8 @@ export async function extractTextFromImage(
   image: ArrayBuffer,
   model: LanguageModel
 ): Promise<string> {
+  console.log("extractTextFromImage function called");
+
   const modelName = model.modelId;
 
   const messages = [
