@@ -5,5 +5,5 @@
 	"minAppVersion": "0.15.0",
 	"description": "Automatically organize notes, annotate photos and audio using AI.",
 	"author": "Benjamin Ashgan Shafii",
-	"isDesktopOnly": true
+	"isDesktopOnly": false
 }
