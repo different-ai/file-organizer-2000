@@ -193,7 +193,7 @@ export async function extractTextFromImage(
         messages,
       });
 
-      return response.text.trim();
+      return response.text.trim() + "\n\n";
     }
     default: {
       const defaultResponse = await generateText({

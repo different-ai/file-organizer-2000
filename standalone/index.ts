@@ -981,7 +981,7 @@ async function useVision(
   const result = await response.json();
 
   // @ts-ignore
-  return result.text;
+  return result.text + "\n\n";
 }
 
 async function main() {
