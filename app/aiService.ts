@@ -201,8 +201,8 @@ export async function extractTextFromImage(
         //@ts-ignore
         messages,
       });
-
-      return defaultResponse.text.trim();
+      // add empty line to the end of the response for better readability
+      return defaultResponse.text.trim() + "\n\n";
     }
   }
 }

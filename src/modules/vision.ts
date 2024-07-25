@@ -28,7 +28,8 @@ async function useVision(
   );
   const result = await response.json;
 
-  return result.text;
+  // add empty line to the end of the response for better readability
+  return result.text + "\n\n";
 }
 
 export default useVision;
