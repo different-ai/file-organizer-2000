@@ -17,7 +17,15 @@ export class ModelTab {
       cls: "setting-tab-content",
     });
 
-    const fileOrganizerSettingsEl = modelTabContent.createEl("div", {
+    this.createContent(modelTabContent);
+
+    return modelTabContent;
+  }
+
+  private createContent(container: HTMLElement): void {
+    container.empty();
+
+    const fileOrganizerSettingsEl = container.createEl("div", {
       cls: "file-organizer-settings",
     });
 
@@ -46,8 +54,16 @@ export class ModelTab {
           } else {
             new Notice("Invalid license key. Please try again.");
           }
+          this.createContent(container);
         })
       );
+
+    if (this.plugin.settings.isLicenseValid) {
+      fileOrganizerSettingsEl.createEl("p", {
+        text: "License Status: Activated",
+        cls: "license-status activated",
+      });
+    }
 
     const getLicenseButton = fileOrganizerSettingsEl.createEl("button", {
       text: "Get License",
@@ -57,11 +73,8 @@ export class ModelTab {
     getLicenseButton.addEventListener("click", () => {
       window.open("https://app.fileorganizer2000.com", "_blank");
     });
-    getLicenseButton.style.marginTop = "1rem";
-    getLicenseButton.addEventListener("click", () => {
-      window.open("https://app.fileorganizer2000.com", "_blank");
-    });
-    const youtubeEmbedEl = modelTabContent.createEl("div", {
+
+    const youtubeEmbedEl = container.createEl("div", {
       cls: "youtube-embed",
     });
 
@@ -79,13 +92,10 @@ export class ModelTab {
 
     // Adjust iframe height to fill available space
     const resizeObserver = new ResizeObserver(() => {
-      const availableHeight =
-        modelTabContent.clientHeight - youtubeEmbedEl.offsetTop;
+      const availableHeight = container.clientHeight - youtubeEmbedEl.offsetTop;
       iframe.style.height = `${Math.max(315, availableHeight)}px`;
     });
 
-    resizeObserver.observe(modelTabContent);
-
-    return modelTabContent;
+    resizeObserver.observe(container);
   }
 }
