@@ -39,7 +39,10 @@ export class ModelTab {
             this.plugin.settings.API_KEY
           );
           if (isValid) {
-            new Notice("License key activated successfully!");
+            new Notice(
+              "License key activated successfully!",
+              5000
+            ).noticeEl.addClass("success");
           } else {
             new Notice("Invalid license key. Please try again.");
           }

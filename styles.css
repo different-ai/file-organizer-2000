@@ -184,3 +184,8 @@ If your plugin does not need CSS, delete this file.
   font-size: 0.8rem;
   color: var(--text-muted);
 }
+
+.notice.success {
+  background-color: #4caf50;
+  color: white;
+}
