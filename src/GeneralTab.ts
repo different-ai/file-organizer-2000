@@ -1,6 +1,6 @@
 // GeneralTab.ts
 
-import { Setting } from "obsidian";
+import { Setting, Notice } from "obsidian";
 import FileOrganizer from "./index";
 
 export class ModelTab {
@@ -16,42 +16,49 @@ export class ModelTab {
     const modelTabContent = this.containerEl.createEl("div", {
       cls: "setting-tab-content",
     });
-    // add margin top to the tab content
-
-    // title
-    // Pro Account Toggle
 
     const fileOrganizerSettingsEl = modelTabContent.createEl("div", {
       cls: "file-organizer-settings",
     });
 
-    // File Organizer Settings Section
-
     new Setting(fileOrganizerSettingsEl)
-      .setName("File Organizer Serial Key")
-      .setDesc(
-        "Login to start a free trial and generate a key. Then paste it here."
-      )
+      .setName("File Organizer License Key")
+      .setDesc("Get a license key to activate File Organizer 2000.")
       .addText((text) =>
         text
-          .setPlaceholder("Enter your File Organizer Serial Key")
+          .setPlaceholder("Enter your File Organizer License Key")
           .setValue(this.plugin.settings.API_KEY)
           .onChange(async (value) => {
             this.plugin.settings.API_KEY = value;
             await this.plugin.saveSettings();
           })
+      )
+      .addButton((button) =>
+        button.setButtonText("Activate").onClick(async () => {
+          const isValid = await this.plugin.checkAPIKey(
+            this.plugin.settings.API_KEY
+          );
+          if (isValid) {
+            new Notice(
+              "License key activated successfully!",
+              5000
+            ).noticeEl.addClass("success");
+          } else {
+            new Notice("Invalid license key. Please try again.");
+          }
+        })
       );
-    const loginButton = fileOrganizerSettingsEl.createEl("button", {
-      text: "Login to File Organizer",
+
+    const getLicenseButton = fileOrganizerSettingsEl.createEl("button", {
+      text: "Get License",
       cls: "file-organizer-login-button",
     });
-    loginButton.style.marginTop = "1rem";
-    loginButton.addEventListener("click", () => {
+    getLicenseButton.style.marginTop = "1rem";
+    getLicenseButton.addEventListener("click", () => {
       window.open("https://app.fileorganizer2000.com", "_blank");
     });
-
-    loginButton.style.marginTop = "1rem";
-    loginButton.addEventListener("click", () => {
+    getLicenseButton.style.marginTop = "1rem";
+    getLicenseButton.addEventListener("click", () => {
       window.open("https://app.fileorganizer2000.com", "_blank");
     });
     const youtubeEmbedEl = modelTabContent.createEl("div", {
@@ -64,20 +71,20 @@ export class ModelTab {
         height: "315",
         src: "https://www.youtube.com/embed/dRtLCBFzTAo?si=eo0h8dxTW-AIsNpp",
         frameborder: "0",
-        allow: "accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture",
+        allow:
+          "accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture",
         allowfullscreen: "",
       },
     });
 
     // Adjust iframe height to fill available space
     const resizeObserver = new ResizeObserver(() => {
-      const availableHeight = modelTabContent.clientHeight - youtubeEmbedEl.offsetTop;
+      const availableHeight =
+        modelTabContent.clientHeight - youtubeEmbedEl.offsetTop;
       iframe.style.height = `${Math.max(315, availableHeight)}px`;
     });
 
     resizeObserver.observe(modelTabContent);
-
-
 
     return modelTabContent;
   }
