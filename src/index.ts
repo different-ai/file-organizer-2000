@@ -38,6 +38,7 @@ type TagCounts = {
 
 class FileOrganizerSettings {
   API_KEY = "";
+  isLicenseValid = false;
   useLogs = true;
   defaultDestinationPath = "_FileOrganizer2000/Processed";
   attachmentsPath = "_FileOrganizer2000/Processed/Attachments";
@@ -177,11 +178,22 @@ export default class FileOrganizer extends Plugin {
           Authorization: `Bearer ${key}`,
         },
       });
-      return response.status === 200;
+      const isValid = response.status === 200;
+      this.settings.isLicenseValid = isValid;
+      this.settings.API_KEY = key;
+      await this.saveSettings();
+      return isValid;
     } catch (error) {
       console.error("Error checking API key:", error);
-      new Notice("Error checking API key. Please try again.");
+      this.settings.isLicenseValid = false;
+      await this.saveSettings();
       return false;
+    }
+  }
+
+  async checkLicenseOnLoad() {
+    if (this.settings.isLicenseValid && this.settings.API_KEY) {
+      await this.checkAPIKey(this.settings.API_KEY);
     }
   }
 
