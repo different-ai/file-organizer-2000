@@ -8,8 +8,8 @@ import {
   WorkspaceLeaf,
   normalizePath,
   loadPdfJs,
+  requestUrl,
   RequestUrlResponse,
-  getLinkpath,
 } from "obsidian";
 import { logMessage, formatToSafeName } from "../utils";
 import { FileOrganizerSettingTab } from "./FileOrganizerSettingTab";
@@ -165,6 +165,25 @@ export interface FileMetadata {
 
 export default class FileOrganizer extends Plugin {
   settings: FileOrganizerSettings;
+
+  //Check if the API key is valid upon clickign on Activate
+  async checkAPIKey(key: string): Promise<boolean> {
+    try {
+      const response: RequestUrlResponse = await requestUrl({
+        url: `${this.getServerUrl()}/api/check-key`,
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${key}`,
+        },
+      });
+      return response.status === 200;
+    } catch (error) {
+      console.error("Error checking API key:", error);
+      new Notice("Error checking API key. Please try again.");
+      return false;
+    }
+  }
 
   getServerUrl(): string {
     const serverUrl = this.settings.enableSelfHosting
