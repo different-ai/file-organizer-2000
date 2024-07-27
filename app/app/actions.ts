@@ -3,6 +3,18 @@ import { UserUsageTable, createOrUpdateUserUsage } from "@/drizzle/schema";
 import { auth, clerkClient } from "@clerk/nextjs/server";
 import { Unkey } from "@unkey/api";
 
+import { checkUserSubscriptionStatus } from "../drizzle/schema";
+
+export async function isPaidUser(userId: string) {
+  try {
+    const isSubscribed = await checkUserSubscriptionStatus(userId);
+    return isSubscribed;
+  } catch (error) {
+    console.error("Error checking subscription status:", error);
+    return false;
+  }
+}
+
 export async function create() {
   "use server";
   const { userId } = auth();
