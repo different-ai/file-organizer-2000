@@ -11,7 +11,7 @@ async function UserManagement() {
 
   return (
     <div className="absolute top-4 right-4 flex items-center gap-4">
-      <div className="hidden sm:block">{!isPaidUser && <CheckoutButton />}</div>
+      <div className="hidden sm:block">{!isPaid && <CheckoutButton />}</div>
       <a href="https://discord.gg/udQnCRFyus" target="_blank">
         <Button className="border whitespace-nowrap">Join our discord</Button>
       </a>
