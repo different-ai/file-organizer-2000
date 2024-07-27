@@ -1,25 +1,21 @@
 import CheckoutButton from "@/components/ui/CheckoutButton";
-import { UnkeyElements } from "./keys/client";
 import { Button } from "@/components/ui/button";
 import { UserButton } from "@clerk/nextjs";
-import { auth, clerkClient } from "@clerk/nextjs/server";
-import FolderSelector from "@/components/ui/FolderSelection";
-import Logo from "@/components/ui/logo";
+import { auth } from "@clerk/nextjs/server";
+import { LicenseForm } from "./components/LicenseForm";
+import { isPaidUser } from "./actions";
+
 async function UserManagement() {
   const { userId } = auth();
-  const user = await clerkClient.users.getUser(userId);
-  const email = user.emailAddresses[0]?.emailAddress;
-  const isPaidUser =
-    (user?.publicMetadata as CustomJwtSessionClaims["publicMetadata"])?.stripe
-      ?.status === "complete";
+  const isPaid = await isPaidUser(userId);
 
   return (
     <div className="absolute top-4 right-4 flex items-center gap-4">
-      <div className="hidden sm:block">{!isPaidUser && <CheckoutButton />}</div>
+      <div className="hidden sm:block">{!isPaid && <CheckoutButton />}</div>
       <a href="https://discord.gg/udQnCRFyus" target="_blank">
         <Button className="border whitespace-nowrap">Join our discord</Button>
       </a>
-      {isPaidUser && (
+      {isPaid && (
         <a href={process.env.NEXT_PUBLIC_STRIPE_CUSTOMER_PORTAL_URL}>
           <Button variant="secondary">Subscription</Button>
         </a>
@@ -32,10 +28,6 @@ async function UserManagement() {
 }
 
 export default async function Component() {
-  if (process.env.USE_STANDALONE === "true") {
-    return <FolderSelector />;
-  }
-
   return (
     <div className="flex min-h-screen py-7 px-4 sm:px-6 lg:px-8 flex-col">
       <div className="flex-1 mb-8 flex items-center justify-center pt-16">
@@ -61,7 +53,7 @@ export default async function Component() {
           <div className="flex-1 space-y-8 flex flex-col justify-center lg:pl-8">
             <div className="text-center flex flex-col justify-center items-center">
               {process.env.ENABLE_USER_MANAGEMENT == "true" ? (
-                <UnkeyElements />
+                <LicenseForm />
               ) : (
                 <p className="text-gray-500 dark:text-gray-400 px-4">
                   Just paste this URL in the plugin settings in Obsidian and

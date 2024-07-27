@@ -10,14 +10,14 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { useState } from "react";
-import { create } from "./create";
+import { useEffect, useState } from "react";
+import { create, isPaidUser } from "../actions";
 import CheckoutButton from "@/components/ui/CheckoutButton";
 import { useUser } from "@clerk/nextjs";
 
-const APIKEYForm = () => {
-  const [key, setKey] = useState<string>("");
+const LicenseForm = () => {
+  const [licenseKey, setLicenseKey] = useState<string>("");
+  const [isPaid, setIsPaid] = useState(false);
   async function onCreate(formData: FormData) {
     const res = await create();
     // @ts-ignore
@@ -27,7 +27,7 @@ const APIKEYForm = () => {
       return;
     }
     if (res) {
-      setKey(res.key?.key ?? "");
+      setLicenseKey(res.key?.key ?? "");
     }
   }
   const [loading, setLoading] = useState(false);
@@ -44,13 +44,20 @@ const APIKEYForm = () => {
     }
   };
 
-  const { user, isLoaded } = useUser();
-  // @ts-ignore
-  const isPaidUser = user?.publicMetadata.stripe?.status === "complete";
+  const { user } = useUser();
+
+  useEffect(() => {
+    const handleSetIsPaidUser = async () => {
+      if (!user) return;
+      const isPaid = await isPaidUser(user.id);
+      setIsPaid(isPaid);
+    };
+    handleSetIsPaidUser();
+  }, [user]);
 
   return (
     <div className="mt-8 ">
-      {isPaidUser ? (
+      {isPaid ? (
         <>
           <Card className="w-[350px] ">
             <CardHeader></CardHeader>
@@ -70,13 +77,13 @@ const APIKEYForm = () => {
               </CardDescription>
             </form>
           </Card>
-          {key && key.length > 0 && (
+          {licenseKey && licenseKey.length > 0 && (
             <>
               <Card className="w-[350px] mt-8 rounded-lg">
                 <CardContent>
                   <div className="grid items-center w-full gap-4">
                     <div className="flex flex-col space-y-1.5">
-                      <Input name="name" value={key} />
+                      <Input name="name" value={licenseKey} />
                     </div>
                   </div>
                 </CardContent>
@@ -98,4 +105,4 @@ const APIKEYForm = () => {
   );
 };
 
-export { APIKEYForm as UnkeyElements };
+export { LicenseForm };
