@@ -27,6 +27,7 @@ export async function POST(req: NextRequest) {
       metadata: {
         userId,
       },
+      allow_promotion_codes: true,
       mode: "payment",
       success_url: `${req.headers.get("origin")}/members`,
       cancel_url: `${req.headers.get("origin")}/`,
