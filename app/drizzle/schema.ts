@@ -25,7 +25,7 @@ export const UserUsageTable = pgTable(
     tokenUsage: integer("tokenUsage").notNull().default(0),
     maxTokenUsage: integer("maxTokenUsage")
       .notNull()
-      .default(1000 * 1000),
+      .default(5000 * 1000),
     subscriptionStatus: text("subscriptionStatus")
       .notNull()
       .default("inactive"),
