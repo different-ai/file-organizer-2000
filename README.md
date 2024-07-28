@@ -1,14 +1,14 @@
 # AI File Organizer 2000
 
-An Obsidian Plugin that uses AI to help you keep your files organized. It tags, renames, and moves files to the most appropriate folders in your vault. You'll also be able to have your text extracted from your images, your audios transcribed, and create AI templates.
+An Obsidian Plugin that uses AI to help you keep your files organized. It tags, renames, and moves files to the most appropriate folders in your vault. 
+
+
 
 ### Features
 
-- Automatically move files to the correct folder
-- AI suggestions to organize your files. Apply tags, aliases, rename & more
-- Supports text, images and audio
-- Create and apply custom AI templates
-- AI meetings, allowing you to record meetings as you take notes and have AI format them following your instructions.
+- **OCR**: AI-class text extraction from any image, including handwritten notes.
+- **Meetings**: Transcribe audio and automatically format meeting notes.
+- **Organization**: Automatically suggests names and folders to move your files.
 
   <img width="900" alt="Screenshot 2024-04-30 at 14 05 30" src="https://github.com/different-ai/file-organizer-2000/assets/11430621/2e2cdf14-c6d0-4fd0-8e02-268928ad7ef3">
 
