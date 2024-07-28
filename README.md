@@ -64,14 +64,14 @@ Choose between any of the three setups below
 
    For Linux/macOS:
 
-   ``` npm run build && cd app && npm i && npm run build:self-host && OPENAI_API_KEY=[your open ai api key]  npm run start```
+   ``` cd app && npm i && npm run build:self-host && OPENAI_API_KEY=[your open ai api key]  npm run start```
 
    Replace `[your open ai api key]` with your actual OpenAI API key.
 
    For Windows (PowerShell):
 
    ```sh
-   npm run build; cd .\app
+   cd .\app
    npm i; npm run build:self-host
    $env:OPENAI_API_KEY="your open ai api key"; npm run start
    ```
