@@ -6,8 +6,9 @@ An Obsidian Plugin that uses AI to help you keep your files organized. It tags,
 
 - Automatically move files to the correct folder
 - AI suggestions to organize your files. Apply tags, aliases, rename & more
-- Supports text and images
+- Supports text, images and audio
 - Create and apply custom AI templates
+- AI meetings, allowing you to record meetings as you take notes and have AI format them following your instructions.
 
   <img width="900" alt="Screenshot 2024-04-30 at 14 05 30" src="https://github.com/different-ai/file-organizer-2000/assets/11430621/2e2cdf14-c6d0-4fd0-8e02-268928ad7ef3">
 
