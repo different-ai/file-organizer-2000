@@ -94,7 +94,7 @@ See link for more info: https://promptfoo.dev/docs/configuration/guide/
 
 Join the [discord server](https://discord.gg/udQnCRFyus) for more.
 
-## Small iOS shortcut for easy access
+## iOS shortcut to send Apple Notes and Audios to Obsidian
 
 The iOS shortcut below makes it easy for you to easily work from your phone with this plugin.
 
