@@ -77,10 +77,7 @@ export default function Component() {
               </div>
               <div className="text-center">
                 <div className="flex items-center justify-center gap-2">
-                  <span className="text-5xl font-bold">$8</span>
-                  <span className="text-lg text-gray-600 line-through">
-                    $14.99
-                  </span>
+                  <span className="text-5xl font-bold">$14.99</span>
                 </div>
               </div>
               <div className="flex justify-center">
@@ -95,7 +92,7 @@ export default function Component() {
                 </li>
                 <li className="flex items-center space-x-2">
                   <CheckIcon className="h-5 w-5 text-green-500" />
-                  <span>800 files per month</span>
+                  <span>1000 files per month</span>
                 </li>
                 <li className="flex items-center space-x-2">
                   <CheckIcon className="h-5 w-5 text-green-500" />
