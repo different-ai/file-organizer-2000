@@ -15,7 +15,10 @@ import { logMessage, formatToSafeName } from "../utils";
 import { FileOrganizerSettingTab } from "./FileOrganizerSettingTab";
 import { ASSISTANT_VIEW_TYPE, AssistantViewWrapper } from "./AssistantView";
 import Jimp from "jimp";
-import { configureTask, createOpenAIInstance } from "../standalone/models";
+import {
+  FileOrganizerSettings,
+  DEFAULT_SETTINGS,
+} from "./FileOrganizerSettings";
 
 import {
   classifyDocumentRouter,
@@ -31,73 +34,12 @@ import {
   identifyConceptsAndFetchChunksRouter,
   identifyConceptsRouter,
 } from "./aiServiceRouter";
+import { registerEventHandlers } from "./handlers/eventHandlers";
+import { registerCommandHandlers } from "./handlers/commandHandlers";
 
 type TagCounts = {
   [key: string]: number;
 };
-
-class FileOrganizerSettings {
-  API_KEY = "";
-  isLicenseValid = false;
-  useLogs = true;
-  defaultDestinationPath = "_FileOrganizer2000/Processed";
-  attachmentsPath = "_FileOrganizer2000/Processed/Attachments";
-  pathToWatch = "_FileOrganizer2000/Inbox";
-  logFolderPath = "_FileOrganizer2000/Logs";
-  useSimilarTags = true; // default value is true
-  renameInstructions =
-    "Create a concise, descriptive name for the document based on its key content. Prioritize clarity and searchability, using specific terms that will make the document easy to find later. Avoid generic words and focus on unique, identifying elements.";
-
-  useAutoAppend = false;
-  usePro = true;
-  useSimilarTagsInFrontmatter = false;
-  // enableEarlyAccess = false;
-  // earlyAccessCode = "";
-  processedTag = false;
-  // new formatting
-  templatePaths = "_FileOrganizer2000/Templates";
-  // experimental features settings
-  enableAliasGeneration = false;
-  enableAtomicNotes = false;
-  enableSimilarFiles = false;
-
-  enableDocumentClassification = false;
-
-  ignoreFolders = [""];
-  stagingFolder = ".fileorganizer2000/staging";
-
-  enableAnthropic = false;
-  anthropicApiKey = "";
-  anthropicModel = "claude-3-opus-20240229";
-
-  enableOpenAI = true;
-  openAIApiKey = "";
-  openAIModel = "gpt-4o";
-  enableSelfHosting = false;
-  enableOllama = false;
-  selfHostingURL = "http://localhost:3000";
-  // ollamaModel = "mistral";
-
-  taggingModel = "gpt-4o";
-  foldersModel = "gpt-4o";
-  relationshipsModel = "gpt-4o";
-  nameModel = "gpt-4o";
-  classifyModel = "gpt-4o";
-  visionModel = "gpt-4o";
-  formatModel = "gpt-4o";
-  ollamaModels: string[] = ["codegemma"];
-  openAIBaseUrl = "https://api.openai.com/v1";
-
-  userModels: {
-    [key: string]: {
-      url: string;
-      apiKey: string;
-      provider: "openai" | "ollama" | "anthropic";
-    };
-  } = {};
-
-  backupFolderPath = "_FileOrganizer2000/Backups";
-}
 
 const validImageExtensions = ["png", "jpg", "jpeg", "gif", "svg", "webp"];
 const validAudioExtensions = [
@@ -166,6 +108,10 @@ export interface FileMetadata {
 
 export default class FileOrganizer extends Plugin {
   settings: FileOrganizerSettings;
+
+  async loadSettings() {
+    this.settings = Object.assign({}, DEFAULT_SETTINGS, await this.loadData());
+  }
 
   //Check if the API key is valid upon clickign on Activate
   async checkAPIKey(key: string): Promise<boolean> {
@@ -411,13 +357,7 @@ export default class FileOrganizer extends Plugin {
     }
     return content;
   }
-  updateOpenAIConfig() {
-    createOpenAIInstance(
-      this.settings.openAIApiKey,
-      this.settings.openAIModel,
-      this.settings.openAIBaseUrl
-    );
-  }
+
   async generateAliasses(name: string, content: string): Promise<string[]> {
     return await generateAliasVariationsRouter(
       name,
@@ -1238,27 +1178,6 @@ AI Instructions:
     }
   }
 
-  initalizeModels() {
-    this.updateOpenAIConfig();
-    createOpenAIInstance(
-      this.settings.openAIApiKey,
-      this.settings.openAIModel || "gpt-4o",
-      this.settings.openAIBaseUrl
-    );
-
-    // Configure tasks with default models
-    configureTask("tagging", this.settings.taggingModel || "gpt-4o");
-    configureTask("folders", this.settings.foldersModel || "gpt-4o");
-    configureTask(
-      "relationships",
-      this.settings.relationshipsModel || "gpt-4o"
-    );
-    configureTask("name", this.settings.nameModel || "gpt-4o");
-    configureTask("classify", this.settings.classifyModel || "gpt-4o");
-    configureTask("vision", this.settings.visionModel || "gpt-4o");
-    configureTask("format", this.settings.formatModel || "gpt-4o");
-  }
-
   async onload() {
     await this.initializePlugin();
 
@@ -1266,61 +1185,13 @@ AI Instructions:
       this.showAssistantSidebar();
     });
 
-    // on layout ready register event handlers
-    this.addCommand({
-      id: "append-existing-tags",
-      name: "Append existing tags",
-      callback: async () => {
-        const activeFile = this.app.workspace.getActiveFile();
-        if (activeFile) {
-          const fileContent = await this.getTextFromFile(activeFile);
-          await this.appendSimilarTags(fileContent, activeFile);
-        }
-      },
-    });
-
-    this.addCommand({
-      id: "show-assistant",
-      name: "Show Assistant",
-      callback: async () => {
-        await this.showAssistantSidebar();
-      },
-    });
-
-    this.addCommand({
-      id: "add-to-inbox",
-      name: "Put in inbox",
-      callback: async () => {
-        const activeFile = this.app.workspace.getActiveFile();
-        if (activeFile) {
-          await this.processFileV2(activeFile);
-        }
-      },
-    });
-
-    this.addCommand({
-      id: "organize-text-file",
-      name: "Organize text file",
-      callback: async () => {
-        const activeFile = this.app.workspace.getActiveFile();
-        if (activeFile) {
-          const fileContent = await this.getTextFromFile(activeFile);
-          await this.organizeFile(activeFile, fileContent);
-        }
-      },
-    });
+    // Register command handlers
+    registerCommandHandlers(this);
 
     console.log("FileOrganizer2000 loaded");
     console.log("Settings", this.settings);
-    this.app.workspace.onLayoutReady(this.registerEventHandlers.bind(this));
+    this.app.workspace.onLayoutReady(registerEventHandlers.bind(this));
     this.processBacklog();
-  }
-  async loadSettings() {
-    this.settings = Object.assign(
-      {},
-      new FileOrganizerSettings(),
-      await this.loadData()
-    );
   }
   async saveSettings() {
     await this.saveData(this.settings);
@@ -1351,29 +1222,6 @@ AI Instructions:
     }
 
     new Notice(`Transcription completed for ${audioFileName}`, 5000);
-  }
-  registerEventHandlers() {
-    // inbox event
-    this.registerEvent(
-      this.app.vault.on("create", (file) => {
-        console.log("file created", file);
-        console.log("path to watch", this.settings.pathToWatch);
-        if (!file.path.includes(this.settings.pathToWatch)) return;
-        if (file instanceof TFile) {
-          this.processFileV2(file);
-        }
-      })
-    );
-    this.registerEvent(
-      this.app.vault.on("rename", (file, oldPath) => {
-        console.log("file created", file);
-        console.log("path to watch", this.settings.pathToWatch);
-        if (!file.path.includes(this.settings.pathToWatch)) return;
-        if (file instanceof TFile) {
-          this.processFileV2(file, oldPath);
-        }
-      })
-    );
   }
 
   async generateUniqueBackupFileName(originalFile: TFile): Promise<string> {
