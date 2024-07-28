@@ -1,54 +1,138 @@
 import React, { useState, useEffect } from "react";
 import { useChat } from "ai/react";
-import { TFile } from "obsidian";
+import ReactMarkdown from 'react-markdown';
 import FileOrganizer from "../..";
+import { logMessage } from "../../../utils";
 
-interface AIChatSidebarProps {
+export const Input: React.FC<React.InputHTMLAttributes<HTMLInputElement>> = (
+  props
+) => <input {...props} className={`input ${props.className || ""}`} />;
+
+export const Button: React.FC<
+  React.ButtonHTMLAttributes<HTMLButtonElement>
+> = ({ children, ...props }) => (
+  <button {...props} className={`button ${props.className || ""}`}>
+    {children}
+  </button>
+);
+
+export const Card: React.FC<React.HTMLAttributes<HTMLDivElement>> = ({
+  children,
+  ...props
+}) => (
+  <div {...props} className={`card ${props.className || ""}`}>
+    {children}
+  </div>
+);
+
+export const Avatar: React.FC<React.HTMLAttributes<HTMLDivElement> & { role: 'user' | 'assistant' }> = ({
+  role,
+  ...props
+}) => (
+  <div {...props} className={`avatar ${role} ${props.className || ""}`}>
+    {role === 'user' ? '👤' : '🤖'}
+  </div>
+);
+
+interface ChatComponentProps {
   plugin: FileOrganizer;
-  activeFile: TFile | null;
+  fileContent: string;
+  fileName: string | null;
 }
 
-const AIChatSidebar: React.FC<AIChatSidebarProps> = ({
-  plugin,
-  activeFile,
-}) => {
-  const [fileContent, setFileContent] = useState<string>("");
-  console.log('file Content',  fileContent);
+const ChatComponent: React.FC<ChatComponentProps> = ({ plugin, fileContent, fileName }) => {
+  console.log(fileContent, 'debug');
   const { messages, input, handleInputChange, handleSubmit } = useChat({
     api: `${plugin.getServerUrl()}/api/chat`,
-    body: { fileContent }, // Add this line
+    body: { fileContent, fileName },
   });
 
-  useEffect(() => {
-    const loadFileContent = async () => {
-      if (activeFile) {
-        const content = await plugin.app.vault.read(activeFile);
-        setFileContent(content);
-      }
-    };
-    loadFileContent();
-  }, [activeFile, plugin.app.vault]);
+  const handleSendMessage = (e: React.FormEvent) => {
+    e.preventDefault();
+    handleSubmit(e);
+  };
 
   return (
-    <div className="ai-chat-sidebar">
+    <>
       <div className="chat-messages">
         {messages.map((message) => (
-          <div key={message.id} className={`message ${message.role}`}>
-            {message.role === "user" ? "User: " : "AI: "}
-            {message.content}
+          <div key={message.id} className={`message ${message.role}-message`}>
+            <Avatar role={message.role as 'user' | 'assistant'} />
+            <div className="message-content">
+              <ReactMarkdown>{message.content}</ReactMarkdown>
+            </div>
           </div>
         ))}
       </div>
-      <form onSubmit={handleSubmit}>
-        <input
-          name="prompt"
+      <form onSubmit={handleSendMessage}>
+        <Input
           value={input}
           onChange={handleInputChange}
-          placeholder="Type your message..."
+          placeholder="Send a message."
         />
-        <button type="submit">Send</button>
+        <Button type="submit">
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            viewBox="0 0 24 24"
+            fill="currentColor"
+            className="w-6 h-6"
+          >
+            <path d="M3.478 2.405a.75.75 0 00-.926.94l2.432 7.905H13.5a.75.75 0 010 1.5H4.984l-2.432 7.905a.75.75 0 00.926.94 60.519 60.519 0 0018.445-8.986.75.75 0 000-1.218A60.517 60.517 0 003.478 2.405z" />
+          </svg>
+        </Button>
       </form>
-    </div>
+    </>
+  );
+};
+
+interface AIChatSidebarProps {
+  plugin: FileOrganizer;
+}
+
+const AIChatSidebar: React.FC<AIChatSidebarProps> = ({ plugin }) => {
+  const [fileContent, setFileContent] = useState<string>("");
+  const [fileName, setFileName] = useState<string | null>(null);
+  const [key, setKey] = useState(0);
+
+  useEffect(() => {
+    const loadFileContent = async () => {
+      const activeFile = plugin.app.workspace.getActiveFile();
+      if (activeFile) {
+        try {
+          const content = await plugin.app.vault.read(activeFile);
+          setFileContent(content);
+          setFileName(activeFile.name);
+        } catch (error) {
+          logMessage(`Error reading file: ${error}`);
+          setFileContent("");
+          setFileName(null);
+        }
+      } else {
+        setFileContent("");
+        setFileName(null);
+      }
+      setKey(prevKey => prevKey + 1);
+    };
+
+    loadFileContent();
+
+    // Set up event listener for file changes
+    const onFileOpen = plugin.app.workspace.on('file-open', loadFileContent);
+
+    return () => {
+      plugin.app.workspace.offref(onFileOpen);
+    };
+  }, [plugin.app.workspace, plugin.app.vault]);
+
+  return (
+    <Card className="ai-chat-sidebar">
+      <ChatComponent 
+        key={key}
+        plugin={plugin}
+        fileContent={fileContent}
+        fileName={fileName}
+      />
+    </Card>
   );
 };
 

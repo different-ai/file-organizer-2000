@@ -189,3 +189,50 @@ If your plugin does not need CSS, delete this file.
   background-color: #4caf50;
   color: white;
 }
+
+.ai-chat-sidebar {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.chat-messages {
+  flex-grow: 1;
+  overflow-y: auto;
+}
+
+.message {
+  display: flex;
+  align-items: start;
+  margin-bottom: 1rem;
+}
+
+.message-content {
+  margin-left: 0.5rem;
+}
+
+form {
+  display: flex;
+  align-items: center;
+}
+
+form input {
+  flex-grow: 1;
+  margin-right: 0.5rem;
+}
+
+form button {
+  padding: 0.5rem;
+}
+
+form button svg {
+  width: 1.5rem;
+  height: 1.5rem;
+}
+.assistant-message {
+  background-color: #f0f0f0; /* Light grey for assistant messages */
+}
+
+.user-message {
+  background-color: #ffffff; /* White for user messages */
+}
