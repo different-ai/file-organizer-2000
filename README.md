@@ -64,19 +64,20 @@ Choose between any of the three setups below
 
    For Linux/macOS:
 
-   ``` cd app && npm i && npm run build:self-host && OPENAI_API_KEY=[your open ai api key]  npm run start```
+   ``` cd app && npm run build:self-host &&  npm run start```
 
-   Replace `[your open ai api key]` with your actual OpenAI API key.
+   And make sure you have your  `OPENAI_API_KEY` variable set up in your `.env.local` file inside the app root folder.
 
    For Windows (PowerShell):
 
    ```sh
    cd .\app
-   npm i; npm run build:self-host
-   $env:OPENAI_API_KEY="your open ai api key"; npm run start
+   npm run build:self-host;
+   npm run start
    ```
 
-   Replace `your open ai api key` with your actual OpenAI API key.
+   And make sure you have your  `OPENAI_API_KEY` variable set up in your `.env.local` file inside the app root folder.
+
 
 2. Go inside the Settings of the plugin and enable "Self-hosted"
 
