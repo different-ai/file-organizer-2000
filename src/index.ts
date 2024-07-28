@@ -36,6 +36,14 @@ import {
 } from "./aiServiceRouter";
 import { registerEventHandlers } from "./handlers/eventHandlers";
 import { registerCommandHandlers } from "./handlers/commandHandlers";
+import {
+  ensureFolderExists,
+  checkAndCreateFolders,
+  checkAndCreateTemplates,
+  moveFile,
+  getAllFolders,
+} from "./fileUtils";
+import { checkAPIKey } from "./apiUtils";
 
 type TagCounts = {
   [key: string]: number;
@@ -69,24 +77,6 @@ const isValidExtension = (extension: string) => {
 };
 // determine sever url
 
-// move to utils later
-export async function makeApiRequest<T>(
-  requestFn: () => Promise<RequestUrlResponse>
-): Promise<RequestUrlResponse> {
-  const response: RequestUrlResponse = await requestFn();
-  console.log("response", response);
-  // if response status is in good range return
-  if (response.status >= 200 && response.status < 300) {
-    return response;
-  }
-  if (response.json.error) {
-    new Notice(`File Organizer error: ${response.json.error}`, 6000);
-    throw new Error(response.json.error);
-  }
-
-  // if error throw
-  throw new Error("Unknown error");
-}
 export interface FileMetadata {
   instructions: {
     shouldClassify: boolean;
@@ -113,18 +103,9 @@ export default class FileOrganizer extends Plugin {
     this.settings = Object.assign({}, DEFAULT_SETTINGS, await this.loadData());
   }
 
-  //Check if the API key is valid upon clickign on Activate
   async checkAPIKey(key: string): Promise<boolean> {
     try {
-      const response: RequestUrlResponse = await requestUrl({
-        url: `${this.getServerUrl()}/api/check-key`,
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${key}`,
-        },
-      });
-      const isValid = response.status === 200;
+      const isValid = await checkAPIKey(this.getServerUrl(), key);
       this.settings.isLicenseValid = isValid;
       this.settings.API_KEY = key;
       await this.saveSettings();
@@ -775,24 +756,33 @@ export default class FileOrganizer extends Plugin {
     this.appendToFrontMatter(file, "aliases", alias);
   }
 
+  async checkAndCreateFolders() {
+    await checkAndCreateFolders(this.app, this.settings);
+  }
+
+  async checkAndCreateTemplates() {
+    await checkAndCreateTemplates(this.app, this.settings);
+  }
+
+  async ensureFolderExists(folderPath: string) {
+    await ensureFolderExists(this.app, folderPath);
+  }
+
   async moveFile(
     file: TFile,
     humanReadableFileName: string,
     destinationFolder = ""
   ) {
-    let destinationPath = `${destinationFolder}/${humanReadableFileName}.${file.extension}`;
-    if (await this.app.vault.adapter.exists(normalizePath(destinationPath))) {
-      const timestamp = Date.now();
-      const timestampedFileName = `${humanReadableFileName}_${timestamp}`;
+    return await moveFile(
+      this.app,
+      file,
+      humanReadableFileName,
+      destinationFolder
+    );
+  }
 
-      await this.appendToCustomLogFile(
-        `File [[${humanReadableFileName}]] already exists. Renaming to [[${timestampedFileName}]]`
-      );
-      destinationPath = `${destinationFolder}/${timestampedFileName}.${file.extension}`;
-    }
-    await this.ensureFolderExists(destinationFolder);
-    await this.app.vault.rename(file, `${destinationPath}`);
-    return file;
+  getAllFolders(): string[] {
+    return getAllFolders(this.app);
   }
 
   async getSimilarFiles(fileToCheck: TFile): Promise<string[]> {
@@ -912,81 +902,6 @@ export default class FileOrganizer extends Plugin {
 
     return processedContent;
   }
-  async ensureFolderExists(folderPath: string) {
-    if (!(await this.app.vault.adapter.exists(folderPath))) {
-      await this.app.vault.createFolder(folderPath);
-    }
-  }
-
-  async checkAndCreateFolders() {
-    this.ensureFolderExists(this.settings.pathToWatch);
-    this.ensureFolderExists(this.settings.defaultDestinationPath);
-    this.ensureFolderExists(this.settings.attachmentsPath);
-    this.ensureFolderExists(this.settings.logFolderPath);
-    this.ensureFolderExists(this.settings.templatePaths);
-    // used to store info about changes
-    this.ensureFolderExists(this.settings.stagingFolder);
-    this.ensureFolderExists(this.settings.backupFolderPath);
-  }
-  async checkAndCreateTemplates() {
-    // add template
-    const meetingNoteTemplatePath = `${this.settings.templatePaths}/meeting_note.md`;
-
-    if (!(await this.app.vault.adapter.exists(meetingNoteTemplatePath))) {
-      await this.app.vault.create(
-        meetingNoteTemplatePath,
-        `# Meeting Note Template
-
-## Meeting Details
-
-- Date: {{date}} in format YYYY-MM-DD
-
-
-## Audio Reference
-
-![[{{audio_file}}]]
-
-## Key Points
-
-[Summarize the main points discussed in the meeting]
-
-## Action Items
-
-- [ ] Action item 1
-  - [ ] Sub-action 1.1
-  - [ ] Sub-action 1.2
-- [ ] Action item 2
-  - [ ] Sub-action 2.1
-  - [ ] Sub-action 2.2
-
-## Detailed Notes
-
-[Add your meeting notes here, maintaining a hierarchical structure]
-
-## Transcription
-
-[Insert the full transcription below]
-
----
-
-AI Instructions:
-1. Merge the transcription into the content, focusing on key points and action items.
-2. Summarize the main discussion points in the "Key Points" section, using bullet points for clarity.
-3. Extract and list any action items or tasks in the "Action Items" section:
-   - Use a hierarchical structure with main action items and sub-actions.
-   - Maintain the original level of detail from the transcript.
-   - Use indentation to show the relationship between main actions and sub-actions.
-4. In the "Detailed Notes" section, create a hierarchical structure that reflects the meeting's flow:
-   - Use headings (###, ####) for main topics.
-   - Use bullet points and sub-bullets for detailed points under each topic.
-   - Preserve the granularity of the discussion, including specific examples or minor points.
-5. Preserve the reference to the original audio file.
-6. Keep the full transcription at the bottom of the note for reference.
-7. Maintain the overall structure of the note, including all headers and sections.
-`
-      );
-    }
-  }
 
   async getBacklog() {
     const allFiles = this.app.vault.getFiles();
@@ -1039,17 +954,6 @@ AI Instructions:
 
   isTFolder(file: TAbstractFile): file is TFolder {
     return file instanceof TFolder;
-  }
-
-  getAllFolders(): string[] {
-    const allFiles = this.app.vault.getAllLoadedFiles();
-    const folderPaths = allFiles
-      .filter((file) => this.isTFolder(file))
-      .map((folder) => folder.path);
-
-    const uniqueFolders = [...new Set(folderPaths)];
-    // logMessage("uniqueFolders", uniqueFolders);
-    return uniqueFolders;
   }
 
   async getAIClassifiedFolder(

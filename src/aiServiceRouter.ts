@@ -1,5 +1,4 @@
 // src/aiServiceRouter.ts
-import { makeApiRequest } from "./index";
 import {
   classifyDocument,
   generateTags,
@@ -18,6 +17,7 @@ import {
 import { getModelFromTask } from "../standalone/models";
 import { arrayBufferToBase64, requestUrl } from "obsidian";
 import { logMessage } from "../utils";
+import { makeApiRequest } from "./apiUtils";
 
 export async function classifyDocumentRouter(
   content: string,
