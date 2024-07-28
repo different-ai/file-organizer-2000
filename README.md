@@ -64,7 +64,9 @@ Choose between any of the three setups below
 
    For Linux/macOS:
 
-   ``` cd app && npm run build:self-host &&  npm run start```
+   ```sh
+   cd app && npm run build:self-host &&  npm run start
+   ```
 
    And make sure you have your  `OPENAI_API_KEY` variable set up in your `.env.local` file inside the app root folder.
 
