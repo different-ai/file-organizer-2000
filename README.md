@@ -51,13 +51,12 @@ See video: https://www.youtube.com/watch?v=rommuUXRgUw&t=17s
 
 Choose between any of the three setups below
 
-### A. Pro Access
+### A. Monthly & Lifetime Plan
 
 1. Go to general settings inside the plugin settings
 2. Choose "Use Pro Account"
-3. Click login and follow instructions
+3. Click Activate and follow the instructions after the plan selection
 
-<img width="836" alt="byok" src="https://github.com/different-ai/file-organizer-2000/assets/46509400/2bcc6824-236d-40ae-895b-d501401238bd">
 
 ### B. Self-hosting
 
