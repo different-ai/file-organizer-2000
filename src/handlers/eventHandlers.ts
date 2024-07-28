@@ -1,5 +1,5 @@
 import { TFile } from "obsidian";
-import FileOrganizer from "../FileOrganizer";
+import FileOrganizer from "..";
 
 export function registerEventHandlers(plugin: FileOrganizer) {
   plugin.registerEvent(

@@ -1072,7 +1072,7 @@ export default class FileOrganizer extends Plugin {
     // Register command handlers
     registerCommandHandlers(this);
 
-    this.app.workspace.onLayoutReady(registerEventHandlers.bind(this));
+    this.app.workspace.onLayoutReady(() => registerEventHandlers(this));
     this.processBacklog();
   }
   async saveSettings() {
