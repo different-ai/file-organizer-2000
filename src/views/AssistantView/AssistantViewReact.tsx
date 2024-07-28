@@ -1,7 +1,7 @@
 import * as React from "react";
 import { Notice, TFile, getLinkpath } from "obsidian";
-import FileOrganizer from ".";
-import { logMessage } from "../utils";
+import FileOrganizer from "../..";
+import { logMessage } from "../../../utils";
 import { log } from "console";
 
 interface AssistantViewProps {

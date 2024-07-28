@@ -3,8 +3,8 @@ import * as React from "react";
 
 import { Root, createRoot } from "react-dom/client";
 import { AssistantView } from "./AssistantViewReact";
-import FileOrganizer from ".";
-import { logMessage } from "../utils";
+import FileOrganizer from "../..";
+import { logMessage } from "../../../utils";
 
 export const ASSISTANT_VIEW_TYPE = "fo2k.assistant.sidebar2";
 

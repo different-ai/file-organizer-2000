@@ -13,7 +13,10 @@ import {
 } from "obsidian";
 import { logMessage, formatToSafeName } from "../utils";
 import { FileOrganizerSettingTab } from "./FileOrganizerSettingTab";
-import { ASSISTANT_VIEW_TYPE, AssistantViewWrapper } from "./AssistantView";
+import {
+  ASSISTANT_VIEW_TYPE,
+  AssistantViewWrapper,
+} from "./views/AssistantView/AssistantView";
 import Jimp from "jimp";
 import {
   FileOrganizerSettings,
@@ -44,6 +47,7 @@ import {
   getAllFolders,
 } from "./fileUtils";
 import { checkAPIKey } from "./apiUtils";
+import { AIChatView } from "./views/AIChat/AIChatView";
 
 type TagCounts = {
   [key: string]: number;
@@ -1079,10 +1083,45 @@ export default class FileOrganizer extends Plugin {
     await this.saveData(this.settings);
   }
 
+  async initializeChat() {
+    this.addRibbonIcon("message-square", "Open AI Chat", () => {
+      this.activateView();
+    });
+
+    this.registerView("ai-chat-view", (leaf) => new AIChatView(leaf, this));
+
+    this.addCommand({
+      id: "open-ai-chat",
+      name: "Open AI Chat",
+      callback: () => {
+        this.activateView();
+      },
+    });
+  }
+
+  async activateView() {
+    const { workspace } = this.app;
+
+    let leaf: WorkspaceLeaf | null = null;
+    const leaves = workspace.getLeavesOfType("ai-chat-view");
+
+    if (leaves.length > 0) {
+      leaf = leaves[0];
+    } else {
+      leaf = workspace.getRightLeaf(false);
+      await leaf.setViewState({ type: "ai-chat-view", active: true });
+    }
+
+    if (leaf) {
+      workspace.revealLeaf(leaf);
+    }
+  }
+
   async initializePlugin() {
     await this.loadSettings();
     await this.checkAndCreateFolders();
     await this.checkAndCreateTemplates();
+    await this.initializeChat();
     this.addSettingTab(new FileOrganizerSettingTab(this.app, this));
     this.registerView(
       ASSISTANT_VIEW_TYPE,
