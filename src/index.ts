@@ -129,7 +129,7 @@ export default class FileOrganizer extends Plugin {
       ? this.settings.selfHostingURL
       : "https://app.fileorganizer2000.com";
 
-    console.log(`Current server URL: ${serverUrl}`);
+    logMessage(`Using server URL: ${serverUrl}`);
 
     return serverUrl;
   }
@@ -149,8 +149,6 @@ export default class FileOrganizer extends Plugin {
       await this.checkAndCreateFolders();
 
       const text = await this.getTextFromFile(originalFile);
-      // we trim text to 128k tokens before passing it to the model
-      // const trimmedText = await this.trimContentToTokenLimit(text, 128 * 1000);
 
       const instructions = await this.generateInstructions(originalFile);
       const metadata = await this.generateMetadata(
@@ -159,7 +157,6 @@ export default class FileOrganizer extends Plugin {
         text,
         oldPath
       );
-      console.log({ metadata });
       await this.executeInstructions(metadata, originalFile, text);
     } catch (error) {
       new Notice(`Error processing ${originalFile.basename}`, 3000);
@@ -322,21 +319,6 @@ export default class FileOrganizer extends Plugin {
         `Appended similar tags to [[${fileToOrganize.basename}]]`
       );
     }
-  }
-
-  async trimContentToTokenLimit(
-    content: string,
-    tokenLimit: number
-  ): Promise<string> {
-    const encoding = getEncoding("cl100k_base");
-    const tokens = encoding.encode(content);
-    console.log("tokens", tokens);
-
-    if (tokens.length > tokenLimit) {
-      const trimmedTokens = tokens.slice(0, tokenLimit);
-      return encoding.decode(trimmedTokens);
-    }
-    return content;
   }
 
   async generateAliasses(name: string, content: string): Promise<string[]> {
@@ -512,7 +494,6 @@ export default class FileOrganizer extends Plugin {
   }
   async extractTextFromPDF(file: TFile): Promise<string> {
     const pdfjsLib = await loadPdfJs(); // Ensure PDF.js is loaded
-    console.log("extracting text from pdf");
     try {
       const arrayBuffer = await this.app.vault.readBinary(file);
       const bytes = new Uint8Array(arrayBuffer);
@@ -521,7 +502,6 @@ export default class FileOrganizer extends Plugin {
       for (let pageNum = 1; pageNum <= Math.min(doc.numPages, 10); pageNum++) {
         const page = await doc.getPage(pageNum);
         const textContent = await page.getTextContent();
-        console.log("textContent", textContent);
         text += textContent.items.map((item) => item.str).join(" ");
       }
       return text;
@@ -1092,8 +1072,6 @@ export default class FileOrganizer extends Plugin {
     // Register command handlers
     registerCommandHandlers(this);
 
-    console.log("FileOrganizer2000 loaded");
-    console.log("Settings", this.settings);
     this.app.workspace.onLayoutReady(registerEventHandlers.bind(this));
     this.processBacklog();
   }
