@@ -2,11 +2,10 @@ import React, { useState, useEffect } from "react";
 import { useChat } from "ai/react";
 import ReactMarkdown from "react-markdown";
 import FileOrganizer from "../..";
-import { logMessage } from "../../../utils";
 
-export const Input: React.FC<React.InputHTMLAttributes<HTMLInputElement>> = (
-  props
-) => <input {...props} className={`input ${props.className || ""}`} />;
+import { useEditor, EditorContent } from "@tiptap/react";
+import StarterKit from "@tiptap/starter-kit";
+import Tiptap from "../components/TipTap";
 
 export const Button: React.FC<
   React.ButtonHTMLAttributes<HTMLButtonElement>
@@ -53,10 +52,23 @@ const ChatComponent: React.FC<ChatComponentProps> = ({
     handleSubmit(e);
   };
 
+  const handleTiptapChange = (newContent: string) => {
+    handleInputChange({
+      target: { value: newContent },
+    } as React.ChangeEvent<HTMLInputElement>);
+  };
+
+  const handleKeyDown = (event: React.KeyboardEvent) => {
+    if (event.key === "Enter" && !event.shiftKey) {
+      event.preventDefault();
+      handleSubmit(event as unknown as React.FormEvent<HTMLFormElement>);
+    }
+  };
+
   return (
     <>
       <div className="chat-messages">
-        {messages.map((message) => (
+        {messages.map(message => (
           <div key={message.id} className={`message ${message.role}-message`}>
             <Avatar role={message.role as "user" | "assistant"} />
             <div className="message-content">
@@ -65,12 +77,14 @@ const ChatComponent: React.FC<ChatComponentProps> = ({
           </div>
         ))}
       </div>
-      <form onSubmit={handleSendMessage}>
-        <Input
-          value={input}
-          onChange={handleInputChange}
-          placeholder="Send a message."
-        />
+      <form onSubmit={handleSendMessage} className="chat-input-form">
+        <div className="tiptap-wrapper">
+          <Tiptap
+            value={input}
+            onChange={handleTiptapChange}
+            onKeyDown={handleKeyDown}
+          />
+        </div>
         <Button type="submit">
           <svg
             xmlns="http://www.w3.org/2000/svg"
