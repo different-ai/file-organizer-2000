@@ -615,6 +615,7 @@ export const AssistantView: React.FC<AssistantViewProps> = ({ plugin }) => {
     return validMediaExtensions.includes(file.extension);
   };
 
+  // if active file is null, display a placeholder (e.g. when opening a file in the Fo2k folder)
   if (!activeFile) {
     return (
       <div className="assistant-placeholder">
@@ -622,7 +623,7 @@ export const AssistantView: React.FC<AssistantViewProps> = ({ plugin }) => {
       </div>
     );
   }
-
+  // if active file is media file,  display a different UI
   if (isMediaFile(activeFile)) {
     return (
       <div className="assistant-placeholder">
