@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useChat } from "ai/react";
-import ReactMarkdown from 'react-markdown';
+import ReactMarkdown from "react-markdown";
 import FileOrganizer from "../..";
 import { logMessage } from "../../../utils";
 
@@ -25,13 +25,10 @@ export const Card: React.FC<React.HTMLAttributes<HTMLDivElement>> = ({
   </div>
 );
 
-export const Avatar: React.FC<React.HTMLAttributes<HTMLDivElement> & { role: 'user' | 'assistant' }> = ({
-  role,
-  ...props
-}) => (
-  <div {...props} className={`avatar ${role} ${props.className || ""}`}>
-    {role === 'user' ? '👤' : '🤖'}
-  </div>
+export const Avatar: React.FC<
+  React.HTMLAttributes<HTMLDivElement> & { role: "user" | "assistant" }
+> = ({ role, ...props }) => (
+  <div {...props} className={`avatar ${role} ${props.className || ""}`}></div>
 );
 
 interface ChatComponentProps {
@@ -40,8 +37,12 @@ interface ChatComponentProps {
   fileName: string | null;
 }
 
-const ChatComponent: React.FC<ChatComponentProps> = ({ plugin, fileContent, fileName }) => {
-  console.log(fileContent, 'debug');
+const ChatComponent: React.FC<ChatComponentProps> = ({
+  plugin,
+  fileContent,
+  fileName,
+}) => {
+  console.log(fileContent, "debug");
   const { messages, input, handleInputChange, handleSubmit } = useChat({
     api: `${plugin.getServerUrl()}/api/chat`,
     body: { fileContent, fileName },
@@ -57,7 +58,7 @@ const ChatComponent: React.FC<ChatComponentProps> = ({ plugin, fileContent, file
       <div className="chat-messages">
         {messages.map((message) => (
           <div key={message.id} className={`message ${message.role}-message`}>
-            <Avatar role={message.role as 'user' | 'assistant'} />
+            <Avatar role={message.role as "user" | "assistant"} />
             <div className="message-content">
               <ReactMarkdown>{message.content}</ReactMarkdown>
             </div>
@@ -117,7 +118,7 @@ const AIChatSidebar: React.FC<AIChatSidebarProps> = ({ plugin }) => {
     loadFileContent();
 
     // Set up event listener for file changes
-    const onFileOpen = plugin.app.workspace.on('file-open', loadFileContent);
+    const onFileOpen = plugin.app.workspace.on("file-open", loadFileContent);
 
     return () => {
       plugin.app.workspace.offref(onFileOpen);
@@ -126,7 +127,7 @@ const AIChatSidebar: React.FC<AIChatSidebarProps> = ({ plugin }) => {
 
   return (
     <Card className="ai-chat-sidebar">
-      <ChatComponent 
+      <ChatComponent
         key={key}
         plugin={plugin}
         fileContent={fileContent}

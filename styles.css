@@ -237,5 +237,8 @@ form button svg {
 }
 
 .user-message {
-  background-color: var(--background-secondary); /* White for user messages */
+}
+
+.ai-chat-sidebar {
+  background: var(--background-primary);
 }
