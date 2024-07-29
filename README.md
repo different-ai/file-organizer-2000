@@ -9,6 +9,7 @@ An Obsidian Plugin that uses AI to help you keep your files organized. It tags,
 - **OCR**: AI-class text extraction from any image, including handwritten notes.
 - **Meetings**: Transcribe audio and automatically format meeting notes.
 - **Organization**: Automatically suggests names and folders to move your files.
+- **AI Formatting**: Give instructions to the AI to format your files.
 
   <img width="900" alt="Screenshot 2024-04-30 at 14 05 30" src="https://github.com/different-ai/file-organizer-2000/assets/11430621/2e2cdf14-c6d0-4fd0-8e02-268928ad7ef3">
 
