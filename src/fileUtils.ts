@@ -29,12 +29,10 @@ export async function checkAndCreateTemplates(
   if (!(await app.vault.adapter.exists(meetingNoteTemplatePath))) {
     await app.vault.create(
       meetingNoteTemplatePath,
-      `# Meeting Note Template
-
-## Meeting Details
+      `## Meeting Details
 
 - Date: {{date}} in format YYYY-MM-DD
-
+- Participants: {{participants}}
 
 ## Audio Reference
 
@@ -75,9 +73,8 @@ AI Instructions:
    - Use bullet points and sub-bullets for detailed points under each topic.
    - Preserve the granularity of the discussion, including specific examples or minor points.
 5. Preserve the reference to the original audio file.
-6. Keep the full transcription at the bottom of the note for reference.
-7. Maintain the overall structure of the note, including all headers and sections.
-`
+6. Maintain the overall structure of the note, including all headers and sections.
+7. Delete transcription. Mention that it can be accessed in the Original file`
     );
   }
 }
