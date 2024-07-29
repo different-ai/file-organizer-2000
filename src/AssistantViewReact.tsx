@@ -543,7 +543,7 @@ export const AssistantView: React.FC<AssistantViewProps> = ({ plugin }) => {
       await new Promise((resolve) => setTimeout(resolve, 500));
       if (plugin.app.workspace.rightSplit.collapsed) return;
       const file = plugin.app.workspace.getActiveFile();
-      console.log("file", file);
+
       if (!file || !file.path) {
         setActiveFile(null);
         setNoteContent("");
@@ -557,7 +557,7 @@ export const AssistantView: React.FC<AssistantViewProps> = ({ plugin }) => {
         return;
       }
 
-      // if it's not a markdown file, don't show the assistant
+      // if it's not a markdown file, set active file to null, so that it  doesn't show the assistant view items
       if (file.extension !== "md") {
         setActiveFile(null);
         setNoteContent("");
@@ -635,9 +635,6 @@ export const AssistantView: React.FC<AssistantViewProps> = ({ plugin }) => {
 
   logMessage("AssistantView", activeFile);
   logMessage("AssistantView", activeFile.basename);
-
-  // if th emedia is set to true
-  // display a completely different UI
 
   return (
     <div className="assistant-container">
