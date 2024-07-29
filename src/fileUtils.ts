@@ -72,8 +72,8 @@ AI Instructions:
    - Use bullet points and sub-bullets for detailed points under each topic.
    - Preserve the granularity of the discussion, including specific examples or minor points.
 5. Preserve the reference to the original audio file.
-7. Maintain the overall structure of the note, including all headers and sections.
-9. Delete transcription. Mention that it can be accessed in the Original file`
+6. Maintain the overall structure of the note, including all headers and sections.
+7. Delete transcription. Mention that it can be accessed in the Original file`
     );
   }
 }
