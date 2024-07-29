@@ -1,8 +1,7 @@
 import * as React from "react";
 import { Notice, TFile, getLinkpath } from "obsidian";
-import FileOrganizer from ".";
+import FileOrganizer, { validMediaExtensions } from ".";
 import { logMessage } from "../utils";
-import { log } from "console";
 
 interface AssistantViewProps {
   plugin: FileOrganizer;
@@ -597,21 +596,6 @@ export const AssistantView: React.FC<AssistantViewProps> = ({ plugin }) => {
 
   const isMediaFile = (file: TFile | null): boolean => {
     if (!file) return false;
-    const validMediaExtensions = [
-      "png",
-      "jpg",
-      "jpeg",
-      "gif",
-      "svg",
-      "webp",
-      "mp3",
-      "mp4",
-      "mpeg",
-      "mpga",
-      "m4a",
-      "wav",
-      "webm",
-    ];
     return validMediaExtensions.includes(file.extension);
   };
 
@@ -628,7 +612,7 @@ export const AssistantView: React.FC<AssistantViewProps> = ({ plugin }) => {
     return (
       <div className="assistant-placeholder">
         To process an image or audio file, move it to the File Organizer 2000
-        Inbox Folder (e.g. for image text extraction or audio transcription ).
+        Inbox Folder (e.g. for image text extraction or audio transcription).
       </div>
     );
   }
