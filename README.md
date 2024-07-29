@@ -46,6 +46,8 @@ See plugin settings to customize the changes AI Inbox applies to your files.
 
 ### C. Create custom AI Templates
 
+Give instructions for the AI to format and modify your files.
+
 See video: https://www.youtube.com/watch?v=rommuUXRgUw&t=17s
 
 ## Setup
