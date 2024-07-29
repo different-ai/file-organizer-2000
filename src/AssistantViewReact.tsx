@@ -626,7 +626,8 @@ export const AssistantView: React.FC<AssistantViewProps> = ({ plugin }) => {
   if (isMediaFile(activeFile)) {
     return (
       <div className="assistant-placeholder">
-        Move media file to the File Organizer 2000 Inbox Folder for processing.
+        To process an image or audio file, move it to the File Organizer 2000
+        Inbox Folder (e.g. for image text extraction or audio transcription ).
       </div>
     );
   }
