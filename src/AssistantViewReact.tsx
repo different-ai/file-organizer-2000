@@ -525,6 +525,8 @@ const RefreshButton: React.FC<{ onRefresh: () => void }> = ({ onRefresh }) => (
   </button>
 );
 
+// media ui uses activefile + plugin plugin.gETCONTENT
+
 export const AssistantView: React.FC<AssistantViewProps> = ({ plugin }) => {
   const [activeFile, setActiveFile] = React.useState<TFile | null>(null);
   const [noteContent, setNoteContent] = React.useState<string>("");
@@ -547,6 +549,14 @@ export const AssistantView: React.FC<AssistantViewProps> = ({ plugin }) => {
         setNoteContent("");
         return;
       }
+
+      // Check if it's a media file
+      if (isMediaFile(file)) {
+        setActiveFile(file);
+        setNoteContent(""); // or set some placeholder content for media files
+        return;
+      }
+
       // if it's not a markdown file, don't show the assistant
       if (file.extension !== "md") {
         setActiveFile(null);
@@ -585,15 +595,47 @@ export const AssistantView: React.FC<AssistantViewProps> = ({ plugin }) => {
     };
   }, [refreshKey]); // Add refreshKey to the dependency array
 
+  const isMediaFile = (file: TFile | null): boolean => {
+    if (!file) return false;
+    const validMediaExtensions = [
+      "png",
+      "jpg",
+      "jpeg",
+      "gif",
+      "svg",
+      "webp",
+      "mp3",
+      "mp4",
+      "mpeg",
+      "mpga",
+      "m4a",
+      "wav",
+      "webm",
+    ];
+    return validMediaExtensions.includes(file.extension);
+  };
+
   if (!activeFile) {
     return (
       <div className="assistant-placeholder">
-        Open a file to see AI suggestions
+        Open a file outside the File Organizer 2000 folder to see AI suggestions
       </div>
     );
   }
+
+  if (isMediaFile(activeFile)) {
+    return (
+      <div className="assistant-placeholder">
+        Move media file to the File Organizer 2000 Inbox Folder for processing.
+      </div>
+    );
+  }
+
   logMessage("AssistantView", activeFile);
   logMessage("AssistantView", activeFile.basename);
+
+  // if th emedia is set to true
+  // display a completely different UI
 
   return (
     <div className="assistant-container">
