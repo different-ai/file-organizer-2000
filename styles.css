@@ -199,6 +199,7 @@ If your plugin does not need CSS, delete this file.
 .chat-messages {
   flex-grow: 1;
   overflow-y: auto;
+  color: var(--text-normal);
 }
 
 .message {
@@ -230,9 +231,11 @@ form button svg {
   height: 1.5rem;
 }
 .assistant-message {
-  background-color: #f0f0f0; /* Light grey for assistant messages */
+  background-color: var(
+    --background-secondary
+  ); /* Light grey for assistant messages */
 }
 
 .user-message {
-  background-color: #ffffff; /* White for user messages */
+  background-color: var(--background-secondary); /* White for user messages */
 }
