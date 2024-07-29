@@ -231,12 +231,16 @@ form button svg {
   height: 1.5rem;
 }
 .assistant-message {
-  background-color: var(
-    --background-secondary
-  ); /* Light grey for assistant messages */
+  background-color: var(--background-secondary);
+  user-select: text;
 }
 
 .user-message {
+  user-select: text;
+}
+
+.ai-chat-sidebar {
+  background: var(--background-primary);
 }
 
 .ai-chat-sidebar {
