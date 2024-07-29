@@ -32,9 +32,10 @@ export async function checkAndCreateTemplates(
       `## Meeting Details
 
 - Date: {{date}} in format YYYY-MM-DD
-- Participant: {{participant}}
+- Participants: {{participants}}
 
 ## Audio Reference
+
 ![[{{audio_file}}]]
 
 ## Key Points
