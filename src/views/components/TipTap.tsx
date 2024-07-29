@@ -3,6 +3,7 @@
 import { useEditor, EditorContent } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
 import React, { useEffect, useCallback } from "react";
+import { Markdown } from "tiptap-markdown";
 
 interface TiptapProps {
   value: string;
@@ -13,21 +14,29 @@ interface TiptapProps {
 const Tiptap: React.FC<TiptapProps> = ({ value, onChange, onKeyDown }) => {
   const handleUpdate = useCallback(
     ({ editor }: { editor: any }) => {
-      const htmlContent = editor.getHTML();
-      onChange(htmlContent);
+      const markdownContent = editor.storage.markdown.getMarkdown();
+      onChange(markdownContent);
     },
     [onChange]
   );
 
   const editor = useEditor({
-    extensions: [StarterKit],
-    content: value || "<p></p>",
+    extensions: [
+      StarterKit,
+      Markdown.configure({
+        html: true,
+        tightLists: true,
+        tightListClass: "tight",
+        bulletListMarker: "-",
+      }),
+    ],
+    content: value,
     onUpdate: handleUpdate,
   });
 
   useEffect(() => {
-    if (editor && editor.getHTML() !== value) {
-      editor.commands.setContent(value || "<p></p>");
+    if (editor && editor.storage.markdown.getMarkdown() !== value) {
+      editor.commands.setContent(value);
     }
   }, [value, editor]);
 

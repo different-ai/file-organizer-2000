@@ -1,10 +1,8 @@
 import React, { useState, useEffect } from "react";
 import { useChat } from "ai/react";
-import ReactMarkdown from "react-markdown";
-import FileOrganizer from "../..";
 
-import { useEditor, EditorContent } from "@tiptap/react";
-import StarterKit from "@tiptap/starter-kit";
+import FileOrganizer from "../..";
+import ReactMarkdown from "react-markdown";
 import Tiptap from "../components/TipTap";
 
 export const Button: React.FC<
