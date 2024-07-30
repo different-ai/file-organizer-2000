@@ -272,13 +272,21 @@ form button svg {
 }
 
 .retry-button {
-  margin-left: 0.5rem;
+  margin-top: 0.5rem;
+}
+
+/* Add this CSS to your stylesheet */
+.message-content {
+  position: relative;
+  padding: 10px;
+  margin: 5px 0;
 }
 
 .error-message {
-  background-color: var(--background-secondary);
-  color: var(--text-normal);
-  padding: 0.5rem;
+  padding: 10px;
+  margin: 0;
+  background-color: #f8d7da;
+  color: #721c24;
+  border: 1px solid #f5c6cb;
   border-radius: 4px;
-  margin-bottom: 1rem;
 }

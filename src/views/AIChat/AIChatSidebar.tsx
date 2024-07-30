@@ -96,23 +96,11 @@ const ChatComponent: React.FC<ChatComponentProps> = ({
   return (
     <>
       <div className="chat-messages">
-        {messages.map((message, index) => (
+        {messages.map(message => (
           <div key={message.id} className={`message ${message.role}-message`}>
             <Avatar role={message.role as "user" | "assistant"} />
             <div className="message-content">
               <ReactMarkdown>{message.content}</ReactMarkdown>
-              {index === messages.length - 1 && errorMessage && (
-                <div className="error-message">
-                  {errorMessage}
-                  <Button
-                    type="button"
-                    onClick={() => handleRetry(message.content)}
-                    className="retry-button"
-                  >
-                    Retry
-                  </Button>
-                </div>
-              )}
             </div>
           </div>
         ))}
@@ -140,6 +128,18 @@ const ChatComponent: React.FC<ChatComponentProps> = ({
           </svg>
         </Button>
       </form>
+      {errorMessage && (
+        <div className="error-message">
+          {errorMessage}
+          <Button
+            type="button"
+            onClick={() => handleRetry(messages[messages.length - 1].content)}
+            className="retry-button"
+          >
+            Retry
+          </Button>
+        </div>
+      )}
     </>
   );
 };
