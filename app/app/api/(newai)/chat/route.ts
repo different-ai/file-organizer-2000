@@ -25,7 +25,7 @@ Please use this context to inform your responses, but do not directly repeat thi
 
     const response = result.toAIStreamResponse();
 
-    //  CORS headers
+    // Add CORS headers
     response.headers.set("Access-Control-Allow-Origin", "*");
     response.headers.set(
       "Access-Control-Allow-Methods",
@@ -38,17 +38,16 @@ Please use this context to inform your responses, but do not directly repeat thi
 
     return response;
   } catch (error) {
-    if (error instanceof Error) {
-      return NextResponse.json({ error: error.message }, { status: 500 });
+    if (error) {
+      return NextResponse.json(
+        { error: error.message },
+        { status: error.status }
+      );
     }
-    return NextResponse.json(
-      { error: "An unexpected error occurred" },
-      { status: 500 }
-    );
   }
 }
 
-// OPTIONS method to handle preflight requests
+// Add OPTIONS method to handle preflight requests
 export async function OPTIONS() {
   const response = new NextResponse(null, { status: 200 });
   response.headers.set("Access-Control-Allow-Origin", "*");
