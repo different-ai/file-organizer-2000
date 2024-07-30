@@ -66,6 +66,10 @@ const ChatComponent: React.FC<ChatComponentProps> = ({
     handleInputChange({
       target: { value: lastMessageContent },
     } as React.ChangeEvent<HTMLInputElement>);
+
+    // Remove the last message
+    messages.pop();
+
     // Programmatically submit the form
     setTimeout(() => {
       if (formRef.current) {
