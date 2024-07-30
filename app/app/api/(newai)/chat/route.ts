@@ -27,11 +27,12 @@ Please use this context to inform your responses, but do not directly repeat thi
 
     return response;
   } catch (error) {
-    if (error) {
-      return NextResponse.json(
-        { error: error.message },
-        { status: error.status }
-      );
+    if (error instanceof Error) {
+      return NextResponse.json({ error: error.message }, { status: 500 });
     }
+    return NextResponse.json(
+      { error: "An unexpected error occurred" },
+      { status: 500 }
+    );
   }
 }

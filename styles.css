@@ -250,7 +250,7 @@ form button svg {
 .tiptap-editor {
   border: 1px solid var(--background-modifier-border);
   border-radius: 4px;
-  padding: 8px;
+  padding: 0.5rem;
   min-height: 100px;
   background-color: var(--background-secondary);
 }
@@ -263,6 +263,8 @@ form button svg {
 .chat-input-form {
   display: flex;
   align-items: flex-start;
+  margin-bottom: 1rem;
+  width: 100%;
 }
 
 .chat-input-form button {
