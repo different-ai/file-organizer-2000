@@ -156,7 +156,7 @@ interface AIChatSidebarProps {
 }
 
 const AIChatSidebar: React.FC<AIChatSidebarProps> = ({ plugin, apiKey }) => {
-  console.log(apiKey, "apiKey");
+
   const [fileContent, setFileContent] = useState<string>("");
   const [fileName, setFileName] = useState<string | null>(null);
   const [key, setKey] = useState(0);
