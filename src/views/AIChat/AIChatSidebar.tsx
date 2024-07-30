@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useChat } from "ai/react";
 
 import FileOrganizer from "../..";
@@ -40,14 +40,40 @@ const ChatComponent: React.FC<ChatComponentProps> = ({
   fileName,
 }) => {
   console.log(fileContent, "debug");
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const { messages, input, handleInputChange, handleSubmit } = useChat({
     api: `${plugin.getServerUrl()}/api/chat`,
     body: { fileContent, fileName },
+    keepLastMessageOnError: true,
+    onError: error => {
+      console.error(error);
+      setErrorMessage(
+        "Connection failed. If the problem persists, please check your internet connection or VPN, or reach out to me"
+      );
+    },
   });
+
+  const formRef = useRef<HTMLFormElement>(null);
 
   const handleSendMessage = (e: React.FormEvent) => {
     e.preventDefault();
+    setErrorMessage(null); // Clear error message on new submit
     handleSubmit(e);
+  };
+
+  const handleRetry = (lastMessageContent: string) => {
+    setErrorMessage(null); // Clear error message on retry
+    handleInputChange({
+      target: { value: lastMessageContent },
+    } as React.ChangeEvent<HTMLInputElement>);
+    // Programmatically submit the form
+    setTimeout(() => {
+      if (formRef.current) {
+        formRef.current.dispatchEvent(
+          new Event("submit", { bubbles: true, cancelable: true })
+        );
+      }
+    }, 0);
   };
 
   const handleTiptapChange = (newContent: string) => {
@@ -66,16 +92,31 @@ const ChatComponent: React.FC<ChatComponentProps> = ({
   return (
     <>
       <div className="chat-messages">
-        {messages.map(message => (
+        {messages.map((message, index) => (
           <div key={message.id} className={`message ${message.role}-message`}>
             <Avatar role={message.role as "user" | "assistant"} />
             <div className="message-content">
               <ReactMarkdown>{message.content}</ReactMarkdown>
+              {index === messages.length - 1 && errorMessage && (
+                <div className="error-message">
+                  {errorMessage}
+                  <Button
+                    type="button"
+                    onClick={() => handleRetry(message.content)}
+                  >
+                    Retry
+                  </Button>
+                </div>
+              )}
             </div>
           </div>
         ))}
       </div>
-      <form onSubmit={handleSendMessage} className="chat-input-form">
+      <form
+        ref={formRef}
+        onSubmit={handleSendMessage}
+        className="chat-input-form"
+      >
         <div className="tiptap-wrapper">
           <Tiptap
             value={input}
