@@ -41,7 +41,7 @@ const ChatComponent: React.FC<ChatComponentProps> = ({
   fileName,
   apiKey,
 }) => {
-  console.log(fileContent, "debug");
+  // console.log(fileContent, "debug");
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const { messages, input, handleInputChange, handleSubmit } = useChat({
     api: `${plugin.getServerUrl()}/api/chat`,
@@ -61,7 +61,7 @@ const ChatComponent: React.FC<ChatComponentProps> = ({
 
   const formRef = useRef<HTMLFormElement>(null);
 
-  const handleSendMessage = (e: React.FormEvent) => {
+  const handleSendMessage = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setErrorMessage(null); // Clear error message on new submit
     handleSubmit(e);
@@ -170,7 +170,7 @@ const AIChatSidebar: React.FC<AIChatSidebarProps> = ({ plugin, apiKey }) => {
           setFileContent(content);
           setFileName(activeFile.name);
         } catch (error) {
-          logMessage(`Error reading file: ${error}`);
+          console.error(`Error reading file: ${error}`);
           setFileContent("");
           setFileName(null);
         }

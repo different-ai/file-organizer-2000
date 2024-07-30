@@ -4,6 +4,8 @@ import { useEditor, EditorContent } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
 import React, { useEffect, useCallback } from "react";
 import { Markdown } from "tiptap-markdown";
+import { Mention } from '@tiptap/extension-mention';
+import suggestion from './suggestion';
 
 interface TiptapProps {
   value: string;
@@ -28,6 +30,12 @@ const Tiptap: React.FC<TiptapProps> = ({ value, onChange, onKeyDown }) => {
         tightLists: true,
         tightListClass: "tight",
         bulletListMarker: "-",
+      }),
+      Mention.configure({
+        HTMLAttributes: {
+          class: 'mention',
+        },
+        suggestion,
       }),
     ],
     content: value,
