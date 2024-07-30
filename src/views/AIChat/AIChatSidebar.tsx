@@ -32,6 +32,7 @@ interface ChatComponentProps {
   plugin: FileOrganizer;
   fileContent: string;
   fileName: string | null;
+  apiKey: string;
 }
 
 const ChatComponent: React.FC<ChatComponentProps> = ({
@@ -149,9 +150,10 @@ const ChatComponent: React.FC<ChatComponentProps> = ({
 
 interface AIChatSidebarProps {
   plugin: FileOrganizer;
+  apiKey: string;
 }
 
-const AIChatSidebar: React.FC<AIChatSidebarProps> = ({ plugin }) => {
+const AIChatSidebar: React.FC<AIChatSidebarProps> = ({ plugin, apiKey }) => {
   const [fileContent, setFileContent] = useState<string>("");
   const [fileName, setFileName] = useState<string | null>(null);
   const [key, setKey] = useState(0);
@@ -193,6 +195,7 @@ const AIChatSidebar: React.FC<AIChatSidebarProps> = ({ plugin }) => {
         plugin={plugin}
         fileContent={fileContent}
         fileName={fileName}
+        apiKey={apiKey}
       />
     </Card>
   );
