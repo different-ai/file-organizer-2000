@@ -39,6 +39,7 @@ const ChatComponent: React.FC<ChatComponentProps> = ({
   plugin,
   fileContent,
   fileName,
+  apiKey,
 }) => {
   console.log(fileContent, "debug");
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -47,6 +48,7 @@ const ChatComponent: React.FC<ChatComponentProps> = ({
     body: { fileContent, fileName },
     headers: {
       "Content-Type": "application/json",
+      Authorization: `Bearer ${apiKey}`,
     },
     keepLastMessageOnError: true,
     onError: error => {
@@ -154,6 +156,7 @@ interface AIChatSidebarProps {
 }
 
 const AIChatSidebar: React.FC<AIChatSidebarProps> = ({ plugin, apiKey }) => {
+  console.log(apiKey, "apiKey");
   const [fileContent, setFileContent] = useState<string>("");
   const [fileName, setFileName] = useState<string | null>(null);
   const [key, setKey] = useState(0);
