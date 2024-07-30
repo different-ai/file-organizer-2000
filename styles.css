@@ -189,3 +189,104 @@ If your plugin does not need CSS, delete this file.
   background-color: #4caf50;
   color: white;
 }
+
+.ai-chat-sidebar {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.chat-messages {
+  flex-grow: 1;
+  overflow-y: auto;
+  color: var(--text-normal);
+}
+
+.message {
+  display: flex;
+  align-items: start;
+  margin-bottom: 1rem;
+}
+
+.message-content {
+  margin-left: 0.5rem;
+}
+
+form {
+  display: flex;
+  align-items: center;
+}
+
+form input {
+  flex-grow: 1;
+  margin-right: 0.5rem;
+}
+
+form button {
+  padding: 0.5rem;
+}
+
+form button svg {
+  width: 1.5rem;
+  height: 1.5rem;
+}
+.assistant-message {
+  background-color: var(--background-secondary);
+  user-select: text;
+}
+
+.user-message {
+  user-select: text;
+}
+
+.ai-chat-sidebar {
+  background: var(--background-primary);
+}
+
+.ai-chat-sidebar {
+  background: var(--background-primary);
+}
+
+.tiptap-editor {
+  border: 1px solid var(--background-modifier-border);
+  border-radius: 4px;
+  padding: 0.5rem;
+  min-height: 100px;
+  background-color: var(--background-secondary);
+}
+
+.tiptap-wrapper {
+  flex-grow: 1;
+  margin-right: 8px;
+}
+
+.chat-input-form {
+  display: flex;
+  align-items: flex-start;
+  margin-bottom: 1rem;
+  width: 100%;
+}
+
+.chat-input-form button {
+  align-self: flex-end;
+}
+
+.retry-button {
+  margin-top: 0.5rem;
+}
+
+/* Add this CSS to your stylesheet */
+.message-content {
+  position: relative;
+  padding: 10px;
+  margin: 5px 0;
+}
+
+.error-message {
+  padding: 10px;
+  margin: 0;
+  background-color: #f8d7da;
+  color: #721c24;
+  border: 1px solid #f5c6cb;
+  border-radius: 4px;
+}
