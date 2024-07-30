@@ -44,6 +44,9 @@ const ChatComponent: React.FC<ChatComponentProps> = ({
   const { messages, input, handleInputChange, handleSubmit } = useChat({
     api: `${plugin.getServerUrl()}/api/chat`,
     body: { fileContent, fileName },
+    headers: {
+      "Content-Type": "application/json",
+    },
     keepLastMessageOnError: true,
     onError: error => {
       console.error(error);
