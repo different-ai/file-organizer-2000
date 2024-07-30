@@ -270,3 +270,15 @@ form button svg {
 .chat-input-form button {
   align-self: flex-end;
 }
+
+.retry-button {
+  margin-left: 0.5rem;
+}
+
+.error-message {
+  background-color: var(--background-secondary);
+  color: var(--text-normal);
+  padding: 0.5rem;
+  border-radius: 4px;
+  margin-bottom: 1rem;
+}

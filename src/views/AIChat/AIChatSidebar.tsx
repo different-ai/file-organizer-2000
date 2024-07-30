@@ -48,7 +48,7 @@ const ChatComponent: React.FC<ChatComponentProps> = ({
     onError: error => {
       console.error(error);
       setErrorMessage(
-        "Connection failed. If the problem persists, please check your internet connection or VPN, or reach out to me"
+        "Connection failed. If the problem persists, please check your internet connection or VPN."
       );
     },
   });
@@ -107,6 +107,7 @@ const ChatComponent: React.FC<ChatComponentProps> = ({
                   <Button
                     type="button"
                     onClick={() => handleRetry(message.content)}
+                    className="retry-button"
                   >
                     Retry
                   </Button>
