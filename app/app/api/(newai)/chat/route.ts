@@ -25,6 +25,17 @@ Please use this context to inform your responses, but do not directly repeat thi
 
     const response = result.toAIStreamResponse();
 
+    //  CORS headers
+    response.headers.set("Access-Control-Allow-Origin", "*");
+    response.headers.set(
+      "Access-Control-Allow-Methods",
+      "GET, POST, PUT, DELETE, OPTIONS"
+    );
+    response.headers.set(
+      "Access-Control-Allow-Headers",
+      "Content-Type, Authorization"
+    );
+
     return response;
   } catch (error) {
     if (error instanceof Error) {
@@ -35,4 +46,19 @@ Please use this context to inform your responses, but do not directly repeat thi
       { status: 500 }
     );
   }
+}
+
+// OPTIONS method to handle preflight requests
+export async function OPTIONS() {
+  const response = new NextResponse(null, { status: 200 });
+  response.headers.set("Access-Control-Allow-Origin", "*");
+  response.headers.set(
+    "Access-Control-Allow-Methods",
+    "GET, POST, PUT, DELETE, OPTIONS"
+  );
+  response.headers.set(
+    "Access-Control-Allow-Headers",
+    "Content-Type, Authorization"
+  );
+  return response;
 }
