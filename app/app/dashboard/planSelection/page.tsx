@@ -145,10 +145,15 @@ export default function Component() {
                 <li className="flex items-center space-x-2">
                   <CheckIcon className="h-5 w-5 text-green-500" />
                   <span>
-                    Pay-as-you-go with your own OpenAl key. First month's on us!{" "}
+                    Pay-as-you-go with your own OpenAl key. 
                   </span>
                 </li>
-
+                <li className="flex items-center space-x-2">
+                  <CheckIcon className="h-5 w-5 text-green-500" />
+                  <span>
+                  One month of credits on us! (incl. Cloud Hosted Plan)
+                  </span>
+                </li>
                 <li className="flex items-center space-x-2">
                   <CheckIcon className="h-5 w-5 text-green-500" />
                   <span>Seamless no-sweat setup</span>
