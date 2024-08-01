@@ -42,8 +42,10 @@ export default forwardRef((props: any, ref) => {
         return true;
       }
 
-      if (event.key === 'Enter') {
+      if (event.key === 'Enter' || event.key === 'Tab') {
+        event.preventDefault(); // Prevent default tab behavior
         enterHandler();
+        event.stopPropagation();
         return true;
       }
 
@@ -52,7 +54,7 @@ export default forwardRef((props: any, ref) => {
   }));
 
   return (
-    <div className="items">
+    <div className="items dropdown-menu">
       {props.items.length ? (
         props.items.map((item: string, index: number) => (
           <button

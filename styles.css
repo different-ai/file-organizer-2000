@@ -186,18 +186,34 @@
   color: white;
 }
 
+/* Obsidian-specific styles */
+.theme-dark {
+  --ai-chat-background: var(--background-primary-alt);
+  --ai-chat-text: var(--text-normal);
+  --ai-chat-user-message: var(--background-secondary-alt);
+  --ai-chat-assistant-message: var(--background-secondary);
+}
+
+.theme-light {
+  --ai-chat-background: var(--background-primary);
+  --ai-chat-text: var(--text-normal);
+  --ai-chat-user-message: var(--background-secondary);
+  --ai-chat-assistant-message: var(--background-primary-alt);
+}
+
 /* AI Chat Sidebar Styles */
 .ai-chat-sidebar {
   display: flex;
   flex-direction: column;
   height: 100%;
-  background: var(--background-primary);
+  background: var(--ai-chat-background);
+  color: var(--ai-chat-text);
 }
 
 .chat-messages {
   flex-grow: 1;
   overflow-y: auto;
-  color: var(--text-normal);
+  padding: 1rem;
 }
 
 .message {
@@ -211,6 +227,7 @@
   position: relative;
   padding: 10px;
   margin: 5px 0;
+  border-radius: 8px;
 }
 
 .assistant-message,
@@ -219,7 +236,11 @@
 }
 
 .user-message {
-  background-color: var(--background-secondary);
+  background-color: var(--ai-chat-user-message);
+}
+
+.assistant-message {
+  background-color: var(--ai-chat-assistant-message);
 }
 
 /* Chat Input Form Styles */
@@ -235,11 +256,14 @@
   height: 2.37rem;
   width: 2.85rem;
   padding: 0.5rem;
+  background-color: var(--interactive-accent);
+  color: var(--text-on-accent);
+  border: none;
+  border-radius: 4px;
 }
 
 .chat-input-form button:hover {
-  background-color: var(--interactive-accent);
-  color: white;
+  background-color: var(--interactive-accent-hover);
 }
 
 .chat-input-form button svg {
@@ -271,6 +295,7 @@
   max-height: 500px;
   overflow-y: auto;
   background-color: var(--background-primary);
+  color: var(--text-normal);
 }
 
 .tiptap:focus {
@@ -297,4 +322,39 @@
   box-decoration-break: clone;
   color: var(--color-base-10);
   padding: 0.2rem 0.3rem;
+}
+
+/* Dropdown menu */
+.dropdown-menu {
+  background: var(--background-primary);
+  border: 1px solid var(--background-modifier-border);
+  border-radius: 0.7rem;
+  box-shadow: var(--shadow);
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+  overflow: auto;
+  padding: 0.4rem;
+  position: relative;
+}
+
+.dropdown-menu button {
+  align-items: center;
+  background-color: transparent;
+  display: flex;
+  gap: 0.25rem;
+  text-align: left;
+  width: 100%;
+  color: var(--text-normal);
+  padding: 0.25rem 0.5rem;
+  border-radius: 0.3rem;
+}
+
+.dropdown-menu button:hover,
+.dropdown-menu button:hover.is-selected {
+  background-color: var(--background-modifier-hover);
+}
+
+.dropdown-menu button.is-selected {
+  background-color: var(--background-secondary-alt);
 }
