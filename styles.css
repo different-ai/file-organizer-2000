@@ -1,12 +1,4 @@
-/*
-
-This CSS file will be included with your plugin, and
-available in the app when your plugin is enabled.
-
-If your plugin does not need CSS, delete this file.
-
-*/
-
+/* General Styles */
 .assistant-container {
   padding: 1rem;
 }
@@ -16,6 +8,7 @@ If your plugin does not need CSS, delete this file.
   font-style: italic;
 }
 
+/* Section Styles */
 .assistant-section {
   margin-bottom: 1.5rem;
 }
@@ -32,12 +25,14 @@ If your plugin does not need CSS, delete this file.
   margin-right: 0.5rem;
 }
 
+/* Active Note Styles */
 .active-note-title {
   font-size: 1.1rem;
   color: var(--text-accent);
   margin-bottom: 1rem;
 }
 
+/* Tags Styles */
 .tags-container {
   display: flex;
   flex-wrap: wrap;
@@ -59,6 +54,7 @@ If your plugin does not need CSS, delete this file.
   font-weight: var(--nav-item-weight-hover);
 }
 
+/* Alias and Folder Styles */
 .alias-container,
 .folder-container {
   display: flex;
@@ -72,6 +68,7 @@ If your plugin does not need CSS, delete this file.
   color: var(--text-normal);
 }
 
+/* Button Styles */
 .add-alias-button,
 .move-note-button,
 .format-button,
@@ -79,8 +76,6 @@ If your plugin does not need CSS, delete this file.
 .load-similar-files-button {
   background: white;
   color: var(--text-normal);
-  /* border: 1px solid var(--background-modifier-border); */
-  /* border-radius: 0.25rem; */
   padding: 0.25rem 0.5rem;
   cursor: pointer;
 }
@@ -95,6 +90,7 @@ If your plugin does not need CSS, delete this file.
   color: white;
 }
 
+/* Files Container Styles */
 .files-container {
   display: flex;
   flex-direction: column;
@@ -110,10 +106,12 @@ If your plugin does not need CSS, delete this file.
   text-decoration: underline;
 }
 
+/* Settings Styles */
 .settings-cta-button {
   margin-bottom: var(--size-4-4);
 }
 
+/* Skeleton Loader Animation */
 .skeleton-loader {
   background-color: #e0e0e0;
   border-radius: 4px;
@@ -121,18 +119,12 @@ If your plugin does not need CSS, delete this file.
 }
 
 @keyframes pulse {
-  0% {
-    opacity: 1;
-  }
-  50% {
-    opacity: 0.5;
-  }
-  100% {
-    opacity: 1;
-  }
+  0% { opacity: 1; }
+  50% { opacity: 0.5; }
+  100% { opacity: 1; }
 }
 
-/* Add the following CSS to your styles */
+/* Setting Tabs Styles */
 .setting-tabs {
   display: flex;
   flex-direction: column;
@@ -149,8 +141,8 @@ If your plugin does not need CSS, delete this file.
   cursor: pointer;
   border: 1px solid transparent;
   border-bottom: none;
-  flex: 1; /* Make tabs take equal space */
-  text-align: center; /* Center the text */
+  flex: 1;
+  text-align: center;
   transition: background 0.3s, color 0.3s;
 }
 
@@ -177,9 +169,13 @@ If your plugin does not need CSS, delete this file.
 .setting-tab-content.active {
   display: block;
 }
+
+/* Login Button Styles */
 .file-organizer-login-button {
   margin-bottom: 1rem;
 }
+
+/* Utility Classes */
 .small-text {
   font-size: 0.8rem;
   color: var(--text-muted);
@@ -190,10 +186,12 @@ If your plugin does not need CSS, delete this file.
   color: white;
 }
 
+/* AI Chat Sidebar Styles */
 .ai-chat-sidebar {
   display: flex;
   flex-direction: column;
   height: 100%;
+  background: var(--background-primary);
 }
 
 .chat-messages {
@@ -210,53 +208,45 @@ If your plugin does not need CSS, delete this file.
 
 .message-content {
   margin-left: 0.5rem;
-}
-
-form {
-  display: flex;
-  align-items: center;
-}
-
-form input {
-  flex-grow: 1;
-  margin-right: 0.5rem;
-}
-
-form button {
-  padding: 0.5rem;
-}
-
-form button svg {
-  width: 1.5rem;
-  height: 1.5rem;
-}
-.assistant-message {
-  user-select: text;
-}
-
-.user-message {
-  background-color: var(--background-secondary);
-  user-select: text;
-}
-
-.ai-chat-sidebar {
-  background: var(--background-primary);
-}
-
-
-
-
-.retry-button {
-  margin-top: 0.5rem;
-}
-
-/* Add this CSS to your stylesheet */
-.message-content {
   position: relative;
   padding: 10px;
   margin: 5px 0;
 }
 
+.assistant-message,
+.user-message {
+  user-select: text;
+}
+
+.user-message {
+  background-color: var(--background-secondary);
+}
+
+/* Chat Input Form Styles */
+.chat-input-form {
+  display: flex;
+  align-items: flex-end;
+  margin-top: 1rem;
+}
+
+.chat-input-form button {
+  align-self: flex-end;
+  height: 2.37rem;
+  width: 2.85rem;
+  padding: 0.5rem;
+}
+
+.chat-input-form button:hover {
+  background-color: var(--interactive-accent);
+  color: white;
+}
+
+.chat-input-form button svg {
+  width: 1.5rem;
+  height: 1.5rem;
+}
+
+/* Error Message Styles */
 .error-message {
   padding: 10px;
   margin: 0;
@@ -266,7 +256,7 @@ form button svg {
   border-radius: 4px;
 }
 
-/* Tiptap styles */
+/* Tiptap Editor Styles */
 .tiptap-wrapper {
   flex-grow: 1;
   margin-right: 0.5rem;
@@ -291,19 +281,7 @@ form button svg {
   margin: 0;
 }
 
-.chat-input-form {
-  display: flex;
-  align-items: flex-end;
-  margin-top: 1rem;
-}
-
-.chat-input-form button {
-  align-self: flex-end;
-  height: 2.37rem;
-  width: 2.85rem;
-}
-
-.chat-input-form button:hover {
-  background-color: var(--interactive-accent); /* Change to purple on hover */
-  color: white; /* Change text color to white for better contrast */
+/* Miscellaneous */
+.retry-button {
+  margin-top: 0.5rem;
 }
