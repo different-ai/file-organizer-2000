@@ -57,6 +57,9 @@ const ChatComponent: React.FC<ChatComponentProps> = ({
         "Connection failed. If the problem persists, please check your internet connection or VPN."
       );
     },
+    onFinish: () => {
+      setErrorMessage(null); // Clear error message when a message is successfully sent
+    },
   });
 
   const formRef = useRef<HTMLFormElement>(null);
