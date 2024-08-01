@@ -286,3 +286,19 @@
 .retry-button {
   margin-top: 0.5rem;
 }
+
+
+/* Basic editor styles */
+.tiptap {
+  :first-child {
+    margin-top: 0;
+  }
+
+  .mention {
+    background-color: var(--interactive-accent);
+    border-radius: 0.4rem;
+    box-decoration-break: clone;
+    color: var(--color-base-10);
+    padding: 0.2rem 0.3rem;
+  }
+}
