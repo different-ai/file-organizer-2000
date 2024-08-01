@@ -224,7 +224,6 @@ export async function updateUserSubscriptionStatus(
         maxUsage: 0,
         billingCycle: "",
         tokenUsage: 0,
-        maxTokenUsage: 1000 * 1000,
         createdAt: new Date(),
       })
       .onConflictDoUpdate({
