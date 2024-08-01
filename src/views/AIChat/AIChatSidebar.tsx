@@ -57,6 +57,9 @@ const ChatComponent: React.FC<ChatComponentProps> = ({
         "Connection failed. If the problem persists, please check your internet connection or VPN."
       );
     },
+    onFinish: () => {
+      setErrorMessage(null); // Clear error message when a message is successfully sent
+    },
   });
 
   const formRef = useRef<HTMLFormElement>(null);
@@ -123,12 +126,12 @@ const ChatComponent: React.FC<ChatComponentProps> = ({
             onKeyDown={handleKeyDown}
           />
         </div>
-        <Button type="submit">
-          <svg
+        <Button type="submit" className="send-button">
+        <svg
             xmlns="http://www.w3.org/2000/svg"
             viewBox="0 0 24 24"
             fill="currentColor"
-            className="w-6 h-6"
+            style={{ width: '20px', height: '20px' }} // Inline styles to make the icon smaller
           >
             <path d="M3.478 2.405a.75.75 0 00-.926.94l2.432 7.905H13.5a.75.75 0 010 1.5H4.984l-2.432 7.905a.75.75 0 00.926.94 60.519 60.519 0 0018.445-8.986.75.75 0 000-1.218A60.517 60.517 0 003.478 2.405z" />
           </svg>

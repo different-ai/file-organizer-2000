@@ -3,7 +3,6 @@
 import { useEditor, EditorContent } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
 import React, { useEffect, useCallback } from "react";
-import { Markdown } from "tiptap-markdown";
 import { Mention } from '@tiptap/extension-mention';
 import suggestion from './suggestion';
 
@@ -16,8 +15,8 @@ interface TiptapProps {
 const Tiptap: React.FC<TiptapProps> = ({ value, onChange, onKeyDown }) => {
   const handleUpdate = useCallback(
     ({ editor }: { editor: any }) => {
-      const markdownContent = editor.storage.markdown.getMarkdown();
-      onChange(markdownContent);
+      const content = editor.getText();
+      onChange(content);
     },
     [onChange]
   );
@@ -25,12 +24,6 @@ const Tiptap: React.FC<TiptapProps> = ({ value, onChange, onKeyDown }) => {
   const editor = useEditor({
     extensions: [
       StarterKit,
-      Markdown.configure({
-        html: true,
-        tightLists: true,
-        tightListClass: "tight",
-        bulletListMarker: "-",
-      }),
       Mention.configure({
         HTMLAttributes: {
           class: 'mention',
@@ -43,7 +36,7 @@ const Tiptap: React.FC<TiptapProps> = ({ value, onChange, onKeyDown }) => {
   });
 
   useEffect(() => {
-    if (editor && editor.storage.markdown.getMarkdown() !== value) {
+    if (editor && editor.getText() !== value) {
       editor.commands.setContent(value);
     }
   }, [value, editor]);
