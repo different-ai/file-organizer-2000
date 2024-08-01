@@ -276,8 +276,8 @@ form button svg {
   border: 1px solid var(--background-modifier-border);
   border-radius: 4px;
   padding: 8px;
-  min-height: 100px;
-  max-height: 200px;
+  min-height: 20px;
+  max-height: 500px;
   overflow-y: auto;
   background-color: var(--background-primary);
 }
@@ -299,4 +299,11 @@ form button svg {
 
 .chat-input-form button {
   align-self: flex-end;
+  height: 2.37rem;
+  width: 2.85rem;
+}
+
+.chat-input-form button:hover {
+  background-color: var(--interactive-accent); /* Change to purple on hover */
+  color: white; /* Change text color to white for better contrast */
 }

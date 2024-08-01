@@ -123,7 +123,7 @@ const ChatComponent: React.FC<ChatComponentProps> = ({
             onKeyDown={handleKeyDown}
           />
         </div>
-        <Button type="submit">
+        <Button type="submit" className="send-button">
           <svg
             xmlns="http://www.w3.org/2000/svg"
             viewBox="0 0 24 24"
