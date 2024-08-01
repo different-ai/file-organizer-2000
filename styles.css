@@ -231,11 +231,11 @@ form button svg {
   height: 1.5rem;
 }
 .assistant-message {
-  background-color: var(--background-secondary);
   user-select: text;
 }
 
 .user-message {
+  background-color: var(--background-secondary);
   user-select: text;
 }
 
@@ -243,33 +243,8 @@ form button svg {
   background: var(--background-primary);
 }
 
-.ai-chat-sidebar {
-  background: var(--background-primary);
-}
 
-.tiptap-editor {
-  border: 1px solid var(--background-modifier-border);
-  border-radius: 4px;
-  padding: 0.5rem;
-  min-height: 100px;
-  background-color: var(--background-secondary);
-}
 
-.tiptap-wrapper {
-  flex-grow: 1;
-  margin-right: 8px;
-}
-
-.chat-input-form {
-  display: flex;
-  align-items: flex-start;
-  margin-bottom: 1rem;
-  width: 100%;
-}
-
-.chat-input-form button {
-  align-self: flex-end;
-}
 
 .retry-button {
   margin-top: 0.5rem;
@@ -289,4 +264,39 @@ form button svg {
   color: #721c24;
   border: 1px solid #f5c6cb;
   border-radius: 4px;
+}
+
+/* Tiptap styles */
+.tiptap-wrapper {
+  flex-grow: 1;
+  margin-right: 0.5rem;
+}
+
+.tiptap {
+  border: 1px solid var(--background-modifier-border);
+  border-radius: 4px;
+  padding: 8px;
+  min-height: 100px;
+  max-height: 200px;
+  overflow-y: auto;
+  background-color: var(--background-primary);
+}
+
+.tiptap:focus {
+  outline: none;
+  border-color: var(--interactive-accent);
+}
+
+.tiptap p {
+  margin: 0;
+}
+
+.chat-input-form {
+  display: flex;
+  align-items: flex-end;
+  margin-top: 1rem;
+}
+
+.chat-input-form button {
+  align-self: flex-end;
 }
