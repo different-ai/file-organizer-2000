@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useCallback } from "react";
 import { useChat } from "ai/react";
 
 import FileOrganizer from "../..";
@@ -33,6 +33,7 @@ interface ChatComponentProps {
   fileContent: string;
   fileName: string | null;
   apiKey: string;
+  inputRef: React.RefObject<HTMLDivElement>;
 }
 
 const ChatComponent: React.FC<ChatComponentProps> = ({
@@ -40,6 +41,7 @@ const ChatComponent: React.FC<ChatComponentProps> = ({
   fileContent,
   fileName,
   apiKey,
+  inputRef,
 }) => {
   // console.log(fileContent, "debug");
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -119,7 +121,7 @@ const ChatComponent: React.FC<ChatComponentProps> = ({
         onSubmit={handleSendMessage}
         className="chat-input-form"
       >
-        <div className="tiptap-wrapper">
+        <div className="tiptap-wrapper" ref={inputRef}>
           <Tiptap
             value={input}
             onChange={handleTiptapChange}
@@ -159,10 +161,26 @@ interface AIChatSidebarProps {
 }
 
 const AIChatSidebar: React.FC<AIChatSidebarProps> = ({ plugin, apiKey }) => {
-
   const [fileContent, setFileContent] = useState<string>("");
   const [fileName, setFileName] = useState<string | null>(null);
   const [key, setKey] = useState(0);
+  const inputRef = useRef<HTMLDivElement>(null);
+
+
+
+
+  const startNewConversation = useCallback(() => {
+    setKey(prevKey => prevKey + 1);
+    // Use setTimeout to ensure the new ChatComponent has mounted
+    setTimeout(() => {
+      if (inputRef.current) {
+        const tiptapElement = inputRef.current.querySelector('.ProseMirror');
+        if (tiptapElement) {
+          (tiptapElement as HTMLElement).focus();
+        }
+      }
+    }, 0);
+  }, []);
 
   useEffect(() => {
     const loadFileContent = async () => {
@@ -196,12 +214,20 @@ const AIChatSidebar: React.FC<AIChatSidebarProps> = ({ plugin, apiKey }) => {
 
   return (
     <Card className="ai-chat-sidebar">
+      <div className="new-conversation-container">
+        <Button onClick={startNewConversation} className="new-conversation-button" aria-label="New Conversation">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M12 5v14M5 12h14" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+          </svg>
+        </Button>
+      </div>
       <ChatComponent
         key={key}
         plugin={plugin}
         fileContent={fileContent}
         fileName={fileName}
         apiKey={apiKey}
+        inputRef={inputRef}
       />
     </Card>
   );
