@@ -46,7 +46,7 @@ import {
   moveFile,
   getAllFolders,
 } from "./fileUtils";
-import { checkAPIKey } from "./apiUtils";
+import { checkLicenseKey } from "./apiUtils";
 import { AIChatView } from "./views/AIChat/AIChatView";
 
 type TagCounts = {
@@ -107,9 +107,9 @@ export default class FileOrganizer extends Plugin {
     this.settings = Object.assign({}, DEFAULT_SETTINGS, await this.loadData());
   }
 
-  async checkAPIKey(key: string): Promise<boolean> {
+  async isLicenseKeyValid(key: string): Promise<boolean> {
     try {
-      const isValid = await checkAPIKey(this.getServerUrl(), key);
+      const isValid = await checkLicenseKey(this.getServerUrl(), key);
       this.settings.isLicenseValid = isValid;
       this.settings.API_KEY = key;
       await this.saveSettings();
@@ -124,7 +124,7 @@ export default class FileOrganizer extends Plugin {
 
   async checkLicenseOnLoad() {
     if (this.settings.isLicenseValid && this.settings.API_KEY) {
-      await this.checkAPIKey(this.settings.API_KEY);
+      await this.isLicenseKeyValid(this.settings.API_KEY);
     }
   }
 
