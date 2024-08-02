@@ -148,9 +148,6 @@ app.post(
           {
             model: "nova-2",
             smart_format: true,
-            detect_language: true,
-            // language supported: English, German, French, Spanish, Portuguese, Italian, Japanese, Chinese, Hindi, Arabic, Korean, Russian, Dutch, Multi (Spanish-English)
-            language: ["en", "de", "de-CH", "fr", "es", "pt", "it", "ja", "zh", "hi", "ar", "ko", "ru", "nl", "multi", "tr"],
           }
         );
 
