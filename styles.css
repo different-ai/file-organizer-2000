@@ -6,6 +6,7 @@
 .assistant-placeholder {
   color: var(--text-muted);
   font-style: italic;
+  padding: 1rem;
 }
 
 /* Section Styles */

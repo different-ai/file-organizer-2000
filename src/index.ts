@@ -63,7 +63,10 @@ const validAudioExtensions = [
   "wav",
   "webm",
 ];
-const validMediaExtensions = [...validImageExtensions, ...validAudioExtensions];
+export const validMediaExtensions = [
+  ...validImageExtensions,
+  ...validAudioExtensions,
+];
 const validTextExtensions = ["md", "txt"];
 
 const validExtensions = [

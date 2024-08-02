@@ -1,8 +1,6 @@
 import * as React from "react";
-import { Notice, TFile, getLinkpath } from "obsidian";
-import FileOrganizer from "../..";
-import { logMessage } from "../../../utils";
-import { log } from "console";
+import { Notice, TFile} from "obsidian";
+import FileOrganizer, { validMediaExtensions } from "../../index";
 
 interface AssistantViewProps {
   plugin: FileOrganizer;
@@ -525,6 +523,7 @@ const RefreshButton: React.FC<{ onRefresh: () => void }> = ({ onRefresh }) => (
   </button>
 );
 
+
 export const AssistantView: React.FC<AssistantViewProps> = ({ plugin }) => {
   const [activeFile, setActiveFile] = React.useState<TFile | null>(null);
   const [noteContent, setNoteContent] = React.useState<string>("");
@@ -541,13 +540,21 @@ export const AssistantView: React.FC<AssistantViewProps> = ({ plugin }) => {
       await new Promise((resolve) => setTimeout(resolve, 500));
       if (plugin.app.workspace.rightSplit.collapsed) return;
       const file = plugin.app.workspace.getActiveFile();
-      console.log("file", file);
+
       if (!file || !file.path) {
         setActiveFile(null);
         setNoteContent("");
         return;
       }
-      // if it's not a markdown file, don't show the assistant
+
+      // Check if it's a media file
+      if (isMediaFile(file)) {
+        setActiveFile(file);
+        setNoteContent(""); // or set some placeholder content for media files
+        return;
+      }
+
+      // if it's not a markdown file, set active file to null, so that it  doesn't show the assistant view items
       if (file.extension !== "md") {
         setActiveFile(null);
         setNoteContent("");
@@ -585,15 +592,32 @@ export const AssistantView: React.FC<AssistantViewProps> = ({ plugin }) => {
     };
   }, [refreshKey]); // Add refreshKey to the dependency array
 
+  const isMediaFile = (file: TFile | null): boolean => {
+    if (!file) return false;
+    return validMediaExtensions.includes(file.extension);
+  };
+
+  // if active file is null, display a placeholder (e.g. when opening a file in the Fo2k folder)
   if (!activeFile) {
     return (
       <div className="assistant-placeholder">
-        Open a file to see AI suggestions
+        Open a file outside the File Organizer 2000 folder to see AI suggestions
       </div>
     );
   }
-  logMessage("AssistantView", activeFile);
-  logMessage("AssistantView", activeFile.basename);
+
+  // if active file is media file,  display a different UI
+  if (isMediaFile(activeFile)) {
+    return (
+      <div className="assistant-placeholder">
+        To process an image or audio file, move it to the File Organizer 2000
+        Inbox Folder (e.g. for image text extraction or audio transcription).
+      </div>
+    );
+  }
+
+  //logMessage("AssistantView", activeFile);
+  //logMessage("AssistantView", activeFile.basename);
 
   return (
     <div className="assistant-container">
