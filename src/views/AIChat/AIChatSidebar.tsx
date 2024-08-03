@@ -97,52 +97,11 @@ const ChatComponent: React.FC<ChatComponentProps> = ({
     }, 0);
   };
 
-  // const debouncedSetContext = useRef(
-  //   debounce(async (newContent: string) => {
-  //     if (newContent.includes("@screenpipe")) {
-  //       const query = newContent.split("@screenpipe")[1].trim();
-  //       console.log(query, "query");
-  //       try {
-  //         // Extract keyword
-  //         const keywordsResponse = await fetch(
-  //           `${plugin.getServerUrl()}/api/keywords`,
-  //           {
-  //             method: "POST",
-  //             headers: {
-  //               "Content-Type": "application/json",
-  //               Authorization: `Bearer ${apiKey}`,
-  //             },
-  //             body: JSON.stringify({ query }),
-  //           }
-  //         );
-  //         const keywordsData = await keywordsResponse.json();
-  //         console.log(keywordsData, "keywordsData");
-
-  //         const keyword = keywordsData.keyword;
-
-  //         // Now use this keyword for the search
-  //         const searchResponse = await fetch(
-  //           `http://localhost:3030/search?q=${encodeURIComponent(keyword)}&limit=5`
-  //         );
-  //         const searchData = await searchResponse.json();
-  //         console.log(searchData, "searchData");
-  //         setContext(
-  //           `Context about query "${query}": ${JSON.stringify(searchData)}`
-  //         );
-  //       } catch (error) {
-  //         console.error("Error processing query:", error);
-  //       }
-  //     }
-  //   }, 1000)
-  // ).current;
-
-  // const handleSetContext = (newContent: string) => {
-  //   debouncedSetContext(newContent);
-  // };
+  const handleRemoveFile = (fileTitle: string) => {
+    setSelectedFiles(prevFiles => prevFiles.filter(file => file.title !== fileTitle));
+  };
 
   const handleTiptapChange = async (newContent: string) => {
-    // handleSetContext(newContent);
-
     handleInputChange({
       target: { value: newContent },
     } as React.ChangeEvent<HTMLInputElement>);
@@ -182,16 +141,6 @@ const ChatComponent: React.FC<ChatComponentProps> = ({
 
   return (
     <>
-      <div className="chat-messages">
-        {messages.map(message => (
-          <div key={message.id} className={`message ${message.role}-message`}>
-            <Avatar role={message.role as "user" | "assistant"} />
-            <div className="message-content">
-              <ReactMarkdown>{message.content}</ReactMarkdown>
-            </div>
-          </div>
-        ))}
-      </div>
       <form
         ref={formRef}
         onSubmit={handleSendMessage}
@@ -217,6 +166,26 @@ const ChatComponent: React.FC<ChatComponentProps> = ({
           </svg>
         </Button>
       </form>
+      <div className="selected-files">
+        {selectedFiles.map(file => (
+          <div key={file.title} className="selected-file">
+            {file.title}
+            <button onClick={() => handleRemoveFile(file.title)} className="remove-file-button">
+              x
+            </button>
+          </div>
+        ))}
+      </div>
+      <div className="chat-messages">
+        {messages.map(message => (
+          <div key={message.id} className={`message ${message.role}-message`}>
+            <Avatar role={message.role as "user" | "assistant"} />
+            <div className="message-content">
+              <ReactMarkdown>{message.content}</ReactMarkdown>
+            </div>
+          </div>
+        ))}
+      </div>
       {errorMessage && (
         <div className="error-message">
           {errorMessage}

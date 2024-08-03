@@ -386,3 +386,27 @@
 .fo2k-dropdown-menu button.is-selected {
   background-color: var(--background-secondary-alt);
 }
+
+/* Selected Files Styles */
+.selected-files {
+  font-size: 0.8rem; /* Will use small fonts */
+}
+
+.selected-file {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.remove-file-button {
+  box-shadow: none;
+  all: unset;
+  box-sizing: border-box;
+  color: var(--text-normal);
+  cursor: pointer;
+  font-size: 1rem;
+}
+
+.remove-file-button:hover {
+  color: var(--text-accent);
+}

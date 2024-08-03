@@ -20,8 +20,8 @@ Extra context: ${context}
 Please use this context to inform your responses, but do not directly repeat this context in your answers unless specifically asked about the file content.`,
       messages: [
         {
-          role: "system",
-          content: selectedFiles.join("\n"),
+          role: "user",
+          content: selectedFiles.map(file => `@${file.reference}: ${file.content}`).join("\n"),
         },
         ...convertToCoreMessages(messages),
       ],

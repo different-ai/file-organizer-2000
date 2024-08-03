@@ -11,11 +11,16 @@ interface TiptapProps {
   onChange: (value: string) => void;
   onKeyDown?: (event: React.KeyboardEvent) => void;
   files: { title: string; content: string }[];
-  onFileSelect: (selectedFiles: { title: string; content: string }[]) => void;
+  onFileSelect: (selectedFiles: { title: string; content: string; reference: string }[]) => void;
+}
+
+interface MentionNodeAttrs {
+  id: string;
+  label: string;
 }
 
 const Tiptap: React.FC<TiptapProps> = ({ value, onChange, onKeyDown, files, onFileSelect }) => {
-  const [selectedFiles, setSelectedFiles] = useState<{ title: string; content: string }[]>([]);
+  const [selectedFiles, setSelectedFiles] = useState<{ title: string; content: string; reference: string }[]>([]);
 
   const handleUpdate = useCallback(
     ({ editor }: { editor: any }) => {
@@ -51,7 +56,12 @@ const Tiptap: React.FC<TiptapProps> = ({ value, onChange, onKeyDown, files, onFi
               ])
               .run()
 
-            const newSelectedFiles = [...selectedFiles, props];
+            const newSelectedFile = {
+              title: props.title,
+              content: props.content,
+              reference: `@${props.title}`
+            };
+            const newSelectedFiles = [...selectedFiles, newSelectedFile];
             setSelectedFiles(newSelectedFiles);
             onFileSelect(newSelectedFiles);
           },
