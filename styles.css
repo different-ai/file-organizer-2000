@@ -348,7 +348,7 @@
 }
 
 /* Dropdown menu */
-.dropdown-menu {
+.fo2k-dropdown-menu {
   background: var(--background-primary);
   border: 1px solid var(--background-modifier-border);
   border-radius: 0.7rem;
@@ -361,7 +361,12 @@
   position: relative;
 }
 
-.dropdown-menu button {
+.fo2k-dropdown-menu button {
+  /* Reset styles */
+  all: unset;
+  box-sizing: border-box;
+
+  /* Assign specified properties */
   align-items: center;
   background-color: transparent;
   display: flex;
@@ -373,11 +378,40 @@
   border-radius: 0.3rem;
 }
 
-.dropdown-menu button:hover,
-.dropdown-menu button:hover.is-selected {
+.fo2k-dropdown-menu button:hover,
+.fo2k-dropdown-menu button:hover.is-selected {
   background-color: var(--background-modifier-hover);
 }
 
-.dropdown-menu button.is-selected {
+.fo2k-dropdown-menu button.is-selected {
   background-color: var(--background-secondary-alt);
+}
+
+/* Selected Files Styles */
+.selected-files {
+  font-size: 0.8rem; /* Will use small fonts */
+  display: flex;
+  gap: 0.25rem;
+}
+
+.selected-file {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.25rem 0.5rem;
+  border-radius: 0.25rem;
+  background-color: var(--background-secondary-alt);
+}
+
+.remove-file-button {
+  box-shadow: none !important;
+  all: unset;
+  box-sizing: border-box;
+  color: var(--text-normal);
+  cursor: pointer;
+  font-size: 1rem;
+}
+
+.remove-file-button:hover {
+  color: var(--text-accent);
 }

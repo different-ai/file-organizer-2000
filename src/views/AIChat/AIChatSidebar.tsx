@@ -1,9 +1,11 @@
 import React, { useState, useEffect, useRef, useCallback } from "react";
 import { useChat } from "ai/react";
+import { UseChatOptions } from 'ai/react';
 
 import FileOrganizer from "../..";
 import ReactMarkdown from "react-markdown";
 import Tiptap from "../components/TipTap";
+import { debounce } from "obsidian";
 
 export const Button: React.FC<
   React.ButtonHTMLAttributes<HTMLButtonElement>
@@ -43,11 +45,15 @@ const ChatComponent: React.FC<ChatComponentProps> = ({
   apiKey,
   inputRef,
 }) => {
-  // console.log(fileContent, "debug");
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [context, setContext] = useState<string>("");
+  const [selectedFiles, setSelectedFiles] = useState<{ title: string; content: string }[]>([]);
+  const [allFiles, setAllFiles] = useState<{ title: string; content: string }[]>([]);
+  console.log(selectedFiles, "selectedFiles");
+
   const { messages, input, handleInputChange, handleSubmit } = useChat({
     api: `${plugin.getServerUrl()}/api/chat`,
-    body: { fileContent, fileName },
+    body: { fileContent, fileName, context, selectedFiles },
     headers: {
       "Content-Type": "application/json",
       Authorization: `Bearer ${apiKey}`,
@@ -60,14 +66,15 @@ const ChatComponent: React.FC<ChatComponentProps> = ({
       );
     },
     onFinish: () => {
-      setErrorMessage(null); // Clear error message when a message is successfully sent
+      setErrorMessage(null);
     },
-  });
+  } as UseChatOptions);
 
   const formRef = useRef<HTMLFormElement>(null);
 
   const handleSendMessage = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    console.log(e.target, "target");
     setErrorMessage(null); // Clear error message on new submit
     handleSubmit(e);
   };
@@ -91,7 +98,11 @@ const ChatComponent: React.FC<ChatComponentProps> = ({
     }, 0);
   };
 
-  const handleTiptapChange = (newContent: string) => {
+  const handleRemoveFile = (fileTitle: string) => {
+    setSelectedFiles(prevFiles => prevFiles.filter(file => file.title !== fileTitle));
+  };
+
+  const handleTiptapChange = async (newContent: string) => {
     handleInputChange({
       target: { value: newContent },
     } as React.ChangeEvent<HTMLInputElement>);
@@ -104,18 +115,35 @@ const ChatComponent: React.FC<ChatComponentProps> = ({
     }
   };
 
+  const handleFileSelect = (files: { title: string; content: string }[]) => {
+    setSelectedFiles(prevFiles => {
+      const newFiles = files.filter(file => !prevFiles.some(prevFile => prevFile.title === file.title));
+      return [...prevFiles, ...newFiles];
+    });
+  };
+
+  useEffect(() => {
+    const loadAllFiles = async () => {
+      const files = plugin.app.vault.getFiles();
+      const fileData = await Promise.all(
+        files.map(async (file) => ({
+          title: file.basename,
+          content: await plugin.app.vault.read(file),
+        }))
+      );
+      setAllFiles(fileData);
+    };
+
+    loadAllFiles();
+  }, [plugin.app.vault]);
+
+  useEffect(() => {
+    const newContext = selectedFiles.map(file => `File: ${file.title}\n\nContent:\n${file.content}`).join('\n\n');
+    setContext(newContext);
+  }, [selectedFiles]);
+
   return (
     <>
-      <div className="chat-messages">
-        {messages.map(message => (
-          <div key={message.id} className={`message ${message.role}-message`}>
-            <Avatar role={message.role as "user" | "assistant"} />
-            <div className="message-content">
-              <ReactMarkdown>{message.content}</ReactMarkdown>
-            </div>
-          </div>
-        ))}
-      </div>
       <form
         ref={formRef}
         onSubmit={handleSendMessage}
@@ -126,19 +154,43 @@ const ChatComponent: React.FC<ChatComponentProps> = ({
             value={input}
             onChange={handleTiptapChange}
             onKeyDown={handleKeyDown}
+            files={allFiles}
+            onFileSelect={handleFileSelect}
+            currentFileName={fileName || ""}
+            currentFileContent={fileContent}
           />
         </div>
         <Button type="submit" className="send-button">
-        <svg
+          <svg
             xmlns="http://www.w3.org/2000/svg"
             viewBox="0 0 24 24"
             fill="currentColor"
-            style={{ width: '20px', height: '20px' }} // Inline styles to make the icon smaller
+            style={{ width: "20px", height: "20px" }} // Inline styles to make the icon smaller
           >
             <path d="M3.478 2.405a.75.75 0 00-.926.94l2.432 7.905H13.5a.75.75 0 010 1.5H4.984l-2.432 7.905a.75.75 0 00.926.94 60.519 60.519 0 0018.445-8.986.75.75 0 000-1.218A60.517 60.517 0 003.478 2.405z" />
           </svg>
         </Button>
       </form>
+      <div className="selected-files">
+        {selectedFiles.map(file => (
+          <div key={file.title} className="selected-file">
+            {file.title}
+            <button onClick={() => handleRemoveFile(file.title)} className="remove-file-button">
+              x
+            </button>
+          </div>
+        ))}
+      </div>
+      <div className="chat-messages">
+        {messages.map(message => (
+          <div key={message.id} className={`message ${message.role}-message`}>
+            <Avatar role={message.role as "user" | "assistant"} />
+            <div className="message-content">
+              <ReactMarkdown>{message.content}</ReactMarkdown>
+            </div>
+          </div>
+        ))}
+      </div>
       {errorMessage && (
         <div className="error-message">
           {errorMessage}
@@ -222,7 +274,7 @@ const AIChatSidebar: React.FC<AIChatSidebarProps> = ({ plugin, apiKey }) => {
         </Button>
       </div>
       <ChatComponent
-
+        key={key}
         plugin={plugin}
         fileContent={fileContent}
         fileName={fileName}
