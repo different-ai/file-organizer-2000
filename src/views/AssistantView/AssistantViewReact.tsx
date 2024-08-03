@@ -398,7 +398,7 @@ const ClassificationBox: React.FC<{
         const fileContent = await plugin.app.vault.read(file!);
         console.log(fileContent);
         const result = await plugin.classifyContent(fileContent, file.basename);
-        logMessage("ClassificationBox result", result);
+        //logMessage("ClassificationBox result", result);
         setClassification(result);
       } catch (error) {
         console.error(error);
@@ -420,7 +420,7 @@ const ClassificationBox: React.FC<{
         onClick={async () => {
           try {
             setFormatting(true);
-            logMessage("ClassificationBox class", classification);
+         //   logMessage("ClassificationBox class", classification);
 
             const fileContent = await plugin.app.vault.read(file!);
             console.log({ fileContent });
