@@ -381,3 +381,8 @@
 .dropdown-menu button.is-selected {
   background-color: var(--background-secondary-alt);
 }
+.refresh-tags-button {
+  box-shadow: none !important;
+  background-color: transparent !important;
+  padding-right: 0.5rem;
+}
