@@ -15,7 +15,7 @@ export async function makeApiRequest<T>(
   throw new Error("Unknown error");
 }
 
-export async function checkAPIKey(
+export async function checkLicenseKey(
   serverUrl: string,
   key: string
 ): Promise<boolean> {

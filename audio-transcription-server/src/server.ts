@@ -148,6 +148,7 @@ app.post(
           {
             model: "nova-2",
             smart_format: true,
+            detect_language: true,
           }
         );
 

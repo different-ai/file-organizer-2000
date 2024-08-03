@@ -46,7 +46,7 @@ import {
   moveFile,
   getAllFolders,
 } from "./fileUtils";
-import { checkAPIKey } from "./apiUtils";
+import { checkLicenseKey } from "./apiUtils";
 import { AIChatView } from "./views/AIChat/AIChatView";
 
 type TagCounts = {
@@ -63,7 +63,10 @@ const validAudioExtensions = [
   "wav",
   "webm",
 ];
-const validMediaExtensions = [...validImageExtensions, ...validAudioExtensions];
+export const validMediaExtensions = [
+  ...validImageExtensions,
+  ...validAudioExtensions,
+];
 const validTextExtensions = ["md", "txt"];
 
 const validExtensions = [
@@ -107,9 +110,9 @@ export default class FileOrganizer extends Plugin {
     this.settings = Object.assign({}, DEFAULT_SETTINGS, await this.loadData());
   }
 
-  async checkAPIKey(key: string): Promise<boolean> {
+  async isLicenseKeyValid(key: string): Promise<boolean> {
     try {
-      const isValid = await checkAPIKey(this.getServerUrl(), key);
+      const isValid = await checkLicenseKey(this.getServerUrl(), key);
       this.settings.isLicenseValid = isValid;
       this.settings.API_KEY = key;
       await this.saveSettings();
@@ -124,7 +127,7 @@ export default class FileOrganizer extends Plugin {
 
   async checkLicenseOnLoad() {
     if (this.settings.isLicenseValid && this.settings.API_KEY) {
-      await this.checkAPIKey(this.settings.API_KEY);
+      await this.isLicenseKeyValid(this.settings.API_KEY);
     }
   }
 
@@ -484,11 +487,11 @@ export default class FileOrganizer extends Plugin {
     }
 
     const templateFiles: TFile[] = templateFolder.children.filter(
-      (file) => file instanceof TFile
+      file => file instanceof TFile
     ) as TFile[];
 
     const classifications = await Promise.all(
-      templateFiles.map(async (file) => ({
+      templateFiles.map(async file => ({
         type: file.basename,
         formattingInstruction: await this.app.vault.read(file),
       }))
@@ -506,7 +509,7 @@ export default class FileOrganizer extends Plugin {
       for (let pageNum = 1; pageNum <= Math.min(doc.numPages, 10); pageNum++) {
         const page = await doc.getPage(pageNum);
         const textContent = await page.getTextContent();
-        text += textContent.items.map((item) => item.str).join(" ");
+        text += textContent.items.map(item => item.str).join(" ");
       }
       return text;
     } catch (error) {
@@ -637,7 +640,7 @@ export default class FileOrganizer extends Plugin {
     name: string
   ): Promise<{ type: string; formattingInstruction: string } | null> {
     const classifications = await this.getClassifications();
-    const templateNames = classifications.map((c) => c.type);
+    const templateNames = classifications.map(c => c.type);
 
     const documentType = await classifyDocumentRouter(
       content,
@@ -651,7 +654,7 @@ export default class FileOrganizer extends Plugin {
     logMessage("documentType", documentType);
 
     const selectedClassification = classifications.find(
-      (c) => c.type.toLowerCase() === documentType.toLowerCase()
+      c => c.type.toLowerCase() === documentType.toLowerCase()
     );
 
     if (selectedClassification) {
@@ -725,7 +728,7 @@ export default class FileOrganizer extends Plugin {
     );
   }
   async appendToFrontMatter(file: TFile, key: string, value: string) {
-    await this.app.fileManager.processFrontMatter(file, (frontmatter) => {
+    await this.app.fileManager.processFrontMatter(file, frontmatter => {
       if (!frontmatter.hasOwnProperty(key)) {
         frontmatter[key] = [value];
       } else if (!Array.isArray(frontmatter[key])) {
@@ -786,12 +789,12 @@ export default class FileOrganizer extends Plugin {
     const allFiles = this.app.vault.getMarkdownFiles();
     // remove any file path that is part of the settingsPath
     const allFilesFiltered = allFiles.filter(
-      (file) =>
-        !settingsPaths.some((path) => file.path.includes(path)) &&
+      file =>
+        !settingsPaths.some(path => file.path.includes(path)) &&
         file.path !== fileToCheck.path
     );
 
-    const fileContents = allFilesFiltered.map((file) => ({
+    const fileContents = allFilesFiltered.map(file => ({
       name: file.path,
     }));
 
@@ -805,7 +808,7 @@ export default class FileOrganizer extends Plugin {
 
     return similarFiles.filter(
       (file: string) =>
-        !settingsPaths.some((path) => file.includes(path)) &&
+        !settingsPaths.some(path => file.includes(path)) &&
         !this.settings.ignoreFolders.includes(file)
     );
   }
@@ -889,7 +892,7 @@ export default class FileOrganizer extends Plugin {
 
   async getBacklog() {
     const allFiles = this.app.vault.getFiles();
-    const pendingFiles = allFiles.filter((file) =>
+    const pendingFiles = allFiles.filter(file =>
       file.path.includes(this.settings.pathToWatch)
     );
     return pendingFiles;
@@ -933,7 +936,7 @@ export default class FileOrganizer extends Plugin {
     const sortedTags = Object.entries(tags).sort((a, b) => b[1] - a[1]);
 
     // Return the list of sorted tags
-    return sortedTags.map((tag) => tag[0]);
+    return sortedTags.map(tag => tag[0]);
   }
 
   isTFolder(file: TAbstractFile): file is TFolder {
@@ -952,25 +955,25 @@ export default class FileOrganizer extends Plugin {
     logMessage("ignore folders", this.settings.ignoreFolders);
 
     const filteredFolders = uniqueFolders
-      .filter((folder) => folder !== filePath)
-      .filter((folder) => folder !== this.settings.defaultDestinationPath)
-      .filter((folder) => folder !== this.settings.attachmentsPath)
-      .filter((folder) => folder !== this.settings.logFolderPath)
-      .filter((folder) => folder !== this.settings.pathToWatch)
-      .filter((folder) => folder !== this.settings.templatePaths)
-      .filter((folder) => !folder.includes("_FileOrganizer2000"))
+      .filter(folder => folder !== filePath)
+      .filter(folder => folder !== this.settings.defaultDestinationPath)
+      .filter(folder => folder !== this.settings.attachmentsPath)
+      .filter(folder => folder !== this.settings.logFolderPath)
+      .filter(folder => folder !== this.settings.pathToWatch)
+      .filter(folder => folder !== this.settings.templatePaths)
+      .filter(folder => !folder.includes("_FileOrganizer2000"))
       // if  this.settings.ignoreFolders has one or more folder specified, filter them out including subfolders
-      .filter((folder) => {
+      .filter(folder => {
         const hasIgnoreFolders =
           this.settings.ignoreFolders.length > 0 &&
           this.settings.ignoreFolders[0] !== "";
         if (!hasIgnoreFolders) return true;
-        const isFolderIgnored = this.settings.ignoreFolders.some(
-          (ignoreFolder) => folder.startsWith(ignoreFolder)
+        const isFolderIgnored = this.settings.ignoreFolders.some(ignoreFolder =>
+          folder.startsWith(ignoreFolder)
         );
         return !isFolderIgnored;
       })
-      .filter((folder) => folder !== "/");
+      .filter(folder => folder !== "/");
     logMessage("filteredFolders", filteredFolders);
     const guessedFolder = await guessRelevantFolderRouter(
       content,
@@ -1017,7 +1020,7 @@ export default class FileOrganizer extends Plugin {
       new Notice(`No similar tags found`, 3000);
       return;
     }
-    similarTags.forEach(async (tag) => {
+    similarTags.forEach(async tag => {
       await this.appendTag(file, tag);
     });
 
@@ -1084,11 +1087,12 @@ export default class FileOrganizer extends Plugin {
   }
 
   async initializeChat() {
-    this.addRibbonIcon("message-square", "Open AI Chat", () => {
-      this.activateView();
-    });
+    // TODO: reintroduce after experimental phase
+    // this.addRibbonIcon("message-square", "Open AI Chat", () => {
+    //   this.activateView();
+    // });
 
-    this.registerView("ai-chat-view", (leaf) => new AIChatView(leaf, this));
+    this.registerView("ai-chat-view", leaf => new AIChatView(leaf, this));
 
     this.addCommand({
       id: "open-ai-chat",

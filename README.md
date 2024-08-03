@@ -1,14 +1,15 @@
 # AI File Organizer 2000
 
-An Obsidian Plugin that uses AI to help you keep your files organized. It tags, renames, and moves files to the most appropriate folders in your vault. You'll also be able to have your text extracted from your images, your audios transcribed, and create AI templates.
+An Obsidian Plugin that uses AI to help you keep your files organized. It tags, renames, and moves files to the most appropriate folders in your vault. 
+
+
 
 ### Features
 
-- Automatically move files to the correct folder
-- AI suggestions to organize your files. Apply tags, aliases, rename & more
-- Supports text, images and audio
-- Create and apply custom AI templates
-- AI meetings, allowing you to record meetings as you take notes and have AI format them following your instructions.
+- **OCR**: AI-class text extraction from any image, including handwritten notes.
+- **Meetings**: Transcribe audio and automatically format meeting notes.
+- **Organization**: Automatically suggests names and folders to move your files.
+- **AI Formatting**: Give instructions to format files with AI.
 
   <img width="900" alt="Screenshot 2024-04-30 at 14 05 30" src="https://github.com/different-ai/file-organizer-2000/assets/11430621/2e2cdf14-c6d0-4fd0-8e02-268928ad7ef3">
 
@@ -45,6 +46,8 @@ See plugin settings to customize the changes AI Inbox applies to your files.
 
 ### C. Create custom AI Templates
 
+Give instructions for the AI to format and modify your files.
+
 See video: https://www.youtube.com/watch?v=rommuUXRgUw&t=17s
 
 ## Setup
@@ -73,10 +76,8 @@ Choose between any of the three setups below
    For Windows (PowerShell):
 
    ```sh
-   cd .\app
-   npm run build:self-host;
-   npm run start
-   ```
+   cd app; npm run build:self-host; npm run start
+    ```
 
    And make sure you have your  `OPENAI_API_KEY` variable set up in your `.env.local` file inside the app root folder.
 
@@ -94,11 +95,15 @@ See link for more info: https://promptfoo.dev/docs/configuration/guide/
 
 Join the [discord server](https://discord.gg/udQnCRFyus) for more.
 
-## Small iOS shortcut for easy access
+## iOS shortcut to send Apple Notes and Audios to Obsidian
 
 The iOS shortcut below makes it easy for you to easily work from your phone with this plugin.
 
 https://www.icloud.com/shortcuts/06915768862848fb9711f2f19b6405e2
+
+how to set it up: https://youtu.be/zWJgIRlDWkk?si=HSeOUKaMfJvaLtKI
+
+It works when your vault is on a cloud drive. I use it with iCloud and works great. Doesn't work with OneDrive last time I tested.
 
 ## To Do
 

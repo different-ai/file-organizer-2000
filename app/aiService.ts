@@ -384,3 +384,16 @@ export async function generateTranscriptFromAudio(
     await fsPromises.unlink(tempFilePath);
   }
 }
+
+export async function extractKeywords(query: string, model: LanguageModel) {
+  const response = await generateObject({
+    model,
+    schema: z.object({
+      keyword: z.string(),
+    }),
+    system: "You are a helpful assistant that extracts key terms from user queries. Your task is to provide a single relevant keyword that would be most effective for searching OCR content. Focus on the most important noun, proper name, or specific term.",
+    prompt: `Extract the single most relevant keyword from this query for searching OCR content: "${query}"`,
+  });
+
+  return response;
+}

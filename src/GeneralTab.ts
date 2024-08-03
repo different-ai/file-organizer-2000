@@ -43,7 +43,7 @@ export class ModelTab {
       )
       .addButton((button) =>
         button.setButtonText("Activate").onClick(async () => {
-          const isValid = await this.plugin.checkAPIKey(
+          const isValid = await this.plugin.isLicenseKeyValid(
             this.plugin.settings.API_KEY
           );
           if (isValid) {

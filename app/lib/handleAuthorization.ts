@@ -42,7 +42,7 @@ class AuthorizationError extends Error {
 export async function handleAuthorization(req: NextRequest) {
   // this is to allow people to self host it easily without
   // setting up clerk
-  if (!(process.env.ENABLE_USER_MANAGEMENT === "true")) {
+  if (process.env.ENABLE_USER_MANAGEMENT !== "true") {
     return { userId: "user", isCustomer: true };
   }
 
