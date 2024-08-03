@@ -215,23 +215,17 @@ interface AIChatSidebarProps {
 const AIChatSidebar: React.FC<AIChatSidebarProps> = ({ plugin, apiKey }) => {
   const [fileContent, setFileContent] = useState<string>("");
   const [fileName, setFileName] = useState<string | null>(null);
-  const [key, setKey] = useState(0);
   const inputRef = useRef<HTMLDivElement>(null);
-
-
-
+  const [chatKey, setChatKey] = useState(0);
 
   const startNewConversation = useCallback(() => {
-    setKey(prevKey => prevKey + 1);
-    // Use setTimeout to ensure the new ChatComponent has mounted
-    setTimeout(() => {
-      if (inputRef.current) {
-        const tiptapElement = inputRef.current.querySelector('.ProseMirror');
-        if (tiptapElement) {
-          (tiptapElement as HTMLElement).focus();
-        }
+    setChatKey(prevKey => prevKey + 1);
+    if (inputRef.current) {
+      const tiptapElement = inputRef.current.querySelector('.ProseMirror');
+      if (tiptapElement) {
+        (tiptapElement as HTMLElement).focus();
       }
-    }, 0);
+    }
   }, []);
 
   useEffect(() => {
@@ -251,12 +245,10 @@ const AIChatSidebar: React.FC<AIChatSidebarProps> = ({ plugin, apiKey }) => {
         setFileContent("");
         setFileName(null);
       }
-      setKey(prevKey => prevKey + 1);
     };
 
     loadFileContent();
 
-    // Set up event listener for file changes
     const onFileOpen = plugin.app.workspace.on("file-open", loadFileContent);
 
     return () => {
@@ -274,7 +266,7 @@ const AIChatSidebar: React.FC<AIChatSidebarProps> = ({ plugin, apiKey }) => {
         </Button>
       </div>
       <ChatComponent
-        key={key}
+        key={chatKey}
         plugin={plugin}
         fileContent={fileContent}
         fileName={fileName}
