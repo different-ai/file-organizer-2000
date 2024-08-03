@@ -28,7 +28,6 @@ export class AIChatView extends ItemView {
     this.root.render(
       <AIChatSidebar
         plugin={this.plugin}
-        activeFile={this.app.workspace.getActiveFile()}
         apiKey={this.plugin.settings.API_KEY}
       />
     );

@@ -36,6 +36,8 @@ interface ChatComponentProps {
   fileName: string | null;
   apiKey: string;
   inputRef: React.RefObject<HTMLDivElement>;
+  history: { id: string; role: string; content: string }[];
+  setHistory: (newHistory: { id: string; role: string; content: string }[]) => void;
 }
 
 const ChatComponent: React.FC<ChatComponentProps> = ({
@@ -44,6 +46,8 @@ const ChatComponent: React.FC<ChatComponentProps> = ({
   fileName,
   apiKey,
   inputRef,
+  history,
+  setHistory,
 }) => {
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [context, setContext] = useState<string>("");
@@ -77,6 +81,7 @@ const ChatComponent: React.FC<ChatComponentProps> = ({
     console.log(e.target, "target");
     setErrorMessage(null); // Clear error message on new submit
     handleSubmit(e);
+    setHistory([...history, ...messages]);
   };
 
   const handleRetry = (lastMessageContent: string) => {
@@ -120,6 +125,13 @@ const ChatComponent: React.FC<ChatComponentProps> = ({
       const newFiles = files.filter(file => !prevFiles.some(prevFile => prevFile.title === file.title));
       return [...prevFiles, ...newFiles];
     });
+  };
+
+  const handleOpenFile = async (fileTitle: string) => {
+    const file = plugin.app.vault.getFiles().find(f => f.basename === fileTitle);
+    if (file) {
+      await plugin.app.workspace.openLinkText(file.path, '', true);
+    }
   };
 
   useEffect(() => {
@@ -173,15 +185,28 @@ const ChatComponent: React.FC<ChatComponentProps> = ({
       </form>
       <div className="selected-files">
         {selectedFiles.map(file => (
-          <div key={file.title} className="selected-file">
+          <div
+            key={file.title}
+            className="selected-file"
+            onClick={() => handleOpenFile(file.title)}
+            style={{ cursor: 'pointer' }}
+          >
             {file.title}
-            <button onClick={() => handleRemoveFile(file.title)} className="remove-file-button">
+            <button onClick={(e) => { e.stopPropagation(); handleRemoveFile(file.title); }} className="remove-file-button">
               x
             </button>
           </div>
         ))}
       </div>
       <div className="chat-messages">
+        {history.map(message => (
+          <div key={message.id} className={`message ${message.role}-message`}>
+            <Avatar role={message.role as "user" | "assistant"} />
+            <div className="message-content">
+              <ReactMarkdown>{message.content}</ReactMarkdown>
+            </div>
+          </div>
+        ))}
         {messages.map(message => (
           <div key={message.id} className={`message ${message.role}-message`}>
             <Avatar role={message.role as "user" | "assistant"} />
@@ -215,24 +240,22 @@ interface AIChatSidebarProps {
 const AIChatSidebar: React.FC<AIChatSidebarProps> = ({ plugin, apiKey }) => {
   const [fileContent, setFileContent] = useState<string>("");
   const [fileName, setFileName] = useState<string | null>(null);
-  const [key, setKey] = useState(0);
   const inputRef = useRef<HTMLDivElement>(null);
+  const [conversations, setConversations] = useState<{ id: string; role: string; content: string }[][]>([[]]);
+  const [currentConversationIndex, setCurrentConversationIndex] = useState<number>(0);
 
+  const startNewConversation = () => {
+    setConversations([...conversations, []]);
+    setCurrentConversationIndex(conversations.length);
+  };
 
+  const handlePreviousConversation = () => {
+    setCurrentConversationIndex((prevIndex) => Math.max(prevIndex - 1, 0));
+  };
 
-
-  const startNewConversation = useCallback(() => {
-    setKey(prevKey => prevKey + 1);
-    // Use setTimeout to ensure the new ChatComponent has mounted
-    setTimeout(() => {
-      if (inputRef.current) {
-        const tiptapElement = inputRef.current.querySelector('.ProseMirror');
-        if (tiptapElement) {
-          (tiptapElement as HTMLElement).focus();
-        }
-      }
-    }, 0);
-  }, []);
+  const handleNextConversation = () => {
+    setCurrentConversationIndex((prevIndex) => Math.min(prevIndex + 1, conversations.length - 1));
+  };
 
   useEffect(() => {
     const loadFileContent = async () => {
@@ -241,7 +264,7 @@ const AIChatSidebar: React.FC<AIChatSidebarProps> = ({ plugin, apiKey }) => {
         try {
           const content = await plugin.app.vault.read(activeFile);
           setFileContent(content);
-          setFileName(activeFile.name);
+          setFileName(activeFile.basename);
         } catch (error) {
           console.error(`Error reading file: ${error}`);
           setFileContent("");
@@ -251,7 +274,6 @@ const AIChatSidebar: React.FC<AIChatSidebarProps> = ({ plugin, apiKey }) => {
         setFileContent("");
         setFileName(null);
       }
-      setKey(prevKey => prevKey + 1);
     };
 
     loadFileContent();
@@ -272,14 +294,30 @@ const AIChatSidebar: React.FC<AIChatSidebarProps> = ({ plugin, apiKey }) => {
             <path d="M12 5v14M5 12h14" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
           </svg>
         </Button>
+        {/* {currentConversationIndex > 0 && (
+          <Button onClick={handlePreviousConversation} className="previous-conversation-button" aria-label="Previous Conversation">
+            Previous
+          </Button>
+        )}
+        {currentConversationIndex < conversations.length - 1 && (
+          <Button onClick={handleNextConversation} className="next-conversation-button" aria-label="Next Conversation">
+            Next
+          </Button>
+        )} */}
       </div>
       <ChatComponent
-        key={key}
+        key={currentConversationIndex}
         plugin={plugin}
         fileContent={fileContent}
         fileName={fileName}
         apiKey={apiKey}
         inputRef={inputRef}
+        history={conversations[currentConversationIndex]}
+        setHistory={(newHistory) => {
+          const updatedConversations = [...conversations];
+          updatedConversations[currentConversationIndex] = newHistory;
+          setConversations(updatedConversations);
+        }}
       />
     </Card>
   );
