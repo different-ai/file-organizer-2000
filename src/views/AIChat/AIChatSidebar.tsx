@@ -222,7 +222,7 @@ const AIChatSidebar: React.FC<AIChatSidebarProps> = ({ plugin, apiKey }) => {
         </Button>
       </div>
       <ChatComponent
-        key={key}
+
         plugin={plugin}
         fileContent={fileContent}
         fileName={fileName}
