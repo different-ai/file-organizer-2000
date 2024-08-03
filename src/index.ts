@@ -102,7 +102,7 @@ export interface FileMetadata {
   aliases: string[];
   similarTags: string[];
 }
-
+//TODO: make AI access tags reference via prompt instead. TO avoid excessive tokens usage
 const POPULAR_OBSIDIAN_TAGS = [
   "#todo", "#project", "#idea", "#research", "#meeting", "#journal", "#book", "#article",
   "#review", "#note", "#summary", "#question", "#answer", "#quote", "#reference",

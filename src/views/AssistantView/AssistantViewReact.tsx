@@ -22,10 +22,10 @@ const SimilarTags: React.FC<{
   plugin: FileOrganizer;
   file: TFile | null;
   content: string;
-}> = ({ plugin, file, content }) => {
+  usePopularTags: boolean;
+}> = ({ plugin, file, content, usePopularTags }) => {
   const [suggestions, setSuggestions] = React.useState<string[] | null>(null);
   const [loading, setLoading] = React.useState<boolean>(false);
-  const usePopularTagsRef = React.useRef<boolean>(false);
 
   const suggestTags = React.useCallback(async () => {
     if (!content) {
@@ -34,23 +34,18 @@ const SimilarTags: React.FC<{
     }
     setLoading(true);
     try {
-      const tags = await plugin.getSimilarTags(content, file.basename, usePopularTagsRef.current);
+      const tags = await plugin.getSimilarTags(content, file.basename, usePopularTags);
       setSuggestions(tags);
     } catch (error) {
       console.error(error);
     } finally {
       setLoading(false);
     }
-  }, [plugin, file, content]);
+  }, [plugin, file, content, usePopularTags]);
 
   React.useEffect(() => {
     suggestTags();
   }, [suggestTags]);
-
-  const handleRefreshTags = () => {
-    usePopularTagsRef.current = !usePopularTagsRef.current;
-    suggestTags();
-  };
 
   return (
     <div className="assistant-section tags-section">
@@ -72,9 +67,6 @@ const SimilarTags: React.FC<{
           {suggestions && suggestions.length === 0 && <div>No tags found</div>}
         </div>
       )}
-      <button onClick={handleRefreshTags} className="refresh-tags-button" style={{display: 'none'}}>
-        Refresh Tags
-      </button>
     </div>
   );
 };
@@ -540,6 +532,8 @@ export const AssistantView: React.FC<AssistantViewProps> = ({ plugin }) => {
   const [noteContent, setNoteContent] = React.useState<string>("");
   const [hasAudio, setHasAudio] = React.useState<boolean>(false);
   const [refreshKey, setRefreshKey] = React.useState<number>(0);
+  const [tagsHeaderText, setTagsHeaderText] = React.useState("Similar tags");
+  const [usePopularTags, setUsePopularTags] = React.useState(false);
 
   const refreshAssistant = () => {
     setRefreshKey((prevKey) => prevKey + 1);
@@ -644,15 +638,15 @@ export const AssistantView: React.FC<AssistantViewProps> = ({ plugin }) => {
       />
 
       <SectionHeader 
-        text="Similar tags" 
+        text={tagsHeaderText} 
         icon="🏷️" 
         action={
           <button 
             onClick={() => {
-              const refreshButton = document.querySelector('.tags-section .refresh-tags-button') as HTMLButtonElement;
-              if (refreshButton) {
-                refreshButton.click();
-              }
+              setUsePopularTags(prev => !prev);
+              setTagsHeaderText(prev => 
+                prev === "Similar tags" ? "Suggested tags" : "Similar tags"
+              );
             }} 
             className="refresh-tags-button"
           >
@@ -669,11 +663,15 @@ export const AssistantView: React.FC<AssistantViewProps> = ({ plugin }) => {
             >
               <path d="M21.5 2v6h-6M2.5 22v-6h6M2 11.5a10 10 0 0 1 18.8-4.3M22 12.5a10 10 0 0 1-18.8 4.3" />
             </svg>
-  
           </button>
         }
       />
-      <SimilarTags plugin={plugin} file={activeFile} content={noteContent} />
+      <SimilarTags 
+        plugin={plugin} 
+        file={activeFile} 
+        content={noteContent} 
+        usePopularTags={usePopularTags}
+      />
 
       <SectionHeader text="Suggested title" icon="💡" />
       <RenameSuggestion
