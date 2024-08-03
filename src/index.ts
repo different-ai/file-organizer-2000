@@ -103,6 +103,17 @@ export interface FileMetadata {
   similarTags: string[];
 }
 
+const POPULAR_OBSIDIAN_TAGS = [
+  "#todo", "#project", "#idea", "#research", "#meeting", "#journal", "#book", "#article",
+  "#review", "#note", "#summary", "#question", "#answer", "#quote", "#reference",
+  "#task", "#goal", "#milestone", "#deadline", "#priority", "#important", "#urgent",
+  "#work", "#personal", "#health", "#finance", "#education", "#hobby", "#travel",
+  "#food", "#recipe", "#exercise", "#meditation", "#productivity", "#creativity",
+  "#inspiration", "#motivation", "#challenge", "#success", "#failure", "#lesson",
+  "#insight", "#reflection", "#planning", "#strategy", "#analysis", "#decision",
+  "#problem", "#solution", "#improvement", "#growth"
+];
+
 export default class FileOrganizer extends Plugin {
   settings: FileOrganizerSettings;
 
@@ -903,8 +914,8 @@ export default class FileOrganizer extends Plugin {
       await this.processFileV2(file);
     }
   }
-  async getSimilarTags(content: string, fileName: string): Promise<string[]> {
-    const tags: string[] = await this.getAllTags();
+  async getSimilarTags(content: string, fileName: string, usePopularTags: boolean = false): Promise<string[]> {
+    const tags: string[] = usePopularTags ? POPULAR_OBSIDIAN_TAGS : await this.getAllTags();
 
     if (tags.length === 0) {
       console.log("No tags found");

@@ -23,29 +23,38 @@ const SimilarTags: React.FC<{
 }> = ({ plugin, file, content }) => {
   const [suggestions, setSuggestions] = React.useState<string[] | null>(null);
   const [loading, setLoading] = React.useState<boolean>(false);
+  const [usePopularTags, setUsePopularTags] = React.useState<boolean>(false);
+
+  const suggestTags = async () => {
+    if (!content) {
+      setSuggestions([]);
+      return;
+    }
+    setSuggestions(null);
+    setLoading(true);
+    try {
+      const tags = await plugin.getSimilarTags(content, file.basename, usePopularTags);
+      setSuggestions(tags);
+    } catch (error) {
+      console.error(error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   React.useEffect(() => {
-    const suggestTags = async () => {
-      if (!content) {
-        setSuggestions([]);
-        return;
-      }
-      setSuggestions(null);
-      setLoading(true);
-      try {
-        const tags = await plugin.getSimilarTags(content, file.basename);
-        setSuggestions(tags);
-      } catch (error) {
-        console.error(error);
-      } finally {
-        setLoading(false);
-      }
-    };
     suggestTags();
-  }, [content]);
+  }, [content, usePopularTags]);
+
+  const handleRefreshTags = () => {
+    setUsePopularTags(prev => !prev);
+  };
 
   return (
     <div className="assistant-section tags-section">
+      <button onClick={handleRefreshTags} className="refresh-tags-button">
+        {usePopularTags ? "Use Vault Tags" : "Use Popular Tags"}
+      </button>
       {loading ? (
         <div>Loading...</div>
       ) : (

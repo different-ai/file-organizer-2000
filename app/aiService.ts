@@ -26,7 +26,7 @@ export async function generateTags(
     schema: z.object({
       tags: z.array(z.string()).default(["none"]),
     }),
-    prompt: `Given the text "${content}" (and if relevant ${fileName}), identify the at most 3 relevant tags from the following list, sorted from most commonly found to least commonly found: ${tags.join(
+    prompt: `Given the text "${content}" (and if relevant ${fileName}), identify the at most 5 relevant tags from the following list, sorted from most commonly found to least commonly found: ${tags.join(
       ", "
     )}`,
   });
