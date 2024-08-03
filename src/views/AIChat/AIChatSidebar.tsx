@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef, useCallback } from "react";
 import { useChat } from "ai/react";
+import { UseChatOptions } from 'ai/react';
 
 import FileOrganizer from "../..";
 import ReactMarkdown from "react-markdown";
@@ -65,9 +66,9 @@ const ChatComponent: React.FC<ChatComponentProps> = ({
       );
     },
     onFinish: () => {
-      setErrorMessage(null); // Clear error message when a message is successfully sent
+      setErrorMessage(null);
     },
-  });
+  } as UseChatOptions);
 
   const formRef = useRef<HTMLFormElement>(null);
 
@@ -114,6 +115,13 @@ const ChatComponent: React.FC<ChatComponentProps> = ({
     }
   };
 
+  const handleFileSelect = (files: { title: string; content: string }[]) => {
+    setSelectedFiles(prevFiles => {
+      const newFiles = files.filter(file => !prevFiles.some(prevFile => prevFile.title === file.title));
+      return [...prevFiles, ...newFiles];
+    });
+  };
+
   useEffect(() => {
     const loadAllFiles = async () => {
       const files = plugin.app.vault.getFiles();
@@ -134,11 +142,6 @@ const ChatComponent: React.FC<ChatComponentProps> = ({
     setContext(newContext);
   }, [selectedFiles]);
 
-  const handleFileSelect = (files: { title: string; content: string }[]) => {
-    console.log(files, "files");
-    setSelectedFiles(files);
-  };
-
   return (
     <>
       <form
@@ -153,6 +156,8 @@ const ChatComponent: React.FC<ChatComponentProps> = ({
             onKeyDown={handleKeyDown}
             files={allFiles}
             onFileSelect={handleFileSelect}
+            currentFileName={fileName || ""}
+            currentFileContent={fileContent}
           />
         </div>
         <Button type="submit" className="send-button">
