@@ -97,51 +97,51 @@ const ChatComponent: React.FC<ChatComponentProps> = ({
     }, 0);
   };
 
-  const debouncedSetContext = useRef(
-    debounce(async (newContent: string) => {
-      if (newContent.includes("@screenpipe")) {
-        const query = newContent.split("@screenpipe")[1].trim();
-        console.log(query, "query");
-        try {
-          // Extract keyword
-          const keywordsResponse = await fetch(
-            `${plugin.getServerUrl()}/api/keywords`,
-            {
-              method: "POST",
-              headers: {
-                "Content-Type": "application/json",
-                Authorization: `Bearer ${apiKey}`,
-              },
-              body: JSON.stringify({ query }),
-            }
-          );
-          const keywordsData = await keywordsResponse.json();
-          console.log(keywordsData, "keywordsData");
+  // const debouncedSetContext = useRef(
+  //   debounce(async (newContent: string) => {
+  //     if (newContent.includes("@screenpipe")) {
+  //       const query = newContent.split("@screenpipe")[1].trim();
+  //       console.log(query, "query");
+  //       try {
+  //         // Extract keyword
+  //         const keywordsResponse = await fetch(
+  //           `${plugin.getServerUrl()}/api/keywords`,
+  //           {
+  //             method: "POST",
+  //             headers: {
+  //               "Content-Type": "application/json",
+  //               Authorization: `Bearer ${apiKey}`,
+  //             },
+  //             body: JSON.stringify({ query }),
+  //           }
+  //         );
+  //         const keywordsData = await keywordsResponse.json();
+  //         console.log(keywordsData, "keywordsData");
 
-          const keyword = keywordsData.keyword;
+  //         const keyword = keywordsData.keyword;
 
-          // Now use this keyword for the search
-          const searchResponse = await fetch(
-            `http://localhost:3030/search?q=${encodeURIComponent(keyword)}&limit=5`
-          );
-          const searchData = await searchResponse.json();
-          console.log(searchData, "searchData");
-          setContext(
-            `Context about query "${query}": ${JSON.stringify(searchData)}`
-          );
-        } catch (error) {
-          console.error("Error processing query:", error);
-        }
-      }
-    }, 1000)
-  ).current;
+  //         // Now use this keyword for the search
+  //         const searchResponse = await fetch(
+  //           `http://localhost:3030/search?q=${encodeURIComponent(keyword)}&limit=5`
+  //         );
+  //         const searchData = await searchResponse.json();
+  //         console.log(searchData, "searchData");
+  //         setContext(
+  //           `Context about query "${query}": ${JSON.stringify(searchData)}`
+  //         );
+  //       } catch (error) {
+  //         console.error("Error processing query:", error);
+  //       }
+  //     }
+  //   }, 1000)
+  // ).current;
 
-  const handleSetContext = (newContent: string) => {
-    debouncedSetContext(newContent);
-  };
+  // const handleSetContext = (newContent: string) => {
+  //   debouncedSetContext(newContent);
+  // };
 
   const handleTiptapChange = async (newContent: string) => {
-    handleSetContext(newContent);
+    // handleSetContext(newContent);
 
     handleInputChange({
       target: { value: newContent },

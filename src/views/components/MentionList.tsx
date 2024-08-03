@@ -10,8 +10,6 @@ export default forwardRef((props: any, ref) => {
 
   const selectItem = (index: number) => {
     const item = props.items[index];
-    console.log(item, "item");
-
     if (item) {
       props.command({ id: item.title, title: item.title, content: item.content });
     }

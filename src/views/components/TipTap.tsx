@@ -2,7 +2,7 @@
 
 import { useEditor, EditorContent } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
-import React, { useEffect, useCallback } from "react";
+import React, { useEffect, useCallback, useState } from "react";
 import { Mention } from '@tiptap/extension-mention';
 import suggestion from './suggestion';
 
@@ -15,16 +15,14 @@ interface TiptapProps {
 }
 
 const Tiptap: React.FC<TiptapProps> = ({ value, onChange, onKeyDown, files, onFileSelect }) => {
+  const [selectedFiles, setSelectedFiles] = useState<{ title: string; content: string }[]>([]);
+
   const handleUpdate = useCallback(
     ({ editor }: { editor: any }) => {
       const content = editor.getText();
       onChange(content);
-
-      const selectedFiles = editor.storage.mention.selectedFiles || [];
-      console.log(selectedFiles, "selectedFiles", 'inside tip tap editor');
-      onFileSelect(selectedFiles);
     },
-    [onChange, onFileSelect]
+    [onChange]
   );
 
   const editor = useEditor({
@@ -37,6 +35,26 @@ const Tiptap: React.FC<TiptapProps> = ({ value, onChange, onKeyDown, files, onFi
         suggestion: {
           ...suggestion,
           items: ({ query }) => suggestion.items({ query, editor }),
+          command: ({ editor, range, props }) => {
+            editor
+              .chain()
+              .focus()
+              .insertContentAt(range, [
+                {
+                  type: 'mention',
+                  attrs: props
+                },
+                {
+                  type: 'text',
+                  text: ' '
+                },
+              ])
+              .run()
+
+            const newSelectedFiles = [...selectedFiles, props];
+            setSelectedFiles(newSelectedFiles);
+            onFileSelect(newSelectedFiles);
+          },
         },
       }),
     ],
@@ -53,7 +71,6 @@ const Tiptap: React.FC<TiptapProps> = ({ value, onChange, onKeyDown, files, onFi
     if (editor) {
       editor.storage.mention = {
         files,
-        selectedFiles: [],
       };
     }
   }, [editor, files]);

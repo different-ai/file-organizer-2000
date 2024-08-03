@@ -9,7 +9,8 @@ export const maxDuration = 30;
 export async function POST(req: NextRequest) {
   try {
     const { userId } = await handleAuthorization(req);
-    const { messages, fileContent, fileName, context, selectedFiles } = await req.json();
+    const { messages, fileContent, fileName, context, selectedFiles } =
+      await req.json();
 
     const result = await streamText({
       model: openai(process.env.MODEL_NAME || "gpt-4o-mini"),
@@ -20,7 +21,7 @@ Please use this context to inform your responses, but do not directly repeat thi
       messages: [
         {
           role: "system",
-          content: context,
+          content: selectedFiles.join("\n"),
         },
         ...convertToCoreMessages(messages),
       ],
