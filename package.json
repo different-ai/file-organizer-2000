@@ -37,6 +37,7 @@
     "axios": "^1.6.2",
     "chokidar": "^3.6.0",
     "form-data": "^4.0.0",
+    "fuse.js": "^7.0.0",
     "jimp": "^0.22.12",
     "js-tiktoken": "^1.0.12",
     "moment": "^2.29.4",
