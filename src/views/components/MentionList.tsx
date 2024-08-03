@@ -10,9 +10,8 @@ export default forwardRef((props: any, ref) => {
 
   const selectItem = (index: number) => {
     const item = props.items[index];
-
     if (item) {
-      props.command({ id: item });
+      props.command({ id: item.title, title: item.title, content: item.content });
     }
   };
 
@@ -54,15 +53,15 @@ export default forwardRef((props: any, ref) => {
   }));
 
   return (
-    <div className="items dropdown-menu">
+    <div className="fo2k-dropdown-menu ">
       {props.items.length ? (
-        props.items.map((item: string, index: number) => (
+        props.items.map((item: any, index: number) => (
           <button
             className={`item ${index === selectedIndex ? 'is-selected' : ''}`}
             key={index}
             onClick={() => selectItem(index)}
           >
-            {item}
+            {item.title}
           </button>
         ))
       ) : (
