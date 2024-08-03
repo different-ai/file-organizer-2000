@@ -34,35 +34,23 @@ interface ChatComponentProps {
   fileName: string | null;
   apiKey: string;
   inputRef: React.RefObject<HTMLDivElement>;
+  messages: any[];
+  input: string;
+  handleInputChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  handleSubmit: (e: React.FormEvent<HTMLFormElement>) => void;
+  setInput: (input: string) => void;
 }
 
 const ChatComponent: React.FC<ChatComponentProps> = ({
-  plugin,
-  fileContent,
-  fileName,
-  apiKey,
+
   inputRef,
+  messages,
+  input,
+  handleInputChange,
+  handleSubmit,
+
 }) => {
-  // console.log(fileContent, "debug");
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
-  const { messages, input, handleInputChange, handleSubmit } = useChat({
-    api: `${plugin.getServerUrl()}/api/chat`,
-    body: { fileContent, fileName },
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${apiKey}`,
-    },
-    keepLastMessageOnError: true,
-    onError: error => {
-      console.error(error);
-      setErrorMessage(
-        "Connection failed. If the problem persists, please check your internet connection or VPN."
-      );
-    },
-    onFinish: () => {
-      setErrorMessage(null); // Clear error message when a message is successfully sent
-    },
-  });
 
   const formRef = useRef<HTMLFormElement>(null);
 
@@ -129,7 +117,7 @@ const ChatComponent: React.FC<ChatComponentProps> = ({
           />
         </div>
         <Button type="submit" className="send-button">
-        <svg
+          <svg
             xmlns="http://www.w3.org/2000/svg"
             viewBox="0 0 24 24"
             fill="currentColor"
@@ -163,24 +151,27 @@ interface AIChatSidebarProps {
 const AIChatSidebar: React.FC<AIChatSidebarProps> = ({ plugin, apiKey }) => {
   const [fileContent, setFileContent] = useState<string>("");
   const [fileName, setFileName] = useState<string | null>(null);
-  const [key, setKey] = useState(0);
   const inputRef = useRef<HTMLDivElement>(null);
 
-
-
+  const { messages, input, handleInputChange, handleSubmit, setInput, setMessages } = useChat({
+    api: `${plugin.getServerUrl()}/api/chat`,
+    body: { fileContent, fileName },
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${apiKey}`,
+    },
+  });
 
   const startNewConversation = useCallback(() => {
-    setKey(prevKey => prevKey + 1);
-    // Use setTimeout to ensure the new ChatComponent has mounted
-    setTimeout(() => {
-      if (inputRef.current) {
-        const tiptapElement = inputRef.current.querySelector('.ProseMirror');
-        if (tiptapElement) {
-          (tiptapElement as HTMLElement).focus();
-        }
+    setMessages([]);
+    setInput('');
+    if (inputRef.current) {
+      const tiptapElement = inputRef.current.querySelector('.ProseMirror');
+      if (tiptapElement) {
+        (tiptapElement as HTMLElement).focus();
       }
-    }, 0);
-  }, []);
+    }
+  }, [setMessages, setInput]);
 
   useEffect(() => {
     const loadFileContent = async () => {
@@ -199,12 +190,10 @@ const AIChatSidebar: React.FC<AIChatSidebarProps> = ({ plugin, apiKey }) => {
         setFileContent("");
         setFileName(null);
       }
-      setKey(prevKey => prevKey + 1);
     };
 
     loadFileContent();
 
-    // Set up event listener for file changes
     const onFileOpen = plugin.app.workspace.on("file-open", loadFileContent);
 
     return () => {
@@ -222,12 +211,16 @@ const AIChatSidebar: React.FC<AIChatSidebarProps> = ({ plugin, apiKey }) => {
         </Button>
       </div>
       <ChatComponent
-
         plugin={plugin}
         fileContent={fileContent}
         fileName={fileName}
         apiKey={apiKey}
         inputRef={inputRef}
+        messages={messages}
+        input={input}
+        handleInputChange={handleInputChange}
+        handleSubmit={handleSubmit}
+        setInput={setInput}
       />
     </Card>
   );
