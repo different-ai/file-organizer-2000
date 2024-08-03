@@ -6,13 +6,15 @@ interface AssistantViewProps {
   plugin: FileOrganizer;
 }
 
-const SectionHeader: React.FC<{ text: string; icon?: string }> = ({
+const SectionHeader: React.FC<{ text: string; icon?: string; action?: React.ReactNode }> = ({
   text,
   icon,
+  action,
 }) => (
   <h6 className="assistant-section-header">
     {icon && <span className="assistant-section-icon">{icon}</span>}
     {text}
+    {action && <span className="assistant-section-action">{action}</span>}
   </h6>
 );
 
@@ -52,22 +54,6 @@ const SimilarTags: React.FC<{
 
   return (
     <div className="assistant-section tags-section">
-      <button onClick={handleRefreshTags} className="refresh-tags-button">
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          width="15"
-          height="15"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="2"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-        >
-          <path d="M21.5 2v6h-6M2.5 22v-6h6M2 11.5a10 10 0 0 1 18.8-4.3M22 12.5a10 10 0 0 1-18.8 4.3" />
-        </svg>
-        <span>Refresh Tags</span>
-      </button>
       {loading ? (
         <div>Loading...</div>
       ) : (
@@ -86,6 +72,9 @@ const SimilarTags: React.FC<{
           {suggestions && suggestions.length === 0 && <div>No tags found</div>}
         </div>
       )}
+      <button onClick={handleRefreshTags} className="refresh-tags-button" style={{display: 'none'}}>
+        Refresh Tags
+      </button>
     </div>
   );
 };
@@ -654,7 +643,36 @@ export const AssistantView: React.FC<AssistantViewProps> = ({ plugin }) => {
         content={noteContent}
       />
 
-      <SectionHeader text="Similar tags" icon="🏷️" />
+      <SectionHeader 
+        text="Similar tags" 
+        icon="🏷️" 
+        action={
+          <button 
+            onClick={() => {
+              const refreshButton = document.querySelector('.tags-section .refresh-tags-button') as HTMLButtonElement;
+              if (refreshButton) {
+                refreshButton.click();
+              }
+            }} 
+            className="refresh-tags-button"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="15"
+              height="15"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <path d="M21.5 2v6h-6M2.5 22v-6h6M2 11.5a10 10 0 0 1 18.8-4.3M22 12.5a10 10 0 0 1-18.8 4.3" />
+            </svg>
+            <span>Refresh Tags</span>
+          </button>
+        }
+      />
       <SimilarTags plugin={plugin} file={activeFile} content={noteContent} />
 
       <SectionHeader text="Suggested title" icon="💡" />
