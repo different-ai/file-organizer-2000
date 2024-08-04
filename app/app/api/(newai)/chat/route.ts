@@ -24,11 +24,17 @@ Please use this context to inform your responses, but do not directly repeat thi
       messages: convertToCoreMessages(messages),
       tools: {
         getNotesForDateRange: {
-          description: 'Get notes within a specified date range',
+          description: `Get notes within a specified date range. Today is ${new Date().toISOString().split('T')[0]}`,
           parameters: z.object({
             startDate: z.string().describe('Start date of the range (ISO format)'),
             endDate: z.string().describe('End date of the range (ISO format)'),
           }),
+          execute: async ({ startDate, endDate }) => {
+            console.log(startDate, endDate, "startDate, endDate");
+            // Implement the logic to fetch notes for the given date range
+            // This is a placeholder implementation
+            return `Notes fetched for date range: ${startDate} to ${endDate}`;
+          },
         },
       },
       onFinish: async ({ usage }) => {

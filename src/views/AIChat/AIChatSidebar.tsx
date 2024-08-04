@@ -1,11 +1,11 @@
 import React, { useState, useEffect, useRef, useCallback } from "react";
-import { useChat,UseChatOptions } from "@ai-sdk/react";
+import { useChat, UseChatOptions } from "@ai-sdk/react";
 
 import FileOrganizer from "../..";
 import ReactMarkdown from "react-markdown";
 import Tiptap from "../components/TipTap";
-import { debounce } from "obsidian";
 import { TFolder, TFile } from "obsidian";
+import { ToolInvocation } from "ai";
 
 export const Button: React.FC<
   React.ButtonHTMLAttributes<HTMLButtonElement>
@@ -41,6 +41,23 @@ interface ChatComponentProps {
     newHistory: { id: string; role: string; content: string }[]
   ) => void;
 }
+
+const filterNotesByDateRange = async (plugin: FileOrganizer, startDate: string, endDate: string) => {
+  const files = plugin.app.vault.getMarkdownFiles();
+  const filteredFiles = files.filter(file => {
+    const fileDate = new Date(file.stat.mtime);
+    return fileDate >= new Date(startDate) && fileDate <= new Date(endDate);
+  });
+
+  const fileContents = await Promise.all(
+    filteredFiles.map(async file => ({
+      title: file.basename,
+      content: await plugin.app.vault.read(file),
+    }))
+  );
+
+  return fileContents;
+};
 
 const ChatComponent: React.FC<ChatComponentProps> = ({
   plugin,
@@ -82,7 +99,6 @@ const ChatComponent: React.FC<ChatComponentProps> = ({
     handleSubmit,
     stop,
     addToolResult,
-    
   } = useChat({
     api: `${plugin.getServerUrl()}/api/chat`,
 
@@ -104,9 +120,28 @@ const ChatComponent: React.FC<ChatComponentProps> = ({
     maxToolRoundtrips: 5,
     async onToolCall({ toolCall }) {
       console.log(toolCall, "toolCall");
-      if (toolCall.toolName === 'getNotesForDateRange') {
+      if (toolCall.toolName === "getNotesForDateRange") {
         const { startDate, endDate } = toolCall.args;
-        const filteredNotes = await filterNotesByDateRange(plugin, startDate, endDate);
+        const filteredNotes = await filterNotesByDateRange(
+          plugin,
+          startDate,
+          endDate
+        );
+        
+        // Add filtered Markdown notes to selectedFiles
+        setSelectedFiles(prevFiles => [
+          ...prevFiles,
+          ...filteredNotes
+            .map(note => ({
+              title: note.title,
+              content: note.content,
+              reference: `Date range: ${startDate} to ${endDate}`,
+              path: note.title // Assuming title can be used as a unique identifier
+            }))
+        ]);
+
+
+
         return JSON.stringify(filteredNotes);
       }
     },
@@ -304,23 +339,6 @@ const ChatComponent: React.FC<ChatComponentProps> = ({
     plugin.app.vault,
   ]);
 
-  const filterNotesByDateRange = async (plugin, startDate, endDate) => {
-    const files = plugin.app.vault.getFiles();
-    const filteredFiles = files.filter(file => {
-      const fileDate = new Date(file.stat.mtime);
-      return fileDate >= new Date(startDate) && fileDate <= new Date(endDate);
-    });
-
-    const fileContents = await Promise.all(
-      filteredFiles.map(async file => ({
-        title: file.basename,
-        content: await plugin.app.vault.read(file),
-      }))
-    );
-
-    return fileContents;
-  };
-
   return (
     <>
       <form
@@ -413,23 +431,47 @@ const ChatComponent: React.FC<ChatComponentProps> = ({
             <div className="message-content">
               <ReactMarkdown>{message.content}</ReactMarkdown>
               {message.toolInvocations?.map((toolInvocation: ToolInvocation) => {
-                if (toolInvocation.toolName === 'getNotesForDateRange') {
-                  if ('result' in toolInvocation) {
-                    const notes = JSON.parse(toolInvocation.result);
-                    return (
-                      <div key={toolInvocation.toolCallId}>
-                        <h3>Notes Summary:</h3>
-                        {notes.map((note, index) => (
-                          <div key={index}>
-                            <h4>{note.title}</h4>
-                            <p>{note.content.substring(0, 100)}...</p>
-                          </div>
-                        ))}
+                const toolCallId = toolInvocation.toolCallId;
+                const handleAddResult = (result: string) => addToolResult({ toolCallId, result });
+
+                if (toolInvocation.toolName === "getNotesForDateRange") {
+                  // if ("result" in toolInvocation) {
+                  //   try {
+                  //     console.log(toolInvocation.result, "toolInvocation.result");
+                  //     const notes = JSON.parse(toolInvocation.result);
+                  //     return (
+                  //       <NotesForDateRange
+                  //         key={toolCallId}
+                  //         notes={notes}
+                  //       />
+                  //     );
+                  //   } catch (error) {
+                  //     console.error("Error parsing JSON:", error);
+                  //     return <div key={toolCallId}>Error parsing date range data</div>;
+                  //   }
+                  // } else {
+                  //   return (
+                  //     <div key={toolCallId}>
+                  //       Preparing to fetch notes...
+                  //     </div>
+                  //   );
+                  // }
+                } else if (toolInvocation.toolName === "askForConfirmation") {
+                  return (
+                    <div key={toolCallId}>
+                      {toolInvocation.args.message}
+                      <div>
+                        {'result' in toolInvocation ? (
+                          <b>{toolInvocation.result}</b>
+                        ) : (
+                          <>
+                            <Button onClick={() => handleAddResult('Yes')}>Yes</Button>
+                            <Button onClick={() => handleAddResult('No')}>No</Button>
+                          </>
+                        )}
                       </div>
-                    );
-                  } else {
-                    return <div key={toolInvocation.toolCallId}>Fetching notes...</div>;
-                  }
+                    </div>
+                  );
                 }
                 // Handle other tool invocations...
               })}
@@ -450,6 +492,27 @@ const ChatComponent: React.FC<ChatComponentProps> = ({
         </div>
       )}
     </>
+  );
+};
+
+// New component to handle fetching and displaying notes
+const NotesForDateRange: React.FC<{
+  notes: { title: string; content: string }[];
+}> = ({ notes }) => {
+  if (notes.length === 0) {
+    return <div>No notes found for the specified date range.</div>;
+  }
+
+  return (
+    <div>
+      <h3>Notes Summary:</h3>
+      {notes.map((note, index) => (
+        <div key={index}>
+          <h4>{note.title}</h4>
+          <p>{note.content.substring(0, 100)}...</p>
+        </div>
+      ))}
+    </div>
   );
 };
 
