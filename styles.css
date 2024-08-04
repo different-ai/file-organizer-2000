@@ -207,11 +207,54 @@
   display: flex;
   flex-direction: column;
   height: 100%;
+  max-height: 100vh; /* Limit to viewport height */
   background: var(--ai-chat-background);
   color: var(--ai-chat-text);
-  padding: 1rem;
 }
 
+.chat-component {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  max-height: calc(100vh - 50px); /* Adjust for the new conversation button */
+  overflow: hidden;
+}
+
+.chat-messages {
+  flex-grow: 1;
+  overflow-y: auto;
+  padding: 1rem;
+  display: flex;
+  flex-direction: column-reverse; /* Reverse the order to show latest messages at the bottom */
+}
+
+.chat-input-container {
+  flex-shrink: 0;
+  padding: 1rem;
+  border-top: 1px solid var(--background-modifier-border);
+}
+
+.selected-items {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.chat-input-form {
+  display: flex;
+  align-items: flex-end; /* Align items to the bottom */
+}
+
+.tiptap-wrapper {
+  flex-grow: 1;
+  max-height: 150px; /* Limit the height of the input area */
+  overflow-y: auto;
+}
+
+.send-button {
+  flex-shrink: 0;
+}
 
 .chat-input-form button {
   height: 2.37rem;
@@ -227,12 +270,6 @@
 .chat-input-form button:hover {
   background-color: var(--interactive-accent-hover);
 }
-
-.new-conversation-container {
-  display: flex;
-  justify-content: flex-end;
-}
-
 
 .new-conversation-button {
   height: 2.37rem;
@@ -285,19 +322,6 @@
   background-color: var(--ai-chat-assistant-message);
 }
 
-/* Chat Input Form Styles */
-.chat-input-form {
-  display: flex;
-  align-items: flex-end;
-  margin-top: 1rem;
-  margin-bottom: 1rem;
-}
-
-.chat-input-form button svg {
-  width: 1.5rem;
-  height: 1.5rem;
-}
-
 /* Error Message Styles */
 .error-message {
   padding: 10px;
@@ -309,11 +333,6 @@
 }
 
 /* Tiptap Editor Styles */
-.tiptap-wrapper {
-  flex-grow: 1;
-  margin-right: 0.5rem;
-}
-
 .tiptap {
   border: 1px solid var(--background-modifier-border);
   border-radius: 4px;
@@ -391,23 +410,28 @@
 .selected-files {
   font-size: 0.8rem; /* Will use small fonts */
   display: flex;
-  gap: 0.25rem;
+  overflow-x: auto; /* Enables horizontal scrolling */
+  padding-bottom: 0.5rem; /* Space for the scrollbar */
+  margin-bottom: 0.5rem;
+  max-width: 100%; /* Ensures it doesn't push the chat bar */
+  gap: 0.5rem;
 }
 
 .selected-file {
   display: flex;
   align-items: center;
-  gap: 0.25rem;
   padding: 0.25rem 0.5rem;
   border-radius: 0.25rem;
   background-color: var(--background-secondary-alt);
+  color: var(--text-muted); /* Grayed out text */
+  white-space: nowrap; /* Prevents wrapping */
 }
 
 .remove-file-button {
   box-shadow: none !important;
   all: unset;
   box-sizing: border-box;
-  color: var(--text-normal);
+  color: var(--text-muted);
   cursor: pointer;
   font-size: 1rem;
 }

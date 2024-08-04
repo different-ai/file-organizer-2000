@@ -42,7 +42,11 @@ interface ChatComponentProps {
   ) => void;
 }
 
-const filterNotesByDateRange = async (plugin: FileOrganizer, startDate: string, endDate: string) => {
+const filterNotesByDateRange = async (
+  plugin: FileOrganizer,
+  startDate: string,
+  endDate: string
+) => {
   const files = plugin.app.vault.getMarkdownFiles();
   const filteredFiles = files.filter(file => {
     const fileDate = new Date(file.stat.mtime);
@@ -127,20 +131,17 @@ const ChatComponent: React.FC<ChatComponentProps> = ({
           startDate,
           endDate
         );
-        
+
         // Add filtered Markdown notes to selectedFiles
         setSelectedFiles(prevFiles => [
           ...prevFiles,
-          ...filteredNotes
-            .map(note => ({
-              title: note.title,
-              content: note.content,
-              reference: `Date range: ${startDate} to ${endDate}`,
-              path: note.title // Assuming title can be used as a unique identifier
-            }))
+          ...filteredNotes.map(note => ({
+            title: note.title,
+            content: note.content,
+            reference: `Date range: ${startDate} to ${endDate}`,
+            path: note.title, // Assuming title can be used as a unique identifier
+          })),
         ]);
-
-
 
         return JSON.stringify(filteredNotes);
       }
@@ -340,82 +341,7 @@ const ChatComponent: React.FC<ChatComponentProps> = ({
   ]);
 
   return (
-    <>
-      <form
-        ref={formRef}
-        onSubmit={handleSendMessage}
-        className="chat-input-form"
-      >
-        <div className="tiptap-wrapper" ref={inputRef}>
-          <Tiptap
-            value={input}
-            onChange={handleTiptapChange}
-            onKeyDown={handleKeyDown}
-            files={allFiles}
-            tags={allTags}
-            folders={allFolders}
-            onFileSelect={handleFileSelect}
-            onTagSelect={handleTagSelect}
-            onFolderSelect={handleFolderSelect}
-            currentFileName={fileName || ""}
-            currentFileContent={fileContent}
-          />
-        </div>
-        <Button type="submit" className="send-button" disabled={isGenerating}>
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            viewBox="0 0 24 24"
-            fill="currentColor"
-            style={{ width: "20px", height: "20px" }}
-          >
-            <path d="M3.478 2.405a.75.75 0 00-.926.94l2.432 7.905H13.5a.75.75 0 010 1.5H4.984l-2.432 7.905a.75.75 0 00.926.94 60.519 60.519 0 0018.445-8.986.75.75 0 000-1.218A60.517 60.517 0 003.478 2.405z" />
-          </svg>
-        </Button>
-      </form>
-      {isGenerating && (
-        <Button onClick={handleCancelGeneration} className="cancel-button">
-          Cancel Generation
-        </Button>
-      )}
-      <div className="selected-items">
-        {selectedFiles.map(file => (
-          <div key={file.title} className="selected-item file">
-            {file.title}
-            <button
-              onClick={() => handleRemoveFile(file.title)}
-              className="remove-button"
-            >
-              x
-            </button>
-          </div>
-        ))}
-        {selectedTags.map(tag => (
-          <div key={tag} className="selected-item tag">
-            #{tag}
-            <button
-              onClick={() =>
-                setSelectedTags(tags => tags.filter(t => t !== tag))
-              }
-              className="remove-button"
-            >
-              x
-            </button>
-          </div>
-        ))}
-        {selectedFolders.map(folder => (
-          <div key={folder} className="selected-item folder">
-            {folder}
-            <button
-              onClick={() =>
-                setSelectedFolders(folders => folders.filter(f => f !== folder))
-              }
-              className="remove-button"
-            >
-              x
-            </button>
-          </div>
-        ))}
-      </div>
+    <div className="chat-component">
       <div className="chat-messages">
         {history.map(message => (
           <div key={message.id} className={`message ${message.role}-message`}>
@@ -430,55 +356,63 @@ const ChatComponent: React.FC<ChatComponentProps> = ({
             <Avatar role={message.role as "user" | "assistant"} />
             <div className="message-content">
               <ReactMarkdown>{message.content}</ReactMarkdown>
-              {message.toolInvocations?.map((toolInvocation: ToolInvocation) => {
-                const toolCallId = toolInvocation.toolCallId;
-                const handleAddResult = (result: string) => addToolResult({ toolCallId, result });
+              {message.toolInvocations?.map(
+                (toolInvocation: ToolInvocation) => {
+                  const toolCallId = toolInvocation.toolCallId;
+                  const handleAddResult = (result: string) =>
+                    addToolResult({ toolCallId, result });
 
-                if (toolInvocation.toolName === "getNotesForDateRange") {
-                  // if ("result" in toolInvocation) {
-                  //   try {
-                  //     console.log(toolInvocation.result, "toolInvocation.result");
-                  //     const notes = JSON.parse(toolInvocation.result);
-                  //     return (
-                  //       <NotesForDateRange
-                  //         key={toolCallId}
-                  //         notes={notes}
-                  //       />
-                  //     );
-                  //   } catch (error) {
-                  //     console.error("Error parsing JSON:", error);
-                  //     return <div key={toolCallId}>Error parsing date range data</div>;
-                  //   }
-                  // } else {
-                  //   return (
-                  //     <div key={toolCallId}>
-                  //       Preparing to fetch notes...
-                  //     </div>
-                  //   );
-                  // }
-                } else if (toolInvocation.toolName === "askForConfirmation") {
-                  return (
-                    <div key={toolCallId}>
-                      {toolInvocation.args.message}
-                      <div>
-                        {'result' in toolInvocation ? (
-                          <b>{toolInvocation.result}</b>
-                        ) : (
-                          <>
-                            <Button onClick={() => handleAddResult('Yes')}>Yes</Button>
-                            <Button onClick={() => handleAddResult('No')}>No</Button>
-                          </>
-                        )}
+                  if (toolInvocation.toolName === "getNotesForDateRange") {
+                    // if ("result" in toolInvocation) {
+                    //   try {
+                    //     console.log(toolInvocation.result, "toolInvocation.result");
+                    //     const notes = JSON.parse(toolInvocation.result);
+                    //     return (
+                    //       <NotesForDateRange
+                    //         key={toolCallId}
+                    //         notes={notes}
+                    //       />
+                    //     );
+                    //   } catch (error) {
+                    //     console.error("Error parsing JSON:", error);
+                    //     return <div key={toolCallId}>Error parsing date range data</div>;
+                    //   }
+                    // } else {
+                    //   return (
+                    //     <div key={toolCallId}>
+                    //       Preparing to fetch notes...
+                    //     </div>
+                    //   );
+                    // }
+                  } else if (toolInvocation.toolName === "askForConfirmation") {
+                    return (
+                      <div key={toolCallId}>
+                        {toolInvocation.args.message}
+                        <div>
+                          {"result" in toolInvocation ? (
+                            <b>{toolInvocation.result}</b>
+                          ) : (
+                            <>
+                              <Button onClick={() => handleAddResult("Yes")}>
+                                Yes
+                              </Button>
+                              <Button onClick={() => handleAddResult("No")}>
+                                No
+                              </Button>
+                            </>
+                          )}
+                        </div>
                       </div>
-                    </div>
-                  );
+                    );
+                  }
+                  // Handle other tool invocations...
                 }
-                // Handle other tool invocations...
-              })}
+              )}
             </div>
           </div>
         ))}
       </div>
+
       {errorMessage && (
         <div className="error-message">
           {errorMessage}
@@ -491,7 +425,89 @@ const ChatComponent: React.FC<ChatComponentProps> = ({
           </Button>
         </div>
       )}
-    </>
+
+      <div className="chat-input-container">
+        <div className="selected-files">
+          {selectedFiles.map(file => (
+            <div key={file.title} className="selected-file">
+              {file.title}
+              <button
+                onClick={() => handleRemoveFile(file.title)}
+                className="remove-file-button"
+              >
+                x
+              </button>
+            </div>
+          ))}
+          {selectedTags.map(tag => (
+            <div key={tag} className="selected-item tag">
+              #{tag}
+              <button
+                onClick={() =>
+                  setSelectedTags(tags => tags.filter(t => t !== tag))
+                }
+                className="remove-button"
+              >
+                x
+              </button>
+            </div>
+          ))}
+          {selectedFolders.map(folder => (
+            <div key={folder} className="selected-item folder">
+              {folder}
+              <button
+                onClick={() =>
+                  setSelectedFolders(folders =>
+                    folders.filter(f => f !== folder)
+                  )
+                }
+                className="remove-button"
+              >
+                x
+              </button>
+            </div>
+          ))}
+        </div>
+
+        <form
+          ref={formRef}
+          onSubmit={handleSendMessage}
+          className="chat-input-form"
+        >
+          <div className="tiptap-wrapper" ref={inputRef}>
+            <Tiptap
+              value={input}
+              onChange={handleTiptapChange}
+              onKeyDown={handleKeyDown}
+              files={allFiles}
+              tags={allTags}
+              folders={allFolders}
+              onFileSelect={handleFileSelect}
+              onTagSelect={handleTagSelect}
+              onFolderSelect={handleFolderSelect}
+              currentFileName={fileName || ""}
+              currentFileContent={fileContent}
+            />
+          </div>
+          <Button type="submit" className="send-button" disabled={isGenerating}>
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              viewBox="0 0 24 24"
+              fill="currentColor"
+              style={{ width: "20px", height: "20px" }}
+            >
+              <path d="M3.478 2.405a.75.75 0 00-.926.94l2.432 7.905H13.5a.75.75 0 010 1.5H4.984l-2.432 7.905a.75.75 0 00.926.94 60.519 60.519 0 0018.445-8.986.75.75 0 000-1.218A60.517 60.517 0 003.478 2.405z" />
+            </svg>
+          </Button>
+        </form>
+
+        {isGenerating && (
+          <Button onClick={handleCancelGeneration} className="cancel-button">
+            Cancel Generation
+          </Button>
+        )}
+      </div>
+    </div>
   );
 };
 
