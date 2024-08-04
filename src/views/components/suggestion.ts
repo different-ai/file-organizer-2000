@@ -6,10 +6,22 @@ import Fuse from 'fuse.js'
 const suggestion = {
   items: ({ query, editor }: { query: string; editor: any }) => {
     const allFiles = editor.storage.mention.files || []
+    const allTags = editor.storage.mention.tags || []
+    const allFolders = editor.storage.mention.folders || []
     
-    if (query.length === 0) return allFiles.slice(0, 10)
+    if (query.length === 0) {
+      return [
+        ...allFiles.slice(0, 5).map(file => ({ ...file, type: 'file', id: file.title, label: file.title, path: file.path })),
+        ...allTags.slice(0, 3).map(tag => ({ title: tag, type: 'tag', id: tag, label: tag })),
+        ...allFolders.slice(0, 2).map(folder => ({ ...folder, type: 'folder', id: folder.title, label: folder.title, path: folder.path }))
+      ]
+    }
 
-    const fuse = new Fuse(allFiles, {
+    const fuse = new Fuse([
+      ...allFiles.map(file => ({ ...file, type: 'file', id: file.title, label: file.title, path: file.path })),
+      ...allTags.map(tag => ({ title: tag, type: 'tag', id: tag, label: tag })),
+      ...allFolders.map(folder => ({ ...folder, type: 'folder', id: folder.title, label: folder.title, path: folder.path }))
+    ], {
       keys: ['title'],
       threshold: 0.3,
     })
@@ -67,6 +79,16 @@ const suggestion = {
       onExit() {
         popup[0].destroy()
         reactRenderer.destroy()
+      },
+
+      command: (props: any, item: any) => {
+        return props.command({ 
+          ...item,
+          type: item.type,
+          id: item.id || item.title,
+          label: item.label || item.title,
+          path: item.path
+        })
       },
     }
   },

@@ -1,5 +1,3 @@
-"use client";
-
 import { useEditor, EditorContent } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
 import React, { useEffect, useCallback, useState } from "react";
@@ -11,7 +9,11 @@ interface TiptapProps {
   onChange: (value: string) => void;
   onKeyDown?: (event: React.KeyboardEvent) => void;
   files: { title: string; content: string }[];
-  onFileSelect: (selectedFiles: { title: string; content: string; reference: string }[]) => void;
+  tags: string[];
+  folders: string[];
+  onFileSelect: (selectedFiles: { title: string; content: string; reference: string; path: string }[]) => void;
+  onTagSelect: (selectedTags: string[]) => void;
+  onFolderSelect: (selectedFolders: string[]) => void;
   currentFileName: string;
   currentFileContent: string;
 }
@@ -21,6 +23,8 @@ interface MentionNodeAttrs {
   label: string;
   title: string;
   content: string;
+  type: 'file' | 'tag' | 'folder';
+  path?: string;
 }
 
 const Tiptap: React.FC<TiptapProps> = ({ 
@@ -28,11 +32,17 @@ const Tiptap: React.FC<TiptapProps> = ({
   onChange, 
   onKeyDown, 
   files, 
+  tags,
+  folders,
   onFileSelect, 
+  onTagSelect,
+  onFolderSelect,
   currentFileName, 
   currentFileContent 
 }) => {
-  const [selectedFiles, setSelectedFiles] = useState<{ title: string; content: string; reference: string }[]>([]);
+  const [selectedFiles, setSelectedFiles] = useState<{ title: string; content: string; reference: string; path: string }[]>([]);
+  const [selectedTags, setSelectedTags] = useState<string[]>([]);
+  const [selectedFolders, setSelectedFolders] = useState<string[]>([]);
 
   const handleUpdate = useCallback(
     ({ editor }: { editor: any }) => {
@@ -51,7 +61,7 @@ const Tiptap: React.FC<TiptapProps> = ({
         },
         suggestion: {
           ...suggestion,
-          items: ({ query }) => suggestion.items({ query, editor }),
+          items: ({ query, editor }) => suggestion.items({ query, editor }),
           command: ({ editor, range, props }: { editor: any; range: any; props: MentionNodeAttrs }) => {
             editor
               .chain()
@@ -67,17 +77,35 @@ const Tiptap: React.FC<TiptapProps> = ({
                 },
               ])
               .run()
+              console.log(props, "props");
 
-            const newSelectedFile = {
-              title: props.title,
-              content: props.content,
-              reference: `@${props.title}`
-            };
-            const newSelectedFiles = selectedFiles.some(file => file.title === props.title) 
-              ? selectedFiles 
-              : [...selectedFiles, newSelectedFile];
-            setSelectedFiles(newSelectedFiles);
-            onFileSelect(newSelectedFiles);
+            if (props.type === 'file') {
+              const newSelectedFile = {
+                title: props.title,
+                content: props.content,
+                reference: `@${props.title}`,
+                path: props.path || props.title
+              };
+              const newSelectedFiles = selectedFiles.some(file => file.title === props.title) 
+                ? selectedFiles 
+                : [...selectedFiles, newSelectedFile];
+              setSelectedFiles(newSelectedFiles);
+              onFileSelect(newSelectedFiles);
+            } else if (props.type === 'tag') {
+              console.log(props.title, "props.title");
+              const newSelectedTags = selectedTags.includes(props.title)
+                ? selectedTags
+                : [...selectedTags, props.title];
+              setSelectedTags(newSelectedTags);
+              onTagSelect(newSelectedTags);
+            } else if (props.type === 'folder') {
+              console.log(props.title, "props.title");
+              const newSelectedFolders = selectedFolders.includes(props.path || props.title)
+                ? selectedFolders
+                : [...selectedFolders, props.path || props.title];
+              setSelectedFolders(newSelectedFolders);
+              onFolderSelect(newSelectedFolders);
+            }
           },
         },
       }),
@@ -95,12 +123,14 @@ const Tiptap: React.FC<TiptapProps> = ({
     if (editor) {
       editor.storage.mention = {
         files: [
-          { title: currentFileName, content: currentFileContent },
-          ...files.filter(file => file.title !== currentFileName)
+          { title: currentFileName, content: currentFileContent, path: currentFileName },
+          ...files.map(file => ({ ...file, path: file.title }))
         ],
+        tags,
+        folders: folders.map(folder => ({ title: folder, path: folder })),
       };
     }
-  }, [editor, files, currentFileName, currentFileContent]);
+  }, [editor, files, tags, folders, currentFileName, currentFileContent]);
 
   useEffect(() => {
     if (editor && editor.getText() !== value) {

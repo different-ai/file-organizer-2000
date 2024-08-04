@@ -11,7 +11,14 @@ export default forwardRef((props: any, ref) => {
   const selectItem = (index: number) => {
     const item = props.items[index];
     if (item) {
-      props.command({ id: item.title, title: item.title, content: item.content });
+      props.command({ 
+        id: item.id || item.title, 
+        title: item.title, 
+        content: item.content,
+        type: item.type,
+        label: item.label || item.title,
+        path: item.path // Add path to the command
+      });
     }
   };
 

@@ -9,22 +9,18 @@ export const maxDuration = 30;
 export async function POST(req: NextRequest) {
   try {
     const { userId } = await handleAuthorization(req);
-    const { messages, fileContent, fileName, context, selectedFiles } =
-      await req.json();
+    const { messages, unifiedContext } = await req.json();
+
+    const contextString = unifiedContext
+      .map(file => `File: ${file.title}\n\nContent:\n${file.content}`)
+      .join('\n\n');
 
     const result = await streamText({
       model: openai(process.env.MODEL_NAME || "gpt-4o-mini"),
-      system: `You are a helpful assistant. Here's some context about the current file:
-${fileContent} called ${fileName}
-Extra context: ${context}
+      system: `You are a helpful assistant. Here's some context about the current workspace:
+${contextString}
 Please use this context to inform your responses, but do not directly repeat this context in your answers unless specifically asked about the file content.`,
-      messages: [
-        {
-          role: "user",
-          content: selectedFiles.map(file => `@${file.reference}: ${file.content}`).join("\n"),
-        },
-        ...convertToCoreMessages(messages),
-      ],
+      messages: convertToCoreMessages(messages),
       onFinish: async ({ usage }) => {
         console.log("Token usage:", usage);
         await incrementAndLogTokenUsage(userId, usage.totalTokens);
