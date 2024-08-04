@@ -3,6 +3,7 @@ import { convertToCoreMessages, streamText } from "ai";
 import { NextResponse, NextRequest } from "next/server";
 import { incrementAndLogTokenUsage } from "@/lib/incrementAndLogTokenUsage";
 import { handleAuthorization } from "@/lib/handleAuthorization";
+import { z } from 'zod';
 
 export const maxDuration = 30;
 
@@ -21,13 +22,22 @@ export async function POST(req: NextRequest) {
 ${contextString}
 Please use this context to inform your responses, but do not directly repeat this context in your answers unless specifically asked about the file content.`,
       messages: convertToCoreMessages(messages),
+      tools: {
+        getNotesForDateRange: {
+          description: 'Get notes within a specified date range',
+          parameters: z.object({
+            startDate: z.string().describe('Start date of the range (ISO format)'),
+            endDate: z.string().describe('End date of the range (ISO format)'),
+          }),
+        },
+      },
       onFinish: async ({ usage }) => {
         console.log("Token usage:", usage);
         await incrementAndLogTokenUsage(userId, usage.totalTokens);
       },
     });
 
-    const response = result.toAIStreamResponse();
+    const response = result.toDataStreamResponse();
 
     // Add CORS headers
     response.headers.set("Access-Control-Allow-Origin", "*");

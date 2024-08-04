@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useRef, useCallback } from "react";
-import { useChat } from "ai/react";
-import { UseChatOptions } from "ai/react";
+import { useChat,UseChatOptions } from "@ai-sdk/react";
 
 import FileOrganizer from "../..";
 import ReactMarkdown from "react-markdown";
@@ -82,6 +81,8 @@ const ChatComponent: React.FC<ChatComponentProps> = ({
     handleInputChange,
     handleSubmit,
     stop,
+    addToolResult,
+    
   } = useChat({
     api: `${plugin.getServerUrl()}/api/chat`,
 
@@ -99,6 +100,15 @@ const ChatComponent: React.FC<ChatComponentProps> = ({
     },
     onFinish: () => {
       setErrorMessage(null);
+    },
+    maxToolRoundtrips: 5,
+    async onToolCall({ toolCall }) {
+      console.log(toolCall, "toolCall");
+      if (toolCall.toolName === 'getNotesForDateRange') {
+        const { startDate, endDate } = toolCall.args;
+        const filteredNotes = await filterNotesByDateRange(plugin, startDate, endDate);
+        return JSON.stringify(filteredNotes);
+      }
     },
   } as UseChatOptions);
 
@@ -294,6 +304,23 @@ const ChatComponent: React.FC<ChatComponentProps> = ({
     plugin.app.vault,
   ]);
 
+  const filterNotesByDateRange = async (plugin, startDate, endDate) => {
+    const files = plugin.app.vault.getFiles();
+    const filteredFiles = files.filter(file => {
+      const fileDate = new Date(file.stat.mtime);
+      return fileDate >= new Date(startDate) && fileDate <= new Date(endDate);
+    });
+
+    const fileContents = await Promise.all(
+      filteredFiles.map(async file => ({
+        title: file.basename,
+        content: await plugin.app.vault.read(file),
+      }))
+    );
+
+    return fileContents;
+  };
+
   return (
     <>
       <form
@@ -385,6 +412,27 @@ const ChatComponent: React.FC<ChatComponentProps> = ({
             <Avatar role={message.role as "user" | "assistant"} />
             <div className="message-content">
               <ReactMarkdown>{message.content}</ReactMarkdown>
+              {message.toolInvocations?.map((toolInvocation: ToolInvocation) => {
+                if (toolInvocation.toolName === 'getNotesForDateRange') {
+                  if ('result' in toolInvocation) {
+                    const notes = JSON.parse(toolInvocation.result);
+                    return (
+                      <div key={toolInvocation.toolCallId}>
+                        <h3>Notes Summary:</h3>
+                        {notes.map((note, index) => (
+                          <div key={index}>
+                            <h4>{note.title}</h4>
+                            <p>{note.content.substring(0, 100)}...</p>
+                          </div>
+                        ))}
+                      </div>
+                    );
+                  } else {
+                    return <div key={toolInvocation.toolCallId}>Fetching notes...</div>;
+                  }
+                }
+                // Handle other tool invocations...
+              })}
             </div>
           </div>
         ))}

@@ -42,7 +42,7 @@
     "@types/react-dom": "18.2.13",
     "@unkey/api": "^0.19.4",
     "@vercel/postgres": "^0.8.0",
-    "ai": "^3.2.32",
+    "ai": "^3.3.0",
     "autoprefixer": "10.4.16",
     "class-variance-authority": "^0.7.0",
     "clsx": "^2.0.0",
