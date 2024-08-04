@@ -156,48 +156,6 @@ const ChatComponent: React.FC<ChatComponentProps> = ({
 
   return (
     <>
-      <form
-        ref={formRef}
-        onSubmit={handleSendMessage}
-        className="chat-input-form"
-      >
-        <div className="tiptap-wrapper" ref={inputRef}>
-          <Tiptap
-            value={input}
-            onChange={handleTiptapChange}
-            onKeyDown={handleKeyDown}
-            files={allFiles}
-            onFileSelect={handleFileSelect}
-            currentFileName={fileName || ""}
-            currentFileContent={fileContent}
-          />
-        </div>
-        <Button type="submit" className="send-button">
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            viewBox="0 0 24 24"
-            fill="currentColor"
-            style={{ width: "20px", height: "20px" }} // Inline styles to make the icon smaller
-          >
-            <path d="M3.478 2.405a.75.75 0 00-.926.94l2.432 7.905H13.5a.75.75 0 010 1.5H4.984l-2.432 7.905a.75.75 0 00.926.94 60.519 60.519 0 0018.445-8.986.75.75 0 000-1.218A60.517 60.517 0 003.478 2.405z" />
-          </svg>
-        </Button>
-      </form>
-      <div className="selected-files">
-        {selectedFiles.map(file => (
-          <div
-            key={file.title}
-            className="selected-file"
-            onClick={() => handleOpenFile(file.title)}
-            style={{ cursor: 'pointer' }}
-          >
-            {file.title}
-            <button onClick={(e) => { e.stopPropagation(); handleRemoveFile(file.title); }} className="remove-file-button">
-              x
-            </button>
-          </div>
-        ))}
-      </div>
       <div className="chat-messages">
         {history.map(message => (
           <div key={message.id} className={`message ${message.role}-message`}>
@@ -228,6 +186,48 @@ const ChatComponent: React.FC<ChatComponentProps> = ({
           </Button>
         </div>
       )}
+      <form
+        ref={formRef}
+        onSubmit={handleSendMessage}
+        className="chat-input-form"
+      >
+        <div className="tiptap-wrapper" ref={inputRef}>
+          <Tiptap
+            value={input}
+            onChange={handleTiptapChange}
+            onKeyDown={handleKeyDown}
+            files={allFiles}
+            onFileSelect={handleFileSelect}
+            currentFileName={fileName || ""}
+            currentFileContent={fileContent}
+          />
+        </div>
+        <Button type="submit" className="send-button">
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            viewBox="0 0 24 24"
+            fill="currentColor"
+            style={{ width: "20px", height: "20px" }}
+          >
+            <path d="M3.478 2.405a.75.75 0 00-.926.94l2.432 7.905H13.5a.75.75 0 010 1.5H4.984l-2.432 7.905a.75.75 0 00.926.94 60.519 60.519 0 0018.445-8.986.75.75 0 000-1.218A60.517 60.517 0 003.478 2.405z" />
+          </svg>
+        </Button>
+      </form>
+      <div className="selected-files">
+        {selectedFiles.map(file => (
+          <div
+            key={file.title}
+            className="selected-file"
+            onClick={() => handleOpenFile(file.title)}
+            style={{ cursor: 'pointer' }}
+          >
+            {file.title}
+            <button onClick={(e) => { e.stopPropagation(); handleRemoveFile(file.title); }} className="remove-file-button">
+              x
+            </button>
+          </div>
+        ))}
+      </div>
     </>
   );
 };
@@ -294,16 +294,6 @@ const AIChatSidebar: React.FC<AIChatSidebarProps> = ({ plugin, apiKey }) => {
             <path d="M12 5v14M5 12h14" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
           </svg>
         </Button>
-        {/* {currentConversationIndex > 0 && (
-          <Button onClick={handlePreviousConversation} className="previous-conversation-button" aria-label="Previous Conversation">
-            Previous
-          </Button>
-        )}
-        {currentConversationIndex < conversations.length - 1 && (
-          <Button onClick={handleNextConversation} className="next-conversation-button" aria-label="Next Conversation">
-            Next
-          </Button>
-        )} */}
       </div>
       <ChatComponent
         key={currentConversationIndex}

@@ -212,7 +212,6 @@
   padding: 1rem;
 }
 
-
 .chat-input-form button {
   height: 2.37rem;
   width: 2.85rem;
@@ -259,7 +258,7 @@
 .chat-messages {
   flex-grow: 1;
   overflow-y: auto;
-  padding: 1rem;
+  padding-bottom: 1rem;
 }
 
 .message {
@@ -287,10 +286,9 @@
 
 /* Chat Input Form Styles */
 .chat-input-form {
+  margin-top: auto;
   display: flex;
   align-items: flex-end;
-  margin-top: 1rem;
-  margin-bottom: 1rem;
 }
 
 .chat-input-form button svg {
@@ -389,8 +387,10 @@
 
 /* Selected Files Styles */
 .selected-files {
-  font-size: 0.8rem; /* Will use small fonts */
+  margin-top: 0.5rem;
+  font-size: 0.8rem;
   display: flex;
+  flex-wrap: wrap;
   gap: 0.25rem;
 }
 
@@ -404,14 +404,13 @@
 }
 
 .remove-file-button {
-  box-shadow: none !important;
   all: unset;
-  box-sizing: border-box;
-  color: var(--text-normal);
   cursor: pointer;
   font-size: 1rem;
+  color: var(--text-muted);
+  box-shadow: none !important
 }
 
 .remove-file-button:hover {
-  color: var(--text-accent);
+  color: var(--text-normal);
 }
