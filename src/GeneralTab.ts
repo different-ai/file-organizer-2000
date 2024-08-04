@@ -94,7 +94,7 @@ export class ModelTab {
     const supportTextEl = youtubeEmbedEl.createEl("p", {
       cls: "file-organizer-support-text",
     });
-    supportTextEl.innerHTML = `File Organizer 2000 is 100%  open-source project developed by two brothers. If you find it valuable, please <a href="https://fileorganizer2000.com/?utm_source=obsidian&utm_medium=in-app&utm_campaign=support-us" target="_blank">consider supporting us</a> to help improve and maintain the project. 🙏`;
+    supportTextEl.innerHTML = `File Organizer 2000 is a 100%  open-source project developed by two brothers. If you find it valuable, please <a href="https://fileorganizer2000.com/?utm_source=obsidian&utm_medium=in-app&utm_campaign=support-us" target="_blank">consider supporting us</a> to help improve and maintain the project. 🙏`;
 
     // Adjust iframe height to fill available space
     const resizeObserver = new ResizeObserver(() => {
