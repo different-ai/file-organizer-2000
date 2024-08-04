@@ -340,77 +340,90 @@ const ChatComponent: React.FC<ChatComponentProps> = ({
     plugin.app.vault,
   ]);
 
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  const scrollToBottom = () => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  };
+
+  useEffect(() => {
+    scrollToBottom();
+  }, [messages, history]);
+
   return (
     <div className="chat-component">
       <div className="chat-messages">
-        {history.map(message => (
-          <div key={message.id} className={`message ${message.role}-message`}>
-            <Avatar role={message.role as "user" | "assistant"} />
-            <div className="message-content">
-              <ReactMarkdown>{message.content}</ReactMarkdown>
+        <div className="chat-messages-inner">
+          {history.map(message => (
+            <div key={message.id} className={`message ${message.role}-message`}>
+              <Avatar role={message.role as "user" | "assistant"} />
+              <div className="message-content">
+                <ReactMarkdown>{message.content}</ReactMarkdown>
+              </div>
             </div>
-          </div>
-        ))}
-        {messages.map(message => (
-          <div key={message.id} className={`message ${message.role}-message`}>
-            <Avatar role={message.role as "user" | "assistant"} />
-            <div className="message-content">
-              <ReactMarkdown>{message.content}</ReactMarkdown>
-              {message.toolInvocations?.map(
-                (toolInvocation: ToolInvocation) => {
-                  const toolCallId = toolInvocation.toolCallId;
-                  const handleAddResult = (result: string) =>
-                    addToolResult({ toolCallId, result });
+          ))}
+          {messages.map(message => (
+            <div key={message.id} className={`message ${message.role}-message`}>
+              <Avatar role={message.role as "user" | "assistant"} />
+              <div className="message-content">
+                <ReactMarkdown>{message.content}</ReactMarkdown>
+                {message.toolInvocations?.map(
+                  (toolInvocation: ToolInvocation) => {
+                    const toolCallId = toolInvocation.toolCallId;
+                    const handleAddResult = (result: string) =>
+                      addToolResult({ toolCallId, result });
 
-                  if (toolInvocation.toolName === "getNotesForDateRange") {
-                    // if ("result" in toolInvocation) {
-                    //   try {
-                    //     console.log(toolInvocation.result, "toolInvocation.result");
-                    //     const notes = JSON.parse(toolInvocation.result);
-                    //     return (
-                    //       <NotesForDateRange
-                    //         key={toolCallId}
-                    //         notes={notes}
-                    //       />
-                    //     );
-                    //   } catch (error) {
-                    //     console.error("Error parsing JSON:", error);
-                    //     return <div key={toolCallId}>Error parsing date range data</div>;
-                    //   }
-                    // } else {
-                    //   return (
-                    //     <div key={toolCallId}>
-                    //       Preparing to fetch notes...
-                    //     </div>
-                    //   );
-                    // }
-                  } else if (toolInvocation.toolName === "askForConfirmation") {
-                    return (
-                      <div key={toolCallId}>
-                        {toolInvocation.args.message}
-                        <div>
-                          {"result" in toolInvocation ? (
-                            <b>{toolInvocation.result}</b>
-                          ) : (
-                            <>
-                              <Button onClick={() => handleAddResult("Yes")}>
-                                Yes
-                              </Button>
-                              <Button onClick={() => handleAddResult("No")}>
-                                No
-                              </Button>
-                            </>
-                          )}
+                    if (toolInvocation.toolName === "getNotesForDateRange") {
+                      // if ("result" in toolInvocation) {
+                      //   try {
+                      //     console.log(toolInvocation.result, "toolInvocation.result");
+                      //     const notes = JSON.parse(toolInvocation.result);
+                      //     return (
+                      //       <NotesForDateRange
+                      //         key={toolCallId}
+                      //         notes={notes}
+                      //       />
+                      //     );
+                      //   } catch (error) {
+                      //     console.error("Error parsing JSON:", error);
+                      //     return <div key={toolCallId}>Error parsing date range data</div>;
+                      //   }
+                      // } else {
+                      //   return (
+                      //     <div key={toolCallId}>
+                      //       Preparing to fetch notes...
+                      //     </div>
+                      //   );
+                      // }
+                    } else if (toolInvocation.toolName === "askForConfirmation") {
+                      return (
+                        <div key={toolCallId}>
+                          {toolInvocation.args.message}
+                          <div>
+                            {"result" in toolInvocation ? (
+                              <b>{toolInvocation.result}</b>
+                            ) : (
+                              <>
+                                <Button onClick={() => handleAddResult("Yes")}>
+                                  Yes
+                                </Button>
+                                <Button onClick={() => handleAddResult("No")}>
+                                  No
+                                </Button>
+                              </>
+                            )}
+                          </div>
                         </div>
-                      </div>
-                    );
+                      );
+                    }
+                    // Handle other tool invocations...
                   }
-                  // Handle other tool invocations...
-                }
-              )}
+                )}
+              </div>
             </div>
-          </div>
-        ))}
+          ))}
+          <div ref={messagesEndRef} />
+        </div>
       </div>
 
       {errorMessage && (

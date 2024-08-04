@@ -225,7 +225,14 @@
   overflow-y: auto;
   padding: 1rem;
   display: flex;
-  flex-direction: column-reverse; /* Reverse the order to show latest messages at the bottom */
+  flex-direction: column; /* Change this from column-reverse to column */
+}
+
+/* Add this new rule */
+.chat-messages-inner {
+  display: flex;
+  flex-direction: column; /* This will keep the messages in chronological order */
+  min-height: min-content;
 }
 
 .chat-input-container {
