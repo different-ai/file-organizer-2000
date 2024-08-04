@@ -90,9 +90,15 @@ export class ModelTab {
       },
     });
 
+    // Text below the YouTube video
+    const supportTextEl = youtubeEmbedEl.createEl("p", {
+      cls: "file-organizer-support-text",
+    });
+    supportTextEl.innerHTML = `File Organizer 2000 is open-source, developed by two brothers. If you find it valuable, please <a href="https://fileorganizer2000.com/?utm_source=obsidian&utm_medium=in-app&utm_campaign=support-us" target="_blank">consider supporting us</a> to help improve and maintain the project. 🙏`;
+
     // Adjust iframe height to fill available space
     const resizeObserver = new ResizeObserver(() => {
-      const availableHeight = container.clientHeight - youtubeEmbedEl.offsetTop;
+      const availableHeight = container.clientHeight - youtubeEmbedEl.offsetTop - supportTextEl.offsetHeight;
       iframe.style.height = `${Math.max(315, availableHeight)}px`;
     });
 
