@@ -1,8 +1,9 @@
 import { ItemView, WorkspaceLeaf, TFile } from 'obsidian';
 import { createRoot, Root } from 'react-dom/client';
 import React from 'react';
-import AIChatSidebar from './AIChatSidebar';
 import FileOrganizer from '../..';
+import AIChatSidebar from './container';
+
 
 export class AIChatView extends ItemView {
   private root: Root;

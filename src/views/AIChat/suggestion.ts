@@ -1,6 +1,6 @@
 import { ReactRenderer } from '@tiptap/react'
 import tippy from 'tippy.js'
-import MentionList from './MentionList'
+import MentionList from './mentions'
 import Fuse from 'fuse.js'
 
 const suggestion = {

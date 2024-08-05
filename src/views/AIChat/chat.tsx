@@ -3,7 +3,7 @@ import { useChat, UseChatOptions } from "@ai-sdk/react";
 
 import FileOrganizer from "../..";
 import ReactMarkdown from "react-markdown";
-import Tiptap from "../components/TipTap";
+import Tiptap from "./tiptap";
 import { TFolder, TFile } from "obsidian";
 import { ToolInvocation } from "ai";
 
@@ -63,7 +63,7 @@ const filterNotesByDateRange = async (
   return fileContents;
 };
 
-const ChatComponent: React.FC<ChatComponentProps> = ({
+export const ChatComponent: React.FC<ChatComponentProps> = ({
   plugin,
   fileContent,
   fileName,
@@ -125,7 +125,8 @@ const ChatComponent: React.FC<ChatComponentProps> = ({
     async onToolCall({ toolCall }) {
       console.log(toolCall, "toolCall");
       if (toolCall.toolName === "getNotesForDateRange") {
-        const { startDate, endDate } = toolCall.args;
+        const args = toolCall.args as { startDate: string; endDate: string };
+        const { startDate, endDate } = args;
         const filteredNotes = await filterNotesByDateRange(
           plugin,
           startDate,
@@ -261,7 +262,7 @@ const ChatComponent: React.FC<ChatComponentProps> = ({
 
   useEffect(() => {
     const updateUnifiedContext = async () => {
-      let contextFiles = new Map<
+      const contextFiles = new Map<
         string,
         { title: string; content: string; path: string }
       >();
@@ -524,135 +525,4 @@ const ChatComponent: React.FC<ChatComponentProps> = ({
   );
 };
 
-// New component to handle fetching and displaying notes
-const NotesForDateRange: React.FC<{
-  notes: { title: string; content: string }[];
-}> = ({ notes }) => {
-  if (notes.length === 0) {
-    return <div>No notes found for the specified date range.</div>;
-  }
 
-  return (
-    <div>
-      <h3>Notes Summary:</h3>
-      {notes.map((note, index) => (
-        <div key={index}>
-          <h4>{note.title}</h4>
-          <p>{note.content.substring(0, 100)}...</p>
-        </div>
-      ))}
-    </div>
-  );
-};
-
-interface AIChatSidebarProps {
-  plugin: FileOrganizer;
-  apiKey: string;
-}
-
-const AIChatSidebar: React.FC<AIChatSidebarProps> = ({ plugin, apiKey }) => {
-  const [fileContent, setFileContent] = useState<string>("");
-  const [fileName, setFileName] = useState<string | null>(null);
-  const inputRef = useRef<HTMLDivElement>(null);
-  const [conversations, setConversations] = useState<
-    { id: string; role: string; content: string }[][]
-  >([[]]);
-  const [currentConversationIndex, setCurrentConversationIndex] =
-    useState<number>(0);
-
-  const startNewConversation = () => {
-    setConversations([...conversations, []]);
-    setCurrentConversationIndex(conversations.length);
-  };
-
-  const handlePreviousConversation = () => {
-    setCurrentConversationIndex(prevIndex => Math.max(prevIndex - 1, 0));
-  };
-
-  const handleNextConversation = () => {
-    setCurrentConversationIndex(prevIndex =>
-      Math.min(prevIndex + 1, conversations.length - 1)
-    );
-  };
-
-  useEffect(() => {
-    const loadFileContent = async () => {
-      const activeFile = plugin.app.workspace.getActiveFile();
-      if (activeFile) {
-        try {
-          const content = await plugin.app.vault.read(activeFile);
-          setFileContent(content);
-          setFileName(activeFile.basename);
-        } catch (error) {
-          console.error(`Error reading file: ${error}`);
-          setFileContent("");
-          setFileName(null);
-        }
-      } else {
-        setFileContent("");
-        setFileName(null);
-      }
-    };
-
-    loadFileContent();
-
-    // Set up event listener for file changes
-    const onFileOpen = plugin.app.workspace.on("file-open", loadFileContent);
-
-    return () => {
-      plugin.app.workspace.offref(onFileOpen);
-    };
-  }, [plugin.app.workspace, plugin.app.vault]);
-
-  return (
-    <Card className="ai-chat-sidebar">
-      <div className="new-conversation-container">
-        <Button
-          onClick={startNewConversation}
-          className="new-conversation-button"
-          aria-label="New Conversation"
-        >
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            viewBox="0 0 24 24"
-            fill="currentColor"
-          >
-            <path
-              d="M12 5v14M5 12h14"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            />
-          </svg>
-        </Button>
-        {/* {currentConversationIndex > 0 && (
-          <Button onClick={handlePreviousConversation} className="previous-conversation-button" aria-label="Previous Conversation">
-            Previous
-          </Button>
-        )}
-        {currentConversationIndex < conversations.length - 1 && (
-          <Button onClick={handleNextConversation} className="next-conversation-button" aria-label="Next Conversation">
-            Next
-          </Button>
-        )} */}
-      </div>
-      <ChatComponent
-        key={currentConversationIndex}
-        plugin={plugin}
-        fileContent={fileContent}
-        fileName={fileName}
-        apiKey={apiKey}
-        inputRef={inputRef}
-        history={conversations[currentConversationIndex]}
-        setHistory={newHistory => {
-          const updatedConversations = [...conversations];
-          updatedConversations[currentConversationIndex] = newHistory;
-          setConversations(updatedConversations);
-        }}
-      />
-    </Card>
-  );
-};
-
-export default AIChatSidebar;

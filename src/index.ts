@@ -8,8 +8,6 @@ import {
   WorkspaceLeaf,
   normalizePath,
   loadPdfJs,
-  requestUrl,
-  RequestUrlResponse,
 } from "obsidian";
 import { logMessage, formatToSafeName } from "../utils";
 import { FileOrganizerSettingTab } from "./FileOrganizerSettingTab";
@@ -47,7 +45,7 @@ import {
   getAllFolders,
 } from "./fileUtils";
 import { checkLicenseKey } from "./apiUtils";
-import { AIChatView } from "./views/AIChat/AIChatView";
+import { AIChatView } from "./views/AIChat/view";
 
 type TagCounts = {
   [key: string]: number;
