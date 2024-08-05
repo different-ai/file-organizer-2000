@@ -424,9 +424,11 @@
   gap: 0.5rem;
 }
 
+
 .selected-file {
   display: flex;
   align-items: center;
+  gap: 0.25rem;
   padding: 0.25rem 0.5rem;
   border-radius: 0.25rem;
   background-color: var(--background-secondary-alt);
@@ -434,7 +436,7 @@
   white-space: nowrap; /* Prevents wrapping */
 }
 
-.remove-file-button {
+.sanitized-button {
   box-shadow: none !important;
   all: unset;
   box-sizing: border-box;
@@ -443,6 +445,39 @@
   font-size: 1rem;
 }
 
-.remove-file-button:hover {
+
+.remove-button {
+  box-shadow: none !important;
+  all: unset;
+  box-sizing: border-box;
+  color: var(--text-muted);
+  cursor: pointer;
+  font-size: 1rem;
+}
+
+.remove-button:hover {
   color: var(--text-accent);
+}
+
+/* Spinner Styles */
+.spinner-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+}
+
+.spinner {
+  width: 20px;
+  height: 20px;
+  border: 2px solid var(--text-muted);
+  border-top: 2px solid var(--text-accent);
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin-right: 0.5rem;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
 }

@@ -9,6 +9,60 @@ import { ToolInvocation } from "ai";
 import { Button } from "./button";
 import { Avatar } from "./avatar";
 
+interface ToolInvocationHandlerProps {
+  toolInvocation: ToolInvocation;
+  addToolResult: (params: { toolCallId: string; result: string }) => void;
+}
+
+interface ToolInvocationHandlerProps {
+  toolInvocation: ToolInvocation;
+  addToolResult: (params: { toolCallId: string; result: string }) => void;
+}
+
+export const ToolInvocationHandler: React.FC<ToolInvocationHandlerProps> = ({
+  toolInvocation,
+  addToolResult,
+}) => {
+  const toolCallId = toolInvocation.toolCallId;
+  const handleAddResult = (result: string) =>
+    addToolResult({ toolCallId, result });
+
+  switch (toolInvocation.toolName) {
+    case "getNotesForDateRange":
+      if ("result" in toolInvocation) {
+        try {
+          console.log(toolInvocation.result, "toolInvocation.result");
+          return <div>Found {toolInvocation.result.length} notes</div>;
+        } catch (error) {
+          console.error("Error parsing JSON:", error);
+          return <div>Error parsing date range data</div>;
+        }
+      } else {
+        return <div>Getting notes...</div>;
+      }
+
+    case "askForConfirmation":
+      return (
+        <div>
+          {toolInvocation.args.message}
+          <div>
+            {"result" in toolInvocation ? (
+              <b>{toolInvocation.result}</b>
+            ) : (
+              <>
+                <Button onClick={() => handleAddResult("Yes")}>Yes</Button>
+                <Button onClick={() => handleAddResult("No")}>No</Button>
+              </>
+            )}
+          </div>
+        </div>
+      );
+
+    default:
+      return null;
+  }
+};
+
 interface ChatComponentProps {
   plugin: FileOrganizer;
   fileContent: string;
@@ -41,6 +95,28 @@ const filterNotesByDateRange = async (
 
   return fileContents;
 };
+
+const SelectedItem = ({
+  item,
+  onRemove,
+  prefix = "",
+  onClick,
+}: {
+  item: string;
+  onRemove: () => void;
+  prefix?: string;
+  onClick: () => void;
+}) => (
+  <div key={item} className={`selected-file`}>
+    <button onClick={onClick} className="sanitized-button">
+      {prefix}
+      {item}
+    </button>
+    <button onClick={onRemove} className="remove-button">
+      x
+    </button>
+  </div>
+);
 
 export const ChatComponent: React.FC<ChatComponentProps> = ({
   plugin,
@@ -202,6 +278,24 @@ export const ChatComponent: React.FC<ChatComponentProps> = ({
       await plugin.app.workspace.openLinkText(file.path, "", true);
     }
   };
+  const handleOpenFolder = (folderPath: string) => {
+    const folder = plugin.app.vault.getAbstractFileByPath(folderPath);
+    if (folder && folder instanceof TFolder) {
+      // Reveal the folder in the file explorer
+      const fileExplorerLeaf =
+        plugin.app.workspace.getLeavesOfType("file-explorer")[0];
+      if (fileExplorerLeaf) {
+        plugin.app.workspace.revealLeaf(fileExplorerLeaf);
+        // Focus on the folder in the file explorer
+        plugin.app.workspace.setActiveLeaf(fileExplorerLeaf);
+        // Expand the folder in the file explorer
+        const fileExplorer = fileExplorerLeaf.view as any;
+        if (fileExplorer && typeof fileExplorer.expandFolder === 'function') {
+          fileExplorer.expandFolder(folder);
+        }
+      }
+    }
+  };
 
   const handleTagSelect = (tags: string[]) => {
     setSelectedTags(tags);
@@ -348,56 +442,13 @@ export const ChatComponent: React.FC<ChatComponentProps> = ({
               <div className="message-content">
                 <ReactMarkdown>{message.content}</ReactMarkdown>
                 {message.toolInvocations?.map(
-                  (toolInvocation: ToolInvocation) => {
-                    const toolCallId = toolInvocation.toolCallId;
-                    const handleAddResult = (result: string) =>
-                      addToolResult({ toolCallId, result });
-
-                    if (toolInvocation.toolName === "getNotesForDateRange") {
-                      // if ("result" in toolInvocation) {
-                      //   try {
-                      //     console.log(toolInvocation.result, "toolInvocation.result");
-                      //     const notes = JSON.parse(toolInvocation.result);
-                      //     return (
-                      //       <NotesForDateRange
-                      //         key={toolCallId}
-                      //         notes={notes}
-                      //       />
-                      //     );
-                      //   } catch (error) {
-                      //     console.error("Error parsing JSON:", error);
-                      //     return <div key={toolCallId}>Error parsing date range data</div>;
-                      //   }
-                      // } else {
-                      //   return (
-                      //     <div key={toolCallId}>
-                      //       Preparing to fetch notes...
-                      //     </div>
-                      //   );
-                      // }
-                    } else if (toolInvocation.toolName === "askForConfirmation") {
-                      return (
-                        <div key={toolCallId}>
-                          {toolInvocation.args.message}
-                          <div>
-                            {"result" in toolInvocation ? (
-                              <b>{toolInvocation.result}</b>
-                            ) : (
-                              <>
-                                <Button onClick={() => handleAddResult("Yes")}>
-                                  Yes
-                                </Button>
-                                <Button onClick={() => handleAddResult("No")}>
-                                  No
-                                </Button>
-                              </>
-                            )}
-                          </div>
-                        </div>
-                      );
-                    }
-                    // Handle other tool invocations...
-                  }
+                  (toolInvocation: ToolInvocation) => (
+                    <ToolInvocationHandler
+                      key={toolInvocation.toolCallId}
+                      toolInvocation={toolInvocation}
+                      addToolResult={addToolResult}
+                    />
+                  )
                 )}
               </div>
             </div>
@@ -422,43 +473,23 @@ export const ChatComponent: React.FC<ChatComponentProps> = ({
       <div className="chat-input-container">
         <div className="selected-files">
           {selectedFiles.map(file => (
-            <div key={file.title} className="selected-file">
-              {file.title}
-              <button
-                onClick={() => handleRemoveFile(file.title)}
-                className="remove-file-button"
-              >
-                x
-              </button>
-            </div>
+            <SelectedItem
+              key={file.title}
+              item={file.title}
+              onClick={() => handleOpenFile(file.title)}
+              onRemove={() => handleRemoveFile(file.title)}
+            />
           ))}
-          {selectedTags.map(tag => (
-            <div key={tag} className="selected-item tag">
-              #{tag}
-              <button
-                onClick={() =>
-                  setSelectedTags(tags => tags.filter(t => t !== tag))
-                }
-                className="remove-button"
-              >
-                x
-              </button>
-            </div>
-          ))}
+
           {selectedFolders.map(folder => (
-            <div key={folder} className="selected-item folder">
-              {folder}
-              <button
-                onClick={() =>
-                  setSelectedFolders(folders =>
-                    folders.filter(f => f !== folder)
-                  )
-                }
-                className="remove-button"
-              >
-                x
-              </button>
-            </div>
+            <SelectedItem
+              key={folder}
+              item={folder}
+              onClick={() => handleOpenFolder(folder)}
+              onRemove={() =>
+                setSelectedFolders(folders => folders.filter(f => f !== folder))
+              }
+            />
           ))}
         </div>
 
@@ -503,5 +534,3 @@ export const ChatComponent: React.FC<ChatComponentProps> = ({
     </div>
   );
 };
-
-
