@@ -1,6 +1,8 @@
 import React, { useEffect, useRef, useState } from "react";
-import { Button, Card, ChatComponent } from "./chat";
+import {  ChatComponent } from "./chat";
 import FileOrganizer from "../..";
+import { Card } from "./card";
+import { Button } from "./button";
 
 interface AIChatSidebarProps {
   plugin: FileOrganizer;

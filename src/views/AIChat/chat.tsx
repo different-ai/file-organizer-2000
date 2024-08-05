@@ -6,29 +6,8 @@ import ReactMarkdown from "react-markdown";
 import Tiptap from "./tiptap";
 import { TFolder, TFile } from "obsidian";
 import { ToolInvocation } from "ai";
-
-export const Button: React.FC<
-  React.ButtonHTMLAttributes<HTMLButtonElement>
-> = ({ children, ...props }) => (
-  <button {...props} className={`button ${props.className || ""}`}>
-    {children}
-  </button>
-);
-
-export const Card: React.FC<React.HTMLAttributes<HTMLDivElement>> = ({
-  children,
-  ...props
-}) => (
-  <div {...props} className={`card ${props.className || ""}`}>
-    {children}
-  </div>
-);
-
-export const Avatar: React.FC<
-  React.HTMLAttributes<HTMLDivElement> & { role: "user" | "assistant" }
-> = ({ role, ...props }) => (
-  <div {...props} className={`avatar ${role} ${props.className || ""}`}></div>
-);
+import { Button } from "./button";
+import { Avatar } from "./avatar";
 
 interface ChatComponentProps {
   plugin: FileOrganizer;
