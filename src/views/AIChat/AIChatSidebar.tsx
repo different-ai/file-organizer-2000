@@ -233,7 +233,7 @@ const ChatComponent: React.FC<ChatComponentProps> = ({
 
   useEffect(() => {
     const loadAllFiles = async () => {
-      const files = plugin.app.vault.getFiles();
+      const files = plugin.app.vault.getMarkdownFiles();
       const fileData = await Promise.all(
         files.map(async file => ({
           title: file.basename,
