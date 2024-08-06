@@ -41,6 +41,19 @@ export const ToolInvocationHandler: React.FC<ToolInvocationHandlerProps> = ({
         return <div>Getting notes...</div>;
       }
 
+    case "searchNotes":
+      if ("result" in toolInvocation) {
+        try {
+          const searchResults = JSON.parse(toolInvocation.result);
+          return <div>Found {searchResults.length} notes matching the search query</div>;
+        } catch (error) {
+          console.error("Error parsing JSON:", error);
+          return <div>Error parsing search results</div>;
+        }
+      } else {
+        return <div>Searching notes...</div>;
+      }
+
     case "askForConfirmation":
       return (
         <div>
@@ -150,6 +163,25 @@ export const ChatComponent: React.FC<ChatComponentProps> = ({
     console.log(selectedFolders, "selectedFolders");
   }, [selectedFiles, selectedTags, selectedFolders]);
 
+  const searchNotes = async (query: string) => {
+    const files = plugin.getAllUserMarkdownFiles();
+    const searchResults = await Promise.all(
+      files.map(async file => {
+        const content = await plugin.app.vault.read(file);
+        if (content.toLowerCase().includes(query.toLowerCase())) {
+          return {
+            title: file.basename,
+            content: content,
+            reference: `Search query: ${query}`,
+            path: file.path,
+          };
+        }
+        return null;
+      })
+    );
+    return searchResults.filter(result => result !== null);
+  };
+
   const {
     isLoading: isGenerating,
     messages,
@@ -200,6 +232,15 @@ export const ChatComponent: React.FC<ChatComponentProps> = ({
         ]);
 
         return JSON.stringify(filteredNotes);
+      } else if (toolCall.toolName === "searchNotes") {
+        const args = toolCall.args as { query: string };
+        const { query } = args;
+        const searchResults = await searchNotes(query);
+
+        // Add search results to selectedFiles
+        setSelectedFiles(prevFiles => [...prevFiles, ...searchResults]);
+
+        return JSON.stringify(searchResults);
       }
     },
   } as UseChatOptions);
@@ -290,7 +331,7 @@ export const ChatComponent: React.FC<ChatComponentProps> = ({
         plugin.app.workspace.setActiveLeaf(fileExplorerLeaf);
         // Expand the folder in the file explorer
         const fileExplorer = fileExplorerLeaf.view as any;
-        if (fileExplorer && typeof fileExplorer.expandFolder === 'function') {
+        if (fileExplorer && typeof fileExplorer.expandFolder === "function") {
           fileExplorer.expandFolder(folder);
         }
       }
@@ -474,7 +515,7 @@ export const ChatComponent: React.FC<ChatComponentProps> = ({
         <div className="selected-files">
           {selectedFiles.map(file => (
             <SelectedItem
-              key={file.title}
+              key={file.path}
               item={file.title}
               onClick={() => handleOpenFile(file.title)}
               onRemove={() => handleRemoveFile(file.title)}
