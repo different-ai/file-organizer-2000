@@ -17,7 +17,8 @@ export async function generateTags(
   content: string,
   fileName: string,
   tags: string[],
-  model: LanguageModel
+  model: LanguageModel,
+  usePopularTags: boolean
 ) {
   const modelName = model.modelId;
 
@@ -26,7 +27,7 @@ export async function generateTags(
     schema: z.object({
       tags: z.array(z.string()).default(["none"]),
     }),
-    prompt: `Given the text "${content}" (and if relevant ${fileName}), identify the at most 5 relevant tags from the following list, sorted from most commonly found to least commonly found: ${tags.join(
+    prompt: `Given the text "${content}" (and if relevant ${fileName}), identify the at most 5 relevant tags from the following list of ${usePopularTags ? "popular" : "similar"} tags, sorted from most commonly found to least commonly found: ${tags.join(
       ", "
     )}`,
   });

@@ -22,13 +22,13 @@ const SimilarTags: React.FC<{
   plugin: FileOrganizer;
   file: TFile | null;
   content: string;
-  usePopularTags: boolean;
-}> = ({ plugin, file, content, usePopularTags }) => {
+}> = React.memo(({ plugin, file, content }) => {
   const [suggestions, setSuggestions] = React.useState<string[] | null>(null);
   const [loading, setLoading] = React.useState<boolean>(false);
+  const [usePopularTags, setUsePopularTags] = React.useState<boolean>(false);
 
   const suggestTags = React.useCallback(async () => {
-    if (!content) {
+    if (!content || !file) {
       setSuggestions([]);
       return;
     }
@@ -38,6 +38,7 @@ const SimilarTags: React.FC<{
       setSuggestions(tags);
     } catch (error) {
       console.error(error);
+      setSuggestions([]);
     } finally {
       setLoading(false);
     }
@@ -47,29 +48,65 @@ const SimilarTags: React.FC<{
     suggestTags();
   }, [suggestTags]);
 
+  const toggleTagType = React.useCallback(() => {
+    setUsePopularTags(prev => !prev);
+  }, []);
+
+  const headerText = React.useMemo(() => 
+    usePopularTags ? "Suggested tags" : "Similar tags", 
+  [usePopularTags]);
+
+  const handleTagClick = React.useCallback((tag: string) => {
+    if (file) {
+      plugin.appendTag(file, tag);
+    }
+  }, [plugin, file]);
+
   return (
     <div className="assistant-section tags-section">
+      <SectionHeader 
+        text={headerText}
+        icon="🏷️" 
+        action={
+          <button onClick={toggleTagType} className="refresh-tags-button">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="15"
+              height="15"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <path d="M21.5 2v6h-6M2.5 22v-6h6M2 11.5a10 10 0 0 1 18.8-4.3M22 12.5a10 10 0 0 1-18.8 4.3" />
+            </svg>
+          </button>
+        }
+      />
       {loading ? (
         <div>Loading...</div>
       ) : (
         <div className="tags-container">
-          {suggestions &&
+          {suggestions && suggestions.length > 0 ? (
             suggestions.map((tag, index) => (
               <span
-                key={index}
+                key={`${tag}-${index}`}
                 className="tag"
-                onClick={() => plugin.appendTag(file!, tag)}
+                onClick={() => handleTagClick(tag)}
               >
                 {tag}
               </span>
-            ))}
-          {!suggestions && <div>No tags found</div>}
-          {suggestions && suggestions.length === 0 && <div>No tags found</div>}
+            ))
+          ) : (
+            <div>No tags found</div>
+          )}
         </div>
       )}
     </div>
   );
-};
+});
 
 const DocumentChunks: React.FC<{
   plugin: FileOrganizer;
@@ -532,8 +569,6 @@ export const AssistantView: React.FC<AssistantViewProps> = ({ plugin }) => {
   const [noteContent, setNoteContent] = React.useState<string>("");
   const [hasAudio, setHasAudio] = React.useState<boolean>(false);
   const [refreshKey, setRefreshKey] = React.useState<number>(0);
-  const [tagsHeaderText, setTagsHeaderText] = React.useState("Similar tags");
-  const [usePopularTags, setUsePopularTags] = React.useState(false);
 
   const refreshAssistant = () => {
     setRefreshKey((prevKey) => prevKey + 1);
@@ -637,40 +672,10 @@ export const AssistantView: React.FC<AssistantViewProps> = ({ plugin }) => {
         content={noteContent}
       />
 
-      <SectionHeader 
-        text={tagsHeaderText} 
-        icon="🏷️" 
-        action={
-          <button 
-            onClick={() => {
-              setUsePopularTags(prev => !prev);
-              setTagsHeaderText(prev => 
-                prev === "Similar tags" ? "Suggested tags" : "Similar tags"
-              );
-            }} 
-            className="refresh-tags-button"
-          >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              width="15"
-              height="15"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            >
-              <path d="M21.5 2v6h-6M2.5 22v-6h6M2 11.5a10 10 0 0 1 18.8-4.3M22 12.5a10 10 0 0 1-18.8 4.3" />
-            </svg>
-          </button>
-        }
-      />
-      <SimilarTags 
-        plugin={plugin} 
-        file={activeFile} 
-        content={noteContent} 
-        usePopularTags={usePopularTags}
+      <SimilarTags
+        plugin={plugin}
+        file={activeFile}
+        content={noteContent}
       />
 
       <SectionHeader text="Suggested title" icon="💡" />
