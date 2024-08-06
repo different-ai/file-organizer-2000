@@ -36,6 +36,17 @@ Please use this context to inform your responses, but do not directly repeat thi
             return `Notes fetched for date range: ${startDate} to ${endDate}`;
           },
         },
+        searchNotes: {
+          description: "Search for notes containing specific keywords or phrases",
+          parameters: z.object({
+            query: z.string().describe('The search query to find relevant notes'),
+          }),
+          execute: async ({ query }) => {
+            console.log("Searching notes for:", query);
+            // This will be handled client-side, so we just return the query
+            return query;
+          },
+        },
       },
       onFinish: async ({ usage }) => {
         console.log("Token usage:", usage);
