@@ -80,7 +80,7 @@ const filterNotesByDateRange = async (
   startDate: string,
   endDate: string
 ) => {
-  const files = plugin.app.vault.getMarkdownFiles();
+  const files = plugin.getAllUserMarkdownFiles();
   const filteredFiles = files.filter(file => {
     const fileDate = new Date(file.stat.mtime);
     return fileDate >= new Date(startDate) && fileDate <= new Date(endDate);
@@ -307,7 +307,7 @@ export const ChatComponent: React.FC<ChatComponentProps> = ({
 
   useEffect(() => {
     const loadAllFiles = async () => {
-      const files = plugin.app.vault.getMarkdownFiles();
+      const files = plugin.getAllUserMarkdownFiles();
       const fileData = await Promise.all(
         files.map(async file => ({
           title: file.basename,

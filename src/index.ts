@@ -765,9 +765,31 @@ export default class FileOrganizer extends Plugin {
       destinationFolder
     );
   }
+  // rn used to provide aichat contex
+  getAllUserMarkdownFiles(): TFile[] {
+    const settingsPaths = [
+      this.settings.pathToWatch,
+      this.settings.defaultDestinationPath,
+      this.settings.attachmentsPath,
+      this.settings.backupFolderPath,
+    ];
+    const allFiles = this.app.vault.getMarkdownFiles();
+    // remove any file path that is part of the settingsPath
+    const allFilesFiltered = allFiles.filter(
+      file => !settingsPaths.some(path => file.path.includes(path))
+    );
+
+    return allFilesFiltered;
+  }
 
   getAllFolders(): string[] {
-    return getAllFolders(this.app);
+    return getAllFolders(this.app)
+      .filter(folder => !this.settings.ignoreFolders.includes(folder))
+      .filter(folder => folder !== this.settings.pathToWatch)
+      .filter(folder => folder !== this.settings.defaultDestinationPath)
+      .filter(folder => folder !== this.settings.attachmentsPath)
+      .filter(folder => folder !== this.settings.backupFolderPath)
+      .filter(folder => folder !== this.settings.templatePaths);
   }
 
   async getSimilarFiles(fileToCheck: TFile): Promise<string[]> {
