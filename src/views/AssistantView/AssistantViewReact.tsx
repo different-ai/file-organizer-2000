@@ -665,7 +665,7 @@ export const AssistantView: React.FC<AssistantViewProps> = ({ plugin }) => {
       />
 
       <SectionHeader 
-        text={`Similar tags (${usePopularTags ? 'Popular' : 'Vault'})`} 
+        text={`${usePopularTags ? 'Suggested' : 'Similar'} tags`} 
         icon="🏷️" 
         onRefresh={refreshTags} 
       />
