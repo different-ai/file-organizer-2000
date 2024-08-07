@@ -1,9 +1,9 @@
-import { openai } from "@ai-sdk/openai";
 import { convertToCoreMessages, streamText } from "ai";
 import { NextResponse, NextRequest } from "next/server";
 import { incrementAndLogTokenUsage } from "@/lib/incrementAndLogTokenUsage";
 import { handleAuthorization } from "@/lib/handleAuthorization";
-import { z } from 'zod';
+import { z } from "zod";
+import { openai } from "@ai-sdk/openai";
 
 export const maxDuration = 30;
 
@@ -13,33 +13,38 @@ export async function POST(req: NextRequest) {
     const { messages, unifiedContext } = await req.json();
 
     const contextString = unifiedContext
-      .map(file => `File: ${file.title}\n\nContent:\n${file.content}`)
-      .join('\n\n');
+      .map((file) => `File: ${file.title}\n\nContent:\n${file.content}`)
+      .join("\n\n");
 
     const result = await streamText({
       model: openai(process.env.MODEL_NAME || "gpt-4o-mini"),
-      system: `You are a helpful assistant. Here's some context about the current workspace:
+      system: `You are a helpful assistant. Here are some files that you can use to answer questions:
 ${contextString}
 Please use this context to inform your responses, but do not directly repeat this context in your answers unless specifically asked about the file content.`,
       messages: convertToCoreMessages(messages),
       tools: {
         getNotesForDateRange: {
-          description: `Get notes within a specified date range. Today is ${new Date().toISOString().split('T')[0]}`,
+          description: `If user asks for notes related to a date, get notes within a specified date range. Today is ${
+            new Date().toISOString().split("T")[0]
+          }`,
           parameters: z.object({
-            startDate: z.string().describe('Start date of the range (ISO format)'),
-            endDate: z.string().describe('End date of the range (ISO format)'),
+            startDate: z
+              .string()
+              .describe("Start date of the range (ISO format)"),
+            endDate: z.string().describe("End date of the range (ISO format)"),
           }),
           execute: async ({ startDate, endDate }) => {
             console.log(startDate, endDate, "startDate, endDate");
-            // Implement the logic to fetch notes for the given date range
-            // This is a placeholder implementation
             return `Notes fetched for date range: ${startDate} to ${endDate}`;
           },
         },
         searchNotes: {
-          description: "Search for notes containing specific keywords or phrases",
+          description:
+            "Search for notes containing specific keywords or phrases",
           parameters: z.object({
-            query: z.string().describe('The search query to find relevant notes'),
+            query: z
+              .string()
+              .describe("The search query to find relevant notes"),
           }),
           execute: async ({ query }) => {
             console.log("Searching notes for:", query);
