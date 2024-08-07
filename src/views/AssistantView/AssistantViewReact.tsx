@@ -6,13 +6,31 @@ interface AssistantViewProps {
   plugin: FileOrganizer;
 }
 
-const SectionHeader: React.FC<{ text: string; icon?: string }> = ({
+const SectionHeader: React.FC<{ text: string; icon?: string; onRefresh?: () => void }> = ({
   text,
   icon,
+  onRefresh,
 }) => (
   <h6 className="assistant-section-header">
     {icon && <span className="assistant-section-icon">{icon}</span>}
     {text}
+    {onRefresh && (
+      <button onClick={onRefresh} className="refresh-icon-button">
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          width="15"
+          height="15"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        >
+          <path d="M21.5 2v6h-6M2.5 22v-6h6M2 11.5a10 10 0 0 1 18.8-4.3M22 12.5a10 10 0 0 1-18.8 4.3" />
+        </svg>
+      </button>
+    )}
   </h6>
 );
 
@@ -597,6 +615,15 @@ export const AssistantView: React.FC<AssistantViewProps> = ({ plugin }) => {
     return validMediaExtensions.includes(file.extension);
   };
 
+  const refreshTags = () => {
+    // Implement the logic to refresh tags here
+    // For example, you might want to re-fetch the tags for the current file
+    if (activeFile) {
+      // Trigger a re-render of the SimilarTags component
+      setRefreshKey((prevKey) => prevKey + 1);
+    }
+  };
+
   // if active file is null, display a placeholder (e.g. when opening a file in the Fo2k folder)
   if (!activeFile) {
     return (
@@ -632,8 +659,8 @@ export const AssistantView: React.FC<AssistantViewProps> = ({ plugin }) => {
         content={noteContent}
       />
 
-      <SectionHeader text="Similar tags" icon="🏷️" />
-      <SimilarTags plugin={plugin} file={activeFile} content={noteContent} />
+      <SectionHeader text="Similar tags" icon="🏷️" onRefresh={refreshTags} />
+      <SimilarTags key={refreshKey} plugin={plugin} file={activeFile} content={noteContent} />
 
       <SectionHeader text="Suggested title" icon="💡" />
       <RenameSuggestion

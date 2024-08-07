@@ -481,3 +481,15 @@
   0% { transform: rotate(0deg); }
   100% { transform: rotate(360deg); }
 }
+.refresh-icon-button {
+  background: none !important;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  margin-left: 5px;
+  box-shadow: none !important;
+}
+
+.refresh-icon-button:hover {
+  opacity: 0.7;
+}
