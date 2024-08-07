@@ -6,16 +6,28 @@ interface AssistantViewProps {
   plugin: FileOrganizer;
 }
 
-const SectionHeader: React.FC<{ text: string; icon?: string; onRefresh?: () => void }> = ({
+const SectionHeader: React.FC<{ 
+  text: string; 
+  icon?: string; 
+  onRefresh?: () => void;
+  usePopularTags?: boolean;
+}> = ({
   text,
   icon,
   onRefresh,
+  usePopularTags
 }) => (
   <h6 className="assistant-section-header">
     {icon && <span className="assistant-section-icon">{icon}</span>}
     {text}
     {onRefresh && (
-      <button onClick={onRefresh} className="refresh-icon-button">
+      <button 
+        onClick={onRefresh} 
+        className="refresh-icon-button"
+        title={usePopularTags 
+          ? "Switch to tags from your vault" 
+          : "Generate tags using AI"}
+      >
         <svg
           xmlns="http://www.w3.org/2000/svg"
           width="15"
@@ -665,9 +677,10 @@ export const AssistantView: React.FC<AssistantViewProps> = ({ plugin }) => {
       />
 
       <SectionHeader 
-        text={`${usePopularTags ? 'Suggested' : 'Similar'} tags`} 
+        text={` ${usePopularTags ? 'Suggested' : 'Vault'} tags`} 
         icon="🏷️" 
-        onRefresh={refreshTags} 
+        onRefresh={refreshTags}
+        usePopularTags={usePopularTags}
       />
       <SimilarTags 
         key={refreshKey} 
