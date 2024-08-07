@@ -163,17 +163,16 @@ export default class FileOrganizer extends Plugin {
         oldPath
       );
       
-      // Format the content if necessary
-      let formattedText = text;
-      if (metadata.instructions.shouldClassify && metadata.classification) {
-        formattedText = metadata.aiFormattedText;
-      }
+      // Use aiFormattedText if classification is enabled and available, otherwise use original text
+      const textToUse = metadata.instructions.shouldClassify && metadata.aiFormattedText
+        ? metadata.aiFormattedText
+        : text;
       
-      // Get the new path based on the formatted content
-      const newPath = await this.getAIClassifiedFolder(formattedText, originalFile.path);
+      // Get the new path based on the text to use
+      const newPath = await this.getAIClassifiedFolder(textToUse, originalFile.path);
       metadata.newPath = newPath;
 
-      await this.executeInstructions(metadata, originalFile, formattedText);
+      await this.executeInstructions(metadata, originalFile, textToUse);
     } catch (error) {
       new Notice(`Error processing ${originalFile.basename}`, 3000);
       new Notice(error.message, 6000);
@@ -791,6 +790,425 @@ export default class FileOrganizer extends Plugin {
 
     return allFilesFiltered;
   }
+
+  getAllFolders(): string[] {
+    return getAllFolders(this.app)
+      .filter(folder => !this.settings.ignoreFolders.includes(folder))
+      .filter(folder => folder !== this.settings.pathToWatch)
+      .filter(folder => folder !== this.settings.defaultDestinationPath)
+      .filter(folder => folder !== this.settings.attachmentsPath)
+      .filter(folder => folder !== this.settings.backupFolderPath)
+      .filter(folder => folder !== this.settings.templatePaths);
+  }
+
+  async getSimilarFiles(fileToCheck: TFile): Promise<string[]> {
+    if (!fileToCheck) {
+      return [];
+    }
+
+    const activeFileContent = await this.app.vault.read(fileToCheck);
+    logMessage("activeFileContent", activeFileContent);
+    const settingsPaths = [
+      this.settings.pathToWatch,
+      this.settings.defaultDestinationPath,
+      this.settings.attachmentsPath,
+      this.settings.logFolderPath,
+      this.settings.templatePaths,
+    ];
+    const allFiles = this.app.vault.getMarkdownFiles();
+    // remove any file path that is part of the settingsPath
+    const allFilesFiltered = allFiles.filter(
+      file =>
+        !settingsPaths.some(path => file.path.includes(path)) &&
+        file.path !== fileToCheck.path
+    );
+
+    const fileContents = allFilesFiltered.map(file => ({
+      name: file.path,
+    }));
+
+    const similarFiles = await generateRelationshipsRouter(
+      activeFileContent,
+      fileContents,
+      this.settings.usePro,
+      this.getServerUrl(),
+      this.settings.API_KEY
+    );
+
+    return similarFiles.filter(
+      (file: string) =>
+        !settingsPaths.some(path => file.includes(path)) &&
+        !this.settings.ignoreFolders.includes(file)
+    );
+  }
+
+  async moveToAttachmentFolder(file: TFile, newFileName: string) {
+    const destinationFolder = this.settings.attachmentsPath;
+    return await this.moveFile(file, newFileName, destinationFolder);
+  }
+
+  async generateNameFromContent(
+    content: string,
+    currentName: string
+  ): Promise<string> {
+    const renameInstructions = this.settings.renameInstructions;
+    logMessage("renameInstructions", renameInstructions);
+    const name = await generateDocumentTitleRouter(
+      content,
+      currentName,
+      this.settings.usePro,
+      this.getServerUrl(),
+      this.settings.API_KEY,
+      renameInstructions
+    );
+    return formatToSafeName(name);
+  }
+
+  async compressImage(fileContent: Buffer): Promise<Buffer> {
+    const image = await Jimp.read(fileContent);
+
+    // Check if the image is bigger than 1000 pixels in either width or height
+    if (image.getWidth() > 1000 || image.getHeight() > 1000) {
+      // Resize the image to a maximum of 1000x1000 while preserving aspect ratio
+      image.scaleToFit(1000, 1000);
+    }
+
+    const resizedImage = await image.getBufferAsync(Jimp.MIME_PNG);
+    return resizedImage;
+  }
+
+  isWebP(fileContent: Buffer): boolean {
+    // Check if the file starts with the WebP signature
+    return (
+      fileContent.slice(0, 4).toString("hex") === "52494646" &&
+      fileContent.slice(8, 12).toString("hex") === "57454250"
+    );
+  }
+
+  // main.ts
+  async generateImageAnnotation(file: TFile, customPrompt?: string) {
+    new Notice(
+      `Generating annotation for ${file.basename} this can take up to a minute`,
+      8000
+    );
+
+    const arrayBuffer = await this.app.vault.readBinary(file);
+    const fileContent = Buffer.from(arrayBuffer);
+    const imageSize = fileContent.byteLength;
+    const imageSizeInMB2 = imageSize / (1024 * 1024);
+    logMessage(`Image size: ${imageSizeInMB2.toFixed(2)} MB`);
+
+    let processedArrayBuffer: ArrayBuffer;
+
+    if (!this.isWebP(fileContent)) {
+      // Compress the image if it's not a WebP
+      const resizedImage = await this.compressImage(fileContent);
+      processedArrayBuffer = resizedImage.buffer;
+    } else {
+      // If it's a WebP, use the original file content directly
+      processedArrayBuffer = arrayBuffer;
+    }
+
+    const processedContent = await extractTextFromImageRouter(
+      processedArrayBuffer,
+      this.settings.usePro,
+      this.getServerUrl(),
+      this.settings.API_KEY
+    );
+
+    return processedContent;
+  }
+
+  async getBacklog() {
+    const allFiles = this.app.vault.getFiles();
+    const pendingFiles = allFiles.filter(file =>
+      file.path.includes(this.settings.pathToWatch)
+    );
+    return pendingFiles;
+  }
+  async processBacklog() {
+    const pendingFiles = await this.getBacklog();
+    for (const file of pendingFiles) {
+      await this.processFileV2(file);
+    }
+  }
+  async getSimilarTags(content: string, fileName: string): Promise<string[]> {
+    const tags: string[] = await this.getAllTags();
+
+    if (tags.length === 0) {
+      console.log("No tags found");
+      return [];
+    }
+
+    return await generateTagsRouter(
+      content,
+      fileName,
+      tags,
+      this.settings.usePro,
+      this.getServerUrl(),
+      this.settings.API_KEY
+    );
+  }
+
+  async getAllTags(): Promise<string[]> {
+    // Fetch all tags from the vault
+    // @ts-ignore
+    const tags: TagCounts = this.app.metadataCache.getTags();
+
+    // If no tags are found, return an empty array
+    if (Object.keys(tags).length === 0) {
+      logMessage("No tags found");
+      return [];
+    }
+
+    // Sort tags by their occurrence count in descending order
+    const sortedTags = Object.entries(tags).sort((a, b) => b[1] - a[1]);
+
+    // Return the list of sorted tags
+    return sortedTags.map(tag => tag[0]);
+  }
+
+  isTFolder(file: TAbstractFile): file is TFolder {
+    return file instanceof TFolder;
+  }
+
+  async getAIClassifiedFolder(
+    content: string,
+    filePath: string
+  ): Promise<string> {
+    let destinationFolder = "None";
+
+    const uniqueFolders = await this.getAllFolders();
+    logMessage("uniqueFolders", uniqueFolders);
+
+    logMessage("ignore folders", this.settings.ignoreFolders);
+
+    const filteredFolders = uniqueFolders
+      .filter(folder => folder !== filePath)
+      .filter(folder => folder !== this.settings.defaultDestinationPath)
+      .filter(folder => folder !== this.settings.attachmentsPath)
+      .filter(folder => folder !== this.settings.logFolderPath)
+      .filter(folder => folder !== this.settings.pathToWatch)
+      .filter(folder => folder !== this.settings.templatePaths)
+      .filter(folder => !folder.includes("_FileOrganizer2000"))
+      // if  this.settings.ignoreFolders has one or more folder specified, filter them out including subfolders
+      .filter(folder => {
+        const hasIgnoreFolders =
+          this.settings.ignoreFolders.length > 0 &&
+          this.settings.ignoreFolders[0] !== "";
+        if (!hasIgnoreFolders) return true;
+        const isFolderIgnored = this.settings.ignoreFolders.some(ignoreFolder =>
+          folder.startsWith(ignoreFolder)
+        );
+        return !isFolderIgnored;
+      })
+      .filter(folder => folder !== "/");
+    logMessage("filteredFolders", filteredFolders);
+    const guessedFolder = await guessRelevantFolderRouter(
+      content,
+      filePath,
+      filteredFolders,
+      this.getServerUrl(),
+      this.settings.API_KEY
+    );
+
+    if (guessedFolder === null || guessedFolder === "null") {
+      logMessage("no good folder, creating a new one instead");
+      const newFolderName = await createNewFolderRouter(
+        content,
+        filePath,
+        filteredFolders,
+        this.settings.usePro,
+        this.getServerUrl(),
+        this.settings.API_KEY
+      );
+      destinationFolder = newFolderName;
+    } else {
+      destinationFolder = guessedFolder;
+    }
+    return destinationFolder;
+  }
+
+  async appendTag(file: TFile, tag: string) {
+    // Ensure the tag starts with a hash symbol
+    const formattedTag = tag.startsWith("#") ? tag : `#${tag}`;
+
+    // Append similar tags
+    if (this.settings.useSimilarTagsInFrontmatter) {
+      await this.appendToFrontMatter(file, "tags", formattedTag);
+      return;
+    }
+    await this.app.vault.append(file, `\n${formattedTag}`);
+  }
+
+  async appendSimilarTags(content: string, file: TFile) {
+    // Get similar tags
+    const similarTags = await this.getSimilarTags(content, file.basename);
+
+    if (similarTags.length === 0) {
+      new Notice(`No similar tags found`, 3000);
+      return;
+    }
+    similarTags.forEach(async tag => {
+      await this.appendTag(file, tag);
+    });
+
+    await this.appendToCustomLogFile(
+      `Added similar tags to [[${file.basename}]]`
+    );
+    new Notice(`Added similar tags to ${file.basename}`, 3000);
+    return;
+  }
+
+  async appendToCustomLogFile(contentToAppend: string, action = "") {
+    if (!this.settings.useLogs) {
+      return;
+    }
+    const now = new Date();
+    const formattedDate = moment(now).format("YYYY-MM-DD");
+    const logFilePath = `${this.settings.logFolderPath}/${formattedDate}.md`;
+    // if does not exist create it
+    if (!(await this.app.vault.adapter.exists(normalizePath(logFilePath)))) {
+      await this.app.vault.create(logFilePath, "");
+    }
+
+    const logFile = this.app.vault.getAbstractFileByPath(logFilePath);
+    if (!(logFile instanceof TFile)) {
+      throw new Error(`File with path ${logFilePath} is not a markdown file`);
+    }
+
+    const formattedTime =
+      now.getHours().toString().padStart(2, "0") +
+      ":" +
+      now.getMinutes().toString().padStart(2, "0");
+    const contentWithLink = `\n - ${formattedTime} ${contentToAppend}`;
+    await this.app.vault.append(logFile, contentWithLink);
+  }
+
+  validateAPIKey() {
+    if (!this.settings.usePro) {
+      // atm we assume no api auth for self hosted
+      return true;
+    }
+
+    if (!this.settings.API_KEY) {
+      throw new Error(
+        "Please enter your API Key in the settings of the FileOrganizer plugin."
+      );
+    }
+  }
+
+  async onload() {
+    await this.initializePlugin();
+
+    this.addRibbonIcon("sparkle", "Fo2k Assistant View", () => {
+      this.showAssistantSidebar();
+    });
+
+    // Register command handlers
+    registerCommandHandlers(this);
+
+    this.app.workspace.onLayoutReady(() => registerEventHandlers(this));
+    this.processBacklog();
+  }
+  async saveSettings() {
+    await this.saveData(this.settings);
+  }
+
+  async initializeChat() {
+    // TODO: reintroduce after experimental phase
+    // this.addRibbonIcon("message-square", "Open AI Chat", () => {
+    //   this.activateView();
+    // });
+
+    this.registerView("ai-chat-view", leaf => new AIChatView(leaf, this));
+
+    this.addCommand({
+      id: "open-ai-chat",
+      name: "Open AI Chat",
+      callback: () => {
+        this.activateView();
+      },
+    });
+  }
+
+  async activateView() {
+    const { workspace } = this.app;
+
+    let leaf: WorkspaceLeaf | null = null;
+    const leaves = workspace.getLeavesOfType("ai-chat-view");
+
+    if (leaves.length > 0) {
+      leaf = leaves[0];
+    } else {
+      leaf = workspace.getRightLeaf(false);
+      await leaf.setViewState({ type: "ai-chat-view", active: true });
+    }
+
+    if (leaf) {
+      workspace.revealLeaf(leaf);
+    }
+  }
+
+  async initializePlugin() {
+    await this.loadSettings();
+    await this.checkAndCreateFolders();
+    await this.checkAndCreateTemplates();
+    await this.initializeChat();
+    this.addSettingTab(new FileOrganizerSettingTab(this.app, this));
+    this.registerView(
+      ASSISTANT_VIEW_TYPE,
+      (leaf: WorkspaceLeaf) => new AssistantViewWrapper(leaf, this)
+    );
+  }
+
+  async appendTranscriptToActiveFile(
+    parentFile: TFile,
+    audioFileName: string,
+    transcriptIterator: AsyncIterableIterator<string>
+  ) {
+    const transcriptHeader = `\n\n## Transcript for ${audioFileName}\n\n`;
+    await this.app.vault.append(parentFile, transcriptHeader);
+
+    for await (const chunk of transcriptIterator) {
+      await this.app.vault.append(parentFile, chunk);
+      // Optionally, update UI or perform actions with each chunk
+    }
+
+    new Notice(`Transcription completed for ${audioFileName}`, 5000);
+  }
+
+  async generateUniqueBackupFileName(originalFile: TFile): Promise<string> {
+    const baseFileName = `${originalFile.basename}_backup_${moment().format(
+      "YYYYMMDD_HHmmss"
+    )}`;
+    let fileName = `${baseFileName}.${originalFile.extension}`;
+    let counter = 1;
+
+    while (
+      await this.app.vault.adapter.exists(
+        normalizePath(`${this.settings.backupFolderPath}/${fileName}`)
+      )
+    ) {
+      fileName = `${baseFileName}_${counter}.${originalFile.extension}`;
+      counter++;
+    }
+
+    return fileName;
+  }
+
+  async backupTheFileAndAddReferenceToCurrentFile(file: TFile): Promise<TFile> {
+    const backupFileName = await this.generateUniqueBackupFileName(file);
+    const backupFilePath = normalizePath(
+      `${this.settings.backupFolderPath}/${backupFileName}`
+    );
+
+    // Create a backup of the file
+    const backupFile = await this.app.vault.copy(file, backupFilePath);
+
+    return backupFile;
+  }
+}
 
   getAllFolders(): string[] {
     return getAllFolders(this.app)
