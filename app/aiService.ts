@@ -24,11 +24,11 @@ export async function generateTags(
   const response = await generateObject({
     model,
     schema: z.object({
-      tags: z.array(z.string()).default(["none"]),
+      tags: z.array(z.string().refine(tag => tag.toLowerCase() !== "none")),
     }),
     prompt: `Given the text "${content}" (and if relevant ${fileName}), identify the at most 3 relevant tags from the following list, sorted from most commonly found to least commonly found: ${tags.join(
       ", "
-    )}`,
+    )}. Do not include 'none' as a tag.`,
   });
 
   return response;
