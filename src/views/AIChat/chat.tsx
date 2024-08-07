@@ -32,7 +32,7 @@ export const ToolInvocationHandler: React.FC<ToolInvocationHandlerProps> = ({
       if ("result" in toolInvocation) {
         try {
           console.log(toolInvocation.result, "toolInvocation.result");
-          return <div>Found {toolInvocation.result.length} notes</div>;
+          return <div>{toolInvocation.result}</div>;
         } catch (error) {
           console.error("Error parsing JSON:", error);
           return <div>Error parsing date range data</div>;
@@ -44,8 +44,8 @@ export const ToolInvocationHandler: React.FC<ToolInvocationHandlerProps> = ({
     case "searchNotes":
       if ("result" in toolInvocation) {
         try {
-          const searchResults = JSON.parse(toolInvocation.result);
-          return <div>Found {searchResults.length} notes matching the search query</div>;
+          const searchResults = toolInvocation.result;
+          return <div>Searching for notes mentioning {searchResults}</div>;
         } catch (error) {
           console.error("Error parsing JSON:", error);
           return <div>Error parsing search results</div>;
@@ -165,10 +165,20 @@ export const ChatComponent: React.FC<ChatComponentProps> = ({
 
   const searchNotes = async (query: string) => {
     const files = plugin.getAllUserMarkdownFiles();
+    const searchTerms = query.toLowerCase().split(/\s+/);
+    
     const searchResults = await Promise.all(
       files.map(async file => {
         const content = await plugin.app.vault.read(file);
-        if (content.toLowerCase().includes(query.toLowerCase())) {
+        const lowerContent = content.toLowerCase();
+        
+        // Check if all search terms are present in the content
+        const allTermsPresent = searchTerms.every(term => {
+          const regex = new RegExp(`(^|\\W)${term}(\\W|$)`, 'i');
+          return regex.test(lowerContent);
+        });
+
+        if (allTermsPresent) {
           return {
             title: file.basename,
             content: content,
@@ -278,12 +288,12 @@ export const ChatComponent: React.FC<ChatComponentProps> = ({
     }, 0);
   };
 
-  const handleRemoveFile = useCallback((fileTitle: string) => {
+  const handleRemoveFile = useCallback((filePath: string) => {
     setSelectedFiles(prevFiles =>
-      prevFiles.filter(file => file.title !== fileTitle)
+      prevFiles.filter(file => file.path !== filePath)
     );
     setUnifiedContext(prevContext =>
-      prevContext.filter(file => file.title !== fileTitle)
+      prevContext.filter(file => file.path !== filePath)
     );
   }, []);
 
@@ -305,7 +315,7 @@ export const ChatComponent: React.FC<ChatComponentProps> = ({
   ) => {
     setSelectedFiles(prevFiles => {
       const newFiles = files.filter(
-        file => !prevFiles.some(prevFile => prevFile.title === file.title)
+        file => !prevFiles.some(prevFile => prevFile.path === file.path)
       );
       return [...prevFiles, ...newFiles];
     });
@@ -465,6 +475,13 @@ export const ChatComponent: React.FC<ChatComponentProps> = ({
     scrollToBottom();
   }, [messages, history]);
 
+  const handleClearAll = useCallback(() => {
+    setSelectedFiles([]);
+    setSelectedFolders([]);
+    setSelectedTags([]);
+    setUnifiedContext([]);
+  }, []);
+
   return (
     <div className="chat-component">
       <div className="chat-messages">
@@ -512,26 +529,36 @@ export const ChatComponent: React.FC<ChatComponentProps> = ({
       )}
 
       <div className="chat-input-container">
-        <div className="selected-files">
-          {selectedFiles.map(file => (
-            <SelectedItem
-              key={file.path}
-              item={file.title}
-              onClick={() => handleOpenFile(file.title)}
-              onRemove={() => handleRemoveFile(file.title)}
-            />
-          ))}
+        <div className="selected-files-container">
+          <div className="selected-files">
+            {selectedFiles.map((file, index) => (
+              <SelectedItem
+                key={`${file.path}-${index}`}
+                item={file.title}
+                onClick={() => handleOpenFile(file.title)}
+                onRemove={() => handleRemoveFile(file.path)}
+              />
+            ))}
 
-          {selectedFolders.map(folder => (
-            <SelectedItem
-              key={folder}
-              item={folder}
-              onClick={() => handleOpenFolder(folder)}
-              onRemove={() =>
-                setSelectedFolders(folders => folders.filter(f => f !== folder))
-              }
-            />
-          ))}
+            {selectedFolders.map((folder, index) => (
+              <SelectedItem
+                key={`${folder}-${index}`}
+                item={folder}
+                onClick={() => handleOpenFolder(folder)}
+                onRemove={() =>
+                  setSelectedFolders(folders => folders.filter(f => f !== folder))
+                }
+              />
+            ))}
+          </div>
+          {(selectedFiles.length > 0 || selectedFolders.length > 0) && (
+            <Button
+              onClick={handleClearAll}
+              className="clear-all-button"
+            >
+              Clear All
+            </Button>
+          )}
         </div>
 
         <form
