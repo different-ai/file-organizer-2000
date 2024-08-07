@@ -12,23 +12,32 @@ import { promises as fsPromises } from "fs";
 import { tmpdir } from "os";
 import { join } from "path";
 import OpenAI from "openai";
+
 // Function to generate tags
 export async function generateTags(
   content: string,
   fileName: string,
-  tags: string[],
+  tagsOrUsePopularTags: string[] | boolean,
   model: LanguageModel
 ) {
-  const modelName = model.modelId;
+  let prompt: string;
+  
+  if (Array.isArray(tagsOrUsePopularTags)) {
+    // Use existing tags from the vault
+    prompt = `Given the text "${content}" (and if relevant ${fileName}), identify the 5 most relevant tags from the following list, sorted from most commonly found to least commonly found: ${tagsOrUsePopularTags.join(
+      ", "
+    )}. Do not include 'none' as a tag.`;
+  } else {
+    // Generate popular tags
+    prompt = `Given the text "${content}" (and if relevant ${fileName}), generate and then use a list of 500 popular or likely tags for the Obsidian app. From this generated list, identify the 5 most relevant tags for the given content. The tags should be sorted from most relevant to least relevant. Do not include 'none' as a tag.`;
+  }
 
   const response = await generateObject({
     model,
     schema: z.object({
-      tags: z.array(z.string().refine(tag => tag.toLowerCase() !== "none")),
+      tags: z.array(z.string().refine(tag => tag.toLowerCase() !== "none")).length(5),
     }),
-    prompt: `Given the text "${content}" (and if relevant ${fileName}), identify the at most 3 relevant tags from the following list, sorted from most commonly found to least commonly found: ${tags.join(
-      ", "
-    )}. Do not include 'none' as a tag.`,
+    prompt: prompt,
   });
 
   return response;

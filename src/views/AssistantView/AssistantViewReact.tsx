@@ -38,7 +38,8 @@ const SimilarTags: React.FC<{
   plugin: FileOrganizer;
   file: TFile | null;
   content: string;
-}> = ({ plugin, file, content }) => {
+  usePopularTags: boolean;
+}> = ({ plugin, file, content, usePopularTags }) => {
   const [suggestions, setSuggestions] = React.useState<string[] | null>(null);
   const [loading, setLoading] = React.useState<boolean>(false);
 
@@ -51,7 +52,7 @@ const SimilarTags: React.FC<{
       setSuggestions(null);
       setLoading(true);
       try {
-        const tags = await plugin.getSimilarTags(content, file.basename);
+        const tags = await plugin.getSimilarTags(content, file.basename, usePopularTags);
         setSuggestions(tags);
       } catch (error) {
         console.error(error);
@@ -60,7 +61,7 @@ const SimilarTags: React.FC<{
       }
     };
     suggestTags();
-  }, [content]);
+  }, [content, usePopularTags]);
 
   return (
     <div className="assistant-section tags-section">
@@ -547,6 +548,7 @@ export const AssistantView: React.FC<AssistantViewProps> = ({ plugin }) => {
   const [noteContent, setNoteContent] = React.useState<string>("");
   const [hasAudio, setHasAudio] = React.useState<boolean>(false);
   const [refreshKey, setRefreshKey] = React.useState<number>(0);
+  const [usePopularTags, setUsePopularTags] = React.useState<boolean>(false);
 
   const refreshAssistant = () => {
     setRefreshKey((prevKey) => prevKey + 1);
@@ -616,13 +618,16 @@ export const AssistantView: React.FC<AssistantViewProps> = ({ plugin }) => {
   };
 
   const refreshTags = () => {
-    // Implement the logic to refresh tags here
-    // For example, you might want to re-fetch the tags for the current file
     if (activeFile) {
-      // Trigger a re-render of the SimilarTags component
+      setUsePopularTags((prev) => !prev);
       setRefreshKey((prevKey) => prevKey + 1);
     }
   };
+
+  React.useEffect(() => {
+    // Reset usePopularTags when a new file is opened
+    setUsePopularTags(false);
+  }, [activeFile]);
 
   // if active file is null, display a placeholder (e.g. when opening a file in the Fo2k folder)
   if (!activeFile) {
@@ -659,8 +664,18 @@ export const AssistantView: React.FC<AssistantViewProps> = ({ plugin }) => {
         content={noteContent}
       />
 
-      <SectionHeader text="Similar tags" icon="🏷️" onRefresh={refreshTags} />
-      <SimilarTags key={refreshKey} plugin={plugin} file={activeFile} content={noteContent} />
+      <SectionHeader 
+        text={`Similar tags (${usePopularTags ? 'Popular' : 'Vault'})`} 
+        icon="🏷️" 
+        onRefresh={refreshTags} 
+      />
+      <SimilarTags 
+        key={refreshKey} 
+        plugin={plugin} 
+        file={activeFile} 
+        content={noteContent} 
+        usePopularTags={usePopularTags}
+      />
 
       <SectionHeader text="Suggested title" icon="💡" />
       <RenameSuggestion
