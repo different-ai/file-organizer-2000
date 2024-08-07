@@ -162,7 +162,18 @@ export default class FileOrganizer extends Plugin {
         text,
         oldPath
       );
-      await this.executeInstructions(metadata, originalFile, text);
+      
+      // Format the content if necessary
+      let formattedText = text;
+      if (metadata.instructions.shouldClassify && metadata.classification) {
+        formattedText = metadata.aiFormattedText;
+      }
+      
+      // Get the new path based on the formatted content
+      const newPath = await this.getAIClassifiedFolder(formattedText, originalFile.path);
+      metadata.newPath = newPath;
+
+      await this.executeInstructions(metadata, originalFile, formattedText);
     } catch (error) {
       new Notice(`Error processing ${originalFile.basename}`, 3000);
       new Notice(error.message, 6000);
@@ -202,7 +213,6 @@ export default class FileOrganizer extends Plugin {
     const classification = classificationResult?.type;
     const aiFormattedText = classificationResult?.formattedText || "";
 
-    const newPath = await this.getAIClassifiedFolder(textToFeedAi, file.path);
 
     const aliases = instructions.shouldAppendAlias
       ? await this.generateAliasses(documentName, textToFeedAi)
@@ -224,7 +234,7 @@ export default class FileOrganizer extends Plugin {
         file.extension === "pdf",
       markAsProcessed: true,
       newName: documentName,
-      newPath,
+      newPath: "", 
       aliases,
       similarTags,
     };
@@ -261,7 +271,7 @@ export default class FileOrganizer extends Plugin {
   async executeInstructions(
     metadata: FileMetadata,
     fileBeingProcessed: TFile,
-    text: string
+    formattedText: string
   ): Promise<void> {
     // Create a new markdown file in default folder
     const fileToOrganize = await this.retrieveFileToModify(
@@ -271,7 +281,7 @@ export default class FileOrganizer extends Plugin {
 
     // If it's a brand new markdown file it should be annotated
     if (metadata.shouldCreateMarkdownContainer) {
-      await this.app.vault.modify(fileToOrganize, text);
+      await this.app.vault.modify(fileToOrganize, formattedText);
       this.appendToCustomLogFile(
         `Annotated ${
           metadata.shouldCreateMarkdownContainer ? "media" : "file"
@@ -303,7 +313,7 @@ export default class FileOrganizer extends Plugin {
       this.appendToCustomLogFile(`Added attachment to [[${metadata.newName}]]`);
     }
 
-    // Move the file to its new location
+    // Move the file to its new location (now using the path based on formatted content)
     await this.moveFile(fileToOrganize, metadata.newName, metadata.newPath);
     this.appendToCustomLogFile(
       `Renamed ${metadata.originalName} to [[${fileToOrganize.basename}]]`
