@@ -202,7 +202,11 @@ export default class FileOrganizer extends Plugin {
     const classification = classificationResult?.type;
     const aiFormattedText = classificationResult?.formattedText || "";
 
-    const newPath = await this.getAIClassifiedFolder(textToFeedAi, file.path);
+  // Determine the folder path based on formatted content (if available) or original content
+    const newPath = await this.getAIClassifiedFolder(
+      classification && aiFormattedText ? aiFormattedText : textToFeedAi,
+      file.path
+    );
 
     const aliases = instructions.shouldAppendAlias
       ? await this.generateAliasses(documentName, textToFeedAi)
