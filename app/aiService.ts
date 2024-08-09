@@ -38,6 +38,7 @@ export async function generateTags(
     schema: z.object({
       tags: z.array(z.string().refine(tag => tag.toLowerCase() !== 'none')).length(5),
     }),
+
     prompt: prompt,
   });
 
@@ -45,6 +46,7 @@ export async function generateTags(
   response.object.tags = response.object.tags.map(tag => {
     tag = tag.toLowerCase().replace(/[^a-z0-9_-]/g, '');
     return tag.startsWith('#') ? tag : '#' + tag;
+
   });
 
   return response;
