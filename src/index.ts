@@ -924,7 +924,7 @@ export default class FileOrganizer extends Plugin {
       return await generateTagsRouter(
         content,
         fileName,
-        useAiTags,
+        useAiTags ? [] : tags,
         this.settings.usePro,
         this.getServerUrl(),
         this.settings.API_KEY
