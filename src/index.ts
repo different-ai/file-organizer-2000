@@ -901,7 +901,7 @@ export default class FileOrganizer extends Plugin {
       await this.processFileV2(file);
     }
   }
-  async getSimilarTags(content: string, fileName: string, usePopularTags: boolean): Promise<string[]> {
+  async getSimilarTags(content: string, fileName: string, useAiTags: boolean): Promise<string[]> {
     const tags: string[] = await this.getAllVaultTags();
 
     if (tags.length === 0) {
@@ -909,7 +909,7 @@ export default class FileOrganizer extends Plugin {
       return [];
     }
 
-    if (!usePopularTags) {
+    if (!useAiTags) {
       // Use the existing tags from the vault
       return await generateTagsRouter(
         content,
@@ -924,7 +924,7 @@ export default class FileOrganizer extends Plugin {
       return await generateTagsRouter(
         content,
         fileName,
-        usePopularTags,
+        useAiTags,
         this.settings.usePro,
         this.getServerUrl(),
         this.settings.API_KEY

@@ -10,12 +10,12 @@ const SectionHeader: React.FC<{
   text: string; 
   icon?: string; 
   onRefresh?: () => void;
-  usePopularTags?: boolean;
+  useAiTags?: boolean;
 }> = ({
   text,
   icon,
   onRefresh,
-  usePopularTags
+  useAiTags: useAiTags
 }) => (
   <h6 className="assistant-section-header">
     {icon && <span className="assistant-section-icon">{icon}</span>}
@@ -24,7 +24,7 @@ const SectionHeader: React.FC<{
       <button 
         onClick={onRefresh} 
         className="refresh-icon-button"
-        title={usePopularTags 
+        title={useAiTags 
           ? "Switch to tags from your vault" 
           : "Generate tags using AI"}
       >
@@ -51,7 +51,7 @@ const SimilarTags: React.FC<{
   file: TFile | null;
   content: string;
   useAiTags: boolean;
-}> = ({ plugin, file, content, useAiTags: usePopularTags }) => {
+}> = ({ plugin, file, content, useAiTags: useAiTags }) => {
   const [suggestions, setSuggestions] = React.useState<string[] | null>(null);
   const [loading, setLoading] = React.useState<boolean>(false);
 
@@ -64,7 +64,7 @@ const SimilarTags: React.FC<{
       setSuggestions(null);
       setLoading(true);
       try {
-        const tags = await plugin.getSimilarTags(content, file.basename, usePopularTags);
+        const tags = await plugin.getSimilarTags(content, file.basename, useAiTags);
         setSuggestions(tags);
       } catch (error) {
         console.error(error);
@@ -73,7 +73,7 @@ const SimilarTags: React.FC<{
       }
     };
     suggestTags();
-  }, [content, usePopularTags]);
+  }, [content, useAiTags]);
 
   return (
     <div className="assistant-section tags-section">
@@ -637,7 +637,7 @@ export const AssistantView: React.FC<AssistantViewProps> = ({ plugin }) => {
   };
 
   React.useEffect(() => {
-    // Reset usePopularTags when a new file is opened
+    // Reset useAiTags when a new file is opened
     setUseAiTags(false);
   }, [activeFile]);
 
@@ -680,7 +680,7 @@ export const AssistantView: React.FC<AssistantViewProps> = ({ plugin }) => {
         text={` ${useAiTags ? 'Suggested' : 'Vault'} tags`} 
         icon="🏷️" 
         onRefresh={refreshTags}
-        usePopularTags={useAiTags}
+        useAiTags={useAiTags}
       />
       <SimilarTags 
         key={refreshKey} 
