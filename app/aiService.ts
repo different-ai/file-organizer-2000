@@ -17,17 +17,17 @@ import OpenAI from "openai";
 export async function generateTags(
   content: string,
   fileName: string,
-  // if it's an array, use existing tags from the vault, if it's a boolean, generate new tags with ai c
-  vaultTagsorGenerateNew: string[] | boolean,
+  vaultTags: string[] | null,
   model: LanguageModel
 ) {
   let prompt: string;
-  
-  if (Array.isArray(vaultTagsorGenerateNew)) {
+  // when in vault tags mode
+  if (Array.isArray(vaultTags)) {
     // Use existing tags from the vault
-    prompt = `Given the text "${content}" (and if relevant ${fileName}), identify the 5 most relevant tags from the following list, sorted from most commonly found to least commonly found: ${vaultTagsorGenerateNew.join(
+    prompt = `Given the text "${content}" (and if relevant ${fileName}), identify the 5 most relevant tags from the following list, sorted from most commonly found to least commonly found: ${vaultTags.join(
       ", "
     )}. Do not include 'none' as a tag.`;
+    // when in generate new tags mode
   } else {
     // Generate popular tags
     prompt = `Given the text "${content}" (and if relevant ${fileName}), generate 5 relevant and popular tags for the Obsidian app. The tags should be sorted from most relevant to least relevant. Each tag should be a single word, lowercase, without any spaces or special characters (except for underscores). Do not include 'none' as a tag.`;
