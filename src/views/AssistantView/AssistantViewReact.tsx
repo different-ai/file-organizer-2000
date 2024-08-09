@@ -15,36 +15,48 @@ const SectionHeader: React.FC<{
   text,
   icon,
   onRefresh,
-  useAiTags: useAiTags
-}) => (
-  <h6 className="assistant-section-header">
-    {icon && <span className="assistant-section-icon">{icon}</span>}
-    {text}
-    {onRefresh && (
-      <button 
-        onClick={onRefresh} 
-        className="refresh-icon-button"
-        title={useAiTags 
-          ? "Switch to tags from your vault" 
-          : "Generate tags using AI"}
-      >
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          width="15"
-          height="15"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="2"
-          strokeLinecap="round"
-          strokeLinejoin="round"
+  useAiTags
+}) => {
+  const [isSpinning, setIsSpinning] = React.useState(false);
+
+  const handleRefresh = () => {
+    if (onRefresh) {
+      setIsSpinning(true);
+      onRefresh();
+      setTimeout(() => setIsSpinning(false), 1000); // Stop spinning after 1 second
+    }
+  };
+
+  return (
+    <h6 className="assistant-section-header">
+      {icon && <span className="assistant-section-icon">{icon}</span>}
+      {text}
+      {onRefresh && (
+        <button 
+          onClick={handleRefresh} 
+          className={`refresh-icon-button ${isSpinning ? 'spinning' : ''}`}
+          title={useAiTags 
+            ? "Switch to tags from your vault" 
+            : "Generate tags using AI"}
         >
-          <path d="M21.5 2v6h-6M2.5 22v-6h6M2 11.5a10 10 0 0 1 18.8-4.3M22 12.5a10 10 0 0 1-18.8 4.3" />
-        </svg>
-      </button>
-    )}
-  </h6>
-);
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="15"
+            height="15"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          >
+            <path d="M21.5 2v6h-6M2.5 22v-6h6M2 11.5a10 10 0 0 1 18.8-4.3M22 12.5a10 10 0 0 1-18.8 4.3" />
+          </svg>
+        </button>
+      )}
+    </h6>
+  );
+};
 
 const SimilarTags: React.FC<{
   plugin: FileOrganizer;
@@ -534,25 +546,35 @@ const TranscriptionButton: React.FC<{
   );
 };
 
-const RefreshButton: React.FC<{ onRefresh: () => void }> = ({ onRefresh }) => (
-  <button className="refresh-button flex items-center" onClick={() => onRefresh?.()}>
-    <svg
-      xmlns="http://www.w3.org/2000/svg"
-      width="15"
-      height="15"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      className="mr-2"
-    >
-      <path d="M21.5 2v6h-6M2.5 22v-6h6M2 11.5a10 10 0 0 1 18.8-4.3M22 12.5a10 10 0 0 1-18.8 4.3" />
-    </svg>
-    <span style={{ marginLeft: "10px" }}>Update Suggestions</span>
-  </button>
-);
+const RefreshButton: React.FC<{ onRefresh: () => void }> = ({ onRefresh }) => {
+  const [isSpinning, setIsSpinning] = React.useState(false);
+
+  const handleRefresh = () => {
+    setIsSpinning(true);
+    onRefresh();
+    setTimeout(() => setIsSpinning(false), 1000); // Stop spinning after 1 second
+  };
+
+  return (
+    <button className={`refresh-button flex items-center ${isSpinning ? 'spinning' : ''}`} onClick={handleRefresh}>
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        width="15"
+        height="15"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        className="mr-2"
+      >
+        <path d="M21.5 2v6h-6M2.5 22v-6h6M2 11.5a10 10 0 0 1 18.8-4.3M22 12.5a10 10 0 0 1-18.8 4.3" />
+      </svg>
+      <span style={{ marginLeft: "10px" }}>Update Suggestions</span>
+    </button>
+  );
+};
 
 
 export const AssistantView: React.FC<AssistantViewProps> = ({ plugin }) => {
