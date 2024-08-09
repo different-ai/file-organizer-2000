@@ -535,7 +535,7 @@ const TranscriptionButton: React.FC<{
 };
 
 const RefreshButton: React.FC<{ onRefresh: () => void }> = ({ onRefresh }) => (
-  <button className="refresh-button flex items-center" onClick={onRefresh}>
+  <button className="refresh-button flex items-center" onClick={() => onRefresh?.()}>
     <svg
       xmlns="http://www.w3.org/2000/svg"
       width="15"
