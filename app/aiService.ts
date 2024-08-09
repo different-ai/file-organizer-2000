@@ -17,14 +17,14 @@ import OpenAI from "openai";
 export async function generateTags(
   content: string,
   fileName: string,
-  existingTags: string[] | null,
+  vaultTags: string[] | null,
   model: LanguageModel
 ) {
   let prompt: string;
   // when in vault tags mode
-  if (Array.isArray(existingTags)) {
+  if (Array.isArray(vaultTags)) {
     // Use existing tags from the vault
-    prompt = `Given the text "${content}" (and if relevant ${fileName}), identify the 5 most relevant tags from the following list, sorted from most commonly found to least commonly found: ${existingTags.join(
+    prompt = `Given the text "${content}" (and if relevant ${fileName}), identify the 5 most relevant tags from the following list, sorted from most commonly found to least commonly found: ${vaultTags.join(
       ", "
     )}. Do not include 'none' as a tag.`;
     // when in generate new tags mode
