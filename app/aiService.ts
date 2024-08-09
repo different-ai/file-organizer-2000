@@ -41,12 +41,11 @@ export async function generateTags(
     prompt: prompt,
   });
 
-  // Post-process the tags if using popular tags
-  if (!Array.isArray(vaultTagsorGenerateNew)) {
-    response.object.tags = response.object.tags.map(tag => 
-      '#' + tag.toLowerCase().replace(/[^a-z0-9_]/g, '')
-    );
-  }
+  // Post-process all tags to ensure they have a '#' prefix
+  response.object.tags = response.object.tags.map(tag => {
+    tag = tag.toLowerCase().replace(/[^a-z0-9_]/g, '');
+    return tag.startsWith('#') ? tag : '#' + tag;
+  });
 
   return response;
 }
