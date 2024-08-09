@@ -15,16 +15,14 @@ const SectionHeader: React.FC<{
   text,
   icon,
   onRefresh,
-  useAiTags
+  useAiTags: useAiTags
 }) => {
   const [isSpinning, setIsSpinning] = React.useState(false);
 
   const handleRefresh = () => {
-    if (onRefresh) {
-      setIsSpinning(true);
-      onRefresh();
-      setTimeout(() => setIsSpinning(false), 1000); // Stop spinning after 1 second
-    }
+    setIsSpinning(true);
+    onRefresh();
+    setTimeout(() => setIsSpinning(false), 1000); // Stop spinning after 1 second
   };
 
   return (
