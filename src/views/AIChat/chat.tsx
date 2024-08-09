@@ -323,7 +323,7 @@ export const ChatComponent: React.FC<ChatComponentProps> = ({
 
   useEffect(() => {
     const loadTagsAndFolders = async () => {
-      const tags = await plugin.getAllTags();
+      const tags = await plugin.getAllVaultTags();
       setAllTags(tags);
 
       const folders = plugin.getAllFolders();

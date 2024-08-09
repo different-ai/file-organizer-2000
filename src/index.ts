@@ -902,7 +902,7 @@ export default class FileOrganizer extends Plugin {
     }
   }
   async getSimilarTags(content: string, fileName: string, usePopularTags: boolean): Promise<string[]> {
-    const tags: string[] = await this.getAllTags();
+    const tags: string[] = await this.getAllVaultTags();
 
     if (tags.length === 0) {
       console.log("No tags found");
@@ -932,7 +932,7 @@ export default class FileOrganizer extends Plugin {
     }
   }
 
-  async getAllTags(): Promise<string[]> {
+  async getAllVaultTags(): Promise<string[]> {
     // Fetch all tags from the vault
     // @ts-ignore
     const tags: TagCounts = this.app.metadataCache.getTags();
