@@ -17,19 +17,19 @@ import OpenAI from "openai";
 export async function generateTags(
   content: string,
   fileName: string,
-  vaultTags: string[] | null,
+  existingTags: string[] | null,
   model: LanguageModel
 ) {
   let prompt: string;
   // when in vault tags mode
-  if (Array.isArray(vaultTags)) {
+  if (Array.isArray(existingTags)) {
     // Use existing tags from the vault
-    prompt = `Given the text "${content}" (and if relevant ${fileName}), identify the 5 most relevant tags from the following list, sorted from most commonly found to least commonly found: ${vaultTags.join(
+    prompt = `Given the text "${content}" (and if relevant ${fileName}), identify the 5 most relevant tags from the following list, sorted from most commonly found to least commonly found: ${existingTags.join(
       ", "
     )}. Do not include 'none' as a tag.`;
     // when in generate new tags mode
   } else {
-    // Generate popular tags
+    // Generate likely tags
     prompt = `Given the text "${content}" (and if relevant ${fileName}), generate 5 relevant and popular tags for the Obsidian app. The tags should be sorted from most relevant to least relevant. Each tag should be a single word, lowercase, without any spaces or special characters (except for underscores). Do not include 'none' as a tag.`;
   }
 
@@ -43,7 +43,7 @@ export async function generateTags(
 
   // Post-process all tags to ensure they have a '#' prefix
   response.object.tags = response.object.tags.map(tag => {
-    tag = tag.toLowerCase().replace(/[^a-z0-9_]/g, '');
+    tag = tag.toLowerCase().replace(/[^a-z0-9_-]/g, '');
     return tag.startsWith('#') ? tag : '#' + tag;
   });
 
