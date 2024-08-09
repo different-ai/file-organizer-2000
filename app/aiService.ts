@@ -17,14 +17,15 @@ import OpenAI from "openai";
 export async function generateTags(
   content: string,
   fileName: string,
-  tagsOrUsePopularTags: string[] | boolean,
+  // if it's an array, use existing tags from the vault, if it's a boolean, generate new tags with ai c
+  vaultTagsorGenerateNew: string[] | boolean,
   model: LanguageModel
 ) {
   let prompt: string;
   
-  if (Array.isArray(tagsOrUsePopularTags)) {
+  if (Array.isArray(vaultTagsorGenerateNew)) {
     // Use existing tags from the vault
-    prompt = `Given the text "${content}" (and if relevant ${fileName}), identify the 5 most relevant tags from the following list, sorted from most commonly found to least commonly found: ${tagsOrUsePopularTags.join(
+    prompt = `Given the text "${content}" (and if relevant ${fileName}), identify the 5 most relevant tags from the following list, sorted from most commonly found to least commonly found: ${vaultTagsorGenerateNew.join(
       ", "
     )}. Do not include 'none' as a tag.`;
   } else {
@@ -41,7 +42,7 @@ export async function generateTags(
   });
 
   // Post-process the tags if using popular tags
-  if (!Array.isArray(tagsOrUsePopularTags)) {
+  if (!Array.isArray(vaultTagsorGenerateNew)) {
     response.object.tags = response.object.tags.map(tag => 
       '#' + tag.toLowerCase().replace(/[^a-z0-9_]/g, '')
     );

@@ -50,8 +50,8 @@ const SimilarTags: React.FC<{
   plugin: FileOrganizer;
   file: TFile | null;
   content: string;
-  usePopularTags: boolean;
-}> = ({ plugin, file, content, usePopularTags }) => {
+  useAiTags: boolean;
+}> = ({ plugin, file, content, useAiTags: usePopularTags }) => {
   const [suggestions, setSuggestions] = React.useState<string[] | null>(null);
   const [loading, setLoading] = React.useState<boolean>(false);
 
@@ -560,7 +560,7 @@ export const AssistantView: React.FC<AssistantViewProps> = ({ plugin }) => {
   const [noteContent, setNoteContent] = React.useState<string>("");
   const [hasAudio, setHasAudio] = React.useState<boolean>(false);
   const [refreshKey, setRefreshKey] = React.useState<number>(0);
-  const [usePopularTags, setUsePopularTags] = React.useState<boolean>(false);
+  const [useAiTags, setUseAiTags] = React.useState<boolean>(false);
 
   const refreshAssistant = () => {
     setRefreshKey((prevKey) => prevKey + 1);
@@ -631,14 +631,14 @@ export const AssistantView: React.FC<AssistantViewProps> = ({ plugin }) => {
 
   const refreshTags = () => {
     if (activeFile) {
-      setUsePopularTags((prev) => !prev);
+      setUseAiTags((prev) => !prev);
       setRefreshKey((prevKey) => prevKey + 1);
     }
   };
 
   React.useEffect(() => {
     // Reset usePopularTags when a new file is opened
-    setUsePopularTags(false);
+    setUseAiTags(false);
   }, [activeFile]);
 
   // if active file is null, display a placeholder (e.g. when opening a file in the Fo2k folder)
@@ -677,17 +677,17 @@ export const AssistantView: React.FC<AssistantViewProps> = ({ plugin }) => {
       />
 
       <SectionHeader 
-        text={` ${usePopularTags ? 'Suggested' : 'Vault'} tags`} 
+        text={` ${useAiTags ? 'Suggested' : 'Vault'} tags`} 
         icon="🏷️" 
         onRefresh={refreshTags}
-        usePopularTags={usePopularTags}
+        usePopularTags={useAiTags}
       />
       <SimilarTags 
         key={refreshKey} 
         plugin={plugin} 
         file={activeFile} 
         content={noteContent} 
-        usePopularTags={usePopularTags}
+        useAiTags={useAiTags}
       />
 
       <SectionHeader text="Suggested title" icon="💡" />
