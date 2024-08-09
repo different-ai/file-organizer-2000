@@ -6,21 +6,62 @@ interface AssistantViewProps {
   plugin: FileOrganizer;
 }
 
-const SectionHeader: React.FC<{ text: string; icon?: string }> = ({
+const SectionHeader: React.FC<{ 
+  text: string; 
+  icon?: string; 
+  onRefresh?: () => void;
+  useAiTags?: boolean;
+}> = ({
   text,
   icon,
-}) => (
-  <h6 className="assistant-section-header">
-    {icon && <span className="assistant-section-icon">{icon}</span>}
-    {text}
-  </h6>
-);
+  onRefresh,
+  useAiTags: useAiTags
+}) => {
+  const [isSpinning, setIsSpinning] = React.useState(false);
+
+  const handleRefresh = () => {
+    setIsSpinning(true);
+    onRefresh();
+    setTimeout(() => setIsSpinning(false), 1000); // Stop spinning after 1 second
+  };
+
+  return (
+    <h6 className="assistant-section-header">
+      {icon && <span className="assistant-section-icon">{icon}</span>}
+      {text}
+      {onRefresh && (
+        <button 
+          onClick={handleRefresh} 
+          className={`refresh-icon-button ${isSpinning ? 'spinning' : ''}`}
+          title={useAiTags 
+            ? "Switch to tags from your vault" 
+            : "Generate tags using AI"}
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="15"
+            height="15"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          >
+            <path d="M21.5 2v6h-6M2.5 22v-6h6M2 11.5a10 10 0 0 1 18.8-4.3M22 12.5a10 10 0 0 1-18.8 4.3" />
+          </svg>
+        </button>
+      )}
+    </h6>
+  );
+};
 
 const SimilarTags: React.FC<{
   plugin: FileOrganizer;
   file: TFile | null;
   content: string;
-}> = ({ plugin, file, content }) => {
+  useAiTags: boolean;
+}> = ({ plugin, file, content, useAiTags: useAiTags }) => {
   const [suggestions, setSuggestions] = React.useState<string[] | null>(null);
   const [loading, setLoading] = React.useState<boolean>(false);
 
@@ -33,7 +74,7 @@ const SimilarTags: React.FC<{
       setSuggestions(null);
       setLoading(true);
       try {
-        const tags = await plugin.getSimilarTags(content, file.basename);
+        const tags = await plugin.getSimilarTags(content, file.basename, useAiTags);
         setSuggestions(tags);
       } catch (error) {
         console.error(error);
@@ -42,7 +83,7 @@ const SimilarTags: React.FC<{
       }
     };
     suggestTags();
-  }, [content]);
+  }, [content, useAiTags]);
 
   return (
     <div className="assistant-section tags-section">
@@ -503,25 +544,35 @@ const TranscriptionButton: React.FC<{
   );
 };
 
-const RefreshButton: React.FC<{ onRefresh: () => void }> = ({ onRefresh }) => (
-  <button className="refresh-button flex items-center" onClick={onRefresh}>
-    <svg
-      xmlns="http://www.w3.org/2000/svg"
-      width="15"
-      height="15"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      className="mr-2"
-    >
-      <path d="M21.5 2v6h-6M2.5 22v-6h6M2 11.5a10 10 0 0 1 18.8-4.3M22 12.5a10 10 0 0 1-18.8 4.3" />
-    </svg>
-    <span style={{ marginLeft: "10px" }}>Update Suggestions</span>
-  </button>
-);
+const RefreshButton: React.FC<{ onRefresh: () => void }> = ({ onRefresh }) => {
+  const [isSpinning, setIsSpinning] = React.useState(false);
+
+  const handleRefresh = () => {
+    setIsSpinning(true);
+    onRefresh();
+    setTimeout(() => setIsSpinning(false), 1000); // Stop spinning after 1 second
+  };
+
+  return (
+    <button className={`refresh-button flex items-center ${isSpinning ? 'spinning' : ''}`} onClick={handleRefresh}>
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        width="15"
+        height="15"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        className="mr-2"
+      >
+        <path d="M21.5 2v6h-6M2.5 22v-6h6M2 11.5a10 10 0 0 1 18.8-4.3M22 12.5a10 10 0 0 1-18.8 4.3" />
+      </svg>
+      <span style={{ marginLeft: "10px" }}>Update Suggestions</span>
+    </button>
+  );
+};
 
 
 export const AssistantView: React.FC<AssistantViewProps> = ({ plugin }) => {
@@ -529,6 +580,7 @@ export const AssistantView: React.FC<AssistantViewProps> = ({ plugin }) => {
   const [noteContent, setNoteContent] = React.useState<string>("");
   const [hasAudio, setHasAudio] = React.useState<boolean>(false);
   const [refreshKey, setRefreshKey] = React.useState<number>(0);
+  const [useAiTags, setUseAiTags] = React.useState<boolean>(false);
 
   const refreshAssistant = () => {
     setRefreshKey((prevKey) => prevKey + 1);
@@ -597,6 +649,18 @@ export const AssistantView: React.FC<AssistantViewProps> = ({ plugin }) => {
     return validMediaExtensions.includes(file.extension);
   };
 
+  const refreshTags = () => {
+    if (activeFile) {
+      setUseAiTags((prev) => !prev);
+      setRefreshKey((prevKey) => prevKey + 1);
+    }
+  };
+
+  React.useEffect(() => {
+    // Reset useAiTags when a new file is opened
+    setUseAiTags(false);
+  }, [activeFile]);
+
   // if active file is null, display a placeholder (e.g. when opening a file in the Fo2k folder)
   if (!activeFile) {
     return (
@@ -632,8 +696,19 @@ export const AssistantView: React.FC<AssistantViewProps> = ({ plugin }) => {
         content={noteContent}
       />
 
-      <SectionHeader text="Similar tags" icon="🏷️" />
-      <SimilarTags plugin={plugin} file={activeFile} content={noteContent} />
+      <SectionHeader 
+        text={` ${useAiTags ? 'Suggested' : 'Vault'} tags`} 
+        icon="🏷️" 
+        onRefresh={refreshTags}
+        useAiTags={useAiTags}
+      />
+      <SimilarTags 
+        key={refreshKey} 
+        plugin={plugin} 
+        file={activeFile} 
+        content={noteContent} 
+        useAiTags={useAiTags}
+      />
 
       <SectionHeader text="Suggested title" icon="💡" />
       <RenameSuggestion

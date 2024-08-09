@@ -213,7 +213,7 @@ export default class FileOrganizer extends Plugin {
       : [];
 
     const similarTags = instructions.shouldAppendSimilarTags
-      ? await this.getSimilarTags(textToFeedAi, documentName)
+      ? await this.getSimilarTags(textToFeedAi, documentName, false)
       : [];
 
     return {
@@ -927,25 +927,38 @@ export default class FileOrganizer extends Plugin {
       await this.processFileV2(file);
     }
   }
-  async getSimilarTags(content: string, fileName: string): Promise<string[]> {
-    const tags: string[] = await this.getAllTags();
+  async getSimilarTags(content: string, fileName: string, useAiTags: boolean): Promise<string[]> {
+    const tags: string[] = await this.getAllVaultTags();
 
     if (tags.length === 0) {
       console.log("No tags found");
       return [];
     }
 
-    return await generateTagsRouter(
-      content,
-      fileName,
-      tags,
-      this.settings.usePro,
-      this.getServerUrl(),
-      this.settings.API_KEY
-    );
+    if (!useAiTags) {
+      // Use the existing tags from the vault
+      return await generateTagsRouter(
+        content,
+        fileName,
+        tags,
+        this.settings.usePro,
+        this.getServerUrl(),
+        this.settings.API_KEY
+      );
+    } else {
+      // Generate popular tags and select from them
+      return await generateTagsRouter(
+        content,
+        fileName,
+        useAiTags ? [] : tags,
+        this.settings.usePro,
+        this.getServerUrl(),
+        this.settings.API_KEY
+      );
+    }
   }
 
-  async getAllTags(): Promise<string[]> {
+  async getAllVaultTags(): Promise<string[]> {
     // Fetch all tags from the vault
     // @ts-ignore
     const tags: TagCounts = this.app.metadataCache.getTags();

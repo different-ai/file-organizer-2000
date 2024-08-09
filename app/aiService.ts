@@ -12,23 +12,41 @@ import { promises as fsPromises } from "fs";
 import { tmpdir } from "os";
 import { join } from "path";
 import OpenAI from "openai";
+
 // Function to generate tags
 export async function generateTags(
   content: string,
   fileName: string,
-  tags: string[],
+  vaultTags: string[] | null,
   model: LanguageModel
 ) {
-  const modelName = model.modelId;
+  let prompt: string;
+  // when in vault tags mode
+  if (Array.isArray(vaultTags)) {
+    // Use existing tags from the vault
+    prompt = `Given the text "${content}" (and if relevant ${fileName}), identify the 5 most relevant tags from the following list, sorted from most commonly found to least commonly found: ${vaultTags.join(
+      ", "
+    )}. Do not include 'none' as a tag.`;
+    // when in generate new tags mode
+  } else {
+    // Generate likely tags
+    prompt = `Given the text "${content}" (and if relevant ${fileName}), generate 5 relevant and popular tags for the Obsidian app. The tags should be sorted from most relevant to least relevant. Each tag should be a single word, lowercase, without any spaces or special characters (except for underscores). Do not include 'none' as a tag.`;
+  }
 
   const response = await generateObject({
     model,
     schema: z.object({
-      tags: z.array(z.string()).default(["none"]),
+      tags: z.array(z.string().refine(tag => tag.toLowerCase() !== 'none')).length(5),
     }),
-    prompt: `Given the text "${content}" (and if relevant ${fileName}), identify the at most 5-8 relevant tags from the following list, sorted from most commonly found to least commonly found: ${tags.join(
-      ", "
-    )}`,
+
+    prompt: prompt,
+  });
+
+  // Post-process all tags to ensure they have a '#' prefix
+  response.object.tags = response.object.tags.map(tag => {
+    tag = tag.toLowerCase().replace(/[^a-z0-9_-]/g, '');
+    return tag.startsWith('#') ? tag : '#' + tag;
+
   });
 
   return response;
