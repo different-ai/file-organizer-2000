@@ -237,7 +237,8 @@
 
 .chat-input-container {
   flex-shrink: 0;
-  padding: 1rem;
+  margin-bottom: 1rem;
+  margin-top: 1rem;
   border-top: 1px solid var(--background-modifier-border);
 }
 
@@ -503,4 +504,12 @@
 
 .spinning svg {
   animation: spin 1s linear infinite;
+}
+
+.cancel-button {
+  margin-top: 0.5rem;
+}
+
+.selected-files-container {
+  margin-bottom: 1rem;
 }
