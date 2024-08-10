@@ -237,7 +237,8 @@
 
 .chat-input-container {
   flex-shrink: 0;
-  padding: 1rem;
+  margin-bottom: 1rem;
+  margin-top: 1rem;
   border-top: 1px solid var(--background-modifier-border);
 }
 
@@ -271,6 +272,7 @@
   color: var(--text-on-accent);
   border: none;
   border-radius: 4px;
+  margin-left: 0.5rem;
 }
 
 .top-submit-button:hover,
@@ -294,6 +296,7 @@
   width: 1r.8em;
   height: 1.8rem;
   color: var(--text-normal);
+
 }
 
 .new-conversation-button:hover svg {
@@ -501,4 +504,12 @@
 
 .spinning svg {
   animation: spin 1s linear infinite;
+}
+
+.cancel-button {
+  margin-top: 0.5rem;
+}
+
+.selected-files-container {
+  margin-bottom: 1rem;
 }
