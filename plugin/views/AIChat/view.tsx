@@ -3,7 +3,7 @@ import { createRoot, Root } from 'react-dom/client';
 import React from 'react';
 import FileOrganizer from '../..';
 import AIChatSidebar from './container';
-import { AppContext } from './AppContext';
+import { AppContext } from './provider';
 
 export class AIChatView extends ItemView {
   private root: Root;

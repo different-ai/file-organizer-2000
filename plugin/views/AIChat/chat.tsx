@@ -2,14 +2,14 @@ import React, { useState, useEffect, useRef, useCallback } from "react";
 import { useChat, UseChatOptions } from "@ai-sdk/react";
 
 import FileOrganizer from "../..";
-import ReactMarkdown from "react-markdown";
 import Tiptap from "./tiptap";
 import { TFolder, TFile, moment } from "obsidian";
 import { ToolInvocation } from "ai";
 import { Button } from "./button";
 import { Avatar } from "./avatar";
-import { ObsidianRenderer } from "./ObsidianRenderer";
-import { usePlugin } from "./AppContext";
+import { AIMarkdown } from "./ai-message-renderer";
+import { UserMarkdown } from "./user-message-renderer";
+import { usePlugin } from "./provider";
 
 interface ToolInvocationHandlerProps {
   toolInvocation: ToolInvocation;
@@ -589,7 +589,7 @@ export const ChatComponent: React.FC<ChatComponentProps> = ({
             <div key={message.id} className={`message ${message.role}-message`}>
               <Avatar role={message.role as "user" | "assistant"} />
               <div className="message-content">
-                <ObsidianRenderer content={message.content} />
+                <AIMarkdown content={message.content} />
               </div>
             </div>
           ))}
@@ -597,7 +597,11 @@ export const ChatComponent: React.FC<ChatComponentProps> = ({
             <div key={message.id} className={`message ${message.role}-message`}>
               <Avatar role={message.role as "user" | "assistant"} />
               <div className="message-content">
-                <ObsidianRenderer content={message.content} />
+                {message.role === "user" ? (
+                  <UserMarkdown content={message.content} />
+                ) : (
+                  <AIMarkdown content={message.content} />
+                )}
                 {message.toolInvocations?.map(
                   (toolInvocation: ToolInvocation) => (
                     <ToolInvocationHandler

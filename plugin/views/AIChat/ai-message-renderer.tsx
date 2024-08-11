@@ -7,13 +7,13 @@ import {
   Notice,
   TFile,
 } from "obsidian";
-import { usePlugin } from "./AppContext";
+import { usePlugin } from "./provider";
 
 interface ObsidianRendererProps {
   content: string;
 }
 
-export const ObsidianRenderer: React.FC<ObsidianRendererProps> = ({
+export const AIMarkdown: React.FC<ObsidianRendererProps> = ({
   content,
 }) => {
   const containerRef = useRef<HTMLDivElement>(null);

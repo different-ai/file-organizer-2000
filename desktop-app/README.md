@@ -1,3 +1,0 @@
-```
-npm run tauri dev
-```
