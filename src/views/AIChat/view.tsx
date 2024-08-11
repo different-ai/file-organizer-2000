@@ -27,7 +27,7 @@ export class AIChatView extends ItemView {
     container.empty();
     this.root = createRoot(container);
     this.root.render(
-      <AppContext.Provider value={this.app}>
+      <AppContext.Provider value={{ plugin: this.plugin, root: this.root }}>
         <AIChatSidebar
           plugin={this.plugin}
           apiKey={this.plugin.settings.API_KEY}

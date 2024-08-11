@@ -6,7 +6,7 @@ import { z } from "zod";
 import { openai } from "@ai-sdk/openai";
 import { getYouTubeTranscript } from "@/lib/youtubeTranscript";
 
-export const maxDuration = 30;
+export const maxDuration = 60;
 
 export async function POST(req: NextRequest) {
   try {

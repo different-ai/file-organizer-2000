@@ -9,7 +9,7 @@ import { ToolInvocation } from "ai";
 import { Button } from "./button";
 import { Avatar } from "./avatar";
 import { ObsidianRenderer } from './ObsidianRenderer';
-import { useApp } from './AppContext';
+import { usePlugin } from './AppContext';
 
 interface ToolInvocationHandlerProps {
   toolInvocation: ToolInvocation;
@@ -183,7 +183,7 @@ export const ChatComponent: React.FC<ChatComponentProps> = ({
   history,
   setHistory,
 }) => {
-  const app = useApp();
+  const app = usePlugin();
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [selectedFiles, setSelectedFiles] = useState<
     { title: string; content: string; reference: string; path: string }[]
@@ -585,7 +585,7 @@ export const ChatComponent: React.FC<ChatComponentProps> = ({
             <div key={message.id} className={`message ${message.role}-message`}>
               <Avatar role={message.role as "user" | "assistant"} />
               <div className="message-content">
-                <ObsidianRenderer content={message.content} plugin={plugin} />
+                <ObsidianRenderer content={message.content} />
               </div>
             </div>
           ))}

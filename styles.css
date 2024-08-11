@@ -572,3 +572,41 @@
 .clear-all-button:hover {
   background-color: var(--interactive-hover);
 }
+
+
+.obsidian-renderer .icon-container {
+  display: flex;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.obsidian-renderer .clickable-icon-container {
+  display: flex;
+  align-items: center;
+  background: none;
+  border: none;
+  border-radius: 0px;
+  cursor: pointer;
+  padding: 4px 8px;
+  transition: background-color 0.2s;
+}
+
+.obsidian-renderer .clickable-icon-container:hover {
+  background-color: var(--interactive-hover);
+}
+
+.obsidian-renderer .clickable-icon {
+  display: flex;
+  align-items: center;
+  margin-right: 2px;
+}
+
+.obsidian-renderer .icon-action-text {
+  font-size: 12px;
+}
+
+.obsidian-renderer .active-file {
+  font-size: 0.9em;
+  opacity: 0.7;
+  margin-right: auto;
+}
