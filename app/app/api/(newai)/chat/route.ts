@@ -87,6 +87,24 @@ Please use this context to inform your responses, but do not directly repeat thi
             return formattingInstruction;
           },
         },
+        handleUnrecognizedFeature: {
+          description: "Handle requests for features that are not specifically implemented",
+          parameters: z.object({
+            request: z.string().describe("The user's request that wasn't recognized"),
+          }),
+          execute: async ({ request }) => {
+            const response = `I'm not specifically designed to handle "${request}". Here are some examples of what I can do:
+
+1. Search notes: "Find notes about project management"
+2. Get notes from a date range: "Get notes from last week"
+3. Summarize content: "Summarize the notes about AI"
+4. Get YouTube transcripts: "Get the transcript for YouTube video ID abc123"
+5. Modify or format notes: "Format the current note as a bullet list"
+
+Feel free to try one of these or ask me anything else!`;
+            return response;
+          },
+        },
       },
       onFinish: async ({ usage }) => {
         console.log("Token usage:", usage);
