@@ -8,8 +8,8 @@ import { TFolder, TFile, moment } from "obsidian";
 import { ToolInvocation } from "ai";
 import { Button } from "./button";
 import { Avatar } from "./avatar";
-import { ObsidianRenderer } from './ObsidianRenderer';
-import { usePlugin } from './AppContext';
+import { ObsidianRenderer } from "./ObsidianRenderer";
+import { usePlugin } from "./AppContext";
 
 interface ToolInvocationHandlerProps {
   toolInvocation: ToolInvocation;
@@ -94,9 +94,11 @@ export const ToolInvocationHandler: React.FC<ToolInvocationHandlerProps> = ({
           <div>
             Last modified files:
             <ul>
-              {files.map((file: { title: string, path: string }, index: number) => (
-                <li key={`${file.path}-${index}`}>{file.title}</li>
-              ))}
+              {files.map(
+                (file: { title: string; path: string }, index: number) => (
+                  <li key={`${file.path}-${index}`}>{file.title}</li>
+                )
+              )}
             </ul>
           </div>
         );
@@ -130,13 +132,13 @@ const filterNotesByDateRange = async (
   const files = app.vault.getFiles();
   console.log(files.length, "total files");
 
-  const start = moment(startDate).startOf('day');
-  const end = moment(endDate).endOf('day');
+  const start = moment(startDate).startOf("day");
+  const end = moment(endDate).endOf("day");
 
   const filteredFiles = files.filter(file => {
     const fileDate = moment(file.stat.mtime);
-    const isBetween = fileDate.isBetween(start, end, null, '[]');
-    console.log(file.basename, fileDate.format('YYYY-MM-DD'), isBetween);
+    const isBetween = fileDate.isBetween(start, end, null, "[]");
+    console.log(file.basename, fileDate.format("YYYY-MM-DD"), isBetween);
     return isBetween;
   });
 
@@ -175,7 +177,6 @@ const SelectedItem = ({
 );
 
 export const ChatComponent: React.FC<ChatComponentProps> = ({
-  plugin,
   fileContent,
   fileName,
   apiKey,
@@ -183,7 +184,8 @@ export const ChatComponent: React.FC<ChatComponentProps> = ({
   history,
   setHistory,
 }) => {
-  const app = usePlugin();
+  const plugin = usePlugin();
+  const app = plugin.app;
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [selectedFiles, setSelectedFiles] = useState<
     { title: string; content: string; reference: string; path: string }[]
@@ -210,15 +212,15 @@ export const ChatComponent: React.FC<ChatComponentProps> = ({
   const searchNotes = async (query: string) => {
     const files = plugin.getAllUserMarkdownFiles();
     const searchTerms = query.toLowerCase().split(/\s+/);
-    
+
     const searchResults = await Promise.all(
       files.map(async file => {
         const content = await plugin.app.vault.read(file);
         const lowerContent = content.toLowerCase();
-        
+
         // Check if all search terms are present in the content
         const allTermsPresent = searchTerms.every(term => {
-          const regex = new RegExp(`(^|\\W)${term}(\\W|$)`, 'i');
+          const regex = new RegExp(`(^|\\W)${term}(\\W|$)`, "i");
           return regex.test(lowerContent);
         });
 
@@ -240,7 +242,7 @@ export const ChatComponent: React.FC<ChatComponentProps> = ({
     const files = plugin.getAllUserMarkdownFiles();
     const sortedFiles = files.sort((a, b) => b.stat.mtime - a.stat.mtime);
     const lastModifiedFiles = sortedFiles.slice(0, count);
-    
+
     const fileContents = await Promise.all(
       lastModifiedFiles.map(async file => ({
         title: file.basename,
@@ -320,7 +322,11 @@ export const ChatComponent: React.FC<ChatComponentProps> = ({
         if (activeFile) {
           try {
             const currentContent = await plugin.app.vault.read(activeFile);
-            await plugin.formatContent(activeFile, currentContent, formattingInstruction);
+            await plugin.formatContent(
+              activeFile,
+              currentContent,
+              formattingInstruction
+            );
             return `Successfully modified the current note "${activeFile.basename}" using the formatting instruction.`;
           } catch (error) {
             console.error("Error modifying note:", error);
@@ -417,9 +423,7 @@ export const ChatComponent: React.FC<ChatComponentProps> = ({
   };
 
   const handleOpenFile = async (fileTitle: string) => {
-    const file = app.vault
-      .getFiles()
-      .find(f => f.basename === fileTitle);
+    const file = app.vault.getFiles().find(f => f.basename === fileTitle);
     if (file) {
       await app.workspace.openLinkText(file.path, "", true);
     }
@@ -630,11 +634,13 @@ export const ChatComponent: React.FC<ChatComponentProps> = ({
             <span className="context-icon">ℹ️</span>
             <span>Selected items provide context for the AI</span>
           </div>
-          
+
           {fileName && (
             <div className="current-file-info">
               <span className="current-file-icon">📄</span>
-              <span className="current-file-name">Current file: <strong>{fileName}</strong></span>
+              <span className="current-file-name">
+                Current file: <strong>{fileName}</strong>
+              </span>
               <div className="current-file-tip">
                 <span className="tip-icon">💡</span>
                 <span>You can ask the AI to modify this file's content</span>
@@ -660,7 +666,9 @@ export const ChatComponent: React.FC<ChatComponentProps> = ({
                   item={folder}
                   onClick={() => handleOpenFolder(folder)}
                   onRemove={() =>
-                    setSelectedFolders(folders => folders.filter(f => f !== folder))
+                    setSelectedFolders(folders =>
+                      folders.filter(f => f !== folder)
+                    )
                   }
                   prefix="📁 "
                 />
@@ -669,7 +677,9 @@ export const ChatComponent: React.FC<ChatComponentProps> = ({
                 <SelectedItem
                   key={`${tag}-${index}`}
                   item={tag}
-                  onClick={() => {/* Handle tag click */}}
+                  onClick={() => {
+                    /* Handle tag click */
+                  }}
                   onRemove={() =>
                     setSelectedTags(tags => tags.filter(t => t !== tag))
                   }
@@ -677,11 +687,10 @@ export const ChatComponent: React.FC<ChatComponentProps> = ({
                 />
               ))}
             </div>
-            {(selectedFiles.length > 0 || selectedFolders.length > 0 || selectedTags.length > 0) && (
-              <Button
-                onClick={handleClearAll}
-                className="clear-all-button"
-              >
+            {(selectedFiles.length > 0 ||
+              selectedFolders.length > 0 ||
+              selectedTags.length > 0) && (
+              <Button onClick={handleClearAll} className="clear-all-button">
                 Clear All Context
               </Button>
             )}
