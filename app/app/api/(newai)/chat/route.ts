@@ -18,7 +18,9 @@ export async function POST(req: NextRequest) {
       .join("\n\n");
 
     const result = await streamText({
-      model: openai(process.env.MODEL_NAME || "gpt-4o-mini"),
+      model: openai(process.env.MODEL_NAME || "gpt-4o-2024-08-06", {
+        structuredOutputs: true,
+      }),
       system: `You are a helpful assistant. Here are some files that you can use to answer questions:
 ${contextString}
 Please use this context to inform your responses, but do not directly repeat this context in your answers unless specifically asked about the file content.`,
@@ -64,14 +66,21 @@ Please use this context to inform your responses, but do not directly repeat thi
               return transcript;
             } catch (error) {
               console.error("Error fetching YouTube transcript:", error);
-              throw new Error(`Failed to fetch YouTube transcript: ${error.message}`);
+              throw new Error(
+                `Failed to fetch YouTube transcript: ${error.message}`
+              );
             }
           },
         },
         modifyCurrentNote: {
-          description: "Modify the content of the currently active note using a formatting instruction",
+          description:
+            "Modify the content of the currently active note using a formatting instruction",
           parameters: z.object({
-            formattingInstruction: z.string().describe("The instruction for formatting the current note content"),
+            formattingInstruction: z
+              .string()
+              .describe(
+                "The instruction for formatting the current note content"
+              ),
           }),
           execute: async ({ formattingInstruction }) => {
             // This will be handled client-side, so we just return the formatting instruction
