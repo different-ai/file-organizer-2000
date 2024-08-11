@@ -88,13 +88,7 @@ export async function guessRelevantFolder(
       ", "
     )}. Base your decision on the relevance of the content and the file name to the folder themes. If no existing folder is suitable, respond with null.`,
   });
-  console.log(
-    `${
-      response.object.suggestedFolder
-        ? "Suggested folder: " + response.object.suggestedFolder
-        : "No suggested folder"
-    }`
-  );
+
 
   return response;
 }
@@ -115,7 +109,6 @@ export async function createNewFolder(
       ", "
     )}.`,
   });
-  console.log("Suggesting a new folder: ", response.object.newFolderName);
 
   return response;
 }
@@ -154,7 +147,6 @@ export async function generateDocumentTitle(
   model: LanguageModel,
   renameInstructions: string
 ) {
-  console.log("renameInstructions", renameInstructions);
   // console log the prompt and system
   const prompt = `You are an AI specialized in generating concise and relevant document titles. Ensure the title is under 50 characters, contains no special characters, and is highly specific to the document's content.
       Additional context:
@@ -166,8 +158,7 @@ export async function generateDocumentTitle(
       `;
   const system = `Only answer with human readable title`;
 
-  console.log("prompt", prompt);
-  console.log("system", system);
+
   const response = await generateObject({
     model,
     schema: z.object({
@@ -232,10 +223,6 @@ export async function classifyDocument(
   templateNames: string[],
   model: LanguageModel
 ) {
-  console.log("content", content);
-  console.log("fileName", fileName);
-  console.log("templateNames", templateNames);
-
   const response = await generateObject({
     model,
     schema: z.object({
@@ -375,7 +362,6 @@ export async function generateTranscriptFromAudio(
     apiKey: openaiApiKey,
     dangerouslyAllowBrowser: true,
   });
-  console.log("audioBuffer", audioBuffer);
 
   // Save the audio buffer to a temporary file
   const tempFilePath = join(tmpdir(), `audio_${Date.now()}.${fileExtension}`);
@@ -385,14 +371,11 @@ export async function generateTranscriptFromAudio(
   const audioStream = fs.createReadStream(tempFilePath);
 
   try {
-    console.log("fileExtension", fileExtension);
     // Use the OpenAI API to generate the transcript
     const response = await openai.audio.transcriptions.create({
       file: audioStream,
       model: "whisper-1",
     });
-    console.log("response", response);
-
     return response.text;
   } catch (error) {
     console.error("Error generating transcript:", error);
