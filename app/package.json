@@ -29,7 +29,7 @@
   },
   "dependencies": {
     "@ai-sdk/anthropic": "^0.0.9",
-    "@ai-sdk/openai": "^0.0.9",
+    "@ai-sdk/openai": "^0.0.44",
     "@clerk/nextjs": "^5.0.2",
     "@radix-ui/react-label": "^2.0.2",
     "@radix-ui/react-select": "^2.0.0",
@@ -42,7 +42,7 @@
     "@types/react-dom": "18.2.13",
     "@unkey/api": "^0.19.4",
     "@vercel/postgres": "^0.8.0",
-    "ai": "^3.3.0",
+    "ai": "^3.3.5",
     "autoprefixer": "10.4.16",
     "class-variance-authority": "^0.7.0",
     "clsx": "^2.0.0",

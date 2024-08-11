@@ -14,11 +14,6 @@ interface ToolInvocationHandlerProps {
   addToolResult: (params: { toolCallId: string; result: string }) => void;
 }
 
-interface ToolInvocationHandlerProps {
-  toolInvocation: ToolInvocation;
-  addToolResult: (params: { toolCallId: string; result: string }) => void;
-}
-
 export const ToolInvocationHandler: React.FC<ToolInvocationHandlerProps> = ({
   toolInvocation,
   addToolResult,
@@ -70,6 +65,20 @@ export const ToolInvocationHandler: React.FC<ToolInvocationHandlerProps> = ({
           </div>
         </div>
       );
+
+    case "getYouTubeTranscript":
+      if ("result" in toolInvocation) {
+        return <div>YouTube transcript fetched successfully</div>;
+      } else {
+        return <div>Fetching YouTube transcript...</div>;
+      }
+
+    case "modifyCurrentNote":
+      if ("result" in toolInvocation) {
+        return <div>Note modification applied: {toolInvocation.result}</div>;
+      } else {
+        return <div>Applying note modification...</div>;
+      }
 
     default:
       return null;
