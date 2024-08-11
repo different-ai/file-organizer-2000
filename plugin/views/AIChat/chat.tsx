@@ -3,113 +3,14 @@ import { useChat, UseChatOptions } from "@ai-sdk/react";
 
 import FileOrganizer from "../..";
 import Tiptap from "./tiptap";
-import { TFolder, TFile, moment } from "obsidian";
+import { TFolder, TFile, moment, App } from "obsidian";
 import { ToolInvocation } from "ai";
 import { Button } from "./button";
 import { Avatar } from "./avatar";
 import { AIMarkdown } from "./ai-message-renderer";
 import { UserMarkdown } from "./user-message-renderer";
 import { usePlugin } from "./provider";
-
-interface ToolInvocationHandlerProps {
-  toolInvocation: ToolInvocation;
-  addToolResult: (params: { toolCallId: string; result: string }) => void;
-}
-
-export const ToolInvocationHandler: React.FC<ToolInvocationHandlerProps> = ({
-  toolInvocation,
-  addToolResult,
-}) => {
-  const toolCallId = toolInvocation.toolCallId;
-  const handleAddResult = (result: string) =>
-    addToolResult({ toolCallId, result });
-
-  switch (toolInvocation.toolName) {
-    case "getNotesForDateRange":
-      if ("result" in toolInvocation) {
-        return <div>{toolInvocation.result}</div>;
-      } else {
-        return <div>Fetching notes for the specified date range...</div>;
-      }
-
-    case "searchNotes":
-      if ("result" in toolInvocation) {
-        try {
-          const searchResults = toolInvocation.result;
-          return <div>Searching for notes mentioning {searchResults}</div>;
-        } catch (error) {
-          console.error("Error parsing JSON:", error);
-          return <div>Error parsing search results</div>;
-        }
-      } else {
-        return <div>Searching notes...</div>;
-      }
-
-    case "askForConfirmation":
-      return (
-        <div>
-          {toolInvocation.args.message}
-          <div>
-            {"result" in toolInvocation ? (
-              <b>{toolInvocation.result}</b>
-            ) : (
-              <>
-                <Button onClick={() => handleAddResult("Yes")}>Yes</Button>
-                <Button onClick={() => handleAddResult("No")}>No</Button>
-              </>
-            )}
-          </div>
-        </div>
-      );
-
-    case "getYouTubeTranscript":
-      if ("result" in toolInvocation) {
-        return <div>YouTube transcript fetched successfully</div>;
-      } else {
-        return <div>Fetching YouTube transcript...</div>;
-      }
-
-    case "modifyCurrentNote":
-      if ("result" in toolInvocation) {
-        return <div>Note modification applied: {toolInvocation.result}</div>;
-      } else {
-        return <div>Applying note modification...</div>;
-      }
-
-    case "getLastModifiedFiles":
-      if ("result" in toolInvocation) {
-        let files;
-        try {
-          files = JSON.parse(toolInvocation.result);
-        } catch (error) {
-          console.error("Error parsing JSON:", error);
-          return <div>Error parsing last modified files result</div>;
-        }
-
-        if (!Array.isArray(files)) {
-          return <div>Unexpected format for last modified files</div>;
-        }
-
-        return (
-          <div>
-            Last modified files:
-            <ul>
-              {files.map(
-                (file: { title: string; path: string }, index: number) => (
-                  <li key={`${file.path}-${index}`}>{file.title}</li>
-                )
-              )}
-            </ul>
-          </div>
-        );
-      } else {
-        return <div>Fetching last modified files...</div>;
-      }
-
-    default:
-      return null;
-  }
-};
+import ToolInvocationHandler from "./tool-invocation-handler";
 
 interface ChatComponentProps {
   plugin: FileOrganizer;
@@ -148,6 +49,7 @@ const filterNotesByDateRange = async (
     filteredFiles.map(async file => ({
       title: file.basename,
       content: await app.vault.read(file),
+      path: file.path,
     }))
   );
 
@@ -251,7 +153,7 @@ export const ChatComponent: React.FC<ChatComponentProps> = ({
       }))
     );
 
-    return JSON.stringify(fileContents); // Make sure to stringify the result
+    return fileContents; // Make sure to stringify the result
   };
 
   const {
@@ -294,15 +196,19 @@ export const ChatComponent: React.FC<ChatComponentProps> = ({
         );
 
         // Add filtered Markdown notes to selectedFiles
-        setSelectedFiles(prevFiles => [
-          ...prevFiles,
-          ...filteredNotes.map(note => ({
-            title: note.title,
-            content: note.content,
-            reference: `@${note.title}`,
-            path: note.title, // Assuming title can be used as a unique identifier
-          })),
-        ]);
+        setSelectedFiles(prevFiles => {
+          const newFiles = filteredNotes
+            .map(note => ({
+              title: note.title,
+              content: note.content,
+              reference: `Date range: ${startDate} to ${endDate}`,
+              path: note.path,
+            }))
+            .filter(
+              file => !prevFiles.some(prevFile => prevFile.path === file.path)
+            );
+          return [...prevFiles, ...newFiles];
+        });
 
         // Return a message about the fetched notes
         return `Fetched ${filteredNotes.length} notes for the date range: ${startDate} to ${endDate}`;
@@ -312,7 +218,12 @@ export const ChatComponent: React.FC<ChatComponentProps> = ({
         const searchResults = await searchNotes(query);
 
         // Add search results to selectedFiles
-        setSelectedFiles(prevFiles => [...prevFiles, ...searchResults]);
+        setSelectedFiles(prevFiles => {
+          const newFiles = searchResults.filter(
+            file => !prevFiles.some(prevFile => prevFile.path === file.path)
+          );
+          return [...prevFiles, ...newFiles];
+        });
 
         return JSON.stringify(searchResults);
       } else if (toolCall.toolName === "modifyCurrentNote") {
@@ -339,19 +250,28 @@ export const ChatComponent: React.FC<ChatComponentProps> = ({
         const args = toolCall.args as { count: number };
         const { count } = args;
         const lastModifiedFiles = await getLastModifiedFiles(count);
+        console.log(lastModifiedFiles, "lastModifiedFiles");
 
         // Add last modified files to selectedFiles
-        setSelectedFiles(prevFiles => [
-          ...prevFiles,
-          ...JSON.parse(lastModifiedFiles).map(file => ({
-            title: file.title,
-            content: file.content,
-            reference: `Last modified: ${file.title}`,
-            path: file.path,
-          })),
-        ]);
+        setSelectedFiles(prevFiles => {
+          const newFiles = lastModifiedFiles
+            .map(file => ({
+              title: file.title,
+              content: file.content,
+              reference: `Last modified: ${file.title}`,
+              path: file.path,
+            }))
+            .filter(
+              file => !prevFiles.some(prevFile => prevFile.path === file.path)
+            );
+          return [...prevFiles, ...newFiles];
+        });
+        toolCall.args = {
+          count: lastModifiedFiles.length,
+          files: lastModifiedFiles,
+        };
 
-        return lastModifiedFiles;
+        return lastModifiedFiles.length.toString();
       }
     },
   } as UseChatOptions);
@@ -594,10 +514,12 @@ export const ChatComponent: React.FC<ChatComponentProps> = ({
             </div>
           ))}
           {messages.map(message => (
-            <div key={message.id} className={`message ${message.role}-message`}>
+            <div key={message.id} className={`message `}>
               <Avatar role={message.role as "user" | "assistant"} />
               <div className="message-content">
                 {message.role === "user" ? (
+                  <UserMarkdown content={message.content} />
+                ) : message.toolInvocations ? (
                   <UserMarkdown content={message.content} />
                 ) : (
                   <AIMarkdown content={message.content} />

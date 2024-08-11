@@ -1,9 +1,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import {
-  App,
   MarkdownRenderer,
   MarkdownView,
-  ButtonComponent,
   Notice,
   TFile,
 } from "obsidian";

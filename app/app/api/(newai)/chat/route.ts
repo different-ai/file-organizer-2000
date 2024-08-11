@@ -5,6 +5,7 @@ import { handleAuthorization } from "@/lib/handleAuthorization";
 import { z } from "zod";
 import { openai } from "@ai-sdk/openai";
 import { getYouTubeTranscript } from "@/lib/youtubeTranscript";
+import { parseISO, isValid } from "date-fns";
 
 export const maxDuration = 60;
 
@@ -53,12 +54,20 @@ Always use these link and reference formats when mentioning files or specific co
           parameters: z.object({
             startDate: z
               .string()
-              .describe("Start date of the range (ISO format)"),
-            endDate: z.string().describe("End date of the range (ISO format)"),
+              .describe("Start date of the range (ISO format)")
+              .refine(date => isValid(parseISO(date)), {
+                message: "Invalid start date format",
+              }),
+            endDate: z
+              .string()
+              .describe("End date of the range (ISO format)")
+              .refine(date => isValid(parseISO(date)), {
+                message: "Invalid end date format",
+              }),
           }),
           execute: async ({ startDate, endDate }) => {
             console.log(startDate, endDate, "startDate, endDate");
-            // Return only the date range
+            // Return the date range for client-side processing
             return JSON.stringify({ startDate, endDate });
           },
         },
@@ -87,9 +96,7 @@ Always use these link and reference formats when mentioning files or specific co
               return transcript;
             } catch (error) {
               console.error("Error fetching YouTube transcript:", error);
-              throw new Error(
-                `Failed to fetch YouTube transcript: ${error.message}`
-              );
+              return JSON.stringify({ error: error.message });
             }
           },
         },
