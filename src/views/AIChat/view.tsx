@@ -3,7 +3,7 @@ import { createRoot, Root } from 'react-dom/client';
 import React from 'react';
 import FileOrganizer from '../..';
 import AIChatSidebar from './container';
-
+import { AppContext } from './AppContext';
 
 export class AIChatView extends ItemView {
   private root: Root;
@@ -27,10 +27,12 @@ export class AIChatView extends ItemView {
     container.empty();
     this.root = createRoot(container);
     this.root.render(
-      <AIChatSidebar
-        plugin={this.plugin}
-        apiKey={this.plugin.settings.API_KEY}
-      />
+      <AppContext.Provider value={this.app}>
+        <AIChatSidebar
+          plugin={this.plugin}
+          apiKey={this.plugin.settings.API_KEY}
+        />
+      </AppContext.Provider>
     );
   }
 

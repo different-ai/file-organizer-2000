@@ -8,6 +8,8 @@ import { TFolder, TFile, moment } from "obsidian";
 import { ToolInvocation } from "ai";
 import { Button } from "./button";
 import { Avatar } from "./avatar";
+import { ObsidianRenderer } from './ObsidianRenderer';
+import { useApp } from './AppContext';
 
 interface ToolInvocationHandlerProps {
   toolInvocation: ToolInvocation;
@@ -120,12 +122,12 @@ interface ChatComponentProps {
 }
 
 const filterNotesByDateRange = async (
-  plugin: FileOrganizer,
+  app: App,
   startDate: string,
   endDate: string
 ) => {
   console.log(startDate, endDate, "startDate, endDate");
-  const files = plugin.getAllUserMarkdownFiles();
+  const files = app.vault.getFiles();
   console.log(files.length, "total files");
 
   const start = moment(startDate).startOf('day');
@@ -143,7 +145,7 @@ const filterNotesByDateRange = async (
   const fileContents = await Promise.all(
     filteredFiles.map(async file => ({
       title: file.basename,
-      content: await plugin.app.vault.read(file),
+      content: await app.vault.read(file),
     }))
   );
 
@@ -181,6 +183,7 @@ export const ChatComponent: React.FC<ChatComponentProps> = ({
   history,
   setHistory,
 }) => {
+  const app = useApp();
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [selectedFiles, setSelectedFiles] = useState<
     { title: string; content: string; reference: string; path: string }[]
@@ -283,7 +286,7 @@ export const ChatComponent: React.FC<ChatComponentProps> = ({
         const { startDate, endDate } = args;
         console.log(startDate, endDate, "startDate, endDate");
         const filteredNotes = await filterNotesByDateRange(
-          plugin,
+          app,
           startDate,
           endDate
         );
@@ -414,23 +417,23 @@ export const ChatComponent: React.FC<ChatComponentProps> = ({
   };
 
   const handleOpenFile = async (fileTitle: string) => {
-    const file = plugin.app.vault
+    const file = app.vault
       .getFiles()
       .find(f => f.basename === fileTitle);
     if (file) {
-      await plugin.app.workspace.openLinkText(file.path, "", true);
+      await app.workspace.openLinkText(file.path, "", true);
     }
   };
   const handleOpenFolder = (folderPath: string) => {
-    const folder = plugin.app.vault.getAbstractFileByPath(folderPath);
+    const folder = app.vault.getAbstractFileByPath(folderPath);
     if (folder && folder instanceof TFolder) {
       // Reveal the folder in the file explorer
       const fileExplorerLeaf =
-        plugin.app.workspace.getLeavesOfType("file-explorer")[0];
+        app.workspace.getLeavesOfType("file-explorer")[0];
       if (fileExplorerLeaf) {
-        plugin.app.workspace.revealLeaf(fileExplorerLeaf);
+        app.workspace.revealLeaf(fileExplorerLeaf);
         // Focus on the folder in the file explorer
-        plugin.app.workspace.setActiveLeaf(fileExplorerLeaf);
+        app.workspace.setActiveLeaf(fileExplorerLeaf);
         // Expand the folder in the file explorer
         const fileExplorer = fileExplorerLeaf.view as any;
         if (fileExplorer && typeof fileExplorer.expandFolder === "function") {
@@ -518,7 +521,7 @@ export const ChatComponent: React.FC<ChatComponentProps> = ({
       if (selectedFolders.length > 0) {
         const folderContents = await Promise.all(
           selectedFolders.map(async folderPath => {
-            const folder = plugin.app.vault.getAbstractFileByPath(folderPath);
+            const folder = app.vault.getAbstractFileByPath(folderPath);
             if (folder instanceof TFolder) {
               const files = folder.children.filter(
                 (file): file is TFile =>
@@ -527,7 +530,7 @@ export const ChatComponent: React.FC<ChatComponentProps> = ({
               return await Promise.all(
                 files.map(async file => ({
                   title: file.basename,
-                  content: await plugin.app.vault.read(file),
+                  content: await app.vault.read(file),
                   path: file.path,
                 }))
               );
@@ -554,7 +557,7 @@ export const ChatComponent: React.FC<ChatComponentProps> = ({
     allFiles,
     fileName,
     fileContent,
-    plugin.app.vault,
+    app.vault,
   ]);
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -582,7 +585,7 @@ export const ChatComponent: React.FC<ChatComponentProps> = ({
             <div key={message.id} className={`message ${message.role}-message`}>
               <Avatar role={message.role as "user" | "assistant"} />
               <div className="message-content">
-                <ReactMarkdown>{message.content}</ReactMarkdown>
+                <ObsidianRenderer content={message.content} plugin={plugin} />
               </div>
             </div>
           ))}
@@ -590,7 +593,7 @@ export const ChatComponent: React.FC<ChatComponentProps> = ({
             <div key={message.id} className={`message ${message.role}-message`}>
               <Avatar role={message.role as "user" | "assistant"} />
               <div className="message-content">
-                <ReactMarkdown>{message.content}</ReactMarkdown>
+                <ObsidianRenderer content={message.content} />
                 {message.toolInvocations?.map(
                   (toolInvocation: ToolInvocation) => (
                     <ToolInvocationHandler
