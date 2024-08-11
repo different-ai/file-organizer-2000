@@ -4,7 +4,7 @@ import { useChat, UseChatOptions } from "@ai-sdk/react";
 import FileOrganizer from "../..";
 import ReactMarkdown from "react-markdown";
 import Tiptap from "./tiptap";
-import { TFolder, TFile } from "obsidian";
+import { TFolder, TFile, moment } from "obsidian";
 import { ToolInvocation } from "ai";
 import { Button } from "./button";
 import { Avatar } from "./avatar";
@@ -25,15 +25,9 @@ export const ToolInvocationHandler: React.FC<ToolInvocationHandlerProps> = ({
   switch (toolInvocation.toolName) {
     case "getNotesForDateRange":
       if ("result" in toolInvocation) {
-        try {
-          console.log(toolInvocation.result, "toolInvocation.result");
-          return <div>{toolInvocation.result}</div>;
-        } catch (error) {
-          console.error("Error parsing JSON:", error);
-          return <div>Error parsing date range data</div>;
-        }
+        return <div>{toolInvocation.result}</div>;
       } else {
-        return <div>Getting notes...</div>;
+        return <div>Fetching notes for the specified date range...</div>;
       }
 
     case "searchNotes":
@@ -102,11 +96,21 @@ const filterNotesByDateRange = async (
   startDate: string,
   endDate: string
 ) => {
+  console.log(startDate, endDate, "startDate, endDate");
   const files = plugin.getAllUserMarkdownFiles();
+  console.log(files.length, "total files");
+
+  const start = moment(startDate).startOf('day');
+  const end = moment(endDate).endOf('day');
+
   const filteredFiles = files.filter(file => {
-    const fileDate = new Date(file.stat.mtime);
-    return fileDate >= new Date(startDate) && fileDate <= new Date(endDate);
+    const fileDate = moment(file.stat.mtime);
+    const isBetween = fileDate.isBetween(start, end, null, '[]');
+    console.log(file.basename, fileDate.format('YYYY-MM-DD'), isBetween);
+    return isBetween;
   });
+
+  console.log(filteredFiles.length, "filteredFiles");
 
   const fileContents = await Promise.all(
     filteredFiles.map(async file => ({
@@ -233,6 +237,7 @@ export const ChatComponent: React.FC<ChatComponentProps> = ({
       if (toolCall.toolName === "getNotesForDateRange") {
         const args = toolCall.args as { startDate: string; endDate: string };
         const { startDate, endDate } = args;
+        console.log(startDate, endDate, "startDate, endDate");
         const filteredNotes = await filterNotesByDateRange(
           plugin,
           startDate,
@@ -245,12 +250,13 @@ export const ChatComponent: React.FC<ChatComponentProps> = ({
           ...filteredNotes.map(note => ({
             title: note.title,
             content: note.content,
-            reference: `Date range: ${startDate} to ${endDate}`,
+            reference: `@${note.title}`,
             path: note.title, // Assuming title can be used as a unique identifier
           })),
         ]);
 
-        return JSON.stringify(filteredNotes);
+        // Return a message about the fetched notes
+        return `Fetched ${filteredNotes.length} notes for the date range: ${startDate} to ${endDate}`;
       } else if (toolCall.toolName === "searchNotes") {
         const args = toolCall.args as { query: string };
         const { query } = args;
@@ -554,36 +560,45 @@ export const ChatComponent: React.FC<ChatComponentProps> = ({
       )}
 
       <div className="chat-input-container">
-        <div className="selected-files-container">
-          <div className="selected-files">
-            {selectedFiles.map((file, index) => (
-              <SelectedItem
-                key={`${file.path}-${index}`}
-                item={file.title}
-                onClick={() => handleOpenFile(file.title)}
-                onRemove={() => handleRemoveFile(file.path)}
-              />
-            ))}
-
-            {selectedFolders.map((folder, index) => (
-              <SelectedItem
-                key={`${folder}-${index}`}
-                item={folder}
-                onClick={() => handleOpenFolder(folder)}
-                onRemove={() =>
-                  setSelectedFolders(folders => folders.filter(f => f !== folder))
-                }
-              />
-            ))}
+        <div className="context-container">
+          <h3 className="context-header">AI Context</h3>
+          <div className="context-info">
+            <span className="context-icon">ℹ️</span>
+            <span>Selected files and folders provide context for the AI</span>
           </div>
-          {(selectedFiles.length > 0 || selectedFolders.length > 0) && (
-            <Button
-              onClick={handleClearAll}
-              className="clear-all-button"
-            >
-              Clear All
-            </Button>
-          )}
+          <div className="selected-files-container">
+            <div className="selected-files">
+              {selectedFiles.map((file, index) => (
+                <SelectedItem
+                  key={`${file.path}-${index}`}
+                  item={file.title}
+                  onClick={() => handleOpenFile(file.title)}
+                  onRemove={() => handleRemoveFile(file.path)}
+                  prefix="📄 "
+                />
+              ))}
+
+              {selectedFolders.map((folder, index) => (
+                <SelectedItem
+                  key={`${folder}-${index}`}
+                  item={folder}
+                  onClick={() => handleOpenFolder(folder)}
+                  onRemove={() =>
+                    setSelectedFolders(folders => folders.filter(f => f !== folder))
+                  }
+                  prefix="📁 "
+                />
+              ))}
+            </div>
+            {(selectedFiles.length > 0 || selectedFolders.length > 0) && (
+              <Button
+                onClick={handleClearAll}
+                className="clear-all-button"
+              >
+                Clear Context
+              </Button>
+            )}
+          </div>
         </div>
 
         <form

@@ -12,18 +12,26 @@ export async function POST(req: NextRequest) {
   try {
     const { userId } = await handleAuthorization(req);
     const { messages, unifiedContext } = await req.json();
+    console.log(unifiedContext, "unifiedContext");
 
     const contextString = unifiedContext
-      .map((file) => `File: ${file.title}\n\nContent:\n${file.content}`)
+      .map((file) => `File: ${file.title}\n\nContent:\n${file.content}\nPath: ${file.path}`)
       .join("\n\n");
 
     const result = await streamText({
       model: openai(process.env.MODEL_NAME || "gpt-4o-2024-08-06", {
         structuredOutputs: true,
       }),
-      system: `You are a helpful assistant. Here are some files that you can use to answer questions:
+      system: `You are a helpful assistant with access to the following files:
+
 ${contextString}
-Please use this context to inform your responses, but do not directly repeat this context in your answers unless specifically asked about the file content.`,
+
+Use this context to inform your responses. When asked to summarize files or content:
+1. If the user asks to "summarize all the files" or "summarize the selected files", provide a brief overview of each file's content.
+2. If asked about specific files or topics, focus on the relevant information from the context.
+3. Only directly quote or repeat file content when specifically asked about file contents.
+
+For all other queries, use the context to provide informed answers without explicitly mentioning the files unless necessary.`,
       messages: convertToCoreMessages(messages),
       tools: {
         getNotesForDateRange: {
@@ -38,7 +46,8 @@ Please use this context to inform your responses, but do not directly repeat thi
           }),
           execute: async ({ startDate, endDate }) => {
             console.log(startDate, endDate, "startDate, endDate");
-            return `Notes fetched for date range: ${startDate} to ${endDate}`;
+            // Return only the date range
+            return JSON.stringify({ startDate, endDate });
           },
         },
         searchNotes: {

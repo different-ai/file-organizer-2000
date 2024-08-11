@@ -513,3 +513,68 @@
 .selected-files-container {
   margin-bottom: 1rem;
 }
+
+/* Context Container Styles */
+.context-container {
+  background-color: var(--background-secondary);
+  border-radius: 8px;
+  padding: 10px;
+  margin-bottom: 10px;
+}
+
+.context-header {
+  font-size: 16px;
+  font-weight: bold;
+  margin-bottom: 5px;
+  color: var(--text-normal);
+}
+
+.context-info {
+  display: flex;
+  align-items: center;
+  font-size: 12px;
+  color: var(--text-muted);
+  margin-bottom: 10px;
+}
+
+.context-icon {
+  margin-right: 5px;
+}
+
+.selected-files-container {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.selected-files {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+}
+
+.selected-file {
+  background-color: var(--background-secondary-alt);
+  border-radius: 4px;
+  padding: 2px 5px;
+  font-size: 12px;
+  display: flex;
+  align-items: center;
+  color: var(--text-muted);
+}
+
+.clear-all-button {
+  align-self: flex-end;
+  margin-top: 5px;
+  font-size: 12px;
+  padding: 2px 5px;
+  background-color: var(--interactive-normal);
+  color: var(--text-normal);
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.clear-all-button:hover {
+  background-color: var(--interactive-hover);
+}
