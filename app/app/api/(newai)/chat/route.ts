@@ -114,6 +114,16 @@ Feel free to try one of these or ask me anything else!`;
             return response;
           },
         },
+        getLastModifiedFiles: {
+          description: "Get the last modified files in the vault",
+          parameters: z.object({
+            count: z.number().describe("The number of last modified files to retrieve"),
+          }),
+          execute: async ({ count }) => {
+            // This will be handled client-side, so we just return the count
+            return count.toString();
+          },
+        },
       },
       onFinish: async ({ usage }) => {
         console.log("Token usage:", usage);

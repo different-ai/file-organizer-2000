@@ -74,6 +74,34 @@ export const ToolInvocationHandler: React.FC<ToolInvocationHandlerProps> = ({
         return <div>Applying note modification...</div>;
       }
 
+    case "getLastModifiedFiles":
+      if ("result" in toolInvocation) {
+        let files;
+        try {
+          files = JSON.parse(toolInvocation.result);
+        } catch (error) {
+          console.error("Error parsing JSON:", error);
+          return <div>Error parsing last modified files result</div>;
+        }
+
+        if (!Array.isArray(files)) {
+          return <div>Unexpected format for last modified files</div>;
+        }
+
+        return (
+          <div>
+            Last modified files:
+            <ul>
+              {files.map((file: { title: string, path: string }, index: number) => (
+                <li key={`${file.path}-${index}`}>{file.title}</li>
+              ))}
+            </ul>
+          </div>
+        );
+      } else {
+        return <div>Fetching last modified files...</div>;
+      }
+
     default:
       return null;
   }
@@ -205,6 +233,22 @@ export const ChatComponent: React.FC<ChatComponentProps> = ({
     return searchResults.filter(result => result !== null);
   };
 
+  const getLastModifiedFiles = async (count: number) => {
+    const files = plugin.getAllUserMarkdownFiles();
+    const sortedFiles = files.sort((a, b) => b.stat.mtime - a.stat.mtime);
+    const lastModifiedFiles = sortedFiles.slice(0, count);
+    
+    const fileContents = await Promise.all(
+      lastModifiedFiles.map(async file => ({
+        title: file.basename,
+        content: await plugin.app.vault.read(file),
+        path: file.path,
+      }))
+    );
+
+    return JSON.stringify(fileContents); // Make sure to stringify the result
+  };
+
   const {
     isLoading: isGenerating,
     messages,
@@ -282,6 +326,23 @@ export const ChatComponent: React.FC<ChatComponentProps> = ({
         } else {
           return "No active file found.";
         }
+      } else if (toolCall.toolName === "getLastModifiedFiles") {
+        const args = toolCall.args as { count: number };
+        const { count } = args;
+        const lastModifiedFiles = await getLastModifiedFiles(count);
+
+        // Add last modified files to selectedFiles
+        setSelectedFiles(prevFiles => [
+          ...prevFiles,
+          ...JSON.parse(lastModifiedFiles).map(file => ({
+            title: file.title,
+            content: file.content,
+            reference: `Last modified: ${file.title}`,
+            path: file.path,
+          })),
+        ]);
+
+        return lastModifiedFiles;
       }
     },
   } as UseChatOptions);
@@ -564,10 +625,23 @@ export const ChatComponent: React.FC<ChatComponentProps> = ({
           <h3 className="context-header">AI Context</h3>
           <div className="context-info">
             <span className="context-icon">ℹ️</span>
-            <span>Selected files and folders provide context for the AI</span>
+            <span>Selected items provide context for the AI</span>
           </div>
-          <div className="selected-files-container">
-            <div className="selected-files">
+          
+          {fileName && (
+            <div className="current-file-info">
+              <span className="current-file-icon">📄</span>
+              <span className="current-file-name">Current file: <strong>{fileName}</strong></span>
+              <div className="current-file-tip">
+                <span className="tip-icon">💡</span>
+                <span>You can ask the AI to modify this file's content</span>
+              </div>
+            </div>
+          )}
+
+          <div className="selected-items-container">
+            <h4 className="selected-items-header">Selected Context</h4>
+            <div className="selected-items">
               {selectedFiles.map((file, index) => (
                 <SelectedItem
                   key={`${file.path}-${index}`}
@@ -577,7 +651,6 @@ export const ChatComponent: React.FC<ChatComponentProps> = ({
                   prefix="📄 "
                 />
               ))}
-
               {selectedFolders.map((folder, index) => (
                 <SelectedItem
                   key={`${folder}-${index}`}
@@ -589,13 +662,24 @@ export const ChatComponent: React.FC<ChatComponentProps> = ({
                   prefix="📁 "
                 />
               ))}
+              {selectedTags.map((tag, index) => (
+                <SelectedItem
+                  key={`${tag}-${index}`}
+                  item={tag}
+                  onClick={() => {/* Handle tag click */}}
+                  onRemove={() =>
+                    setSelectedTags(tags => tags.filter(t => t !== tag))
+                  }
+                  prefix="#"
+                />
+              ))}
             </div>
-            {(selectedFiles.length > 0 || selectedFolders.length > 0) && (
+            {(selectedFiles.length > 0 || selectedFolders.length > 0 || selectedTags.length > 0) && (
               <Button
                 onClick={handleClearAll}
                 className="clear-all-button"
               >
-                Clear Context
+                Clear All Context
               </Button>
             )}
           </div>
