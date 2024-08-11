@@ -63,6 +63,16 @@ Please use this context to inform your responses, but do not directly repeat thi
             return transcript;
           },
         },
+        modifyCurrentNote: {
+          description: "Modify the content of the currently active note using a formatting instruction",
+          parameters: z.object({
+            formattingInstruction: z.string().describe("The instruction for formatting the current note content"),
+          }),
+          execute: async ({ formattingInstruction }) => {
+            // This will be handled client-side, so we just return the formatting instruction
+            return formattingInstruction;
+          },
+        },
       },
       onFinish: async ({ usage }) => {
         console.log("Token usage:", usage);

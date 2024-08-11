@@ -251,6 +251,22 @@ export const ChatComponent: React.FC<ChatComponentProps> = ({
         setSelectedFiles(prevFiles => [...prevFiles, ...searchResults]);
 
         return JSON.stringify(searchResults);
+      } else if (toolCall.toolName === "modifyCurrentNote") {
+        const args = toolCall.args as { formattingInstruction: string };
+        const { formattingInstruction } = args;
+        const activeFile = plugin.app.workspace.getActiveFile();
+        if (activeFile) {
+          try {
+            const currentContent = await plugin.app.vault.read(activeFile);
+            await plugin.formatContent(activeFile, currentContent, formattingInstruction);
+            return `Successfully modified the current note "${activeFile.basename}" using the formatting instruction.`;
+          } catch (error) {
+            console.error("Error modifying note:", error);
+            return "Failed to modify the current note.";
+          }
+        } else {
+          return "No active file found.";
+        }
       }
     },
   } as UseChatOptions);
