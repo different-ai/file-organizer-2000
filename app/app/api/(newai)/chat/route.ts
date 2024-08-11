@@ -4,6 +4,7 @@ import { incrementAndLogTokenUsage } from "@/lib/incrementAndLogTokenUsage";
 import { handleAuthorization } from "@/lib/handleAuthorization";
 import { z } from "zod";
 import { openai } from "@ai-sdk/openai";
+import { getYouTubeTranscript } from "@/lib/youtubeTranscript";
 
 export const maxDuration = 30;
 
@@ -50,6 +51,16 @@ Please use this context to inform your responses, but do not directly repeat thi
             console.log("Searching notes for:", query);
             // This will be handled client-side, so we just return the query
             return query;
+          },
+        },
+        getYouTubeTranscript: {
+          description: "Get the transcript of a YouTube video",
+          parameters: z.object({
+            videoId: z.string().describe("The YouTube video ID"),
+          }),
+          execute: async ({ videoId }) => {
+            const transcript = await getYouTubeTranscript(videoId);
+            return transcript;
           },
         },
       },
