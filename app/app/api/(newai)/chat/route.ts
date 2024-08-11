@@ -59,8 +59,13 @@ Please use this context to inform your responses, but do not directly repeat thi
             videoId: z.string().describe("The YouTube video ID"),
           }),
           execute: async ({ videoId }) => {
-            const transcript = await getYouTubeTranscript(videoId);
-            return transcript;
+            try {
+              const transcript = await getYouTubeTranscript(videoId);
+              return transcript;
+            } catch (error) {
+              console.error("Error fetching YouTube transcript:", error);
+              throw new Error(`Failed to fetch YouTube transcript: ${error.message}`);
+            }
           },
         },
         modifyCurrentNote: {
@@ -95,12 +100,11 @@ Please use this context to inform your responses, but do not directly repeat thi
 
     return response;
   } catch (error) {
-    if (error) {
-      return NextResponse.json(
-        { error: error.message },
-        { status: error.status }
-      );
-    }
+    console.error("Error in POST request:", error);
+    return NextResponse.json(
+      { error: error.message || "An unexpected error occurred" },
+      { status: error.status || 500 }
+    );
   }
 }
 
