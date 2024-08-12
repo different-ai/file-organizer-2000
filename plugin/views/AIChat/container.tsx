@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
-import {  ChatComponent } from "./chat";
+import { ChatComponent } from "./chat";
 import FileOrganizer from "../..";
 import { Card } from "./card";
 import { Button } from "./button";
@@ -23,6 +23,7 @@ const AIChatSidebar: React.FC<AIChatSidebarProps> = ({ plugin, apiKey }) => {
     setConversations([...conversations, []]);
     setCurrentConversationIndex(conversations.length);
   };
+
   useEffect(() => {
     const loadFileContent = async () => {
       const activeFile = plugin.app.workspace.getActiveFile();
@@ -74,7 +75,6 @@ const AIChatSidebar: React.FC<AIChatSidebarProps> = ({ plugin, apiKey }) => {
             />
           </svg>
         </Button>
-
       </div>
       <ChatComponent
         key={currentConversationIndex}
