@@ -25,12 +25,12 @@ interface ChatComponentProps {
 }
 
 const filterNotesByDateRange = async (
-  app: App,
   startDate: string,
-  endDate: string
+  endDate: string,
+  plugin: FileOrganizer
 ) => {
   console.log(startDate, endDate, "startDate, endDate");
-  const files = app.vault.getFiles();
+  const files = plugin.getAllUserMarkdownFiles();
   console.log(files.length, "total files");
 
   const start = moment(startDate).startOf("day");
@@ -190,9 +190,9 @@ export const ChatComponent: React.FC<ChatComponentProps> = ({
         const { startDate, endDate } = args;
         console.log(startDate, endDate, "startDate, endDate");
         const filteredNotes = await filterNotesByDateRange(
-          app,
           startDate,
-          endDate
+          endDate,
+          plugin
         );
 
         // Add filtered Markdown notes to selectedFiles
