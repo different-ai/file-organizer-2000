@@ -505,6 +505,7 @@ export const ChatComponent: React.FC<ChatComponentProps> = ({
     setSelectedFiles([]);
     setSelectedFolders([]);
     setSelectedTags([]);
+    setIncludeCurrentFile(false);
     setUnifiedContext([]);
   }, []);
 
@@ -617,29 +618,30 @@ export const ChatComponent: React.FC<ChatComponentProps> = ({
               ))}
             </div>
             {fileName && (
-              <div className="current-file-info">
-                {!includeCurrentFile && (
-                  <Button onClick={handleAddCurrentFile} className="add-current-file-button">
-                    Add Current File to Context
-                  </Button>
-                )}
-                <div className="current-file-tip">
-                  <span className="tip-icon">💡</span>
-                  <span>
-                    {includeCurrentFile
-                      ? "You can ask the AI to modify this file's content"
-                      : "Current file is excluded from AI context"}
-                  </span>
-                </div>
+              <div className="current-file-tip">
+                <span className="tip-icon">💡</span>
+                <span>
+                  {includeCurrentFile
+                    ? "You can ask the AI to modify this file's content"
+                    : "Current file is excluded from AI context"}
+                </span>
               </div>
             )}
-            {(selectedFiles.length > 0 ||
-              selectedFolders.length > 0 ||
-              selectedTags.length > 0) && (
-              <Button onClick={handleClearAll} className="clear-all-button">
-                Clear All Context
-              </Button>
-            )}
+            <div className="context-actions">
+              {fileName && !includeCurrentFile && (
+                <Button onClick={handleAddCurrentFile} className="add-current-file-button">
+                  Add Current File to Context
+                </Button>
+              )}
+              {(selectedFiles.length > 0 ||
+                selectedFolders.length > 0 ||
+                selectedTags.length > 0 ||
+                includeCurrentFile) && (
+                <Button onClick={handleClearAll} className="clear-all-button">
+                  Clear All Context
+                </Button>
+              )}
+            </div>
           </div>
         </div>
 

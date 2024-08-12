@@ -630,3 +630,22 @@
 .selected-items-header {
 margin: 0.5rem;
 }
+
+.current-file-tip {
+  margin-top: 10px;
+  margin-bottom: 10px;
+}
+
+.context-actions {
+  display: flex;
+  justify-content: flex-start;
+  align-items: center;
+
+  gap: 10px; /* Adds space between buttons */
+}
+
+.add-current-file-button,
+.clear-all-button {
+  /* Add your button styles here */
+margin: 0rem;
+}
