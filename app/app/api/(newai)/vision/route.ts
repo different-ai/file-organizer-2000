@@ -12,7 +12,7 @@ export async function POST(request: NextRequest) {
     const payload = await request.json();
     const { userId } = await handleAuthorization(request);
 
-    const model = getModel("gpt-4o-2024-08-06");
+    const model = getModel(process.env.VISION_MODEL_NAME);
     const messages = generateMessages(model, payload.image);
     // Using the AI SDK's generateText method
     const response = await generateText({
