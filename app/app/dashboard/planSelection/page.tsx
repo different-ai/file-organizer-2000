@@ -73,7 +73,7 @@ export default function Component() {
           <Card className="w-[350px] p-6 bg-white rounded-lg shadow-md text-black md:w-[400px] relative border border-gray-500">
             <div className="space-y-4">
               <div className="text-sm uppercase tracking-wide text-gray-600 text-center">
-                Cloud hosted
+                Hobby Plan
               </div>
               <div className="text-center">
                 <div className="flex items-center justify-center gap-2">
@@ -151,7 +151,7 @@ export default function Component() {
                 <li className="flex items-center space-x-2">
                   <CheckIcon className="h-5 w-5 text-green-500" />
                   <span>
-                  One month of credits on us! (incl. Cloud Hosted Plan)
+                  One month of credits on us! (incl. Hobby Plan)
                   </span>
                 </li>
                 <li className="flex items-center space-x-2">
