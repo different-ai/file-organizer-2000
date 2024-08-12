@@ -132,7 +132,7 @@ export default function Component() {
                 <div className="flex items-center justify-center gap-2">
                   <span className="text-5xl font-bold">$75</span>
                   <span className="text-lg text-gray-600 line-through">
-                    $99
+                    $150
                   </span>
                 </div>
               </div>
