@@ -92,11 +92,11 @@ export default function Component() {
                 </li>
                 <li className="flex items-center space-x-2">
                   <CheckIcon className="h-5 w-5 text-green-500" />
-                  <span>1000 files per month</span>
+                  <span>~1000 files per month</span>
                 </li>
                 <li className="flex items-center space-x-2">
                   <CheckIcon className="h-5 w-5 text-green-500" />
-                  <span>60 min meeting transcription</span>
+                  <span>120 min meeting transcription</span>
                 </li>
                 <li className="flex items-center space-x-2">
                   <CheckIcon className="h-5 w-5 text-green-500" />
