@@ -419,12 +419,8 @@ export const ChatComponent: React.FC<ChatComponentProps> = ({
         });
       });
 
-      // Add current file if it's explicitly selected
-      if (
-        selectedFiles.some(file => file.title === fileName) &&
-        fileName &&
-        fileContent
-      ) {
+      // Add current file by default
+      if (fileName && fileContent) {
         contextFiles.set(fileName, {
           title: fileName,
           content: fileContent,
