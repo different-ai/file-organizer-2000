@@ -436,14 +436,15 @@
   color: var(--text-muted);
   white-space: nowrap;
 }
-
-.sanitized-button {
+/* for selected context files/folders */
+.item-label {
   box-shadow: none !important;
   all: unset;
   box-sizing: border-box;
   color: var(--text-muted);
   cursor: pointer;
-  font-size: 1rem;
+  font-size: 0.8rem;
+  background-color: var(--background-secondary-alt) !important;
 }
 
 
@@ -510,7 +511,7 @@
 
 /* Context Container Styles */
 .context-container {
-  background-color: var(--background-secondary);
+  background-color: var(--nav-item-background-active);
   border-radius: 8px;
   padding: 10px;
   margin-bottom: 10px;
@@ -551,7 +552,7 @@
   background-color: var(--background-secondary-alt);
   border-radius: 4px;
   padding: 2px 5px;
-  font-size: 12px;
+  font-size: 1px;
   display: flex;
   align-items: center;
   color: var(--text-muted);

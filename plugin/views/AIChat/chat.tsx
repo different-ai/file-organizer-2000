@@ -69,7 +69,7 @@ const SelectedItem = ({
   onClick: () => void;
 }) => (
   <div key={item} className={`selected-file`}>
-    <button onClick={onClick} className="sanitized-button">
+    <button onClick={onClick} className="item-label">
       {prefix}
       {item}
     </button>
@@ -601,7 +601,7 @@ export const ChatComponent: React.FC<ChatComponentProps> = ({
       <div className="chat-input-container">
         <div className="context-container">
           <div className="selected-items-container">
-            <h4 className="selected-items-header">Selected Context</h4>
+            <h6 className="selected-items-header">Selected Context</h6>
             <div className="selected-items">
               {fileName && includeCurrentFile && (
                 <SelectedItem
