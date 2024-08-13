@@ -4,7 +4,6 @@ import { incrementAndLogTokenUsage } from "@/lib/incrementAndLogTokenUsage";
 import { handleAuthorization } from "@/lib/handleAuthorization";
 import { z } from "zod";
 import { openai } from "@ai-sdk/openai";
-import { getYouTubeTranscript } from "@/lib/youtubeTranscript";
 import { parseISO, isValid } from "date-fns";
 
 export const maxDuration = 60;
@@ -57,7 +56,7 @@ Always use these link and reference formats when mentioning files or specific co
               .describe("Start date of the range (ISO format)")
               .refine(date => isValid(parseISO(date)), {
                 message: "Invalid start date format",
-              }),
+            }),
             endDate: z
               .string()
               .describe("End date of the range (ISO format)")
@@ -91,13 +90,8 @@ Always use these link and reference formats when mentioning files or specific co
             videoId: z.string().describe("The YouTube video ID"),
           }),
           execute: async ({ videoId }) => {
-            try {
-              const transcript = await getYouTubeTranscript(videoId);
-              return transcript;
-            } catch (error) {
-              console.error("Error fetching YouTube transcript:", error);
-              return JSON.stringify({ error: error.message });
-            }
+            // This will be handled client-side, so we just return the videoId
+            return videoId;
           },
         },
         modifyCurrentNote: {

@@ -11,6 +11,7 @@ import { AIMarkdown } from "./ai-message-renderer";
 import { UserMarkdown } from "./user-message-renderer";
 import { usePlugin } from "./provider";
 import ToolInvocationHandler from "./tool-invocation-handler";
+import { getYouTubeTranscript } from "./youtube-transcript";
 
 interface ChatComponentProps {
   plugin: FileOrganizer;
@@ -185,7 +186,17 @@ export const ChatComponent: React.FC<ChatComponentProps> = ({
     maxToolRoundtrips: 5,
     async onToolCall({ toolCall }) {
       console.log(toolCall, "toolCall");
-      if (toolCall.toolName === "getNotesForDateRange") {
+      if (toolCall.toolName === "getYouTubeTranscript") {
+        const args = toolCall.args as { videoId: string };
+        const { videoId } = args;
+        try {
+          const transcript = await getYouTubeTranscript(videoId);
+          return transcript;
+        } catch (error) {
+          console.error("Error fetching YouTube transcript:", error);
+          return JSON.stringify({ error: error.message });
+        }
+      } else if (toolCall.toolName === "getNotesForDateRange") {
         const args = toolCall.args as { startDate: string; endDate: string };
         const { startDate, endDate } = args;
         console.log(startDate, endDate, "startDate, endDate");
