@@ -644,7 +644,7 @@ export const ChatComponent: React.FC<ChatComponentProps> = ({
                   onRemove={() =>
                     setSelectedTags(tags => tags.filter(t => t !== tag))
                   }
-                  prefix="#"
+                  prefix="🏷️ "
                 />
               ))}
               {selectedYouTubeVideos.map((video) => (
