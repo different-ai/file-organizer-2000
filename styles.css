@@ -618,6 +618,7 @@
   font-size: 12px;
   color: var(--text-muted);
   margin-bottom: 10px;
+  padding-left: 0.3rem;
 }
 
 .tip-icon {
@@ -633,7 +634,9 @@
 }
 
 .selected-items-header {
-  margin: 0.5rem;
+  margin-top: 0.5rem;
+  margin-bottom: 0.5rem;
+  margin-left: 0.3rem;
 }
 
 .current-file-tip {
