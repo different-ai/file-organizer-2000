@@ -352,6 +352,7 @@
   overflow-y: auto;
   background-color: var(--background-primary);
   color: var(--text-normal);
+
 }
 
 .tiptap:focus {
@@ -361,6 +362,9 @@
 
 .tiptap p {
   margin: 0;
+  /* margin-bottom: 0.5em; */
+  word-wrap: break-word;
+  overflow-wrap: break-word;
 }
 
 /* Miscellaneous */
@@ -371,9 +375,15 @@
 .mention {
   background-color: var(--interactive-accent);
   border-radius: 0.4rem;
-  box-decoration-break: clone;
   color: var(--color-base-10);
   padding: 0.2rem 0.3rem;
+  margin: 0.1rem 0.2rem;
+  display: inline-block;
+  max-width: 100%;
+  overflow-wrap: break-word;
+  word-wrap: break-word;
+  word-break: break-word;
+  font-size: 0.8rem;
 }
 
 /* Dropdown menu */
@@ -457,6 +467,7 @@
   color: var(--text-muted);
   cursor: pointer;
   font-size: 1rem;
+  background-color: transparent !important;
 }
 
 .remove-button:hover {
