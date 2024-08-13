@@ -657,14 +657,8 @@ export const ChatComponent: React.FC<ChatComponentProps> = ({
                 />
               ))}
             </div>
-            {fileName && (
-              <div className="current-file-tip">
-              <span className="tip-icon">💡 </span>
-              <span>
-              To add more files to the AI context, mention them in the chat using the format @filename
-              </span>
-            </div>
-            )}
+       
+    
             <div className="context-actions">
               {fileName && !includeCurrentFile && (
                 <Button onClick={handleAddCurrentFile} className="add-current-file-button">
@@ -715,7 +709,12 @@ export const ChatComponent: React.FC<ChatComponentProps> = ({
             </svg>
           </Button>
         </form>
-
+        <div className="current-file-tip">
+              <span className="tip-icon">💡 </span>
+              <span>
+              To add more files to the AI context, mention them in the chat using the format @filename
+              </span>
+            </div>
         {isGenerating && (
           <Button onClick={handleCancelGeneration} className="cancel-button">
             Cancel Generation

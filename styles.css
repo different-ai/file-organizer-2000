@@ -236,9 +236,9 @@
 
 .chat-input-container {
   flex-shrink: 0;
-  margin-bottom: 1rem;
+
   margin-top: 1rem;
-  border-top: 1px solid var(--background-modifier-border);
+ 
 }
 
 .selected-items {
@@ -257,10 +257,12 @@
   flex-grow: 1;
   max-height: 150px;
   overflow-y: auto;
+
 }
 
 .send-button {
   flex-shrink: 0;
+
 }
 
 .chat-input-form button {
@@ -345,7 +347,7 @@
   border: 1px solid var(--background-modifier-border);
   border-radius: 4px;
   padding: 8px;
-  min-height: 20px;
+  min-height: 2.37rem;
   max-height: 500px;
   overflow-y: auto;
   background-color: var(--background-primary);
@@ -640,7 +642,7 @@
 }
 
 .current-file-tip {
-  margin-top: 10px;
+  margin-top: 1rem;
   margin-bottom: 10px;
 }
 
