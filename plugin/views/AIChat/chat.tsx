@@ -183,7 +183,7 @@ export const ChatComponent: React.FC<ChatComponentProps> = ({
     onFinish: () => {
       setErrorMessage(null);
     },
-    maxToolRoundtrips: 5,
+    // maxToolRoundtrips: 1,
     async onToolCall({ toolCall }) {
       console.log(toolCall, "toolCall");
       if (toolCall.toolName === "getYouTubeTranscript") {
@@ -191,6 +191,7 @@ export const ChatComponent: React.FC<ChatComponentProps> = ({
         const { videoId } = args;
         try {
           const transcript = await getYouTubeTranscript(videoId);
+          console.log(transcript, "transcript");
           return transcript;
         } catch (error) {
           console.error("Error fetching YouTube transcript:", error);
