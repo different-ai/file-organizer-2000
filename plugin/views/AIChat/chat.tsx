@@ -389,8 +389,11 @@ export const ChatComponent: React.FC<ChatComponentProps> = ({
     }
   };
 
-  const handleTagSelect = (tags: string[]) => {
-    setSelectedTags(tags);
+  const handleTagSelect = (newTags: string[]) => {
+    setSelectedTags(prevTags => {
+      const updatedTags = [...new Set([...prevTags, ...newTags.map(tag => tag.startsWith('#') ? tag : `#${tag}`)])];
+      return updatedTags;
+    });
   };
 
   const handleFolderSelect = async (folders: string[]) => {
@@ -463,7 +466,7 @@ export const ChatComponent: React.FC<ChatComponentProps> = ({
       // Add files with selected tags
       if (selectedTags.length > 0) {
         const filesWithTags = allFiles.filter(file =>
-          selectedTags.some(tag => file.content.includes(`#${tag}`))
+          selectedTags.some(tag => file.content.includes(tag))
         );
         filesWithTags.forEach(file => {
           contextFiles.set(file.path, file);
@@ -601,7 +604,7 @@ export const ChatComponent: React.FC<ChatComponentProps> = ({
       <div className="chat-input-container">
         <div className="context-container">
           <div className="selected-items-container">
-            <h6 className="selected-items-header">Selected Context</h6>
+            <h6 className="selected-items-header">Context</h6>
             <div className="selected-items">
               {fileName && includeCurrentFile && (
                 <SelectedItem
@@ -644,7 +647,7 @@ export const ChatComponent: React.FC<ChatComponentProps> = ({
                   onRemove={() =>
                     setSelectedTags(tags => tags.filter(t => t !== tag))
                   }
-                  prefix="🏷️ "
+                  prefix="🏷️ " // No need for a prefix as the tag already includes #
                 />
               ))}
               {selectedYouTubeVideos.map((video) => (
