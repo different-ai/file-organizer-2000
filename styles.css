@@ -610,3 +610,42 @@
   opacity: 0.7;
   margin-right: auto;
 }
+
+.current-file-tip {
+  display: flex;
+  align-items: center;
+  font-size: 12px;
+  color: var(--text-muted);
+  margin-bottom: 10px;
+}
+.add-current-file-button {
+  /* Add your button styles here */
+  margin-bottom: 10px;
+}
+
+.current-file-info {
+  margin-top: 10px;
+}
+
+.selected-items-header {
+margin: 0.5rem;
+}
+
+.current-file-tip {
+  margin-top: 10px;
+  margin-bottom: 10px;
+}
+
+.context-actions {
+  display: flex;
+  justify-content: flex-start;
+  align-items: center;
+
+  gap: 10px; /* Adds space between buttons */
+}
+
+.add-current-file-button,
+.clear-all-button {
+  /* Add your button styles here */
+margin: 0rem;
+}

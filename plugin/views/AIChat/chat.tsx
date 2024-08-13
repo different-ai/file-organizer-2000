@@ -403,6 +403,16 @@ export const ChatComponent: React.FC<ChatComponentProps> = ({
     loadTagsAndFolders();
   }, [plugin]);
 
+  const [includeCurrentFile, setIncludeCurrentFile] = useState(true);
+
+  const handleRemoveCurrentFile = () => {
+    setIncludeCurrentFile(false);
+  };
+
+  const handleAddCurrentFile = () => {
+    setIncludeCurrentFile(true);
+  };
+
   useEffect(() => {
     const updateUnifiedContext = async () => {
       const contextFiles = new Map<
@@ -419,12 +429,8 @@ export const ChatComponent: React.FC<ChatComponentProps> = ({
         });
       });
 
-      // Add current file if it's explicitly selected
-      if (
-        selectedFiles.some(file => file.title === fileName) &&
-        fileName &&
-        fileContent
-      ) {
+      // Add current file if includeCurrentFile is true
+      if (includeCurrentFile && fileName && fileContent) {
         contextFiles.set(fileName, {
           title: fileName,
           content: fileContent,
@@ -482,6 +488,7 @@ export const ChatComponent: React.FC<ChatComponentProps> = ({
     fileName,
     fileContent,
     app.vault,
+    includeCurrentFile,
   ]);
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -498,6 +505,7 @@ export const ChatComponent: React.FC<ChatComponentProps> = ({
     setSelectedFiles([]);
     setSelectedFolders([]);
     setSelectedTags([]);
+    setIncludeCurrentFile(false);
     setUnifiedContext([]);
   }, []);
 
@@ -555,28 +563,24 @@ export const ChatComponent: React.FC<ChatComponentProps> = ({
 
       <div className="chat-input-container">
         <div className="context-container">
-          <h3 className="context-header">AI Context</h3>
+          {/* <h3 className="context-header">AI Context</h3>
           <div className="context-info">
             <span className="context-icon">ℹ️</span>
             <span>Selected items provide context for the AI</span>
-          </div>
-
-          {fileName && (
-            <div className="current-file-info">
-              <span className="current-file-icon">📄</span>
-              <span className="current-file-name">
-                Current file: <strong>{fileName}</strong>
-              </span>
-              <div className="current-file-tip">
-                <span className="tip-icon">💡</span>
-                <span>You can ask the AI to modify this file's content</span>
-              </div>
-            </div>
-          )}
+          </div> */}
 
           <div className="selected-items-container">
             <h4 className="selected-items-header">Selected Context</h4>
             <div className="selected-items">
+              {fileName && includeCurrentFile && (
+                <SelectedItem
+                  key="current-file"
+                  item={fileName}
+                  onClick={() => handleOpenFile(fileName)}
+                  onRemove={handleRemoveCurrentFile}
+                  prefix="📄 "
+                />
+              )}
               {selectedFiles.map((file, index) => (
                 <SelectedItem
                   key={`${file.path}-${index}`}
@@ -613,13 +617,31 @@ export const ChatComponent: React.FC<ChatComponentProps> = ({
                 />
               ))}
             </div>
-            {(selectedFiles.length > 0 ||
-              selectedFolders.length > 0 ||
-              selectedTags.length > 0) && (
-              <Button onClick={handleClearAll} className="clear-all-button">
-                Clear All Context
-              </Button>
+            {fileName && (
+              <div className="current-file-tip">
+                <span className="tip-icon">💡</span>
+                <span>
+                  {includeCurrentFile
+                    ? "You can ask the AI to modify this file's content"
+                    : "Current file is excluded from AI context"}
+                </span>
+              </div>
             )}
+            <div className="context-actions">
+              {fileName && !includeCurrentFile && (
+                <Button onClick={handleAddCurrentFile} className="add-current-file-button">
+                  Add Current File to Context
+                </Button>
+              )}
+              {(selectedFiles.length > 0 ||
+                selectedFolders.length > 0 ||
+                selectedTags.length > 0 ||
+                includeCurrentFile) && (
+                <Button onClick={handleClearAll} className="clear-all-button">
+                  Clear All Context
+                </Button>
+              )}
+            </div>
           </div>
         </div>
 
