@@ -659,13 +659,11 @@ export const ChatComponent: React.FC<ChatComponentProps> = ({
             </div>
             {fileName && (
               <div className="current-file-tip">
-                <span className="tip-icon">💡</span>
-                <span>
-                  {includeCurrentFile
-                    ? "You can ask the AI to modify this file's content"
-                    : "Current file is excluded from AI context"}
-                </span>
-              </div>
+              <span className="tip-icon">💡 </span>
+              <span>
+              To add more files to the AI context, mention them in the chat using the format @filename
+              </span>
+            </div>
             )}
             <div className="context-actions">
               {fileName && !includeCurrentFile && (
