@@ -11,7 +11,7 @@ import { AIMarkdown } from "./ai-message-renderer";
 import { UserMarkdown } from "./user-message-renderer";
 import { usePlugin } from "./provider";
 import ToolInvocationHandler from "./tool-invocation-handler";
-import { getYouTubeTranscript } from "./youtube-transcript";
+import { getYouTubeTranscript, getYouTubeVideoTitle } from "./youtube-transcript";
 
 interface ChatComponentProps {
   plugin: FileOrganizer;
@@ -103,6 +103,9 @@ export const ChatComponent: React.FC<ChatComponentProps> = ({
   const [unifiedContext, setUnifiedContext] = useState<
     { title: string; content: string; path: string }[]
   >([]);
+  const [selectedYouTubeVideos, setSelectedYouTubeVideos] = useState<
+    { videoId: string; title: string; transcript: string }[]
+  >([]);
   console.log(unifiedContext, "unifiedContext");
 
   // Log all the selected stuff
@@ -110,7 +113,8 @@ export const ChatComponent: React.FC<ChatComponentProps> = ({
     console.log(selectedFiles, "selectedFiles");
     console.log(selectedTags, "selectedTags");
     console.log(selectedFolders, "selectedFolders");
-  }, [selectedFiles, selectedTags, selectedFolders]);
+    console.log(selectedYouTubeVideos, "selectedYouTubeVideos");
+  }, [selectedFiles, selectedTags, selectedFolders, selectedYouTubeVideos]);
 
   const searchNotes = async (query: string) => {
     const files = plugin.getAllUserMarkdownFiles();
@@ -191,6 +195,12 @@ export const ChatComponent: React.FC<ChatComponentProps> = ({
         const { videoId } = args;
         try {
           const transcript = await getYouTubeTranscript(videoId);
+          const title = await getYouTubeVideoTitle(videoId);
+          setSelectedYouTubeVideos(prev => [
+            ...prev,
+            
+            { videoId, title, transcript }
+          ]);
           console.log(transcript, "transcript");
           return transcript;
         } catch (error) {
@@ -485,6 +495,15 @@ export const ChatComponent: React.FC<ChatComponentProps> = ({
         });
       }
 
+      // Add YouTube transcripts
+      selectedYouTubeVideos.forEach(video => {
+        contextFiles.set(`youtube-${video.videoId}`, {
+          title: `YouTube: ${video.title}`,
+          content: video.transcript,
+          path: `https://www.youtube.com/watch?v=${video.videoId}`,
+        });
+      });
+
       // Convert Map to array
       const uniqueFiles = Array.from(contextFiles.values());
 
@@ -501,6 +520,7 @@ export const ChatComponent: React.FC<ChatComponentProps> = ({
     fileContent,
     app.vault,
     includeCurrentFile,
+    selectedYouTubeVideos,
   ]);
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -519,7 +539,12 @@ export const ChatComponent: React.FC<ChatComponentProps> = ({
     setSelectedTags([]);
     setIncludeCurrentFile(false);
     setUnifiedContext([]);
+    setSelectedYouTubeVideos([]);
   }, []);
+
+  const handleRemoveYouTubeVideo = (videoId: string) => {
+    setSelectedYouTubeVideos(prev => prev.filter(video => video.videoId !== videoId));
+  };
 
   return (
     <div className="chat-component">
@@ -575,12 +600,6 @@ export const ChatComponent: React.FC<ChatComponentProps> = ({
 
       <div className="chat-input-container">
         <div className="context-container">
-          {/* <h3 className="context-header">AI Context</h3>
-          <div className="context-info">
-            <span className="context-icon">ℹ️</span>
-            <span>Selected items provide context for the AI</span>
-          </div> */}
-
           <div className="selected-items-container">
             <h4 className="selected-items-header">Selected Context</h4>
             <div className="selected-items">
@@ -628,6 +647,15 @@ export const ChatComponent: React.FC<ChatComponentProps> = ({
                   prefix="#"
                 />
               ))}
+              {selectedYouTubeVideos.map((video) => (
+                <SelectedItem
+                  key={`youtube-${video.videoId}`}
+                  item={video.title}
+                  onClick={() => window.open(`https://www.youtube.com/watch?v=${video.videoId}`, '_blank')}
+                  onRemove={() => handleRemoveYouTubeVideo(video.videoId)}
+                  prefix="🎥 "
+                />
+              ))}
             </div>
             {fileName && (
               <div className="current-file-tip">
@@ -648,7 +676,8 @@ export const ChatComponent: React.FC<ChatComponentProps> = ({
               {(selectedFiles.length > 0 ||
                 selectedFolders.length > 0 ||
                 selectedTags.length > 0 ||
-                includeCurrentFile) && (
+                includeCurrentFile ||
+                selectedYouTubeVideos.length > 0) && (
                 <Button onClick={handleClearAll} className="clear-all-button">
                   Clear All Context
                 </Button>

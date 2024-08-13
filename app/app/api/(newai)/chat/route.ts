@@ -15,35 +15,40 @@ export async function POST(req: NextRequest) {
     console.log(unifiedContext, "unifiedContext");
 
     const contextString = unifiedContext
-      .map((file) => `File: ${file.title}\n\nContent:\n${file.content}\nPath: ${file.path}`)
+      .map((file) => {
+        if (file.path.startsWith('https://www.youtube.com/watch?v=')) {
+          return `YouTube Video: ${file.title}\n\nTranscript:\n${file.content}`;
+        }
+        return `File: ${file.title}\n\nContent:\n${file.content}\nPath: ${file.path}`;
+      })
       .join("\n\n");
 
     const result = await streamText({
       model: openai(process.env.MODEL_NAME || "gpt-4o-2024-08-06", {
         structuredOutputs: true,
       }),
-      system: `You are a helpful assistant with access to the following files:
+      system: `You are a helpful assistant with access to the following files and YouTube video transcripts:
 
 ${contextString}
 
-Use this context to inform your responses. When asked to summarize files or content:
-1. If the user asks to "summarize all the files" or "summarize the selected files", provide a brief overview of each file's content.
-2. If asked about specific files or topics, focus on the relevant information from the context.
-3. Only directly quote or repeat file content when specifically asked about file contents.
+Use this context to inform your responses. When asked about YouTube videos:
+1. Refer to the video by its title.
+2. Use information from the transcript to answer questions about the video content.
+3. If asked for timestamps, note that the transcript doesn't include them, so you can only provide general information about the content.
 
 For all other queries, use the context to provide informed answers without explicitly mentioning the files unless necessary.
 
-When referencing files or topics from the context, use the following formats:
+When referencing files, topics, or YouTube videos from the context, use the following formats:
 1. Obsidian-style links:
    - For files: [[Filename]]
    - For headers within files: [[Filename#Header]]
    - For specific text: [[Filename#^unique-identifier]]
-
-2. Perplexity-like references:
+2. For YouTube videos: [YouTube: Video Title]
+3. Perplexity-like references:
    - For general references: [^1^]
    - For specific quotes: "quoted text"[^2^]
 
-Always use these link and reference formats when mentioning files or specific content from the context. Use numbered references (e.g., [^1^], [^2^], etc.) and provide the source information at the end of your response.`,
+Always use these link and reference formats when mentioning files, specific content from the context, or YouTube videos. Use numbered references (e.g., [^1^], [^2^], etc.) and provide the source information at the end of your response.`,
       messages: convertToCoreMessages(messages),
       tools: {
         getNotesForDateRange: {

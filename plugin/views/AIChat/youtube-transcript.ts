@@ -27,3 +27,21 @@ export async function getYouTubeTranscript(videoId: string): Promise<string> {
     throw new Error('Failed to fetch YouTube transcript');
   }
 }
+
+export async function getYouTubeVideoTitle(videoId: string): Promise<string> {
+  try {
+    const videoPageUrl = `https://www.youtube.com/watch?v=${videoId}`;
+    const videoPageResponse = await requestUrl(videoPageUrl);
+    const videoPageBody = videoPageResponse.text;
+
+    const titleMatch = videoPageBody.match(/<title>(.+?)<\/title>/);
+    if (titleMatch && titleMatch[1]) {
+      return titleMatch[1].replace(' - YouTube', '').trim();
+    } else {
+      return 'Untitled YouTube Video';
+    }
+  } catch (error) {
+    console.error('Error fetching YouTube video title:', error);
+    return 'Untitled YouTube Video';
+  }
+}
