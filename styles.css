@@ -266,8 +266,8 @@
 }
 
 .chat-input-form button {
-  height: 2.37rem;
-  width: 2.85rem;
+  height: 2.65rem;
+  width: 3rem;
   padding: 0.5rem;
   background-color: var(--interactive-accent);
   color: var(--text-on-accent);
@@ -347,7 +347,7 @@
   border: 1px solid var(--background-modifier-border);
   border-radius: 4px;
   padding: 8px;
-  min-height: 2.37rem;
+  min-height:  2.65rem;
   max-height: 500px;
   overflow-y: auto;
   background-color: var(--background-primary);
