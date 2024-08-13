@@ -2,6 +2,7 @@ services:
 - type: web
   name: next-js
   runtime: node
+  rootDirectory: ./app
   plan: starter
   buildCommand: npm install; npm run build
   startCommand: npm start
