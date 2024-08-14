@@ -313,6 +313,7 @@
   display: flex;
   align-items: start;
   margin-bottom: 1rem;
+  user-select: text;
 }
 
 .message-content {
@@ -667,4 +668,14 @@
 .add-current-file-button,
 .clear-all-button {
   margin: 0rem;
+}
+
+.chat-renderer {
+  user-select: text;
+  cursor: text;
+}
+
+.chat-renderer * {
+  user-select: text;
+  cursor: text;
 }
