@@ -146,9 +146,6 @@ export const AIMarkdown: React.FC<ObsidianRendererProps> = ({
 
   return (
     <div className="obsidian-renderer">
-      <div className="icon-container" ref={containerRef}>
-        {activeFile && <span className="active-file">{activeFile.name}</span>}
-      </div>
       <div dangerouslySetInnerHTML={{ __html: renderedContent }} />
     </div>
   );
