@@ -236,9 +236,9 @@
 
 .chat-input-container {
   flex-shrink: 0;
-  margin-bottom: 1rem;
+
   margin-top: 1rem;
-  border-top: 1px solid var(--background-modifier-border);
+ 
 }
 
 .selected-items {
@@ -257,15 +257,17 @@
   flex-grow: 1;
   max-height: 150px;
   overflow-y: auto;
+
 }
 
 .send-button {
   flex-shrink: 0;
+
 }
 
 .chat-input-form button {
-  height: 2.37rem;
-  width: 2.85rem;
+  height: 2.65rem;
+  width: 3rem;
   padding: 0.5rem;
   background-color: var(--interactive-accent);
   color: var(--text-on-accent);
@@ -345,11 +347,12 @@
   border: 1px solid var(--background-modifier-border);
   border-radius: 4px;
   padding: 8px;
-  min-height: 20px;
+  min-height:  2.65rem;
   max-height: 500px;
   overflow-y: auto;
   background-color: var(--background-primary);
   color: var(--text-normal);
+
 }
 
 .tiptap:focus {
@@ -359,6 +362,9 @@
 
 .tiptap p {
   margin: 0;
+  /* margin-bottom: 0.5em; */
+  word-wrap: break-word;
+  overflow-wrap: break-word;
 }
 
 /* Miscellaneous */
@@ -369,9 +375,15 @@
 .mention {
   background-color: var(--interactive-accent);
   border-radius: 0.4rem;
-  box-decoration-break: clone;
   color: var(--color-base-10);
   padding: 0.2rem 0.3rem;
+  margin: 0.1rem 0.2rem;
+  display: inline-block;
+  max-width: 100%;
+  overflow-wrap: break-word;
+  word-wrap: break-word;
+  word-break: break-word;
+  font-size: 0.8rem;
 }
 
 /* Dropdown menu */
@@ -436,14 +448,15 @@
   color: var(--text-muted);
   white-space: nowrap;
 }
-
-.sanitized-button {
+/* for selected context files/folders */
+.item-label {
   box-shadow: none !important;
   all: unset;
   box-sizing: border-box;
   color: var(--text-muted);
   cursor: pointer;
-  font-size: 1rem;
+  font-size: 0.8rem;
+  background-color: var(--background-secondary-alt) !important;
 }
 
 
@@ -454,6 +467,7 @@
   color: var(--text-muted);
   cursor: pointer;
   font-size: 1rem;
+  background-color: transparent !important;
 }
 
 .remove-button:hover {
@@ -510,7 +524,7 @@
 
 /* Context Container Styles */
 .context-container {
-  background-color: var(--background-secondary);
+  background-color: var(--nav-item-background-active);
   border-radius: 8px;
   padding: 10px;
   margin-bottom: 10px;
@@ -551,7 +565,7 @@
   background-color: var(--background-secondary-alt);
   border-radius: 4px;
   padding: 2px 5px;
-  font-size: 12px;
+  font-size: 1px;
   display: flex;
   align-items: center;
   color: var(--text-muted);
@@ -617,9 +631,14 @@
   font-size: 12px;
   color: var(--text-muted);
   margin-bottom: 10px;
+  padding-left: 0.3rem;
 }
+
+.tip-icon {
+  margin-right: 5px;
+}
+
 .add-current-file-button {
-  /* Add your button styles here */
   margin-bottom: 10px;
 }
 
@@ -628,11 +647,13 @@
 }
 
 .selected-items-header {
-margin: 0.5rem;
+  margin-top: 0.5rem;
+  margin-bottom: 0.5rem;
+  margin-left: 0.3rem;
 }
 
 .current-file-tip {
-  margin-top: 10px;
+  margin-top: 1rem;
   margin-bottom: 10px;
 }
 
@@ -640,12 +661,10 @@ margin: 0.5rem;
   display: flex;
   justify-content: flex-start;
   align-items: center;
-
-  gap: 10px; /* Adds space between buttons */
+  gap: 10px;
 }
 
 .add-current-file-button,
 .clear-all-button {
-  /* Add your button styles here */
-margin: 0rem;
+  margin: 0rem;
 }

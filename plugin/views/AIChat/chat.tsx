@@ -69,7 +69,7 @@ const SelectedItem = ({
   onClick: () => void;
 }) => (
   <div key={item} className={`selected-file`}>
-    <button onClick={onClick} className="sanitized-button">
+    <button onClick={onClick} className="item-label">
       {prefix}
       {item}
     </button>
@@ -389,8 +389,11 @@ export const ChatComponent: React.FC<ChatComponentProps> = ({
     }
   };
 
-  const handleTagSelect = (tags: string[]) => {
-    setSelectedTags(tags);
+  const handleTagSelect = (newTags: string[]) => {
+    setSelectedTags(prevTags => {
+      const updatedTags = [...new Set([...prevTags, ...newTags.map(tag => tag.startsWith('#') ? tag : `#${tag}`)])];
+      return updatedTags;
+    });
   };
 
   const handleFolderSelect = async (folders: string[]) => {
@@ -463,7 +466,7 @@ export const ChatComponent: React.FC<ChatComponentProps> = ({
       // Add files with selected tags
       if (selectedTags.length > 0) {
         const filesWithTags = allFiles.filter(file =>
-          selectedTags.some(tag => file.content.includes(`#${tag}`))
+          selectedTags.some(tag => file.content.includes(tag))
         );
         filesWithTags.forEach(file => {
           contextFiles.set(file.path, file);
@@ -601,7 +604,7 @@ export const ChatComponent: React.FC<ChatComponentProps> = ({
       <div className="chat-input-container">
         <div className="context-container">
           <div className="selected-items-container">
-            <h4 className="selected-items-header">Selected Context</h4>
+            <h6 className="selected-items-header">Context</h6>
             <div className="selected-items">
               {fileName && includeCurrentFile && (
                 <SelectedItem
@@ -644,7 +647,7 @@ export const ChatComponent: React.FC<ChatComponentProps> = ({
                   onRemove={() =>
                     setSelectedTags(tags => tags.filter(t => t !== tag))
                   }
-                  prefix="#"
+                  prefix="🏷️ " 
                 />
               ))}
               {selectedYouTubeVideos.map((video) => (
@@ -657,16 +660,8 @@ export const ChatComponent: React.FC<ChatComponentProps> = ({
                 />
               ))}
             </div>
-            {fileName && (
-              <div className="current-file-tip">
-                <span className="tip-icon">💡</span>
-                <span>
-                  {includeCurrentFile
-                    ? "You can ask the AI to modify this file's content"
-                    : "Current file is excluded from AI context"}
-                </span>
-              </div>
-            )}
+       
+    
             <div className="context-actions">
               {fileName && !includeCurrentFile && (
                 <Button onClick={handleAddCurrentFile} className="add-current-file-button">
@@ -717,7 +712,12 @@ export const ChatComponent: React.FC<ChatComponentProps> = ({
             </svg>
           </Button>
         </form>
-
+        <div className="current-file-tip">
+              <span className="tip-icon">💡 </span>
+              <span>
+              To add more files to the AI context, mention them in the chat using the format @filename
+              </span>
+            </div>
         {isGenerating && (
           <Button onClick={handleCancelGeneration} className="cancel-button">
             Cancel Generation
