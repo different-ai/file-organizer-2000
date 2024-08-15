@@ -101,7 +101,7 @@ export const ChatComponent: React.FC<ChatComponentProps> = ({
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
   const [selectedFolders, setSelectedFolders] = useState<string[]>([]);
   const [unifiedContext, setUnifiedContext] = useState<
-    { title: string; content: string; path: string }[]
+    { title: string; content: string; path: string; reference: string }[]
   >([]);
   const [selectedYouTubeVideos, setSelectedYouTubeVideos] = useState<
     { videoId: string; title: string; transcript: string }[]
@@ -442,7 +442,7 @@ export const ChatComponent: React.FC<ChatComponentProps> = ({
     const updateUnifiedContext = async () => {
       const contextFiles = new Map<
         string,
-        { title: string; content: string; path: string }
+        { title: string; content: string; path: string; reference: string }
       >();
 
       // Add selected files
@@ -451,6 +451,7 @@ export const ChatComponent: React.FC<ChatComponentProps> = ({
           title: file.title,
           content: file.content,
           path: file.path,
+          reference: file.reference || `File: ${file.title}`,
         });
       });
 
@@ -460,6 +461,7 @@ export const ChatComponent: React.FC<ChatComponentProps> = ({
           title: fileName,
           content: fileContent,
           path: fileName,
+          reference: `Current File: ${fileName}`,
         });
       }
 
@@ -469,7 +471,10 @@ export const ChatComponent: React.FC<ChatComponentProps> = ({
           selectedTags.some(tag => file.content.includes(tag))
         );
         filesWithTags.forEach(file => {
-          contextFiles.set(file.path, file);
+          contextFiles.set(file.path, {
+            ...file,
+            reference: `Tag: ${selectedTags.join(', ')}`,
+          });
         });
       }
 
@@ -487,6 +492,7 @@ export const ChatComponent: React.FC<ChatComponentProps> = ({
                   title: file.basename,
                   content: await app.vault.read(file),
                   path: file.path,
+                  reference: `Folder: ${folderPath}`,
                 }))
               );
             }
@@ -504,6 +510,7 @@ export const ChatComponent: React.FC<ChatComponentProps> = ({
           title: `YouTube: ${video.title}`,
           content: video.transcript,
           path: `https://www.youtube.com/watch?v=${video.videoId}`,
+          reference: `YouTube: ${video.title}`,
         });
       });
 

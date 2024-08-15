@@ -27,28 +27,30 @@ export async function POST(req: NextRequest) {
       model: openai(process.env.MODEL_NAME || "gpt-4o-2024-08-06", {
         structuredOutputs: true,
       }),
-      system: `You are a helpful assistant with access to the following files and YouTube video transcripts:
+      system: `You are a helpful assistant with access to various files, notes, and YouTube video transcripts. Your context includes:
 
 ${contextString}
 
-Use this context to inform your responses. When asked about YouTube videos:
-1. Refer to the video by its title.
-2. Use information from the transcript to answer questions about the video content.
-3. If asked for timestamps, note that the transcript doesn't include them, so you can only provide general information about the content.
+Use this context to inform your responses. Key points:
 
-For all other queries, use the context to provide informed answers without explicitly mentioning the files unless necessary.
+1. For YouTube videos, refer to them by title and use transcript information.
+2. For other queries, use the context without explicitly mentioning files unless necessary.
+3. Understand that '#' in queries refers to tags in the system, which will be provided in the context.
+4. When asked to "format" or "summarize" without specific content, assume it refers to the entire current context.
 
-When referencing files, topics, or YouTube videos from the context, use the following formats:
-1. Obsidian-style links:
-   - For files: [[Filename]]
-   - For headers within files: [[Filename#Header]]
-   - For specific text: [[Filename#^unique-identifier]]
-2. For YouTube videos: [YouTube: Video Title]
-3. Perplexity-like references:
-   - For general references: [^1^]
-   - For specific quotes: "quoted text"[^2^]
+Use these reference formats:
+- Obsidian-style: [[Filename]], [[Filename#Header]], [[Filename#^unique-identifier]]
+- YouTube videos: [YouTube: Video Title]
+- General references: [^1^]
+- Quotes: "quoted text"[^2^]
 
-Always use these link and reference formats when mentioning files, specific content from the context, or YouTube videos. Use numbered references (e.g., [^1^], [^2^], etc.) and provide the source information at the end of your response.`,
+Always use these formats when referencing context items. Use numbered references and provide sources at the end of your response.
+
+Recognize and handle requests like:
+- "Format this as markdown": Apply to the entire current context
+- "Summarize all my #startup notes": Focus on notes tagged with #startup
+
+Adapt to various formatting, summarization, or content-specific requests based on the user's input and available context.`,
       messages: convertToCoreMessages(messages),
       tools: {
         getNotesForDateRange: {
