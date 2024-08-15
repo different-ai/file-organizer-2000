@@ -579,13 +579,11 @@ export const ChatComponent: React.FC<ChatComponentProps> = ({
         totalTokens += encoding.encode(item.content).length;
       });
 
-
-
       setContextSize(totalTokens);
     };
 
     calculateContextSize();
-  }, [unifiedContext, history, messages]);
+  }, [unifiedContext]);
 
   const isContextOverLimit = contextSize > maxContextSize;
 
