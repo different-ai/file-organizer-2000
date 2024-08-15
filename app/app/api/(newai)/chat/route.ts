@@ -12,14 +12,10 @@ export async function POST(req: NextRequest) {
   try {
     const { userId } = await handleAuthorization(req);
     const { messages, unifiedContext } = await req.json();
-    console.log(unifiedContext, "unifiedContext");
 
     const contextString = unifiedContext
       .map((file) => {
-        if (file.path.startsWith('https://www.youtube.com/watch?v=')) {
-          return `YouTube Video: ${file.title}\n\nTranscript:\n${file.content}`;
-        }
-        return `File: ${file.title}\n\nContent:\n${file.content}\nPath: ${file.path}`;
+        return `File: ${file.title}\n\nContent:\n${file.content}\nPath: ${file.path} Reference: ${file.reference}`;
       })
       .join("\n\n");
 
