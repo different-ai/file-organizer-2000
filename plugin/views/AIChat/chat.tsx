@@ -579,15 +579,7 @@ export const ChatComponent: React.FC<ChatComponentProps> = ({
         totalTokens += encoding.encode(item.content).length;
       });
 
-      // Add tokens for the conversation history
-      history.forEach(message => {
-        totalTokens += encoding.encode(message.content).length;
-      });
 
-      // Add tokens for the current messages
-      messages.forEach(message => {
-        totalTokens += encoding.encode(message.content).length;
-      });
 
       setContextSize(totalTokens);
     };
@@ -767,9 +759,9 @@ export const ChatComponent: React.FC<ChatComponentProps> = ({
               currentFileContent={fileContent}
             />
           </div>
-          <Button 
-            type="submit" 
-            className="send-button" 
+          <Button
+            type="submit"
+            className="send-button"
             disabled={isGenerating || isContextOverLimit}
           >
             <svg
