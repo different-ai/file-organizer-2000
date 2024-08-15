@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef, useCallback } from "react";
 import { useChat, UseChatOptions } from "@ai-sdk/react";
+import { getEncoding } from "js-tiktoken";
 
 import FileOrganizer from "../..";
 import Tiptap from "./tiptap";
@@ -11,7 +12,10 @@ import { AIMarkdown } from "./ai-message-renderer";
 import { UserMarkdown } from "./user-message-renderer";
 import { usePlugin } from "./provider";
 import ToolInvocationHandler from "./tool-invocation-handler";
-import { getYouTubeTranscript, getYouTubeVideoTitle } from "./youtube-transcript";
+import {
+  getYouTubeTranscript,
+  getYouTubeVideoTitle,
+} from "./youtube-transcript";
 
 interface ChatComponentProps {
   plugin: FileOrganizer;
@@ -106,6 +110,9 @@ export const ChatComponent: React.FC<ChatComponentProps> = ({
   const [selectedYouTubeVideos, setSelectedYouTubeVideos] = useState<
     { videoId: string; title: string; transcript: string }[]
   >([]);
+  const [contextSize, setContextSize] = useState(0);
+  const [maxContextSize, setMaxContextSize] = useState(80 * 1000); // Default to GPT-3.5-turbo
+
   console.log(unifiedContext, "unifiedContext");
 
   // Log all the selected stuff
@@ -198,8 +205,8 @@ export const ChatComponent: React.FC<ChatComponentProps> = ({
           const title = await getYouTubeVideoTitle(videoId);
           setSelectedYouTubeVideos(prev => [
             ...prev,
-            
-            { videoId, title, transcript }
+
+            { videoId, title, transcript },
           ]);
           console.log(transcript, "transcript");
           return transcript;
@@ -391,7 +398,12 @@ export const ChatComponent: React.FC<ChatComponentProps> = ({
 
   const handleTagSelect = (newTags: string[]) => {
     setSelectedTags(prevTags => {
-      const updatedTags = [...new Set([...prevTags, ...newTags.map(tag => tag.startsWith('#') ? tag : `#${tag}`)])];
+      const updatedTags = [
+        ...new Set([
+          ...prevTags,
+          ...newTags.map(tag => (tag.startsWith("#") ? tag : `#${tag}`)),
+        ]),
+      ];
       return updatedTags;
     });
   };
@@ -473,7 +485,7 @@ export const ChatComponent: React.FC<ChatComponentProps> = ({
         filesWithTags.forEach(file => {
           contextFiles.set(file.path, {
             ...file,
-            reference: `Tag: ${selectedTags.join(', ')}`,
+            reference: `Tag: ${selectedTags.join(", ")}`,
           });
         });
       }
@@ -553,8 +565,37 @@ export const ChatComponent: React.FC<ChatComponentProps> = ({
   }, []);
 
   const handleRemoveYouTubeVideo = (videoId: string) => {
-    setSelectedYouTubeVideos(prev => prev.filter(video => video.videoId !== videoId));
+    setSelectedYouTubeVideos(prev =>
+      prev.filter(video => video.videoId !== videoId)
+    );
   };
+
+  useEffect(() => {
+    const calculateContextSize = () => {
+      const encoding = getEncoding("o200k_base");
+
+      let totalTokens = 0;
+      unifiedContext.forEach(item => {
+        totalTokens += encoding.encode(item.content).length;
+      });
+
+      // Add tokens for the conversation history
+      history.forEach(message => {
+        totalTokens += encoding.encode(message.content).length;
+      });
+
+      // Add tokens for the current messages
+      messages.forEach(message => {
+        totalTokens += encoding.encode(message.content).length;
+      });
+
+      setContextSize(totalTokens);
+    };
+
+    calculateContextSize();
+  }, [unifiedContext, history, messages]);
+
+  const isContextOverLimit = contextSize > maxContextSize;
 
   return (
     <div className="chat-component">
@@ -595,6 +636,17 @@ export const ChatComponent: React.FC<ChatComponentProps> = ({
         </div>
       </div>
 
+      <div className="context-info">
+        {contextSize / maxContextSize > 0.75 && (
+          <p>
+            Context Size: {Math.round((contextSize / maxContextSize) * 100)}%
+          </p>
+        )}
+        {isContextOverLimit && (
+          <p className="warning">Warning: Context size exceeds maximum!</p>
+        )}
+      </div>
+
       {errorMessage && (
         <div className="error-message">
           {errorMessage}
@@ -628,7 +680,7 @@ export const ChatComponent: React.FC<ChatComponentProps> = ({
                   item={file.title}
                   onClick={() => handleOpenFile(file.title)}
                   onRemove={() => handleRemoveFile(file.path)}
-                  prefix="📄 "
+                  prefix=" "
                 />
               ))}
               {selectedFolders.map((folder, index) => (
@@ -654,24 +706,31 @@ export const ChatComponent: React.FC<ChatComponentProps> = ({
                   onRemove={() =>
                     setSelectedTags(tags => tags.filter(t => t !== tag))
                   }
-                  prefix="🏷️ " 
+                  prefix="🏷️ "
                 />
               ))}
-              {selectedYouTubeVideos.map((video) => (
+              {selectedYouTubeVideos.map(video => (
                 <SelectedItem
                   key={`youtube-${video.videoId}`}
                   item={video.title}
-                  onClick={() => window.open(`https://www.youtube.com/watch?v=${video.videoId}`, '_blank')}
+                  onClick={() =>
+                    window.open(
+                      `https://www.youtube.com/watch?v=${video.videoId}`,
+                      "_blank"
+                    )
+                  }
                   onRemove={() => handleRemoveYouTubeVideo(video.videoId)}
                   prefix="🎥 "
                 />
               ))}
             </div>
-       
-    
+
             <div className="context-actions">
               {fileName && !includeCurrentFile && (
-                <Button onClick={handleAddCurrentFile} className="add-current-file-button">
+                <Button
+                  onClick={handleAddCurrentFile}
+                  className="add-current-file-button"
+                >
                   Add Current File to Context
                 </Button>
               )}
@@ -708,7 +767,11 @@ export const ChatComponent: React.FC<ChatComponentProps> = ({
               currentFileContent={fileContent}
             />
           </div>
-          <Button type="submit" className="send-button" disabled={isGenerating}>
+          <Button 
+            type="submit" 
+            className="send-button" 
+            disabled={isGenerating || isContextOverLimit}
+          >
             <svg
               xmlns="http://www.w3.org/2000/svg"
               viewBox="0 0 24 24"
@@ -720,17 +783,24 @@ export const ChatComponent: React.FC<ChatComponentProps> = ({
           </Button>
         </form>
         <div className="current-file-tip">
-              <span className="tip-icon">💡 </span>
-              <span>
-              To add more files to the AI context, mention them in the chat using the format @filename
-              </span>
-            </div>
+          <span className="tip-icon">💡 </span>
+          <span>
+            To add more files to the AI context, mention them in the chat using
+            the format @filename
+          </span>
+        </div>
         {isGenerating && (
           <Button onClick={handleCancelGeneration} className="cancel-button">
             Cancel Generation
           </Button>
         )}
       </div>
+
+      {isContextOverLimit && (
+        <div className="context-warning">
+          Context size exceeds maximum. Please remove some context to continue.
+        </div>
+      )}
     </div>
   );
 };
