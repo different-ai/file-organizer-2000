@@ -97,21 +97,21 @@ Adapt to various formatting, summarization, or content-specific requests based o
             return videoId;
           },
         },
-        modifyCurrentNote: {
-          description:
-            "Modify the content of the currently active note using a formatting instruction",
-          parameters: z.object({
-            formattingInstruction: z
-              .string()
-              .describe(
-                "The instruction for formatting the current note content"
-              ),
-          }),
-          execute: async ({ formattingInstruction }) => {
-            // This will be handled client-side, so we just return the formatting instruction
-            return formattingInstruction;
-          },
-        },
+        // modifyCurrentNote: {
+        //   description:
+        //     "Modify the content of the currently active note using a formatting instruction",
+        //   parameters: z.object({
+        //     formattingInstruction: z
+        //       .string()
+        //       .describe(
+        //         "The instruction for formatting the current note content"
+        //       ),
+        //   }),
+        //   execute: async ({ formattingInstruction }) => {
+        //     // This will be handled client-side, so we just return the formatting instruction
+        //     return formattingInstruction;
+        //   },
+        // },
         handleUnrecognizedFeature: {
           description: "Handle requests for features that are not specifically implemented",
           parameters: z.object({
