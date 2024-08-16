@@ -63,7 +63,7 @@ function ToolInvocationHandler({ toolInvocation, addToolResult, results }: ToolI
   // TODO: Add a loading state for the tool invocation
   // show no files found if searchNotes and no results
   const renderContent = () => {
-    if ( (!results || results.length === 0)) {
+    if (toolInvocation.toolName === "searchNotes" && (!results || results.length === 0)) {
       return (
         <ToolContent>
           <p>No files matching that criteria were found</p>
