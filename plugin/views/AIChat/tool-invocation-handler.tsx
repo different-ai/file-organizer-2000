@@ -1,10 +1,12 @@
 import React from "react";
 import { motion } from "framer-motion";
 import styled from "@emotion/styled";
+
 interface ToolInvocationHandlerProps {
-    toolInvocation: any; // Replace 'any' with a more specific type if available
-    addToolResult: (result: { toolCallId: string; result: string }) => void;
-  }
+  toolInvocation: any; // Replace 'any' with a more specific type if available
+  addToolResult: (result: { toolCallId: string; result: string }) => void;
+  results // Add results prop to handle when no search results are found
+}
 
 const ToolInvocationWrapper = styled(motion.div)`
   background-color: #f0f4f8;
@@ -42,7 +44,7 @@ const StyledButton = styled.button`
   }
 `;
 
-function toolInvocationHandler({ toolInvocation, addToolResult }: ToolInvocationHandlerProps) {
+function ToolInvocationHandler({ toolInvocation, addToolResult, results }: ToolInvocationHandlerProps) {
   const toolCallId = toolInvocation.toolCallId;
   const handleAddResult = (result: string) => addToolResult({ toolCallId, result });
 
@@ -58,13 +60,23 @@ function toolInvocationHandler({ toolInvocation, addToolResult }: ToolInvocation
     }
   };
 
+  // TODO: Add a loading state for the tool invocation
+  // show no files found if searchNotes and no results
   const renderContent = () => {
+    if ( (!results || results.length === 0)) {
+      return (
+        <ToolContent>
+          <p>No files matching that criteria were found</p>
+        </ToolContent>
+      );
+    }
+
     switch (toolInvocation.toolName) {
       case "getNotesForDateRange":
         return (
           <ToolContent>
             {"result" in toolInvocation
-              ? toolInvocation.result
+              ? `All notes modified within the following time period were added to the AI context: ${toolInvocation.result}`
               : "Retrieving your notes for the specified time period..."}
           </ToolContent>
         );
@@ -73,7 +85,7 @@ function toolInvocationHandler({ toolInvocation, addToolResult }: ToolInvocation
         return (
           <ToolContent>
             {"result" in toolInvocation
-              ? `Here's what I found: ${toolInvocation.result}`
+              ? `Notes that containted ${toolInvocation.result} were added to the AI context`
               : "Scouring your notes for relevant information..."}
           </ToolContent>
         );
@@ -155,4 +167,4 @@ function toolInvocationHandler({ toolInvocation, addToolResult }: ToolInvocation
   );
 }
 
-export default toolInvocationHandler;
+export default ToolInvocationHandler;
