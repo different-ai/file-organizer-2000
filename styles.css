@@ -244,6 +244,8 @@
 .selected-items {
   display: flex;
   flex-wrap: wrap;
+  max-height: 300px;
+  overflow: auto;
   gap: 0.5rem;
   margin-bottom: 0.5rem;
 }
