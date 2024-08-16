@@ -85,7 +85,7 @@ function ToolInvocationHandler({ toolInvocation, addToolResult, results }: ToolI
         return (
           <ToolContent>
             {"result" in toolInvocation
-              ? `Here's what I found: ${toolInvocation.result}`
+              ? `Notes that containted ${toolInvocation.result} were added to the AI context`
               : "Scouring your notes for relevant information..."}
           </ToolContent>
         );
