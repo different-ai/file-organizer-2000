@@ -1,10 +1,11 @@
 import React from "react";
 import { motion } from "framer-motion";
 import styled from "@emotion/styled";
+
 interface ToolInvocationHandlerProps {
   toolInvocation: any; // Replace 'any' with a more specific type if available
   addToolResult: (result: { toolCallId: string; result: string }) => void;
-  unifiedContext: { title: string; content: string; path: string; reference: string }[]; // Add unifiedContext prop
+  results // Add results prop to handle when no search results are found
 }
 
 const ToolInvocationWrapper = styled(motion.div)`
@@ -43,7 +44,7 @@ const StyledButton = styled.button`
   }
 `;
 
-function ToolInvocationHandler({ toolInvocation, addToolResult, unifiedContext }: ToolInvocationHandlerProps) {
+function ToolInvocationHandler({ toolInvocation, addToolResult, results }: ToolInvocationHandlerProps) {
   const toolCallId = toolInvocation.toolCallId;
   const handleAddResult = (result: string) => addToolResult({ toolCallId, result });
 
@@ -59,8 +60,10 @@ function ToolInvocationHandler({ toolInvocation, addToolResult, unifiedContext }
     }
   };
 
+  // TODO: Add a loading state for the tool invocation
+  // show no files found if searchNotes and no results
   const renderContent = () => {
-    if (unifiedContext.length === 0) {
+    if ( (!results || results.length === 0)) {
       return (
         <ToolContent>
           <p>No files matching that criteria were found</p>

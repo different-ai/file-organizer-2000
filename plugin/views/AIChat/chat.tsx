@@ -16,6 +16,7 @@ import {
   getYouTubeTranscript,
   getYouTubeVideoTitle,
 } from "./youtube-transcript";
+import { logMessage } from "../../../utils";
 
 interface ChatComponentProps {
   plugin: FileOrganizer;
@@ -149,7 +150,14 @@ export const ChatComponent: React.FC<ChatComponentProps> = ({
         return null;
       })
     );
-    return searchResults.filter(result => result !== null);
+// Filter out null results
+    const filteredResults = searchResults.filter(result => result !== null);
+//
+    if (filteredResults.length === 0) {
+      logMessage("No files returned");
+    }
+
+    return filteredResults;
   };
 
   const getLastModifiedFiles = async (count: number) => {
@@ -253,6 +261,9 @@ export const ChatComponent: React.FC<ChatComponentProps> = ({
           );
           return [...prevFiles, ...newFiles];
         });
+
+        // Pass search results to the tool invocation handler
+        toolCall.results = searchResults;
 
         return JSON.stringify(searchResults);
       } else if (toolCall.toolName === "modifyCurrentNote") {
@@ -616,7 +627,8 @@ export const ChatComponent: React.FC<ChatComponentProps> = ({
                       key={toolInvocation.toolCallId}
                       toolInvocation={toolInvocation}
                       addToolResult={addToolResult}
-                      unifiedContext={unifiedContext}
+                      // search results (files added to context)
+                      results={toolInvocation.results}
                     />
                   )
                 )}
