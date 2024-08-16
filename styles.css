@@ -426,8 +426,10 @@
 }
 
 .fo2k-dropdown-menu button.is-selected {
-  background-color: var(--background-secondary-alt);
+  background-color: var(--interactive-accent);
+  color: white;
 }
+
 
 /* Selected Files Styles */
 .selected-files {
