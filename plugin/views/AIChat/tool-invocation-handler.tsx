@@ -2,9 +2,10 @@ import React from "react";
 import { motion } from "framer-motion";
 import styled from "@emotion/styled";
 interface ToolInvocationHandlerProps {
-    toolInvocation: any; // Replace 'any' with a more specific type if available
-    addToolResult: (result: { toolCallId: string; result: string }) => void;
-  }
+  toolInvocation: any; // Replace 'any' with a more specific type if available
+  addToolResult: (result: { toolCallId: string; result: string }) => void;
+  unifiedContext: { title: string; content: string; path: string; reference: string }[]; // Add unifiedContext prop
+}
 
 const ToolInvocationWrapper = styled(motion.div)`
   background-color: #f0f4f8;
@@ -42,7 +43,7 @@ const StyledButton = styled.button`
   }
 `;
 
-function toolInvocationHandler({ toolInvocation, addToolResult }: ToolInvocationHandlerProps) {
+function ToolInvocationHandler({ toolInvocation, addToolResult, unifiedContext }: ToolInvocationHandlerProps) {
   const toolCallId = toolInvocation.toolCallId;
   const handleAddResult = (result: string) => addToolResult({ toolCallId, result });
 
@@ -59,6 +60,14 @@ function toolInvocationHandler({ toolInvocation, addToolResult }: ToolInvocation
   };
 
   const renderContent = () => {
+    if (unifiedContext.length === 0) {
+      return (
+        <ToolContent>
+          <p>No files matching that criteria were found</p>
+        </ToolContent>
+      );
+    }
+
     switch (toolInvocation.toolName) {
       case "getNotesForDateRange":
         return (
@@ -155,4 +164,4 @@ function toolInvocationHandler({ toolInvocation, addToolResult }: ToolInvocation
   );
 }
 
-export default toolInvocationHandler;
+export default ToolInvocationHandler;

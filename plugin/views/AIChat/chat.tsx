@@ -117,7 +117,7 @@ export const ChatComponent: React.FC<ChatComponentProps> = ({
 
   // Log all the selected stuff
   useEffect(() => {
-    console.log(selectedFiles, "selectedFiles");
+   // console.log(selectedFiles, "selectedFiles");
     console.log(selectedTags, "selectedTags");
     console.log(selectedFolders, "selectedFolders");
     console.log(selectedYouTubeVideos, "selectedYouTubeVideos");
@@ -616,6 +616,7 @@ export const ChatComponent: React.FC<ChatComponentProps> = ({
                       key={toolInvocation.toolCallId}
                       toolInvocation={toolInvocation}
                       addToolResult={addToolResult}
+                      unifiedContext={unifiedContext}
                     />
                   )
                 )}
