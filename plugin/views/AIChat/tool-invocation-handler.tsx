@@ -64,7 +64,7 @@ function toolInvocationHandler({ toolInvocation, addToolResult }: ToolInvocation
         return (
           <ToolContent>
             {"result" in toolInvocation
-              ? toolInvocation.result
+              ? `All notes modified within the following time period were added to the AI context: ${toolInvocation.result}`
               : "Retrieving your notes for the specified time period..."}
           </ToolContent>
         );
