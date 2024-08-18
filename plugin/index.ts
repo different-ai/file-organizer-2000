@@ -1124,10 +1124,9 @@ export default class FileOrganizer extends Plugin {
   }
 
   async initializeChat() {
-    // TODO: reintroduce after experimental phase
-    // this.addRibbonIcon("message-square", "Open AI Chat", () => {
-    //   this.activateView();
-    // });
+    this.addRibbonIcon("message-square", "Open AI Chat", () => {
+      this.activateView();
+    });
 
     this.registerView("ai-chat-view", leaf => new AIChatView(leaf, this));
 
