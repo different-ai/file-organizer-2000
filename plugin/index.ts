@@ -1132,7 +1132,7 @@ export default class FileOrganizer extends Plugin {
 
     this.addCommand({
       id: "open-ai-chat",
-      name: "Open AI Chat",
+      name: "Fo2k Open AI Chat",
       callback: () => {
         this.activateView();
       },
