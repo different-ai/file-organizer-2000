@@ -51,8 +51,9 @@ const filterNotesByDateRange = async (
     
     // Check if the file is in the logs folder
     const isInLogsFolder = file.path.startsWith(plugin.settings.logFolderPath);
-    
-    // Log file details for debugging
+    const isInTemplatesFolder = file.path.startsWith(plugin.settings.templatePaths);
+    const isInBackupsFolder = file.path.startsWith(plugin.settings.backupFolderPath);
+
     logMessage(
       `File: ${file.basename}, ` +
       `Date: ${fileDate.format("YYYY-MM-DD")}, ` +
@@ -60,11 +61,11 @@ const filterNotesByDateRange = async (
       `Not in Logs Folder: ${!isInLogsFolder}`
     );
     
-    // Include the file if it's within the date range and not in the logs folder
-    return isWithinDateRange && !isInLogsFolder;
+    // Include the file if it's within the date range  + not in the logs folder + not in the templates folder + not in the backups folder
+    return isWithinDateRange && !isInLogsFolder && !isInTemplatesFolder && !isInBackupsFolder;
   });
 
-  console.log(filteredFiles.length, "filteredFiles");
+ logMessage(filteredFiles.length, "filteredFiles");
 
   const fileContents = await Promise.all(
     filteredFiles.map(async file => ({
