@@ -43,10 +43,25 @@ const filterNotesByDateRange = async (
   const end = moment(endDate).endOf("day");
 
   const filteredFiles = files.filter(file => {
+    // Get the file's modification date
     const fileDate = moment(file.stat.mtime);
-    const isBetween = fileDate.isBetween(start, end, null, "[]");
-    console.log(file.basename, fileDate.format("YYYY-MM-DD"), isBetween);
-    return isBetween;
+    
+    // Check if the file's date is within the specified range
+    const isWithinDateRange = fileDate.isBetween(start, end, null, "[]");
+    
+    // Check if the file is in the logs folder
+    const isInLogsFolder = file.path.startsWith(plugin.settings.logFolderPath);
+    
+    // Log file details for debugging
+    logMessage(
+      `File: ${file.basename}, ` +
+      `Date: ${fileDate.format("YYYY-MM-DD")}, ` +
+      `In Date Range: ${isWithinDateRange}, ` +
+      `Not in Logs Folder: ${!isInLogsFolder}`
+    );
+    
+    // Include the file if it's within the date range and not in the logs folder
+    return isWithinDateRange && !isInLogsFolder;
   });
 
   console.log(filteredFiles.length, "filteredFiles");
@@ -264,7 +279,7 @@ export const ChatComponent: React.FC<ChatComponentProps> = ({
 
         // Pass search results to the tool invocation handler
         toolCall.results = searchResults;
-
+console.log(searchResults, "searchResults");
         return JSON.stringify(searchResults);
       } else if (toolCall.toolName === "modifyCurrentNote") {
         const args = toolCall.args as { formattingInstruction: string };
