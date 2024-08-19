@@ -44,7 +44,7 @@ export async function generateTags(
 
   // Post-process all tags to ensure they have a '#' prefix
   response.object.tags = response.object.tags.map(tag => {
-    tag = tag.toLowerCase().replace(/[^a-z0-9_-]/g, '');
+    tag = tag.toLowerCase();
     return tag.startsWith('#') ? tag : '#' + tag;
 
   });
