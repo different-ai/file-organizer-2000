@@ -636,14 +636,18 @@
   font-size: 12px;
   color: var(--text-muted);
   margin-top: 1rem;
-  margin-bottom: 10px;
   padding-left: 0.3rem;
 }
-
-.tip-item {
+.tip-item-1 {
   display: flex;
   align-items: flex-start;
-  margin-bottom: 8px;
+  margin-bottom: 0.2rem;
+
+}
+.tip-item-2 {
+  display: flex;
+  align-items: flex-start;
+
 }
 
 .tip-icon {
