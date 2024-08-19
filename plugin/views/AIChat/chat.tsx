@@ -786,11 +786,19 @@ export const ChatComponent: React.FC<ChatComponentProps> = ({
           </Button>
         </form>
         <div className="current-file-tip">
-          <span className="tip-icon">💡 </span>
-          <span>
-            To add more files to the AI context, mention them in the chat using
-            the format @filename
-          </span>
+          <div className="tip-item">
+            <span className="tip-icon">Tip 1️⃣</span>
+            <span className="tip-text">
+              To add more files to the AI context, mention them in the chat using
+              the format @filename
+            </span>
+          </div>
+          <div className="tip-item">
+            <span className="tip-icon">Tip 2️⃣</span>
+            <span className="tip-text">
+              Or use prompts like "get notes from this week" or "get YouTube transcript", then follow up with your question (e.g. "summarize my notes/transcript") in a separate message
+            </span>
+          </div>
         </div>
         {isGenerating && (
           <Button onClick={handleCancelGeneration} className="cancel-button">
