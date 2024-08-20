@@ -18,6 +18,7 @@ export const UserMarkdown: React.FC<SimpleObsidianRendererProps> = ({
 
       try {
         const leaf = plugin.app.workspace.getMostRecentLeaf();
+        
         if (leaf && leaf.view instanceof MarkdownView) {
           await MarkdownRenderer.render(
             plugin.app,
@@ -26,15 +27,23 @@ export const UserMarkdown: React.FC<SimpleObsidianRendererProps> = ({
             "",
             leaf.view
           );
+        } else {
+          // Fallback rendering when no MarkdownView is available
+          await MarkdownRenderer.renderMarkdown(
+            content,
+            containerRef.current,
+            "",
+            null
+          );
         }
       } catch (e) {
         console.error("Error rendering markdown:", e);
-        containerRef.current.innerHTML = "<p>Error rendering content</p>";
+        containerRef.current.innerHTML = `<p>Error rendering content: ${e.message}</p>`;
       }
     };
 
     renderMarkdown();
-  }, [content, plugin.app]);
+  }, [content, plugin.app, plugin.app.workspace]);
 
   return <div ref={containerRef} className="simple-obsidian-renderer" />;
 };

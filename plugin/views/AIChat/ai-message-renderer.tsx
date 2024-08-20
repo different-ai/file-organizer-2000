@@ -1,72 +1,88 @@
 import React, { useEffect, useRef, useState } from "react";
-import {
-  MarkdownRenderer,
-  MarkdownView,
-  Notice,
-  TFile,
-} from "obsidian";
+import { Notice, TFile, MarkdownRenderer, MarkdownView } from "obsidian";
 import { usePlugin } from "./provider";
 
-interface ObsidianRendererProps {
+
+interface AIMarkdownProps {
   content: string;
 }
 
-export const AIMarkdown: React.FC<ObsidianRendererProps> = ({
-  content,
-}) => {
+export const AIMarkdown: React.FC<AIMarkdownProps> = ({ content }) => {
   const containerRef = useRef<HTMLDivElement>(null);
+  const contentRef = useRef<HTMLDivElement>(null);
   const plugin = usePlugin();
-  const [renderedContent, setRenderedContent] = useState("");
   const [activeFile, setActiveFile] = useState<TFile | null>(null);
+  const [renderedContent, setRenderedContent] = useState("");
 
   useEffect(() => {
-    if (!app || !containerRef.current) return;
+    if (!plugin.app || !containerRef.current) return;
 
     const renderMarkdown = async () => {
       try {
         const leaf = plugin.app.workspace.getMostRecentLeaf();
+        const tempContainer = document.createElement("div");
+        
         if (leaf && leaf.view instanceof MarkdownView) {
-          const tempContainer = document.createElement("div");
           await MarkdownRenderer.render(
-            app,
+            plugin.app,
             content,
             tempContainer,
             "",
             leaf.view
           );
-          setRenderedContent(tempContainer.innerHTML);
+        } else {
+          // Fallback rendering when no MarkdownView is available
+          await MarkdownRenderer.renderMarkdown(
+            content,
+            tempContainer,
+            "",
+            null
+          );
         }
+        
+        setRenderedContent(tempContainer.innerHTML);
       } catch (e) {
         console.error(e);
+        setRenderedContent(`<p>Error rendering content: ${e.message}</p>`);
       }
     };
 
     renderMarkdown();
-  }, [content, app]);
+  }, [content, plugin.app, plugin.app.workspace]);
 
   useEffect(() => {
-    if (!app) return;
+    if (contentRef.current) {
+      contentRef.current.innerHTML = renderedContent;
+    }
+  }, [renderedContent]);
+
+  useEffect(() => {
+    if (!plugin.app) return;
 
     const updateActiveFile = () => {
-      const file = app.workspace.getActiveFile();
+      const file = plugin.app.workspace.getActiveFile();
       setActiveFile(file);
     };
 
     updateActiveFile();
 
-    // Listen for file changes
-    const eventRef = app.workspace.on("file-open", updateActiveFile);
+    const eventRef = plugin.app.workspace.on("file-open", updateActiveFile);
 
     return () => {
-      app.workspace.offref(eventRef);
+      plugin.app.workspace.offref(eventRef);
     };
-  }, [app]);
+  }, [plugin.app]);
 
   useEffect(() => {
     const container = containerRef.current;
-    if (!container || !app) return;
+    if (!container || !plugin.app) return;
 
-    const createIcon = (icon: string, onClick: () => void, tooltip: string, actionText: string) => {
+    const createIcon = (
+      icon: string,
+      onClick: () => void,
+      tooltip: string,
+      actionText: string
+    ) => {
       const iconContainer = document.createElement("button");
       iconContainer.className = "clickable-icon-container";
       iconContainer.title = tooltip;
@@ -142,14 +158,14 @@ export const AIMarkdown: React.FC<ObsidianRendererProps> = ({
       replaceIcon.remove();
       aiFormatIcon.remove();
     };
-  }, [content, plugin, app, activeFile]);
+  }, [content, plugin, activeFile]);
 
   return (
     <div className="obsidian-renderer">
       <div className="icon-container" ref={containerRef}>
-
+        {/* Icons will be added here dynamically */}
       </div>
-      <div dangerouslySetInnerHTML={{ __html: renderedContent }} />
+      <div ref={contentRef} className="ai-content markdown-rendered"></div>
     </div>
   );
 };
