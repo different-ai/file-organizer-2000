@@ -103,7 +103,9 @@ https://www.icloud.com/shortcuts/06915768862848fb9711f2f19b6405e2
 
 how to set it up: https://youtu.be/zWJgIRlDWkk?si=HSeOUKaMfJvaLtKI
 
-It works when your vault is on a cloud drive. I use it with iCloud and works great. Doesn't work with OneDrive last time I tested.
+Notes:
+- It works when your vault is on a cloud drive. I use it with iCloud and works great. Doesn't work with OneDrive last time I tested.
+- Currently only works if your iOS is in English. But if you reach out on discord I can help you set it up in your language.
 
 ## To Do
 
