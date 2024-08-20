@@ -35,9 +35,9 @@ const filterNotesByDateRange = async (
   endDate: string,
   plugin: FileOrganizer
 ) => {
-  console.log(startDate, endDate, "startDate, endDate");
+  logMessage(startDate, endDate, "startDate, endDate");
   const files = plugin.getAllUserMarkdownFiles();
-  console.log(files.length, "total files");
+  logMessage(files.length, "total files");
 
   const start = moment(startDate).startOf("day");
   const end = moment(endDate).endOf("day");
@@ -130,14 +130,14 @@ export const ChatComponent: React.FC<ChatComponentProps> = ({
   const [contextSize, setContextSize] = useState(0);
   const [maxContextSize, setMaxContextSize] = useState(80 * 1000); // Default to GPT-3.5-turbo
 
-  console.log(unifiedContext, "unifiedContext");
+  logMessage(unifiedContext, "unifiedContext");
 
   // Log all the selected stuff
   useEffect(() => {
-   // console.log(selectedFiles, "selectedFiles");
-    console.log(selectedTags, "selectedTags");
-    console.log(selectedFolders, "selectedFolders");
-    console.log(selectedYouTubeVideos, "selectedYouTubeVideos");
+   // logMessage(selectedFiles, "selectedFiles");
+    logMessage(selectedTags, "selectedTags");
+    logMessage(selectedFolders, "selectedFolders");
+    logMessage(selectedYouTubeVideos, "selectedYouTubeVideos");
   }, [selectedFiles, selectedTags, selectedFolders, selectedYouTubeVideos]);
 
   const searchNotes = async (query: string) => {
@@ -220,7 +220,7 @@ export const ChatComponent: React.FC<ChatComponentProps> = ({
     },
     // maxToolRoundtrips: 1,
     async onToolCall({ toolCall }) {
-      console.log(toolCall, "toolCall");
+      logMessage(toolCall, "toolCall");
       if (toolCall.toolName === "getYouTubeTranscript") {
         const args = toolCall.args as { videoId: string };
         const { videoId } = args;
@@ -232,7 +232,7 @@ export const ChatComponent: React.FC<ChatComponentProps> = ({
 
             { videoId, title, transcript },
           ]);
-          console.log(transcript, "transcript");
+          logMessage(transcript, "transcript");
           return transcript;
         } catch (error) {
           console.error("Error fetching YouTube transcript:", error);
@@ -241,7 +241,7 @@ export const ChatComponent: React.FC<ChatComponentProps> = ({
       } else if (toolCall.toolName === "getNotesForDateRange") {
         const args = toolCall.args as { startDate: string; endDate: string };
         const { startDate, endDate } = args;
-        console.log(startDate, endDate, "startDate, endDate");
+        logMessage(startDate, endDate, "startDate, endDate");
         const filteredNotes = await filterNotesByDateRange(
           startDate,
           endDate,
@@ -280,7 +280,7 @@ export const ChatComponent: React.FC<ChatComponentProps> = ({
 
         // Pass search results to the tool invocation handler
         toolCall.results = searchResults;
-console.log(searchResults, "searchResults");
+logMessage(searchResults, "searchResults");
         return JSON.stringify(searchResults);
       } else if (toolCall.toolName === "modifyCurrentNote") {
         const args = toolCall.args as { formattingInstruction: string };
@@ -306,7 +306,7 @@ console.log(searchResults, "searchResults");
         const args = toolCall.args as { count: number };
         const { count } = args;
         const lastModifiedFiles = await getLastModifiedFiles(count);
-        console.log(lastModifiedFiles, "lastModifiedFiles");
+        logMessage(lastModifiedFiles, "lastModifiedFiles");
 
         // Add last modified files to selectedFiles
         setSelectedFiles(prevFiles => {
@@ -336,7 +336,7 @@ console.log(searchResults, "searchResults");
 
   const handleSendMessage = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    console.log(e.target, "target");
+    logMessage(e.target, "target");
     setErrorMessage(null);
     handleSubmit(e);
     setHistory([...history, ...messages]);
