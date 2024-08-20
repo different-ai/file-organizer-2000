@@ -679,7 +679,7 @@ console.log(searchResults, "searchResults");
         </div>
       )}
 
-      <div className="chat-input-container">
+      <div className="chat-input-wrapper">
         <div className="context-container">
           <div className="selected-items-container">
             <h6 className="selected-items-header">Context</h6>
