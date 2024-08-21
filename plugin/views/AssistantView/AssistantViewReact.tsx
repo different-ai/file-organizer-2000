@@ -237,7 +237,7 @@ const RenameSuggestion: React.FC<{
                   }
                 }}
               >
-                Rename File
+                Rename
               </button>
             </>
           ) : (
