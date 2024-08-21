@@ -25,6 +25,10 @@ export class AssistantViewWrapper extends ItemView {
     return "Assistant";
   }
 
+  getIcon(): string {
+    return "sparkle"; // Change this to the desired icon name
+  }
+
   async onOpen(): Promise<void> {
     this.root = createRoot(this.containerEl.children[1]);
     this.render();

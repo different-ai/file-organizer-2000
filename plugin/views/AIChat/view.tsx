@@ -19,7 +19,11 @@ export class AIChatView extends ItemView {
   }
 
   getDisplayText(): string {
-    return 'AI Chat';
+    return 'Fo2k Chat';
+  }
+
+  getIcon(): string {
+    return 'bot';
   }
 
   async onOpen(): Promise<void> {
