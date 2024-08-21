@@ -44,7 +44,9 @@ export async function generateTags(
 
   // Post-process all tags to ensure they have a '#' prefix
   response.object.tags = response.object.tags.map(tag => {
-    return tag.startsWith('#') ? tag : '#' + tag;
+    // remove spaces from the tag
+    const tagWithoutSpaces = tag.replace(/\s+/g, '');
+    return tagWithoutSpaces.startsWith('#') ? tagWithoutSpaces : '#' + tagWithoutSpaces;
   });
 
   return response;

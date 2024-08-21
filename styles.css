@@ -50,8 +50,8 @@
 }
 
 .tag:hover {
-  color: var(--nav-item-color-hover);
-  background-color: var(--nav-item-background-hover);
+  color: white;
+  background: var(--interactive-accent);
   font-weight: var(--nav-item-weight-hover);
 }
 
@@ -85,10 +85,13 @@
 .move-note-button:hover,
 .format-button:hover,
 .rename-alias-button:hover,
-.load-similar-files-button:hover {
+.load-similar-files-button:hover,
+.refresh-button:hover
+{
   background: var(--interactive-accent);
   border-color: var(--interactive-accent);
   color: white;
+  cursor: pointer;
 }
 
 /* Files Container Styles */
@@ -513,7 +516,7 @@
 }
 
 .refresh-icon-button:hover {
-  opacity: 0.7;
+  color: var(--text-accent);
 }
 
 .spinning svg {
