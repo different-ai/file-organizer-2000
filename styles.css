@@ -91,6 +91,7 @@
   background: var(--interactive-accent);
   border-color: var(--interactive-accent);
   color: white;
+  cursor: pointer;
 }
 
 /* Files Container Styles */
