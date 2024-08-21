@@ -649,7 +649,7 @@ export const AssistantView: React.FC<AssistantViewProps> = ({ plugin, leaf }) =>
       plugin.app.workspace.offref(fileOpenEventRef);
       plugin.app.workspace.offref(layoutChangeRef);
     };
-  }, [refreshKey, plugin.app.workspace, plugin.app.vault, leaf]); // Add leaf to the dependency array
+  }, [refreshKey, plugin.app.workspace, plugin.app.vault, leaf]);
 
   const isMediaFile = (file: TFile | null): boolean => {
     if (!file) return false;

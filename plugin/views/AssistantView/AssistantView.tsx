@@ -26,7 +26,7 @@ export class AssistantViewWrapper extends ItemView {
   }
 
   getIcon(): string {
-    return "sparkle"; // Change this to the desired icon name
+    return "sparkle"; 
   }
 
   async onOpen(): Promise<void> {
