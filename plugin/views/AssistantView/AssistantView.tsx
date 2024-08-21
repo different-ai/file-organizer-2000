@@ -4,7 +4,7 @@ import * as React from "react";
 import { Root, createRoot } from "react-dom/client";
 import { AssistantView } from "./AssistantViewReact";
 import FileOrganizer from "../..";
-import { logMessage } from "../../../utils";
+
 
 export const ASSISTANT_VIEW_TYPE = "fo2k.assistant.sidebar2";
 
@@ -27,9 +27,13 @@ export class AssistantViewWrapper extends ItemView {
 
   async onOpen(): Promise<void> {
     this.root = createRoot(this.containerEl.children[1]);
-    this.root.render(
+    this.render();
+  }
+
+  render(): void {
+    this.root?.render(
       <React.StrictMode>
-        <AssistantView plugin={this.plugin} />
+        <AssistantView plugin={this.plugin} leaf={this.leaf} />
       </React.StrictMode>
     );
   }
