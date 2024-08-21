@@ -1,9 +1,10 @@
 import * as React from "react";
-import { Notice, TFile} from "obsidian";
+import { Notice, TFile, WorkspaceLeaf} from "obsidian";
 import FileOrganizer, { validMediaExtensions } from "../../index";
 
 interface AssistantViewProps {
   plugin: FileOrganizer;
+  leaf: WorkspaceLeaf;
 }
 
 const SectionHeader: React.FC<{ 
@@ -575,7 +576,7 @@ const RefreshButton: React.FC<{ onRefresh: () => void }> = ({ onRefresh }) => {
 };
 
 
-export const AssistantView: React.FC<AssistantViewProps> = ({ plugin }) => {
+export const AssistantView: React.FC<AssistantViewProps> = ({ plugin, leaf }) => {
   const [activeFile, setActiveFile] = React.useState<TFile | null>(null);
   const [noteContent, setNoteContent] = React.useState<string>("");
   const [hasAudio, setHasAudio] = React.useState<boolean>(false);
@@ -588,9 +589,13 @@ export const AssistantView: React.FC<AssistantViewProps> = ({ plugin }) => {
 
   React.useEffect(() => {
     const onFileOpen = async () => {
+      // Check if the Assistant view is visible before processing
+      const isVisible = leaf.view.containerEl.isShown() && !plugin.app.workspace.rightSplit.collapsed;
+      
+      if (!isVisible) return;
+      
       // force slow down
       await new Promise((resolve) => setTimeout(resolve, 500));
-      if (plugin.app.workspace.rightSplit.collapsed) return;
       const file = plugin.app.workspace.getActiveFile();
 
       if (!file || !file.path) {
@@ -637,12 +642,14 @@ export const AssistantView: React.FC<AssistantViewProps> = ({ plugin }) => {
       setHasAudio(hasAudioEmbed(content));
     };
     const fileOpenEventRef = plugin.app.workspace.on("file-open", onFileOpen);
+    const layoutChangeRef = plugin.app.workspace.on("layout-change", onFileOpen);
     onFileOpen();
 
     return () => {
       plugin.app.workspace.offref(fileOpenEventRef);
+      plugin.app.workspace.offref(layoutChangeRef);
     };
-  }, [refreshKey]); // Add refreshKey to the dependency array
+  }, [refreshKey, plugin.app.workspace, plugin.app.vault, leaf]);
 
   const isMediaFile = (file: TFile | null): boolean => {
     if (!file) return false;
