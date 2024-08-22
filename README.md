@@ -26,6 +26,8 @@ An Obsidian plugin that uses AI to keep your files organized. It tags, renames, 
 [Chat with Youtube demo](https://youtu.be/2CNZq_6jQoQ)
 
 
+[Chat with multiple files in context demo](https://youtu.be/2CNZq_6jQoQ)
+
 ## Tips and Tricks
 
 [![Thumbnail (2)](https://github.com/different-ai/file-organizer-2000/assets/11430621/1b2c524b-11bc-484d-9255-4699783303bf)](https://youtube.com/playlist?list=PLgRcC-DFR5jdUxbSBuNeymwYTH_FSVxio&si=I7VpzzAnY0XVQ15c)
