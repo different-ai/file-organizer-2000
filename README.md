@@ -23,15 +23,7 @@ An Obsidian plugin that uses AI to keep your files organized. It tags, renames, 
 
 
 
-https://github.com/user-attachments/assets/40af6742-268f-4993-842c-ad3fd6121e42
-
-
-
-
-https://github.com/user-attachments/assets/c8958ea7-4eab-449b-a09d-a7376cd0790c
-
-
-
+[Chat with Youtube demo](https://youtu.be/2CNZq_6jQoQ)
 
 
 ## Tips and Tricks
