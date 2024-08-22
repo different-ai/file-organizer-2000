@@ -10,7 +10,7 @@ An Obsidian plugin that uses AI to keep your files organized. It tags, renames, 
 
 - **Organization:** Automatically suggests file names, tags and folders for your notes & more.
 
-- **AI Chat**: The most powerful chat for Obsidian 🦾 Choose folders, files, tags to add to context. Get files by date range, search by key terms. Can even get Youtube transcripts.
+- **AI Chat**: The most powerful chat for Obsidian 🦾 Select folders, files, tags to add to context. Get files by date range, search by key terms. Can even get Youtube transcripts.
 
 - **AI Formatting**: Create templates to format your notes with custom prompts.
 
