@@ -8,7 +8,7 @@ File Organizer 2000 is an Obsidian plugin that uses AI to keep your files organi
 
 ### Features
 
-- **Organization:** Automatically suggests file names, tags and folders for your notes. & more.
+- **Organization:** Automatically suggests file names, tags and folders for your notes & more.
 
 - **AI Chat**: The most powerful chat for Obsidian 🦾 Choose folders, files, tags to add to context. Get files with date range, search by key terms. Can even get Youtube transcripts.
 
