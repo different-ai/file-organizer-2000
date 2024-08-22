@@ -53,7 +53,7 @@ Get suggestions and choose what to apply with the Assistant view. Here's how to 
 
 Auto-organize with the AI Inbox.
 
-We recommend the AI Assistant view for more control. But the AI Inbox can be handy as well. Simply move any of your files to the "Inbox" folder and the plugin will automatically move it to the folder it belongs. Additional configuration can also be specified within the plugin settings (e.g. auto-tagging, auto-formatting)
+We recommend the AI Assistant view for more control. But the AI Inbox can be handy as well. Simply move any of your files to the "Inbox" folder and the plugin will automatically move it to the folder it belongs. Additional configuration can also be specified within the plugin settings (e.g. auto-tagging, auto-formatting).
 
 Move your unorganized files into `_FileOrganizer2000/Inbox`
 
@@ -78,7 +78,7 @@ Choose between the setups below:
 ### A. Monthly & Lifetime Plan
 
 1. Go to general settings inside the plugin settings
-2. Enter key generated on File Organizer 2000 Dashboard
+2. Enter the key you generated on [File Organizer 2000 dashboard](https://app.fileorganizer2000.com/)
 3. Click Activate and follow the instructions after the plan selection
 
 
