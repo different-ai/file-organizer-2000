@@ -22,7 +22,7 @@ export class AssistantViewWrapper extends ItemView {
   }
 
   getDisplayText(): string {
-    return "Assistant";
+    return "Fo2k Assistant";
   }
 
   getIcon(): string {
