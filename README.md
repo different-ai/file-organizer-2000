@@ -8,10 +8,11 @@ File Organizer 2000 is an Obsidian plugin that uses AI to keep your files organi
 
 ### Features
 
-- **OCR**: AI-class text extraction from any image, including handwritten notes.
-- **Meetings**: Transcribe audio and automatically format meeting notes.
-- **Organization**: Automatically suggests names and folders to move your files.
-- **AI Formatting**: Give instructions to format files with AI.
+- **Organization:** Automatically suggests file names, tags and folders for your notes. & more.
+- **AI Chat**: The most powerful chat for Obsidian. Choose folders, files, tags to add to context. Get files with date range, search by key terms. Even capable to get Youtube transcripts.
+- **AI Formatting**: Create templates to format your notes with custom prompts. Endless possibilities. 
+-  **OCR**: AI-class text extraction from any image, including handwritten notes.
+-  **Audio transcription**: Transcribe audio + dedicated Meeting Notes formatting
 
   <img width="900" alt="Screenshot 2024-04-30 at 14 05 30" src="https://github.com/different-ai/file-organizer-2000/assets/11430621/2e2cdf14-c6d0-4fd0-8e02-268928ad7ef3">
 
