@@ -2,7 +2,7 @@
 
 An Obsidian plugin that uses AI to keep your files organized. It tags, renames, and moves files to the right folders in your vault. Plus, you can create AI templates to format your notes using custom prompts and obtain transcriptions of your audio files.
 
-🆕 Now also includes the most powerful AI Chat for Obsidian.
+🆕 Now also comes with the most powerful AI Chat for Obsidian.
 
 
 
