@@ -73,12 +73,12 @@ See video: https://www.youtube.com/watch?v=rommuUXRgUw&t=17s
 
 ## Setup
 
-Choose between any of the three setups below
+Choose between the setups below:
 
 ### A. Monthly & Lifetime Plan
 
 1. Go to general settings inside the plugin settings
-2. Choose "Use Pro Account"
+2. Enter key generated on File Organizer 2000 Dashboard
 3. Click Activate and follow the instructions after the plan selection
 
 
@@ -130,8 +130,8 @@ Notes:
 
 ## To Do
 
-- [ ] Replace GPT Vision by a local model
-- [ ] Make it easy for people to extend whatever workflow.
+- [ ] Release a local LLM-only version.
+- [ ] Implement browser access into AI chat.
 
 ### Notes
 
