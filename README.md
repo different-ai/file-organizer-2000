@@ -21,9 +21,6 @@ An Obsidian plugin that uses AI to keep your files organized. It tags, renames, 
 
 <img width="1648" alt="Screenshot 2024-08-22 at 2 49 12 PM" src="https://github.com/user-attachments/assets/98f431ff-7686-4ebc-91cd-d3db198f7579">
 
-
-#### AI Chat:
-
 <img width="1390" alt="Screenshot 2024-08-22 at 5 25 03 PM" src="https://github.com/user-attachments/assets/692d40aa-450d-434f-b4a5-4c38110405b0">
 
 [Chat with Youtube demo video](https://youtu.be/2CNZq_6jQoQ)
