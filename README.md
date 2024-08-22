@@ -21,7 +21,10 @@ File Organizer 2000 is an Obsidian plugin that uses AI to keep your files organi
 
 <img width="1648" alt="Screenshot 2024-08-22 at 2 49 12 PM" src="https://github.com/user-attachments/assets/98f431ff-7686-4ebc-91cd-d3db198f7579">
 
-![test33](https://github.com/user-attachments/assets/8a193c3c-3845-422c-bcf1-ec423b4b5cb4)
+
+
+https://github.com/user-attachments/assets/c436f351-0ff3-455e-8871-c3a6bd5987ba
+
 
 
 ## Tips and Tricks
