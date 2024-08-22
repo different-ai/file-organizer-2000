@@ -18,8 +18,7 @@ An Obsidian plugin that uses AI to keep your files organized. It tags, renames, 
 
 -  **Audio transcription**: Transcribe audio + dedicated Meeting Notes formatting.
 
-
-<img width="1648" alt="Screenshot 2024-08-22 at 2 49 12 PM" src="https://github.com/user-attachments/assets/98f431ff-7686-4ebc-91cd-d3db198f7579">
+<img width="1306" alt="Screenshot 2024-08-22 at 6 18 28 PM" src="https://github.com/user-attachments/assets/218f6541-9da1-4d9b-aa1b-a32dc0920cbb">
 
 <img width="1390" alt="Screenshot 2024-08-22 at 5 25 03 PM" src="https://github.com/user-attachments/assets/692d40aa-450d-434f-b4a5-4c38110405b0">
 
