@@ -18,6 +18,9 @@ File Organizer 2000 is an Obsidian plugin that uses AI to keep your files organi
 
 -  **Audio transcription**: Transcribe audio + dedicated Meeting Notes formatting.
 
+<img width="1648" alt="Screenshot 2024-08-22 at 2 43 57 PM" src="https://github.com/user-attachments/assets/00ebeeee-0adf-47d0-b98d-41513640b024">
+
+
   <img width="900" alt="Screenshot 2024-04-30 at 14 05 30" src="https://github.com/different-ai/file-organizer-2000/assets/11430621/2e2cdf14-c6d0-4fd0-8e02-268928ad7ef3">
 
 ## Tips and Tricks
