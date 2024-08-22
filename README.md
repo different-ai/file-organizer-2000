@@ -104,7 +104,7 @@ Choose between the setups below:
 
 ## Testing Different models
 
-For those who would like to play around with different models, there is a promptfoo.yaml file in the project including examples with local LLMS.
+For the tech-savvies who would like to play around with different models, there is a promptfoo.yaml file in the project including examples with local LLMs.
 See link for more info: https://promptfoo.dev/docs/configuration/guide/
 
 ## Community
