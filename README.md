@@ -22,11 +22,11 @@ An Obsidian plugin that uses AI to keep your files organized. It tags, renames, 
 <img width="1648" alt="Screenshot 2024-08-22 at 2 49 12 PM" src="https://github.com/user-attachments/assets/98f431ff-7686-4ebc-91cd-d3db198f7579">
 
 
+AI Chat demo videos:
 
-[Chat with Youtube demo](https://youtu.be/2CNZq_6jQoQ)
+[Chat with Youtube](https://youtu.be/2CNZq_6jQoQ)
 
-
-[Chat with multiple files in context demo](https://youtu.be/2CNZq_6jQoQ)
+[Chat with Multiple Files in Context](https://youtu.be/agEdoNG7mpE)
 
 ## Tips and Tricks
 
