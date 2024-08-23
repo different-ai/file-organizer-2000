@@ -10,7 +10,7 @@ button
 
 ## Success
 
-Thanks for self-hosting file organizer 2000.
+Thanks for self-hosting file organizer 2000
 
 Please do give us feedback
 
