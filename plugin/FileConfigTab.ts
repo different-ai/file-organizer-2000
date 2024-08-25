@@ -89,6 +89,32 @@ export class FileConfigTab {
           })
       );
 
+    new Setting(fileConfigTabContent)
+      .setName("Backup folder")
+      .setDesc("Choose a folder for file backups.")
+      .addText((text) =>
+        text
+          .setPlaceholder("Enter your path")
+          .setValue(this.plugin.settings.backupFolderPath)
+          .onChange(async (value) => {
+            this.plugin.settings.backupFolderPath = cleanPath(value);
+            await this.plugin.saveSettings();
+          })
+      );
+
+    new Setting(fileConfigTabContent)
+      .setName("Templates folder")
+      .setDesc("Choose a folder for document templates.")
+      .addText((text) =>
+        text
+          .setPlaceholder("Enter your path")
+          .setValue(this.plugin.settings.templatePaths)
+          .onChange(async (value) => {
+            this.plugin.settings.templatePaths = cleanPath(value);
+            await this.plugin.saveSettings();
+          })
+      );
+
     return fileConfigTabContent;
   }
 }
