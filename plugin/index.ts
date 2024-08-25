@@ -1226,4 +1226,28 @@ export default class FileOrganizer extends Plugin {
 
     return backupFile;
   }
+
+  async getTemplates(): Promise<{ type: string; formattingInstruction: string }[]> {
+    console.log("Getting templates from filesystem");
+    const templateFolder = this.app.vault.getAbstractFileByPath(this.settings.templatePaths);
+    
+    if (!templateFolder || !(templateFolder instanceof TFolder)) {
+      console.error("Template folder not found or is not a valid folder.");
+      return [];
+    }
+
+    console.log("Files in template folder:", templateFolder.children.map(file => file.name));
+
+    const templateFiles = templateFolder.children.filter(file => file instanceof TFile) as TFile[];
+    
+    const templates = await Promise.all(
+      templateFiles.map(async file => ({
+        type: file.basename,
+        formattingInstruction: await this.app.vault.read(file)
+      }))
+    );
+
+    console.log("Templates fetched from filesystem:", templates);
+    return templates;
+  }
 }

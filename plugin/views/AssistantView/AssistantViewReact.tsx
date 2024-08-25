@@ -420,66 +420,114 @@ export interface Classification {
   formattingInstruction: string;
 }
 
+interface Template {
+  type: string;
+  formattingInstruction: string;
+}
+
 const ClassificationBox: React.FC<{
   plugin: FileOrganizer;
   file: TFile | null;
   content: string;
 }> = ({ plugin, file, content }) => {
-  const [classification, setClassification] =
-    React.useState<Classification | null>(null);
-  const [loading, setLoading] = React.useState<boolean>(false);
+  const [classification, setClassification] = React.useState<Classification | null>(null);
+  const [templates, setTemplates] = React.useState<Template[]>([]);
+  const [selectedTemplate, setSelectedTemplate] = React.useState<Template | null>(null);
+  const [showDropdown, setShowDropdown] = React.useState<boolean>(false);
   const [formatting, setFormatting] = React.useState<boolean>(false);
+  const dropdownRef = React.useRef<HTMLDivElement>(null);
 
   React.useEffect(() => {
-    const fetchClassification = async () => {
+    const fetchClassificationAndTemplates = async () => {
       if (!content) return;
       try {
-        setClassification(null);
-        setLoading(true);
-        // if (!file) return
         const fileContent = await plugin.app.vault.read(file!);
-        console.log(fileContent);
-        const result = await plugin.classifyContent(fileContent, file.basename);
-        //logMessage("ClassificationBox result", result);
+        const result = await plugin.classifyContent(fileContent, file!.basename);
         setClassification(result);
+        setSelectedTemplate(result); // Set the initial classification as the selected template
+        const fetchedTemplates = await plugin.getTemplates();
+        setTemplates(fetchedTemplates);
       } catch (error) {
         console.error(error);
-      } finally {
-        setLoading(false);
       }
     };
-    fetchClassification();
-  }, [content, file]);
+    fetchClassificationAndTemplates();
 
-  if (!classification) return null;
+    const handleClickOutside = (event: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setShowDropdown(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [content, file, plugin]);
+
+  const handleFormat = async (template: Template) => {
+    try {
+      setFormatting(true);
+      const fileContent = await plugin.app.vault.read(file!);
+      await plugin.formatContent(file!, fileContent, template.formattingInstruction);
+      setClassification(template);
+      setSelectedTemplate(null);
+    } catch (error) {
+      console.error(error);
+    } finally {
+      setFormatting(false);
+    }
+  };
+
+  const getDisplayText = () => {
+    if (selectedTemplate) {
+      return `Format as ${selectedTemplate.type}`;
+    }
+    return 'Select template';
+  };
+
+  const dropdownTemplates = templates.filter(t => t.type !== selectedTemplate?.type);
 
   return (
     <div className="assistant-section classification-section">
       <SectionHeader text="Templates" icon="🗂️" />
-      <button
-        className="format-button"
-        disabled={formatting}
-        onClick={async () => {
-          try {
-            setFormatting(true);
-         //   logMessage("ClassificationBox class", classification);
-
-            const fileContent = await plugin.app.vault.read(file!);
-            console.log({ fileContent });
-            await plugin.formatContent(
-              file!,
-              fileContent,
-              classification.formattingInstruction
-            );
-          } catch (error) {
-            console.error(error);
-          } finally {
-            setFormatting(false);
-          }
-        }}
-      >
-        {formatting ? "Formatting..." : `Format as ${classification.type}`}
-      </button>
+      <div className="template-selection-container">
+        <div className="split-button-container" ref={dropdownRef}>
+          <button
+            className="split-button-main"
+            onClick={() => setShowDropdown(!showDropdown)}
+          >
+            <span className="split-button-text">{getDisplayText()}</span>
+            <span className="split-button-arrow">▼</span>
+          </button>
+          {showDropdown && (
+            <div className={`dropdown-menu ${showDropdown ? 'show' : ''}`}>
+              {dropdownTemplates.map((template, index) => (
+                <div
+                  key={index}
+                  className="dropdown-item"
+                  onClick={() => {
+                    setSelectedTemplate(template);
+                    setShowDropdown(false);
+                  }}
+                >
+                  {template.type}
+                </div>
+              ))}
+              {dropdownTemplates.length === 0 && (
+                <div className="dropdown-item">No other templates available</div>
+              )}
+            </div>
+          )}
+        </div>
+        <button
+          className="apply-template-button"
+          disabled={!selectedTemplate || formatting}
+          onClick={() => selectedTemplate && handleFormat(selectedTemplate)}
+        >
+          {formatting ? "Applying..." : "Apply"}
+        </button>
+      </div>
     </div>
   );
 };
@@ -686,9 +734,6 @@ export const AssistantView: React.FC<AssistantViewProps> = ({ plugin, leaf }) =>
       </div>
     );
   }
-
-  //logMessage("AssistantView", activeFile);
-  //logMessage("AssistantView", activeFile.basename);
 
   return (
     <div className="assistant-container">

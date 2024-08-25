@@ -701,3 +701,232 @@
   user-select: text;
   cursor: text;
 }
+
+/* Dropdown Menu */
+.dropdown-menu {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  z-index: 1000;
+  display: none;
+  min-width: 160px;
+  padding: 0;
+  margin: 0.125rem 0 0;
+  font-size: 1rem;
+  color: var(--text-normal);
+  text-align: left;
+  list-style: none;
+  background-color: var(--background-primary);
+  background-clip: padding-box;
+  border: 1px solid var(--background-modifier-border);
+  border-radius: 0.25rem;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+}
+
+/* Show dropdown when open */
+.dropdown-menu.show {
+  display: block;
+}
+
+/* Dropdown Items */
+.dropdown-item {
+  display: block;
+  width: 100%;
+  padding: 0.5rem 1rem;
+  clear: both;
+  font-weight: normal;
+  color: var(--text-normal);
+  text-align: left;
+  white-space: nowrap;
+  background-color: transparent;
+  border: none;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.dropdown-item:hover, .dropdown-item:focus {
+  color: var(--text-normal);
+  text-decoration: none;
+  background-color: var(--background-modifier-hover);
+}
+
+/* Split Button Container */
+.split-button-container {
+  display: inline-flex;
+  position: relative;
+}
+
+/* Main Button */
+.split-button-main {
+  width: 100%;
+  text-align: left;
+  padding: 0.5rem 1rem;
+  background-color: var(--background-secondary);
+  color: var(--text-normal);
+  border: 1px solid var(--background-modifier-border);
+  border-radius: 0.25rem;
+  cursor: pointer;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 14px; /* Adjust font size if needed */
+}
+
+/* Arrow icon */
+.split-button-arrow {
+  margin-left: 0.6rem;
+}
+
+/* Dropdown Menu */
+.dropdown-menu {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  z-index: 1000;
+  display: none;
+  width: 100%;
+  padding: 0;
+  margin: 0.125rem 0 0;
+  font-size: 1rem;
+  color: var(--text-normal);
+  text-align: left;
+  list-style: none;
+  background-color: var(--background-primary);
+  background-clip: padding-box;
+  border: 1px solid var(--background-modifier-border);
+  border-radius: 0.25rem;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+}
+
+/* Show dropdown when open */
+.dropdown-menu.show {
+  display: block;
+}
+
+/* Remove the separate dropdown button styles */
+.split-button-dropdown {
+  display: none;
+}
+
+.template-selection-container {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+
+.apply-template-button {
+  padding: 0.5rem 1rem;
+  background-color: var(--interactive-accent);
+  color: var(--text-on-accent);
+  border: none;
+  border-radius: 0.25rem;
+  cursor: pointer;
+  font-size: 14px; /* Match the font size of the main button */
+}
+
+.apply-template-button:disabled {
+  background-color: var(--background-modifier-border);
+  color: var(--text-muted);
+  cursor: not-allowed;
+}
+
+.apply-template-button:disabled {
+  background-color: var(--background-modifier-border);
+  color: var(--text-muted);
+  cursor: not-allowed;
+}
+
+.split-button-container {
+
+}
+
+/* Main Button */
+.split-button-main {
+  width: 100%;
+  text-align: left;
+  padding: 0.5rem 1rem;
+  background-color: var(--background-secondary);
+  color: var(--text-normal);
+  border: 1px solid var(--background-modifier-border);
+  border-radius: 0.25rem;
+  cursor: pointer;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+/* Arrow icon */
+.split-button-arrow {
+  margin-left: 0.5rem;
+}
+
+/* Dropdown Menu */
+.dropdown-menu {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  z-index: 1000;
+  display: none;
+  width: 100%;
+  padding: 0;
+  margin: 0.125rem 0 0;
+  font-size: 1rem;
+  color: var(--text-normal);
+  text-align: left;
+  list-style: none;
+  background-color: var(--background-primary);
+  background-clip: padding-box;
+  border: 1px solid var(--background-modifier-border);
+  border-radius: 0.25rem;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+}
+
+/* Show dropdown when open */
+.dropdown-menu.show {
+  display: block;
+}
+
+/* Remove the separate dropdown button styles */
+.split-button-dropdown {
+  display: none;
+}
+
+/* Dropdown Items */
+.dropdown-menu .dropdown-item {
+  display: block;
+  width: 100%;
+  padding: 0.4rem 0.8rem;
+  clear: both;
+  font-weight: normal;
+  color: var(--text-normal);
+  text-align: left;
+  white-space: nowrap;
+  background-color: transparent;
+  border: none;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+  font-size: 0.9rem;
+}
+
+.dropdown-menu .dropdown-item:hover,
+.dropdown-menu .dropdown-item:focus {
+  color: var(--text-normal);
+  text-decoration: none;
+  background-color: var(--background-modifier-hover);
+}
+
+.template-selection-container {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.apply-template-button {
+  padding: 0.5rem 1rem;
+  background-color: var(--interactive-accent);
+  color: var(--text-on-accent);
+  border: none;
+  border-radius: 0.25rem;
+  cursor: pointer;
+}
