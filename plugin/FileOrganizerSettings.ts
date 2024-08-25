@@ -6,13 +6,14 @@ export class FileOrganizerSettings {
   attachmentsPath = "_FileOrganizer2000/Processed/Attachments";
   pathToWatch = "_FileOrganizer2000/Inbox";
   logFolderPath = "_FileOrganizer2000/Logs";
+  backupFolderPath = "_FileOrganizer2000/Backups";
+  templatePaths = "_FileOrganizer2000/Templates";
   useSimilarTags = true;
   renameInstructions = "Create a concise, descriptive name for the document based on its key content. Prioritize clarity and searchability, using specific terms that will make the document easy to find later. Avoid generic words and focus on unique, identifying elements.";
   useAutoAppend = false;
   usePro = true;
   useSimilarTagsInFrontmatter = false;
   processedTag = false;
-  templatePaths = "_FileOrganizer2000/Templates";
   enableAliasGeneration = false;
   enableAtomicNotes = false;
   enableSimilarFiles = false;
@@ -44,7 +45,6 @@ export class FileOrganizerSettings {
       provider: "openai" | "ollama" | "anthropic";
     };
   } = {};
-  backupFolderPath = "_FileOrganizer2000/Backups";
 }
 
 export const DEFAULT_SETTINGS = new FileOrganizerSettings();
