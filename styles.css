@@ -818,28 +818,23 @@
 .apply-template-button {
   padding: 0.5rem 1rem;
   background-color: var(--interactive-accent);
-  color: var(--text-on-accent);
   border: none;
   border-radius: 0.25rem;
   cursor: pointer;
-  font-size: 14px; /* Match the font size of the main button */
 }
+.apply-template-button:hover {
+  background-color: var(--interactive-accent-hover);
+  color: var(--text-on-accent);
+} 
 
 .apply-template-button:disabled {
   background-color: var(--background-modifier-border);
-  color: var(--text-muted);
+  color: var(--text-muted); 
   cursor: not-allowed;
 }
 
-.apply-template-button:disabled {
-  background-color: var(--background-modifier-border);
-  color: var(--text-muted);
-  cursor: not-allowed;
-}
 
-.split-button-container {
 
-}
 
 /* Main Button */
 .split-button-main {
@@ -925,7 +920,6 @@
 .apply-template-button {
   padding: 0.5rem 1rem;
   background-color: var(--interactive-accent);
-  color: var(--text-on-accent);
   border: none;
   border-radius: 0.25rem;
   cursor: pointer;
