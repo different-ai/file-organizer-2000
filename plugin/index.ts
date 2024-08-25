@@ -1010,6 +1010,7 @@ export default class FileOrganizer extends Plugin {
       .filter(folder => folder !== this.settings.pathToWatch)
       .filter(folder => folder !== this.settings.templatePaths)
       .filter(folder => !folder.includes("_FileOrganizer2000"))
+      // if  this.settings.ignoreFolders has one or more folder specified, filter them out including subfolders
       .filter(folder => {
         const hasIgnoreFolders =
           this.settings.ignoreFolders.length > 0 &&
