@@ -1,6 +1,6 @@
 # AI File Organizer 2000
 
-An Obsidian plugin that uses AI to keep your files organized. It tags, renames, and moves files to the right folders in your vault. You can create AI templates to format your notes using custom prompts, extract text from handwritten notes, and obtain transcriptions of your audio files.
+An Obsidian plugin that uses AI to keep your files organized. It tags, renames, and moves files to the right folders in your vault. You can also create AI templates, extract text from handwritten notes, and obtain transcriptions of your audio files.
 
 🆕 Now includes the most powerful AI Chat for Obsidian.
 
