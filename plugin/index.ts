@@ -787,7 +787,14 @@ export default class FileOrganizer extends Plugin {
   }
 
   getAllFolders(): string[] {
-    return getAllFolders(this.app)
+    const allFolders = getAllFolders(this.app);
+    
+    // if ignoreFolders includes * then return all folders
+    if (this.settings.ignoreFolders.includes("*")) {
+      return [];
+    }
+    
+    return allFolders
       .filter(folder => !this.settings.ignoreFolders.includes(folder))
       .filter(folder => folder !== this.settings.pathToWatch)
       .filter(folder => folder !== this.settings.defaultDestinationPath)
@@ -991,6 +998,10 @@ export default class FileOrganizer extends Plugin {
 
     logMessage("ignore folders", this.settings.ignoreFolders);
 
+    if (this.settings.ignoreFolders.includes("*")) {
+      return this.settings.defaultDestinationPath;
+    }
+
     const filteredFolders = uniqueFolders
       .filter(folder => folder !== filePath)
       .filter(folder => folder !== this.settings.defaultDestinationPath)
@@ -999,7 +1010,6 @@ export default class FileOrganizer extends Plugin {
       .filter(folder => folder !== this.settings.pathToWatch)
       .filter(folder => folder !== this.settings.templatePaths)
       .filter(folder => !folder.includes("_FileOrganizer2000"))
-      // if  this.settings.ignoreFolders has one or more folder specified, filter them out including subfolders
       .filter(folder => {
         const hasIgnoreFolders =
           this.settings.ignoreFolders.length > 0 &&
