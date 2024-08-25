@@ -392,7 +392,7 @@ const SimilarFilesBox: React.FC<{
           onClick={fetchSimilarFiles}
           className="load-similar-files-button"
         >
-          Load Similar Files
+          Load
         </button>
       )}
 
