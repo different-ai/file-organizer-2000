@@ -75,16 +75,28 @@ export class FileConfigTab {
     new Setting(fileConfigTabContent)
       .setName("Ignore folders")
       .setDesc(
-        "Enter folder paths to ignore during organization, separated by commas. e.g. Folder1,Folder2"
+        "Enter folder paths to ignore during organization, separated by commas(e.g. Folder1,Folder2). Or * to ignore all folders"
       )
       .addText((text) =>
         text
-          .setPlaceholder("Enter folder paths")
+          .setPlaceholder("Enter folder paths or *")
           .setValue(this.plugin.settings.ignoreFolders.join(","))
           .onChange(async (value) => {
-            this.plugin.settings.ignoreFolders = value
-              .split(",")
-              .map(cleanPath);
+            // Remove any leading or trailing whitespace from the input
+            const trimmedValue = value.trim();
+            
+            if (trimmedValue === "*") {
+              // If the user enters *, ignore all folders
+              this.plugin.settings.ignoreFolders = ["*"];
+            } else {
+              // Split the input into an array of folder paths
+              const folderPaths = trimmedValue.split(",");
+              
+              // Clean each folder path and update the settings
+              this.plugin.settings.ignoreFolders = folderPaths.map(cleanPath);
+            }
+            
+            // Save the updated settings
             await this.plugin.saveSettings();
           })
       );
