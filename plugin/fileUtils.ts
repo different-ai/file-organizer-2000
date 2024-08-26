@@ -1,6 +1,6 @@
 import { App, TFolder, TFile, normalizePath } from "obsidian";
 import { FileOrganizerSettings } from "./FileOrganizerSettings";
-
+import { Notice } from "obsidian";
 export async function ensureFolderExists(app: App, folderPath: string) {
   if (!(await app.vault.adapter.exists(folderPath))) {
     await app.vault.createFolder(folderPath);
@@ -93,6 +93,7 @@ export async function moveFile(
   }
   await ensureFolderExists(app, destinationFolder);
   await app.vault.rename(file, `${destinationPath}`);
+  new Notice(`File moved to ${destinationFolder}`);
   return file;
 }
 
