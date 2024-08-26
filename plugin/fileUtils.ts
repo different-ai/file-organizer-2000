@@ -93,7 +93,6 @@ export async function moveFile(
   }
   await ensureFolderExists(app, destinationFolder);
   await app.vault.rename(file, `${destinationPath}`);
-  new Notice(`File moved to ${destinationFolder}`);
   return file;
 }
 
