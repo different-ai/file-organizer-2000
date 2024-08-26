@@ -86,7 +86,9 @@
 .format-button:hover,
 .rename-alias-button:hover,
 .load-similar-files-button:hover,
-.refresh-button:hover
+.refresh-button:hover,
+.transcribe-button:hover,
+.parse-document-button:hover
 {
   background: var(--interactive-accent);
   border-color: var(--interactive-accent);

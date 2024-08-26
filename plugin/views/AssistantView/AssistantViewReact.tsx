@@ -151,7 +151,7 @@ const DocumentChunks: React.FC<{
 
   return (
     <div className="document-chunks">
-      <button onClick={parseDocument} disabled={loading}>
+      <button onClick={parseDocument} disabled={loading} className="parse-document-button">
         {loading ? "Parsing..." : "Parse Document"}
       </button>
       {concepts.length > 0 && (
