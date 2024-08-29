@@ -580,17 +580,24 @@ export default class FileOrganizer extends Plugin {
     const blob = new Blob([audioBuffer], { type: `audio/${fileExtension}` });
     formData.append("audio", blob, `audio.${fileExtension}`);
     formData.append("fileExtension", fileExtension);
-    // const newServerUrl = "http://localhost:3001/transcribe";
-    const newServerUrl =
-      "https://file-organizer-2000-production.up.railway.app/transcribe";
+
+    const newServerUrl = "https://file-organizer-2000-production.up.railway.app/transcribe";
+    
+    const headers: Record<string, string> = {
+      // Add other headers if needed
+    };
+
+    // Only add Authorization header if not self-hosted
+    if (!this.settings.enableSelfHosting) {
+      headers["Authorization"] = `Bearer ${fileOrganizerApiKey}`;
+    }
+
     const response = await fetch(newServerUrl, {
       method: "POST",
       body: formData,
-      headers: {
-        Authorization: `Bearer ${fileOrganizerApiKey}`,
-        // "Content-Type": "multipart/form-data",
-      },
+      headers: headers,
     });
+
     if (!response.ok) {
       const errorData = await response.json();
       throw new Error(`Transcription failed: ${errorData.error}`);
