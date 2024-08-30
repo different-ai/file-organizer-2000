@@ -127,6 +127,7 @@ Notes:
 
 - [ ] Release a local LLM-only version.
 - [ ] Implement browser access into AI chat.
+- [ ] AI chat improvements.
 
 ### Notes
 
