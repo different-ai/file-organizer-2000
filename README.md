@@ -20,14 +20,14 @@ Self-hostable and or available with cloud subscription.
 
 -  **Audio transcription**: Transcribe audio + dedicated Meeting Notes formatting.
 
-<img width="1306" alt="Screenshot 2024-08-22 at 6 18 28 PM" src="https://github.com/user-attachments/assets/218f6541-9da1-4d9b-aa1b-a32dc0920cbb">
+<img width="600" alt="Screenshot 2024-08-22 at 6 18 28 PM" src="https://github.com/user-attachments/assets/218f6541-9da1-4d9b-aa1b-a32dc0920cbb">
 
 
-<img width="1390" alt="Screenshot 2024-08-22 at 5 27 13 PM" src="https://github.com/user-attachments/assets/94725f2d-22c4-4727-845b-921a3d9d8707">
+<img width="600" alt="Screenshot 2024-08-22 at 5 27 13 PM" src="https://github.com/user-attachments/assets/94725f2d-22c4-4727-845b-921a3d9d8707">
 
 [Chat with Multiple Files in Context demo video](https://youtu.be/agEdoNG7mpE)
 
-<img width="1390" alt="Screenshot 2024-08-22 at 5 25 03 PM" src="https://github.com/user-attachments/assets/692d40aa-450d-434f-b4a5-4c38110405b0">
+<img width="600" alt="Screenshot 2024-08-22 at 5 25 03 PM" src="https://github.com/user-attachments/assets/692d40aa-450d-434f-b4a5-4c38110405b0">
 
 [Chat with Youtube demo video](https://youtu.be/2CNZq_6jQoQ)
 
