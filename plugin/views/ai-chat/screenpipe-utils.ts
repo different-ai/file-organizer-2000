@@ -54,7 +54,7 @@ export async function analyzeProductivity(days: number) {
     startTime: startTime.toISOString(),
     endTime: endTime.toISOString(),
     contentType: "ocr",
-    limit: 1000,
+    limit: 100,
   });
 
   const appUsage = groupBy(result.data, 'content.app_name');
@@ -83,7 +83,7 @@ export async function summarizeMeeting(startTime: string, endTime: string) {
     startTime,
     endTime,
     contentType: "audio",
-    limit: 1000,
+    limit: 100,
   });
 
   const transcripts = result.data.map(item => item.content.transcription).join(' ');
@@ -117,7 +117,7 @@ export async function trackProjectTime(projectKeyword: string, days: number) {
     endTime: endTime.toISOString(),
     contentType: "ocr",
     query: projectKeyword,
-    limit: 1000,
+    limit: 100,
   });
 
   const totalHours = days * 24;

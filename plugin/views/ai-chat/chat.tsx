@@ -1,10 +1,10 @@
-import React, { useState, useEffect, useRef, useCallback } from "react";
+import React, { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import { useChat, UseChatOptions } from "@ai-sdk/react";
 import { getEncoding } from "js-tiktoken";
+import { TFolder, TFile, moment, App } from "obsidian";
 
 import FileOrganizer from "../..";
 import Tiptap from "./tiptap";
-import { TFolder, TFile, moment, App } from "obsidian";
 import { ToolInvocation } from "ai";
 import { Button } from "./button";
 import { Avatar } from "./avatar";
@@ -253,6 +253,13 @@ export const ChatComponent: React.FC<ChatComponentProps> = ({
     }
   };
 
+  // Create a memoized body object that updates when its dependencies change
+  const chatBody = useMemo(() => ({
+    unifiedContext,
+    enableScreenpipe: plugin.settings.enableScreenpipe,
+    currentDatetime: moment().format("YYYY-MM-DDTHH:mm:ssZ")
+  }), [unifiedContext, plugin.settings.enableScreenpipe]);
+
   const {
     isLoading: isGenerating,
     messages,
@@ -263,8 +270,7 @@ export const ChatComponent: React.FC<ChatComponentProps> = ({
     addToolResult,
   } = useChat({
     api: `${plugin.getServerUrl()}/api/chat`,
-
-    body: { unifiedContext, enableScreenpipe: plugin.settings.enableScreenpipe },
+    body: chatBody,
     headers: {
       "Content-Type": "application/json",
       Authorization: `Bearer ${apiKey}`,

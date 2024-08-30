@@ -11,8 +11,9 @@ export const maxDuration = 60;
 export async function POST(req: NextRequest) {
   try {
     const { userId } = await handleAuthorization(req);
-    const { messages, unifiedContext, enableScreenpipe } = await req.json();
+    const { messages, unifiedContext, enableScreenpipe, currentDatetime } = await req.json();
     console.log(enableScreenpipe, "enableScreenpipe");
+    console.log(currentDatetime, "currentDatetime");
 
     const contextString = unifiedContext
       .map((file) => {
@@ -34,7 +35,9 @@ Use this context to inform your responses. Key points:
 2. For other queries, use the context without explicitly mentioning files unless necessary.
 3. Understand that '#' in queries refers to tags in the system, which will be provided in the context.
 4. When asked to "format" or "summarize" without specific content, assume it refers to the entire current context.
-5. For Screenpipe-related queries, use the provided tools to fetch and analyze data or query.
+${enableScreenpipe ? '5. For Screenpipe-related queries, use the provided tools to fetch and analyze data or query.' : ''}
+
+The current date and time is: ${currentDatetime}
 
 Use these reference formats:
 - Obsidian-style: [[Filename]], [[Filename#Header]], [[Filename#^unique-identifier]]
@@ -47,8 +50,6 @@ Always use these formats when referencing context items. Use numbered references
 Recognize and handle requests like:
 - "Format this as markdown": Apply to the entire current context
 - "Summarize all my #startup notes": Focus on notes tagged with #startup
-- "Track my productivity for today": Use Screenpipe data to analyze app usage
-- "Track my productivity for the last 7 days": Use Screenpipe data to analyze app usage
 Adapt to various formatting, summarization, or content-specific requests based on the user's input and available context.`,
       messages: convertToCoreMessages(messages),
       tools: {
@@ -115,24 +116,6 @@ Adapt to various formatting, summarization, or content-specific requests based o
         //     return formattingInstruction;
         //   },
         // },
-        handleUnrecognizedFeature: {
-          description: "Handle requests for features that are not specifically implemented",
-          parameters: z.object({
-            request: z.string().describe("The user's request that wasn't recognized"),
-          }),
-          execute: async ({ request }) => {
-            const response = `I'm not specifically designed to handle "${request}". Here are some examples of what I can do:
-
-1. Search notes: "Find notes about project management"
-2. Get notes from a date range: "Get notes from last week"
-3. Summarize content: "Summarize the notes about AI"
-4. Get YouTube transcripts: "Get the transcript for YouTube video ID abc123"
-5. Modify or format notes: "Format the current note as a bullet list"
-
-Feel free to try one of these or ask me anything else!`;
-            return response;
-          },
-        },
         getLastModifiedFiles: {
           description: "Get the last modified files in the vault",
           parameters: z.object({
@@ -152,7 +135,7 @@ Feel free to try one of these or ask me anything else!`;
               contentType: z.enum(["ocr", "audio", "all"]).describe("Type of content to query"),
               query: z.string().optional().describe("Optional search query"),
               appName: z.string().optional().describe("Optional app name filter"),
-              limit: z.number().default(1000).describe("Limit for the number of results"),
+              limit: z.number().default(100).describe("Limit for the number of results"),
             }),
             execute: async ({ startTime, endTime, contentType, query, appName, limit }) => {
               // This will be handled client-side, so we just return the parameters
