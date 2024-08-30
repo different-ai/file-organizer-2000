@@ -10,16 +10,16 @@ import {
   loadPdfJs,
 } from "obsidian";
 import { logMessage, formatToSafeName } from "../utils";
-import { FileOrganizerSettingTab } from "./FileOrganizerSettingTab";
+import { FileOrganizerSettingTab } from "./views/configuration/tabs";
 import {
   ASSISTANT_VIEW_TYPE,
   AssistantViewWrapper,
-} from "./views/AssistantView/AssistantView";
+} from "./views/organizer";
 import Jimp from "jimp";
 import {
   FileOrganizerSettings,
   DEFAULT_SETTINGS,
-} from "./FileOrganizerSettings";
+} from "./settings";
 
 import {
   classifyDocumentRouter,
@@ -45,7 +45,7 @@ import {
   getAllFolders,
 } from "./fileUtils";
 import { checkLicenseKey } from "./apiUtils";
-import { AIChatView } from "./views/AIChat/view";
+import { AIChatView } from "./views/ai-chat/view";
 
 type TagCounts = {
   [key: string]: number;

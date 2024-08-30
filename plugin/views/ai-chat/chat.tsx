@@ -17,6 +17,7 @@ import {
   getYouTubeVideoTitle,
 } from "./youtube-transcript";
 import { logMessage } from "../../../utils";
+import { analyzeProductivity, queryScreenpipe, summarizeMeeting, trackProjectTime } from './screenpipe-utils';
 
 interface ChatComponentProps {
   plugin: FileOrganizer;
@@ -129,6 +130,7 @@ export const ChatComponent: React.FC<ChatComponentProps> = ({
   >([]);
   const [contextSize, setContextSize] = useState(0);
   const [maxContextSize, setMaxContextSize] = useState(80 * 1000); // Default to GPT-3.5-turbo
+  const [screenpipeContext, setScreenpipeContext] = useState<any>(null);
 
   logMessage(unifiedContext, "unifiedContext");
 
@@ -192,6 +194,65 @@ export const ChatComponent: React.FC<ChatComponentProps> = ({
     return fileContents; // Make sure to stringify the result
   };
 
+    console.log(plugin.settings.enableScreenpipe, "enableScreenpipe");
+  const handleScreenpipeAction = async (toolCall: any) => {
+    if (!plugin.settings.enableScreenpipe) {
+      return "Screenpipe integration is not enabled. Please enable it in the plugin settings.";
+    }
+
+    switch (toolCall.toolName) {
+      case "queryScreenpipe":
+        const args = toolCall.args as {
+          startTime: string;
+          endTime: string;
+          contentType: "ocr" | "audio" | "all";
+          query?: string;
+          appName?: string;
+          limit: number;
+        };
+        try {
+          const result = await queryScreenpipe(args);
+          setScreenpipeContext(result); // Store the result in state
+          return JSON.stringify(result);
+        } catch (error) {
+          console.error("Error querying Screenpipe:", error);
+          return JSON.stringify({ error: error.message });
+        }
+      case "analyzeProductivity":
+        const productivityArgs = toolCall.args as { days: number };
+        try {
+          const result = await analyzeProductivity(productivityArgs.days);
+          setScreenpipeContext(result); // Store the result in state
+          return JSON.stringify(result);
+        } catch (error) {
+          console.error("Error analyzing productivity:", error);
+          return JSON.stringify({ error: error.message });
+        }
+      case "summarizeMeeting":
+        const meetingArgs = toolCall.args as { startTime: string; endTime: string };
+        try {
+          const result = await summarizeMeeting(meetingArgs.startTime, meetingArgs.endTime);
+          setScreenpipeContext(result); // Store the result in state
+          return JSON.stringify(result);
+        } catch (error) {
+          console.error("Error summarizing meeting:", error);
+          return JSON.stringify({ error: error.message });
+        }
+      case "trackProjectTime":
+        const projectArgs = toolCall.args as { projectKeyword: string; days: number };
+        try {
+          const result = await trackProjectTime(projectArgs.projectKeyword, projectArgs.days);
+          setScreenpipeContext(result); // Store the result in state
+          return JSON.stringify(result);
+        } catch (error) {
+          console.error("Error tracking project time:", error);
+          return JSON.stringify({ error: error.message });
+        }
+      default:
+        return "Unknown Screenpipe action";
+    }
+  };
+
   const {
     isLoading: isGenerating,
     messages,
@@ -203,7 +264,7 @@ export const ChatComponent: React.FC<ChatComponentProps> = ({
   } = useChat({
     api: `${plugin.getServerUrl()}/api/chat`,
 
-    body: { unifiedContext },
+    body: { unifiedContext, enableScreenpipe: plugin.settings.enableScreenpipe },
     headers: {
       "Content-Type": "application/json",
       Authorization: `Bearer ${apiKey}`,
@@ -328,12 +389,15 @@ logMessage(searchResults, "searchResults");
         };
 
         return lastModifiedFiles.length.toString();
+      } else if (["queryScreenpipe", "analyzeProductivity", "summarizeMeeting", "trackProjectTime"].includes(toolCall.toolName)) {
+        return handleScreenpipeAction(toolCall);
       }
     },
   } as UseChatOptions);
 
   const formRef = useRef<HTMLFormElement>(null);
 
+  
   const handleSendMessage = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     logMessage(e.target, "target");
@@ -553,6 +617,16 @@ logMessage(searchResults, "searchResults");
         });
       });
 
+      // Add Screenpipe context if available
+      if (screenpipeContext) {
+        contextFiles.set('screenpipe-context', {
+          title: 'Screenpipe Data',
+          content: JSON.stringify(screenpipeContext),
+          path: 'screenpipe-context',
+          reference: 'Screenpipe Query Results',
+        });
+      }
+
       // Convert Map to array
       const uniqueFiles = Array.from(contextFiles.values());
 
@@ -570,6 +644,7 @@ logMessage(searchResults, "searchResults");
     app.vault,
     includeCurrentFile,
     selectedYouTubeVideos,
+    screenpipeContext,
   ]);
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -589,6 +664,7 @@ logMessage(searchResults, "searchResults");
     setIncludeCurrentFile(false);
     setUnifiedContext([]);
     setSelectedYouTubeVideos([]);
+    setScreenpipeContext(null);
   }, []);
 
   const handleRemoveYouTubeVideo = (videoId: string) => {
@@ -742,6 +818,15 @@ logMessage(searchResults, "searchResults");
                   prefix="🎥 "
                 />
               ))}
+              {screenpipeContext && (
+                <SelectedItem
+                  key="screenpipe-context"
+                  item="Screenpipe Data"
+                  onClick={() => {/* You can add an action here if needed */}}
+                  onRemove={() => setScreenpipeContext(null)}
+                  prefix="📊 "
+                />
+              )}
             </div>
 
             <div className="context-actions">
@@ -757,7 +842,8 @@ logMessage(searchResults, "searchResults");
                 selectedFolders.length > 0 ||
                 selectedTags.length > 0 ||
                 includeCurrentFile ||
-                selectedYouTubeVideos.length > 0) && (
+                selectedYouTubeVideos.length > 0 ||
+                screenpipeContext) && (
                 <Button onClick={handleClearAll} className="clear-all-button">
                   Clear All Context
                 </Button>

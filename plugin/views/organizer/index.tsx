@@ -2,7 +2,7 @@ import { ItemView, WorkspaceLeaf } from "obsidian";
 import * as React from "react";
 
 import { Root, createRoot } from "react-dom/client";
-import { AssistantView } from "./AssistantViewReact";
+import { AssistantView } from "./view";
 import FileOrganizer from "../..";
 
 

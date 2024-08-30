@@ -67,8 +67,6 @@ export class CustomizationTab {
           })
       );
 
-
-
     new Setting(customizationTabContent)
       .setName("Processed File Tag")
       .setDesc("Specify the tag to be added to processed files.")
@@ -117,6 +115,18 @@ export class CustomizationTab {
           .setValue(this.plugin.settings.enableAtomicNotes)
           .onChange(async (value) => {
             this.plugin.settings.enableAtomicNotes = value;
+            await this.plugin.saveSettings();
+          })
+      );
+
+    new Setting(customizationTabContent)
+      .setName("Enable Screenpipe Integration")
+      .setDesc("Enable Screenpipe integration for productivity analysis and meeting summaries.")
+      .addToggle((toggle) =>
+        toggle
+          .setValue(this.plugin.settings.enableScreenpipe)
+          .onChange(async (value) => {
+            this.plugin.settings.enableScreenpipe = value;
             await this.plugin.saveSettings();
           })
       );

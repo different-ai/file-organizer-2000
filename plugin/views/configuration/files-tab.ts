@@ -1,6 +1,6 @@
 import { Setting } from "obsidian";
-import { cleanPath } from "../utils";
-import FileOrganizer from "./index";
+import { cleanPath } from "../../../utils";
+import FileOrganizer from "../../index";
 
 export class FileConfigTab {
   private plugin: FileOrganizer;

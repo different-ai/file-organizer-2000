@@ -56,6 +56,10 @@ function ToolInvocationHandler({ toolInvocation, addToolResult, results }: ToolI
       case "getYouTubeTranscript": return "YouTube Transcript";
       case "modifyCurrentNote": return "Note Modification";
       case "getLastModifiedFiles": return "Recent File Activity";
+      case "queryScreenpipe": return "Querying Screenpipe Data";
+      case "analyzeProductivity": return "Analyzing Productivity";
+      case "summarizeMeeting": return "Summarizing Meeting";
+      case "trackProjectTime": return "Tracking Project Time";
       default: return "Tool Invocation";
     }
   };
@@ -149,6 +153,42 @@ function ToolInvocationHandler({ toolInvocation, addToolResult, results }: ToolI
         } else {
           return <ToolContent>Checking your recent file activity...</ToolContent>;
         }
+
+      case "queryScreenpipe":
+        return (
+          <ToolContent>
+            {"result" in toolInvocation
+              ? "Screenpipe data successfully queried and added to context"
+              : "Querying Screenpipe data..."}
+          </ToolContent>
+        );
+
+      case "analyzeProductivity":
+        return (
+          <ToolContent>
+            {"result" in toolInvocation
+              ? `Productivity analysis completed for the last ${toolInvocation.args.days} days`
+              : `Analyzing productivity for the last ${toolInvocation.args.days} days...`}
+          </ToolContent>
+        );
+
+      case "summarizeMeeting":
+        return (
+          <ToolContent>
+            {"result" in toolInvocation
+              ? "Meeting summary generated"
+              : "Summarizing meeting audio..."}
+          </ToolContent>
+        );
+
+      case "trackProjectTime":
+        return (
+          <ToolContent>
+            {"result" in toolInvocation
+              ? `Project time tracked for "${toolInvocation.args.projectKeyword}" over the last ${toolInvocation.args.days} days`
+              : `Tracking time for project "${toolInvocation.args.projectKeyword}" over the last ${toolInvocation.args.days} days...`}
+          </ToolContent>
+        );
 
       default:
         return null;

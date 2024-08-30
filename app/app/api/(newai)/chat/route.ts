@@ -11,7 +11,8 @@ export const maxDuration = 60;
 export async function POST(req: NextRequest) {
   try {
     const { userId } = await handleAuthorization(req);
-    const { messages, unifiedContext } = await req.json();
+    const { messages, unifiedContext, enableScreenpipe } = await req.json();
+    console.log(enableScreenpipe, "enableScreenpipe");
 
     const contextString = unifiedContext
       .map((file) => {
@@ -23,7 +24,7 @@ export async function POST(req: NextRequest) {
       model: openai(process.env.MODEL_NAME || "gpt-4o-2024-08-06", {
         structuredOutputs: true,
       }),
-      system: `You are a helpful assistant with access to various files, notes, and YouTube video transcripts. Your context includes:
+      system: `You are a helpful assistant with access to various files, notes, YouTube video transcripts, and Screenpipe data. Your context includes:
 
 ${contextString}
 
@@ -33,6 +34,7 @@ Use this context to inform your responses. Key points:
 2. For other queries, use the context without explicitly mentioning files unless necessary.
 3. Understand that '#' in queries refers to tags in the system, which will be provided in the context.
 4. When asked to "format" or "summarize" without specific content, assume it refers to the entire current context.
+5. For Screenpipe-related queries, use the provided tools to fetch and analyze data or query.
 
 Use these reference formats:
 - Obsidian-style: [[Filename]], [[Filename#Header]], [[Filename#^unique-identifier]]
@@ -45,7 +47,8 @@ Always use these formats when referencing context items. Use numbered references
 Recognize and handle requests like:
 - "Format this as markdown": Apply to the entire current context
 - "Summarize all my #startup notes": Focus on notes tagged with #startup
-
+- "Track my productivity for today": Use Screenpipe data to analyze app usage
+- "Track my productivity for the last 7 days": Use Screenpipe data to analyze app usage
 Adapt to various formatting, summarization, or content-specific requests based on the user's input and available context.`,
       messages: convertToCoreMessages(messages),
       tools: {
@@ -140,6 +143,55 @@ Feel free to try one of these or ask me anything else!`;
             return count.toString();
           },
         },
+        ...(enableScreenpipe ? {
+          queryScreenpipe: {
+            description: "Query Screenpipe data for various analytics",
+            parameters: z.object({
+              startTime: z.string().describe("Start time for the query (ISO format)"),
+              endTime: z.string().describe("End time for the query (ISO format)"),
+              contentType: z.enum(["ocr", "audio", "all"]).describe("Type of content to query"),
+              query: z.string().optional().describe("Optional search query"),
+              appName: z.string().optional().describe("Optional app name filter"),
+              limit: z.number().default(1000).describe("Limit for the number of results"),
+            }),
+            execute: async ({ startTime, endTime, contentType, query, appName, limit }) => {
+              // This will be handled client-side, so we just return the parameters
+              return JSON.stringify({ startTime, endTime, contentType, query, appName, limit });
+            },
+          },
+          analyzeProductivity: {
+            description: "Analyze productivity based on Screenpipe data",
+            parameters: z.object({
+              days: z.number().describe("Number of days to analyze"),
+            }),
+            execute: async ({ days }) => {
+              // This will be handled client-side
+              return JSON.stringify({ days });
+            },
+          },
+          summarizeMeeting: {
+            description: "Summarize a meeting using Screenpipe audio data",
+            parameters: z.object({
+              startTime: z.string().describe("Meeting start time (ISO format)"),
+              endTime: z.string().describe("Meeting end time (ISO format)"),
+            }),
+            execute: async ({ startTime, endTime }) => {
+              // This will be handled client-side
+              return JSON.stringify({ startTime, endTime });
+            },
+          },
+          trackProjectTime: {
+            description: "Track time spent on a project using Screenpipe data",
+            parameters: z.object({
+              projectKeyword: z.string().describe("Keyword to identify the project"),
+              days: z.number().describe("Number of days to analyze"),
+            }),
+            execute: async ({ projectKeyword, days }) => {
+              // This will be handled client-side
+              return JSON.stringify({ projectKeyword, days });
+            },
+          },
+        } : {}),
       },
       onFinish: async ({ usage }) => {
         console.log("Token usage:", usage);

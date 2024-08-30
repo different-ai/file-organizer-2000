@@ -1,9 +1,9 @@
 import { App, PluginSettingTab } from "obsidian";
-import FileOrganizer from "./index";
-import { FileConfigTab } from "./FileConfigTab";
-import { CustomizationTab } from "./CustomizationTab";
-import { ModelTab } from "./GeneralTab";
-import { ModelForXTab } from "./AdvancedTab"; // Import the new tab
+import FileOrganizer from "../../index";
+import { FileConfigTab } from "./files-tab";
+import { CustomizationTab } from "./customization-tab";
+import { ModelTab } from "./general";
+import { ModelForXTab } from "./advanced-tab"; // Import the new tab
 
 export class FileOrganizerSettingTab extends PluginSettingTab {
   plugin: FileOrganizer;
