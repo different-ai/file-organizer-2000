@@ -1,9 +1,9 @@
 {
 	"id": "fileorganizer2000",
 	"name": "AI File Organizer 2000",
-	"version": "1.22.3",
+	"version": "1.39.0",
 	"minAppVersion": "0.15.0",
-	"description": "Automatically organize notes, annotate photos and audio using AI.",
+	"description": "An AI assistant to organize and chat with your vault",
 	"author": "Benjamin Ashgan Shafii",
 	"isDesktopOnly": true
 }

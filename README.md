@@ -1,15 +1,35 @@
-# AI File Organizer 2000
+# File Organizer 2000
 
-This is an Obsidian Plugin that uses AI to help you keep your files organized. It tags, renames, and moves files to the most appropriate folders in your vault. You'll also be able to have your images annotated, and to create AI templates.
+An Obsidian plugin to quickly find your notes, make connections between ideas, and keep everything organized.
+
+Self-hostable and or available with cloud subscription.
+
+🆕 Now includes the most powerful AI Chat for Obsidian.
+
+
 
 ### Features
 
-- Automatically move files to the correct folder
-- AI suggestions to organize your files. Apply tags, aliases, rename & more
-- Supports text and images
-- Create and apply custom AI templates
+- **Organization:** Automatically suggests file names, tags and folders for your notes & more.
 
-  <img width="900" alt="Screenshot 2024-04-30 at 14 05 30" src="https://github.com/different-ai/file-organizer-2000/assets/11430621/2e2cdf14-c6d0-4fd0-8e02-268928ad7ef3">
+- **AI Chat**: The most powerful chat for Obsidian 🦾 Select folders, files, tags to add to context. Get files by date range, search by key terms. Can even get Youtube transcripts.
+
+- **AI Formatting**: Create templates to format your notes with custom prompts.
+
+-  **OCR**: AI-class text extraction from images, including handwritten notes and PDFs.
+
+-  **Audio transcription**: Transcribe audio + dedicated Meeting Notes formatting.
+
+<img width="600" alt="Screenshot 2024-08-22 at 6 18 28 PM" src="https://github.com/user-attachments/assets/218f6541-9da1-4d9b-aa1b-a32dc0920cbb">
+
+
+<img width="600" alt="Screenshot 2024-08-22 at 5 27 13 PM" src="https://github.com/user-attachments/assets/94725f2d-22c4-4727-845b-921a3d9d8707">
+
+[Chat with Multiple Files in Context demo video](https://youtu.be/agEdoNG7mpE)
+
+<img width="600" alt="Screenshot 2024-08-22 at 5 25 03 PM" src="https://github.com/user-attachments/assets/692d40aa-450d-434f-b4a5-4c38110405b0">
+
+[Chat with Youtube demo video](https://youtu.be/2CNZq_6jQoQ)
 
 ## Tips and Tricks
 
@@ -30,7 +50,7 @@ Get suggestions and choose what to apply with the Assistant view. Here's how to 
 
 Auto-organize with the AI Inbox.
 
-We recommend the AI Assistant view for more control. But the AI Inbox can be handy as well. Simply move any of your files to the "Inbox" folder and the plugin will automatically move it to the folder it belongs. Additional configuration can also be specified within the plugin settings.
+We recommend the AI Assistant view for more control. But the AI Inbox can be handy as well. Simply move any of your files to the "Inbox" folder and the plugin will automatically move it to the folder it belongs. Additional configuration can also be specified within the plugin settings (e.g. auto-tagging, auto-formatting).
 
 Move your unorganized files into `_FileOrganizer2000/Inbox`
 
@@ -44,19 +64,20 @@ See plugin settings to customize the changes AI Inbox applies to your files.
 
 ### C. Create custom AI Templates
 
+Give instructions for the AI to format and modify your files.
+
 See video: https://www.youtube.com/watch?v=rommuUXRgUw&t=17s
 
 ## Setup
 
-Choose between any of the three setups below
+Choose between the setups below:
 
-### A. Pro Access
+### A. Monthly & Lifetime Plan
 
 1. Go to general settings inside the plugin settings
-2. Choose "Use Pro Account"
-3. Click login and follow instructions
+2. Enter the key you generated on [File Organizer 2000 dashboard](https://app.fileorganizer2000.com/)
+3. Click Activate and follow the instructions after the plan selection
 
-<img width="836" alt="byok" src="https://github.com/different-ai/file-organizer-2000/assets/46509400/2bcc6824-236d-40ae-895b-d501401238bd">
 
 ### B. Self-hosting
 
@@ -65,23 +86,19 @@ Choose between any of the three setups below
    For Linux/macOS:
 
    ```sh
-
-   npm run build && cd app
-   npm i && npm run build:self-host
-   OPENAI_API_KEY=[your open ai api key] npm run start
+   cd app && npm run build:self-host &&  npm run start
    ```
 
-   Replace `[your open ai api key]` with your actual OpenAI API key.
+   And make sure you have your  `OPENAI_API_KEY` variable set up in your `.env.local` file inside the app root folder.
 
    For Windows (PowerShell):
 
    ```sh
-   npm run build; cd .\app
-   npm i; npm run build:self-host
-   $env:OPENAI_API_KEY="your open ai api key"; npm run start
-   ```
+   cd app; npm run build:self-host; npm run start
+    ```
 
-   Replace `your open ai api key` with your actual OpenAI API key.
+   And make sure you have your  `OPENAI_API_KEY` variable set up in your `.env.local` file inside the app root folder.
+
 
 2. Go inside the Settings of the plugin and enable "Self-hosted"
 
@@ -89,23 +106,30 @@ Choose between any of the three setups below
 
 ## Testing Different models
 
-For those who would like to play around with different models, there is a promptfoo.yaml file in the project including examples with local LLMS.
+For the tech-savvies who would like to play around with different models, there is a promptfoo.yaml file in the project including examples with local LLMs.
 See link for more info: https://promptfoo.dev/docs/configuration/guide/
 
 ## Community
 
 Join the [discord server](https://discord.gg/udQnCRFyus) for more.
 
-## Small iOS shortcut for easy access
+## iOS shortcut to send Apple Notes and Audios to Obsidian
 
 The iOS shortcut below makes it easy for you to easily work from your phone with this plugin.
 
 https://www.icloud.com/shortcuts/06915768862848fb9711f2f19b6405e2
 
+how to set it up: https://youtu.be/zWJgIRlDWkk?si=HSeOUKaMfJvaLtKI
+
+Notes:
+- It works when your vault is on a cloud drive. I use it with iCloud and works great. Doesn't work with OneDrive last time I tested.
+- Currently only works if your iOS is in English. But if you reach out on discord I can help you set it up in your language.
+
 ## To Do
 
-- [ ] Replace GPT Vision by a local model
-- [ ] Make it easy for people to extend whatever workflow.
+- [ ] Release a local LLM-only version.
+- [ ] Implement browser access into AI chat.
+- [ ] AI chat improvements.
 
 ### Notes
 

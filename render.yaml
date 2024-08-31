@@ -1,0 +1,30 @@
+services:
+- type: web
+  name: next-js
+  runtime: node
+  rootDir: ./app
+  plan: starter
+  buildCommand: npm install; npm run build
+  startCommand: npm start
+  autoDeploy: false
+  envVars:
+  - key: NODE_ENV
+    value: production
+  - key: MODEL_NAME
+    sync: false
+  - key: OPENAI_API_KEY
+    sync: false
+  - key: UNKEY_API_ID
+    sync: false
+  - key: UNKEY_ROOT_KEY
+    sync: false
+  - key: NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY
+    sync: false
+  - key: CLERK_SECRET_KEY
+    sync: false
+  - key: POSTGRES_URL
+    sync: false
+  - key: STRIPE_SECRET_KEY
+    sync: false
+  - key: STRIPE_WEBHOOK_SECRET
+    sync: false

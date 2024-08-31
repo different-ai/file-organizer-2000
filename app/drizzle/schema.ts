@@ -211,7 +211,8 @@ export const checkUserSubscriptionStatus = async (userId: string) => {
 export async function updateUserSubscriptionStatus(
   userId: string,
   subscriptionStatus: string,
-  paymentStatus: string
+  paymentStatus: string,
+  billingCycle: string
 ): Promise<void> {
   try {
     await db
@@ -224,7 +225,6 @@ export async function updateUserSubscriptionStatus(
         maxUsage: 0,
         billingCycle: "",
         tokenUsage: 0,
-        maxTokenUsage: 1000 * 1000,
         createdAt: new Date(),
       })
       .onConflictDoUpdate({
@@ -232,6 +232,7 @@ export async function updateUserSubscriptionStatus(
         set: {
           subscriptionStatus,
           paymentStatus,
+          billingCycle
         },
       });
 

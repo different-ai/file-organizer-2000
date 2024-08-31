@@ -1,6 +1,6 @@
 {
   "name": "fileorganizer2000",
-  "version": "1.22.3",
+  "version": "1.39.0",
   "description": "AI File Organizer 2000",
   "main": "main.js",
   "scripts": {
@@ -27,11 +27,20 @@
   },
   "dependencies": {
     "@ai-sdk/anthropic": "^0.0.14",
-    "@ai-sdk/openai": "^0.0.13",
-    "ai": "^3.1.12",
+    "@ai-sdk/openai": "^0.0.40",
+    "@ai-sdk/react": "^0.0.36",
+    "@emotion/styled": "^11.13.0",
+    "@tiptap/core": "^2.5.7",
+    "@tiptap/extension-mention": "^2.5.8",
+    "@tiptap/pm": "^2.5.7",
+    "@tiptap/react": "^2.5.7",
+    "@tiptap/starter-kit": "^2.5.7",
+    "ai": "^3.3.0",
     "axios": "^1.6.2",
     "chokidar": "^3.6.0",
     "form-data": "^4.0.0",
+    "framer-motion": "^11.3.24",
+    "fuse.js": "^7.0.0",
     "jimp": "^0.22.12",
     "js-tiktoken": "^1.0.12",
     "moment": "^2.29.4",
@@ -40,8 +49,11 @@
     "openai": "^4.19.0",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
+    "react-markdown": "^9.0.1",
     "tiktoken": "^1.0.15",
+    "tiptap-markdown": "^0.8.10",
     "ts-node": "^10.9.2",
+    "youtube-transcript": "^1.2.1",
     "zod": "^3.23.8"
   }
 }
