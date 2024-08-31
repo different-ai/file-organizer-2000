@@ -42,6 +42,7 @@ export async function POST(req: NextRequest) {
       console.log(`User ID: ${session.metadata?.userId}`);
       console.log(session.status);
       console.log(session.payment_status);
+      console.log('session.mode', session.mode);
 
       try {
         console.log("updating clerk metadata for user", session.metadata?.userId);
