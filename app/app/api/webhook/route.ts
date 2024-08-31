@@ -66,7 +66,7 @@ export async function POST(req: NextRequest) {
         session.metadata?.userId,
         session.status,
         session.payment_status,
-        // distinguish between subscription and one-time payment; "subscription" or "payment"
+        // Billing cycle: distinguish between subscription and one-time payment; "subscription" or "payment"
         session.mode
       );
       console.log("User subscription status updated");
