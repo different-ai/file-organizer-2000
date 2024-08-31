@@ -1,6 +1,3 @@
-
-
-
 import { groupBy } from 'lodash';
 
 interface ScreenpipeQueryParams {
@@ -10,28 +7,47 @@ interface ScreenpipeQueryParams {
   query?: string;
   appName?: string;
   limit: number;
+  offset?: number;
 }
 
 async function queryScreenpipe(params: ScreenpipeQueryParams) {
   try {
-    const queryParams = new URLSearchParams(
-      Object.entries({
-        q: params.query,
-        limit: params.limit.toString(),
-        start_time: params.startTime,
-        end_time: params.endTime,
-        content_type: params.contentType,
-        app_name: params.appName,
-      }).filter(([_, v]) => v != null) as [string, string][]
-    );
-    const response = await fetch(`http://localhost:3030/search?${queryParams}`);
+    const queryParams = new URLSearchParams({
+      limit: params.limit.toString(),
+      offset: (params.offset || 0).toString(),
+      content_type: params.contentType,
+      start_time: params.startTime,
+      end_time: params.endTime,
+    });
+
+    if (params.query) queryParams.append('q', params.query);
+    if (params.appName) queryParams.append('app_name', params.appName);
+
+    const url = `http://localhost:3030/search?${queryParams}`;
+    console.log('Querying Screenpipe with URL:', url);
+
+    const response = await fetch(url, {
+      method: 'GET',
+      headers: {
+        'Accept': 'application/json',
+      },
+    });
+
+    console.log('Response status:', response.status);
+    console.log('Response headers:', response.headers);
+
+    const responseText = await response.text();
+    console.log('Response body:', responseText);
+
     if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
+      throw new Error(`HTTP error! status: ${response.status}, message: ${responseText}`);
     }
-    return await response.json();
+
+    const data = JSON.parse(responseText);
+    return data;
   } catch (error) {
     console.error("Error querying screenpipe:", error);
-    return null;
+    throw error;
   }
 }
 

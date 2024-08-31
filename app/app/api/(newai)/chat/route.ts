@@ -177,4 +177,3 @@ export async function OPTIONS() {
   );
   return response;
 }
-}
