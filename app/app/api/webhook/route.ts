@@ -42,32 +42,30 @@ export async function POST(req: NextRequest) {
       console.log(`User ID: ${session.metadata?.userId}`);
       console.log(session.status);
       console.log(session.payment_status);
+
       try {
-        console.log(
-          "updating clerk metadata for user",
-          session.metadata?.userId
-        );
-        await clerkClient.users.updateUserMetadata(
-          event.data.object.metadata?.userId as string,
-          {
-            publicMetadata: {
-              stripe: {
-                status: session.status,
-                payment: session.payment_status,
-              },
+        console.log("updating clerk metadata for user", session.metadata?.userId);
+        await clerkClient.users.updateUserMetadata(session.metadata?.userId as string, {
+          publicMetadata: {
+            stripe: {
+              status: session.status,
+              payment: session.payment_status,
+              billingCycle: session.mode === 'subscription' ? 'monthly' : 'lifetime',
             },
-          }
-        );
+          },
+        });
       } catch (error) {
         console.error(`Error updating user metadata: ${error}`);
       }
       console.log("metadata updated");
+
+      const billingCycle = session.mode === 'subscription' ? 'monthly' : 'lifetime';
+
       await updateUserSubscriptionStatus(
         session.metadata?.userId,
         session.status,
         session.payment_status,
-        // Billing cycle: distinguish between subscription and one-time payment; "subscription" or "payment"
-        session.mode
+        billingCycle
       );
       console.log("User subscription status updated");
       break;
