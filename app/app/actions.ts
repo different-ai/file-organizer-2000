@@ -1,7 +1,9 @@
 "use server";
-import { UserUsageTable, createOrUpdateUserUsage } from "@/drizzle/schema";
+import {  createOrUpdateUserUsage } from "@/drizzle/schema";
 import { auth, clerkClient } from "@clerk/nextjs/server";
 import { Unkey } from "@unkey/api";
+import { db, UserUsageTable as UserUsageTableImport } from "@/drizzle/schema";
+import { eq } from "drizzle-orm";
 
 import { checkUserSubscriptionStatus } from "../drizzle/schema";
 
@@ -49,4 +51,21 @@ export async function create() {
     apiId,
   });
   return { key: key.result };
+}
+
+export async function getUserBillingCycle(userId: string) {
+  if (!userId) return "monthly"; // Default to monthly if no userId
+
+  try {
+    const user = await db
+      .select({ billingCycle: UserUsageTableImport.billingCycle })
+      .from(UserUsageTableImport)
+      .where(eq(UserUsageTableImport.userId, userId))
+      .limit(1);
+
+    return user[0]?.billingCycle || "monthly"; // Default to monthly if not found
+  } catch (error) {
+    console.error("Error fetching user billing cycle:", error);
+    return "monthly"; // Default to monthly in case of error
+  }
 }
