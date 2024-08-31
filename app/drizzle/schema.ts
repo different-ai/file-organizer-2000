@@ -211,7 +211,8 @@ export const checkUserSubscriptionStatus = async (userId: string) => {
 export async function updateUserSubscriptionStatus(
   userId: string,
   subscriptionStatus: string,
-  paymentStatus: string
+  paymentStatus: string,
+  billingCycle: string
 ): Promise<void> {
   try {
     await db
@@ -231,6 +232,7 @@ export async function updateUserSubscriptionStatus(
         set: {
           subscriptionStatus,
           paymentStatus,
+          billingCycle
         },
       });
 

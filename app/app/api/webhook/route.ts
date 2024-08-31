@@ -65,7 +65,9 @@ export async function POST(req: NextRequest) {
       await updateUserSubscriptionStatus(
         session.metadata?.userId,
         session.status,
-        session.payment_status
+        session.payment_status,
+        // distinguish between subscription and one-time payment; "subscription" or "payment"
+        session.mode
       );
       console.log("User subscription status updated");
       break;
@@ -74,7 +76,7 @@ export async function POST(req: NextRequest) {
       const subscription = event.data.object;
       const userId = subscription.metadata?.userId;
       if (userId) {
-        await updateUserSubscriptionStatus(userId, "canceled", "canceled");
+        await updateUserSubscriptionStatus(userId, "canceled", "canceled","canceled" );
         console.log(`Subscription canceled for user ${userId}`);
       }
       break;
@@ -83,7 +85,7 @@ export async function POST(req: NextRequest) {
       const invoice = event.data.object;
       const userId = invoice.metadata?.userId;
       if (userId) {
-        await updateUserSubscriptionStatus(userId, "incomplete", "failed");
+        await updateUserSubscriptionStatus(userId, "incomplete", "failed", "failed");
         console.log(`Payment failed for user ${userId}`);
       }
       break;
