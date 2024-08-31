@@ -43,6 +43,7 @@
     "fuse.js": "^7.0.0",
     "jimp": "^0.22.12",
     "js-tiktoken": "^1.0.12",
+    "lodash": "^4.17.21",
     "moment": "^2.29.4",
     "node-fetch": "^3.3.2",
     "ollama-ai-provider": "^0.7.0",

@@ -17,7 +17,7 @@ import {
   getYouTubeVideoTitle,
 } from "./youtube-transcript";
 import { logMessage } from "../../../utils";
-import { analyzeProductivity, queryScreenpipe, summarizeMeeting, trackProjectTime } from './screenpipe-utils';
+import { summarizeMeeting, getDailyInformation } from './screenpipe-utils';
 
 interface ChatComponentProps {
   plugin: FileOrganizer;
@@ -201,51 +201,24 @@ export const ChatComponent: React.FC<ChatComponentProps> = ({
     }
 
     switch (toolCall.toolName) {
-      case "queryScreenpipe":
-        const args = toolCall.args as {
-          startTime: string;
-          endTime: string;
-          contentType: "ocr" | "audio" | "all";
-          query?: string;
-          appName?: string;
-          limit: number;
-        };
-        try {
-          const result = await queryScreenpipe(args);
-          setScreenpipeContext(result); // Store the result in state
-          return JSON.stringify(result);
-        } catch (error) {
-          console.error("Error querying Screenpipe:", error);
-          return JSON.stringify({ error: error.message });
-        }
-      case "analyzeProductivity":
-        const productivityArgs = toolCall.args as { days: number };
-        try {
-          const result = await analyzeProductivity(productivityArgs.days);
-          setScreenpipeContext(result); // Store the result in state
-          return JSON.stringify(result);
-        } catch (error) {
-          console.error("Error analyzing productivity:", error);
-          return JSON.stringify({ error: error.message });
-        }
       case "summarizeMeeting":
-        const meetingArgs = toolCall.args as { startTime: string; endTime: string };
+        const { duration } = toolCall.args as { duration: number };
         try {
-          const result = await summarizeMeeting(meetingArgs.startTime, meetingArgs.endTime);
-          setScreenpipeContext(result); // Store the result in state
+          const result = await summarizeMeeting(duration);
+          setScreenpipeContext(result);
           return JSON.stringify(result);
         } catch (error) {
           console.error("Error summarizing meeting:", error);
           return JSON.stringify({ error: error.message });
         }
-      case "trackProjectTime":
-        const projectArgs = toolCall.args as { projectKeyword: string; days: number };
+      case "getDailyInformation":
+        const { date } = toolCall.args as { date?: string };
         try {
-          const result = await trackProjectTime(projectArgs.projectKeyword, projectArgs.days);
-          setScreenpipeContext(result); // Store the result in state
+          const result = await getDailyInformation(date);
+          setScreenpipeContext(result);
           return JSON.stringify(result);
         } catch (error) {
-          console.error("Error tracking project time:", error);
+          console.error("Error getting daily information:", error);
           return JSON.stringify({ error: error.message });
         }
       default:
@@ -395,7 +368,7 @@ logMessage(searchResults, "searchResults");
         };
 
         return lastModifiedFiles.length.toString();
-      } else if (["queryScreenpipe", "analyzeProductivity", "summarizeMeeting", "trackProjectTime"].includes(toolCall.toolName)) {
+      } else if (["summarizeMeeting", "getDailyInformation"].includes(toolCall.toolName)) {
         return handleScreenpipeAction(toolCall);
       }
     },

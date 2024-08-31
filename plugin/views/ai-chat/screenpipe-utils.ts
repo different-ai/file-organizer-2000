@@ -1,6 +1,8 @@
 
 
 
+import { groupBy } from 'lodash';
+
 interface ScreenpipeQueryParams {
   startTime: string;
   endTime: string;
@@ -10,13 +12,11 @@ interface ScreenpipeQueryParams {
   limit: number;
 }
 
-export async function queryScreenpipe(params: ScreenpipeQueryParams) {
+async function queryScreenpipe(params: ScreenpipeQueryParams) {
   try {
-    console.log("params", params);
     const queryParams = new URLSearchParams(
       Object.entries({
         q: params.query,
-        offset: params.offset?.toString(),
         limit: params.limit.toString(),
         start_time: params.startTime,
         end_time: params.endTime,
@@ -24,129 +24,94 @@ export async function queryScreenpipe(params: ScreenpipeQueryParams) {
         app_name: params.appName,
       }).filter(([_, v]) => v != null) as [string, string][]
     );
-    console.log("calling screenpipe", JSON.stringify(params));
     const response = await fetch(`http://localhost:3030/search?${queryParams}`);
     if (!response.ok) {
-      const text = await response.text();
-      console.log("error", text);
-      throw new Error(`HTTP error! status: ${response.status} ${text}`);
+      throw new Error(`HTTP error! status: ${response.status}`);
     }
-    const result = await response.json();
-    console.log("result", result.data.length);
-    // log all without .data
-    console.log("result", {
-      ...result,
-      data: undefined,
-    });
-    return result;
+    return await response.json();
   } catch (error) {
     console.error("Error querying screenpipe:", error);
     return null;
   }
 }
 
-export async function analyzeProductivity(days: number) {
+export async function summarizeMeeting(duration: number = 60) {
   const endTime = new Date();
-  const startTime = new Date(endTime);
-  startTime.setDate(startTime.getDate() - days);
+  const startTime = new Date(endTime.getTime() - duration * 60000);
 
   const result = await queryScreenpipe({
     startTime: startTime.toISOString(),
     endTime: endTime.toISOString(),
-    contentType: "ocr",
-    limit: 100,
-  });
-
-  const appUsage = groupBy(result.data, 'content.app_name');
-  
-  const productivityData = Object.entries(appUsage).map(([app, usage]) => ({
-    app,
-    interactions: usage.length,
-    hours: usage.length / 60, // Assuming each interaction is roughly 1 minute
-  }));
-
-  // Sort apps by usage time
-  productivityData.sort((a, b) => b.hours - a.hours);
-
-  // Calculate total hours
-  const totalHours = productivityData.reduce((sum, app) => sum + app.hours, 0);
-
-  return {
-    totalHours,
-    appUsage: productivityData,
-    topApps: productivityData.slice(0, 5), // Top 5 apps by usage
-  };
-}
-
-export async function summarizeMeeting(startTime: string, endTime: string) {
-  const result = await queryScreenpipe({
-    startTime,
-    endTime,
     contentType: "audio",
-    limit: 100,
+    limit: 1000,
   });
+
+  if (!result || !result.data || result.data.length === 0) {
+    return { error: "No meeting data found for the specified duration." };
+  }
 
   const transcripts = result.data.map(item => item.content.transcription).join(' ');
   
-  // Here you would typically use an AI model to summarize the transcript
-  // For this example, we'll just return some basic statistics
-  const wordCount = transcripts.split(/\s+/).length;
-  const durationInMinutes = (new Date(endTime).getTime() - new Date(startTime).getTime()) / (1000 * 60);
+  // Perform more advanced analysis here, such as:
+  // 1. Extracting key topics using NLP
+  // 2. Identifying action items
+  // 3. Summarizing main discussion points
+  // 4. Detecting sentiment
 
   return {
     transcript: transcripts,
-    statistics: {
-      wordCount,
-      durationInMinutes,
-      averageWordsPerMinute: wordCount / durationInMinutes,
-    },
-    // You might want to add more analysis here, such as:
-    // - Key topics discussed (using NLP)
-    // - Action items (using NLP)
-    // - Participants (if that data is available)
+    duration: duration,
+    wordCount: transcripts.split(/\s+/).length,
+    // Add more advanced analysis results here
   };
 }
 
-export async function trackProjectTime(projectKeyword: string, days: number) {
-  const endTime = new Date();
-  const startTime = new Date(endTime);
-  startTime.setDate(startTime.getDate() - days);
+export async function getDailyInformation(date: string = new Date().toISOString().split('T')[0]) {
+  const startTime = new Date(date);
+  startTime.setHours(0, 0, 0, 0);
+  const endTime = new Date(startTime);
+  endTime.setHours(23, 59, 59, 999);
 
-  const result = await queryScreenpipe({
-    startTime: startTime.toISOString(),
-    endTime: endTime.toISOString(),
-    contentType: "ocr",
-    query: projectKeyword,
-    limit: 100,
-  });
+  const [ocrResult, audioResult] = await Promise.all([
+    queryScreenpipe({
+      startTime: startTime.toISOString(),
+      endTime: endTime.toISOString(),
+      contentType: "ocr",
+      limit: 1000,
+    }),
+    queryScreenpipe({
+      startTime: startTime.toISOString(),
+      endTime: endTime.toISOString(),
+      contentType: "audio",
+      limit: 1000,
+    }),
+  ]);
 
-  const totalHours = days * 24;
-  const projectHours = result.data.length / 60;
+  if (!ocrResult || !audioResult) {
+    return { error: "Failed to fetch daily information." };
+  }
 
-  // Group project time by day
-  const dailyUsage = groupBy(result.data, item => 
-    new Date(item.content.timestamp).toISOString().split('T')[0]
-  );
-
-  const dailyStats = Object.entries(dailyUsage).map(([date, usage]) => ({
-    date,
+  const appUsage = groupBy(ocrResult.data, 'content.app_name');
+  const productivityData = Object.entries(appUsage).map(([app, usage]) => ({
+    app,
+    interactions: usage.length,
     hours: usage.length / 60,
-    percentage: (usage.length / 60) / 24 * 100,
-  }));
+  })).sort((a, b) => b.hours - a.hours);
+
+  const totalHours = productivityData.reduce((sum, app) => sum + app.hours, 0);
+
+  const audioTranscripts = audioResult.data.map(item => item.content.transcription).join(' ');
 
   return {
-    totalPeriodHours: totalHours,
-    totalProjectHours: projectHours,
-    averageHoursPerDay: projectHours / days,
-    percentageOfTime: (projectHours / totalHours) * 100,
-    dailyBreakdown: dailyStats,
+    date,
+    totalActiveHours: totalHours,
+    topApps: productivityData.slice(0, 5),
+    meetingsCount: audioResult.data.length,
+    totalWordsSpoken: audioTranscripts.split(/\s+/).length,
+    // Add more insights here, such as:
+    // - Productivity score
+    // - Task completion rate
+    // - Focus time vs. distracted time
+    // - Sentiment analysis of audio transcripts
   };
-}
-
-function groupBy(array: any[], keyOrFn: string | ((item: any) => string)) {
-  return array.reduce((result, item) => {
-    const key = typeof keyOrFn === 'function' ? keyOrFn(item) : item[keyOrFn];
-    (result[key] = result[key] || []).push(item);
-    return result;
-  }, {});
 }

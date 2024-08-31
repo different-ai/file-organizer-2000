@@ -35,7 +35,7 @@ Use this context to inform your responses. Key points:
 2. For other queries, use the context without explicitly mentioning files unless necessary.
 3. Understand that '#' in queries refers to tags in the system, which will be provided in the context.
 4. When asked to "format" or "summarize" without specific content, assume it refers to the entire current context.
-${enableScreenpipe ? '5. For Screenpipe-related queries, use the provided tools to fetch and analyze data or query.' : ''}
+${enableScreenpipe ? '5. For Screenpipe-related queries, use the provided tools to fetch and analyze meeting summaries or daily information.' : ''}
 
 The current date and time is: ${currentDatetime}
 
@@ -48,9 +48,9 @@ Use these reference formats:
 Always use these formats when referencing context items. Use numbered references and provide sources at the end of your response.
 
 Recognize and handle requests like:
-- "Format this as markdown": Apply to the entire current context
-- "Summarize all my #startup notes": Focus on notes tagged with #startup
-Adapt to various formatting, summarization, or content-specific requests based on the user's input and available context.`,
+- "Summarize the meeting I had just now": Use the summarizeMeeting tool
+- "Summarize my day": Use the getDailyInformation tool
+Adapt to various summarization or content-specific requests based on the user's input and available context.`,
       messages: convertToCoreMessages(messages),
       tools: {
         getNotesForDateRange: {
@@ -101,21 +101,6 @@ Adapt to various formatting, summarization, or content-specific requests based o
             return videoId;
           },
         },
-        // modifyCurrentNote: {
-        //   description:
-        //     "Modify the content of the currently active note using a formatting instruction",
-        //   parameters: z.object({
-        //     formattingInstruction: z
-        //       .string()
-        //       .describe(
-        //         "The instruction for formatting the current note content"
-        //       ),
-        //   }),
-        //   execute: async ({ formattingInstruction }) => {
-        //     // This will be handled client-side, so we just return the formatting instruction
-        //     return formattingInstruction;
-        //   },
-        // },
         getLastModifiedFiles: {
           description: "Get the last modified files in the vault",
           parameters: z.object({
@@ -127,51 +112,24 @@ Adapt to various formatting, summarization, or content-specific requests based o
           },
         },
         ...(enableScreenpipe ? {
-          queryScreenpipe: {
-            description: "Query Screenpipe data for various analytics",
-            parameters: z.object({
-              startTime: z.string().describe("Start time for the query (ISO format)"),
-              endTime: z.string().describe("End time for the query (ISO format)"),
-              contentType: z.enum(["ocr", "audio", "all"]).describe("Type of content to query"),
-              query: z.string().optional().describe("Optional search query"),
-              appName: z.string().optional().describe("Optional app name filter"),
-              limit: z.number().default(100).describe("Limit for the number of results"),
-            }),
-            execute: async ({ startTime, endTime, contentType, query, appName, limit }) => {
-              // This will be handled client-side, so we just return the parameters
-              return JSON.stringify({ startTime, endTime, contentType, query, appName, limit });
-            },
-          },
-          analyzeProductivity: {
-            description: "Analyze productivity based on Screenpipe data",
-            parameters: z.object({
-              days: z.number().describe("Number of days to analyze"),
-            }),
-            execute: async ({ days }) => {
-              // This will be handled client-side
-              return JSON.stringify({ days });
-            },
-          },
           summarizeMeeting: {
-            description: "Summarize a meeting using Screenpipe audio data",
+            description: "Summarize a recent meeting using Screenpipe audio data",
             parameters: z.object({
-              startTime: z.string().describe("Meeting start time (ISO format)"),
-              endTime: z.string().describe("Meeting end time (ISO format)"),
+              duration: z.number().describe("Duration of the meeting in minutes (default: 60)").default(60),
             }),
-            execute: async ({ startTime, endTime }) => {
+            execute: async ({ duration }) => {
               // This will be handled client-side
-              return JSON.stringify({ startTime, endTime });
+              return JSON.stringify({ duration });
             },
           },
-          trackProjectTime: {
-            description: "Track time spent on a project using Screenpipe data",
+          getDailyInformation: {
+            description: "Get information about the user's day using Screenpipe data",
             parameters: z.object({
-              projectKeyword: z.string().describe("Keyword to identify the project"),
-              days: z.number().describe("Number of days to analyze"),
+              date: z.string().describe("The date to analyze (ISO format, default: today)").optional(),
             }),
-            execute: async ({ projectKeyword, days }) => {
+            execute: async ({ date }) => {
               // This will be handled client-side
-              return JSON.stringify({ projectKeyword, days });
+              return JSON.stringify({ date: date || new Date().toISOString().split('T')[0] });
             },
           },
         } : {}),
@@ -218,4 +176,5 @@ export async function OPTIONS() {
     "Content-Type, Authorization"
   );
   return response;
+}
 }
