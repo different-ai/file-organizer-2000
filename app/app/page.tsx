@@ -47,8 +47,8 @@ export default async function Component() {
                   allowFullScreen
                 ></iframe>
               </div>
-              <div className="relative mt-4" style={{ paddingBottom: "56.25%" }}>
-                <iframe
+              <div className="relative mt-4 md:pb-0 pb-[56.25%]">
+              <iframe
                   className="absolute top-0 left-0 w-full h-full md:hidden"
                   src="https://www.youtube.com/embed/videoseries?list=PLgRcC-DFR5jdUxbSBuNeymwYTH_FSVxio"
                   title="YouTube video player"
