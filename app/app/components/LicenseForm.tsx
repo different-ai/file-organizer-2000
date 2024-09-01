@@ -56,13 +56,14 @@ const LicenseForm = () => {
   }, [user]);
 
   return (
-    <div className="mt-8 ">
+    // center elements
+    <div className="mt-8 flex flex-col items-center justify-center">
       {isPaid ? (
         <>
           <Card className="w-[350px] ">
             <CardHeader></CardHeader>
             <form action={onCreate} onSubmit={handleSubmit}>
-              <CardFooter className="flex justify-between">
+              <CardFooter className="flex justify-center">
                 <Button
                   type="submit"
                   disabled={loading}
