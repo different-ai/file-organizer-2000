@@ -212,7 +212,7 @@ export async function updateUserSubscriptionStatus(
   userId: string,
   subscriptionStatus: string,
   paymentStatus: string,
-  billingCycle: string
+  billingCycle?: string
 ): Promise<void> {
   try {
     await db

@@ -75,7 +75,7 @@ export async function POST(req: NextRequest) {
       const subscription = event.data.object;
       const userId = subscription.metadata?.userId;
       if (userId) {
-        await updateUserSubscriptionStatus(userId, "canceled", "canceled","canceled" );
+        await updateUserSubscriptionStatus(userId, "canceled", "canceled");
         console.log(`Subscription canceled for user ${userId}`);
       }
       break;
@@ -84,7 +84,7 @@ export async function POST(req: NextRequest) {
       const invoice = event.data.object;
       const userId = invoice.metadata?.userId;
       if (userId) {
-        await updateUserSubscriptionStatus(userId, "incomplete", "failed", "failed");
+        await updateUserSubscriptionStatus(userId, "incomplete", "failed");
         console.log(`Payment failed for user ${userId}`);
       }
       break;
