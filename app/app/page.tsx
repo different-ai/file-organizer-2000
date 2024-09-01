@@ -27,6 +27,7 @@ async function UserManagement() {
   );
 }
 
+
 export default async function Component() {
   const { userId } = auth();
   const billingCycle = await getUserBillingCycle(userId);
@@ -45,8 +46,7 @@ export default async function Component() {
                 allowFullScreen
               ></iframe>
               <iframe
-                width="560"
-                height="315"
+                className="w-full h-full md:hidden"
                 src="https://www.youtube.com/embed/videoseries?list=PLgRcC-DFR5jdUxbSBuNeymwYTH_FSVxio"
                 title="YouTube video player"
                 frameBorder="0"
@@ -56,8 +56,28 @@ export default async function Component() {
             </div>
           )}
           {billingCycle === "lifetime" && (
-            <div className="w-full lg:w-1/2 flex items-center justify-center mb-8 lg:mb-0">
-              <div className="text-6xl font-bold text-gray-300">x</div>
+            <div className="w-full lg:w-1/2 rounded-lg overflow-hidden mb-8 lg:mb-0">
+              <div className="aspect-w-16 aspect-h-9 mb-40"> {/* Added mb-40 for 10 rem spacing */}
+                <iframe
+                 className="w-full h-full hidden md:block"
+                  src="https://www.youtube.com/embed/XYLgqdtoeMo?controls=1&modestbranding=1&showinfo=0"
+                  frameBorder="0"
+                  allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture"
+                  allowFullScreen
+                ></iframe>
+              </div>
+              <div className="aspect-w-16 aspect-h-9 mt-4">
+                <iframe
+                  className="w-full h-full md:hidden"
+                  width="560"
+                  height="315"
+                  src="https://www.youtube.com/embed/videoseries?list=PLgRcC-DFR5jdUxbSBuNeymwYTH_FSVxio"
+                  title="YouTube video player"
+                  frameBorder="0"
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                  allowFullScreen
+                ></iframe>
+              </div>
             </div>
           )}
           <div className={`flex-1 space-y-8 flex flex-col justify-center ${billingCycle === "monthly" ? "lg:pl-8" : ""}`}>
@@ -104,7 +124,10 @@ export default async function Component() {
               )}
               
               {process.env.ENABLE_USER_MANAGEMENT == "true" ? (
+                    <div className="flex flex-col justify-center items-center text-center">
+
                 <LicenseForm />
+                </div>
               ) : (
                 <p className="text-gray-500 dark:text-gray-400 px-4">
                   Just paste this URL in the plugin settings in Obsidian and
