@@ -27,50 +27,29 @@ async function UserManagement() {
   );
 }
 
-
 export default async function Component() {
   const { userId } = auth();
   const billingCycle = await getUserBillingCycle(userId);
   console.log("billingCycle", billingCycle);
+
   return (
     <div className="flex min-h-screen py-7 px-4 sm:px-6 lg:px-8 flex-col">
       <div className="flex-1 mb-8 flex items-center justify-center pt-16">
-        <div className="flex flex-col lg:flex-row w-full max-w-6xl">
+        <div className="flex flex-col lg:flex-row w-full max-w-6xl items-center">
           {billingCycle === "monthly" && (
-            <div className="w-full lg:w-1/2 rounded-lg overflow-hidden aspect-video mb-8 lg:mb-0">
-              <iframe
-                className="w-full h-full hidden md:block"
-                src="https://www.youtube.com/embed/XZTpbECqZps?controls=0&modestbranding=1&showinfo=0"
-                frameBorder="0"
-                allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture"
-                allowFullScreen
-              ></iframe>
-              <iframe
-                className="w-full h-full md:hidden"
-                src="https://www.youtube.com/embed/videoseries?list=PLgRcC-DFR5jdUxbSBuNeymwYTH_FSVxio"
-                title="YouTube video player"
-                frameBorder="0"
-                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-                allowFullScreen
-              ></iframe>
-            </div>
-          )}
-          {billingCycle === "lifetime" && (
-            <div className="w-full lg:w-1/2 rounded-lg overflow-hidden mb-8 lg:mb-0">
-              <div className="aspect-w-16 aspect-h-9 mb-40"> {/* Added mb-40 for 10 rem spacing */}
+            <div className="w-full lg:w-1/2 rounded-lg overflow-hidden mb-8 lg:mb-0 lg:mr-40">
+              <div className="relative" style={{ paddingBottom: "56.25%" }}>
                 <iframe
-                 className="w-full h-full hidden md:block"
-                  src="https://www.youtube.com/embed/XYLgqdtoeMo?controls=1&modestbranding=1&showinfo=0"
+                  className="absolute top-0 left-0 w-full h-full hidden md:block"
+                  src="https://www.youtube.com/embed/XZTpbECqZps?controls=0&modestbranding=1&showinfo=0"
                   frameBorder="0"
                   allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture"
                   allowFullScreen
                 ></iframe>
               </div>
-              <div className="aspect-w-16 aspect-h-9 mt-4">
+              <div className="relative mt-4" style={{ paddingBottom: "56.25%" }}>
                 <iframe
-                  className="w-full h-full md:hidden"
-                  width="560"
-                  height="315"
+                  className="absolute top-0 left-0 w-full h-full md:hidden"
                   src="https://www.youtube.com/embed/videoseries?list=PLgRcC-DFR5jdUxbSBuNeymwYTH_FSVxio"
                   title="YouTube video player"
                   frameBorder="0"
@@ -80,8 +59,31 @@ export default async function Component() {
               </div>
             </div>
           )}
-          <div className={`flex-1 space-y-8 flex flex-col justify-center ${billingCycle === "monthly" ? "lg:pl-8" : ""}`}>
-            <div className="flex flex-col justify-center">
+          {billingCycle === "lifetime" && (
+            <div className="w-full lg:w-1/2 rounded-lg overflow-hidden mb-8 lg:mb-0 lg:mr-40">
+              <div className="relative" style={{ paddingBottom: "56.25%" }}>
+                <iframe
+                  className="absolute top-0 left-0 w-full h-full hidden md:block"
+                  src="https://www.youtube.com/embed/XYLgqdtoeMo?controls=1&modestbranding=1&showinfo=0"
+                  frameBorder="0"
+                  allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture"
+                  allowFullScreen
+                ></iframe>
+              </div>
+              <div className="relative mt-4" style={{ paddingBottom: "56.25%" }}>
+                <iframe
+                  className="absolute top-0 left-0 w-full h-full md:hidden"
+                  src="https://www.youtube.com/embed/videoseries?list=PLgRcC-DFR5jdUxbSBuNeymwYTH_FSVxio"
+                  title="YouTube video player"
+                  frameBorder="0"
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                  allowFullScreen
+                ></iframe>
+              </div>
+            </div>
+          )}
+          <div className="flex-1 space-y-8 flex flex-col ">
+            <div className=" flex flex-col">
               {billingCycle === "lifetime" && (
                 <div className="w-full mb-6">
                   <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 max-w-xl mx-auto">
@@ -159,6 +161,7 @@ export default async function Component() {
     </div>
   );
 }
+
 function ArrowDownIcon(props) {
   return (
     <svg
