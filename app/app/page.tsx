@@ -61,7 +61,7 @@ export default async function Component() {
             </div>
           )}
           <div className={`flex-1 space-y-8 flex flex-col justify-center ${billingCycle === "monthly" ? "lg:pl-8" : ""}`}>
-            <div className="flex flex-col justify-center items-center">
+            <div className="flex flex-col justify-center">
               {billingCycle === "lifetime" && (
                 <div className="w-full mb-6">
                   <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 max-w-xl mx-auto">
@@ -70,7 +70,7 @@ export default async function Component() {
                       <li>
                         <strong>Deploy your own instance:</strong>
                         <a href="https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2Fdifferent-ai%2Ffile-organizer-2000%2Ftree%2Fmaster%2Fapp&env=OPENAI_API_KEY,SOLO_API_KEY&envDescription=SOLO_API_KEY%20is%20a%20bit%20like%20your%20password%20you%20can%20choose%20it%20to%20be%20whatever%20you%20want%20and%20you%27ll%20need%20to%20re-use%20in%20the%20plugin%20settings&envLink=https%3A%2F%2Fgithub.com%2Fdifferent-ai%2Ffile-organizer-2000%2Fblob%2Fmaster%2Ftutorials%2Fenv-vars.md&project-name=file-organizer-2000&repository-name=file-organizer-2000&redirect-url=https%3A%2F%2Fgithub.com%2Fdifferent-ai%2Ffile-organizer-2000%2Fblob%2Fmaster%2Ftutorials%2Fdeploy-on-vercel-success.md&build-command=npm%20run%20build:self-host" target="_blank" rel="noopener noreferrer" className="block mt-2">
-                          <img src="https://vercel.com/button" alt="Deploy with Vercel" className="hover:opacity-80 transition-opacity mx-auto" />
+                          <img src="https://vercel.com/button" alt="Deploy with Vercel" className="hover:opacity-80 transition-opacity" />
                         </a>
                         <ul className="list-disc list-outside ml-4 mt-2 space-y-1 text-sm">
                           <li>During deployment, enter your <a href="https://platform.openai.com/api-keys" target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:underline">OpenAI API Key</a>.</li>
@@ -93,7 +93,10 @@ export default async function Component() {
                         </ul>
                       </li>
                       <li>
-                        <strong>That's it! 🎉</strong> Now open the assistant sidebar to see if it works. Enjoy the plugin!
+                      <strong>That's it! 🎉</strong> 
+                      <ul className="list-disc list-outside ml-4 mt-2 space-y-1 text-sm">
+                  <li> Now open the assistant sidebar to see if it works. Enjoy the plugin!</li> 
+                      </ul>
                       </li>
                     </ol>
                   </div>
@@ -133,7 +136,6 @@ export default async function Component() {
     </div>
   );
 }
-
 function ArrowDownIcon(props) {
   return (
     <svg
