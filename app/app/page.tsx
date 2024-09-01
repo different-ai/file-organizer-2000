@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { UserButton } from "@clerk/nextjs";
 import { auth } from "@clerk/nextjs/server";
 import { LicenseForm } from "./components/LicenseForm";
-import { isPaidUser } from "./actions";
+import { isPaidUser, getUserBillingCycle } from "./actions";
 
 async function UserManagement() {
   const { userId } = auth();
@@ -28,29 +28,39 @@ async function UserManagement() {
 }
 
 export default async function Component() {
+  const { userId } = auth();
+  const billingCycle = await getUserBillingCycle(userId);
+  console.log("billingCycle", billingCycle);
   return (
     <div className="flex min-h-screen py-7 px-4 sm:px-6 lg:px-8 flex-col">
       <div className="flex-1 mb-8 flex items-center justify-center pt-16">
         <div className="flex flex-col lg:flex-row w-full max-w-6xl">
-          <div className="w-full lg:w-1/2 rounded-lg overflow-hidden aspect-video mb-8 lg:mb-0">
-            <iframe
-              className="w-full h-full hidden md:block"
-              src="https://www.youtube.com/embed/XZTpbECqZps?controls=0&modestbranding=1&showinfo=0"
-              frameBorder="0"
-              allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture"
-              allowFullScreen
-            ></iframe>
-            <iframe
-              width="560"
-              height="315"
-              src="https://www.youtube.com/embed/videoseries?list=PLgRcC-DFR5jdUxbSBuNeymwYTH_FSVxio"
-              title="YouTube video player"
-              frameBorder="0"
-              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-              allowFullScreen
-            ></iframe>
-          </div>
-          <div className="flex-1 space-y-8 flex flex-col justify-center lg:pl-8">
+          {billingCycle === "monthly" && (
+            <div className="w-full lg:w-1/2 rounded-lg overflow-hidden aspect-video mb-8 lg:mb-0">
+              <iframe
+                className="w-full h-full hidden md:block"
+                src="https://www.youtube.com/embed/XZTpbECqZps?controls=0&modestbranding=1&showinfo=0"
+                frameBorder="0"
+                allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture"
+                allowFullScreen
+              ></iframe>
+              <iframe
+                width="560"
+                height="315"
+                src="https://www.youtube.com/embed/videoseries?list=PLgRcC-DFR5jdUxbSBuNeymwYTH_FSVxio"
+                title="YouTube video player"
+                frameBorder="0"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                allowFullScreen
+              ></iframe>
+            </div>
+          )}
+          {billingCycle === "lifetime" && (
+            <div className="w-full lg:w-1/2 flex items-center justify-center mb-8 lg:mb-0">
+              <div className="text-6xl font-bold text-gray-300">Display Lifetime setup video here</div>
+            </div>
+          )}
+          <div className={`flex-1 space-y-8 flex flex-col justify-center ${billingCycle === "monthly" ? "lg:pl-8" : ""}`}>
             <div className="text-center flex flex-col justify-center items-center">
               {process.env.ENABLE_USER_MANAGEMENT == "true" ? (
                 <LicenseForm />
