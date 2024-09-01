@@ -93,7 +93,10 @@ export default async function Component() {
                         </ul>
                       </li>
                       <li>
-                        <strong>That's it! 🎉</strong> Now open the assistant sidebar to see if it works. Enjoy the plugin!
+                      <strong>That's it! 🎉</strong> 
+                      <ul className="list-disc list-outside ml-4 mt-2 space-y-1 text-sm">
+                  <li> Now open the assistant sidebar to see if it works. Enjoy the plugin!</li> 
+                      </ul>
                       </li>
                     </ol>
                   </div>
