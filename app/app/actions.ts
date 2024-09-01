@@ -40,10 +40,12 @@ export async function create() {
   const isPaidUser =
     (user?.publicMetadata as CustomJwtSessionClaims["publicMetadata"])?.stripe
       ?.status === "complete";
-
+      if (!isPaidUser) {
+        throw new Error("User is not subscribed to a paid plan");
+      }  const billingCycle = await getUserBillingCycle(userId);
   const refillAmount = 1000 * 1000;
   console.log("creating with refill amount", refillAmount);
-  await createOrUpdateUserUsage(userId, refillAmount, "monthly");
+  await createOrUpdateUserUsage(userId, refillAmount, billingCycle);
 
   const key = await unkey.keys.create({
     name: name,
