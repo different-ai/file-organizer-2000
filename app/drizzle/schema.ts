@@ -208,11 +208,11 @@ export const checkUserSubscriptionStatus = async (userId: string) => {
   }
 };
 
-export async function updateUserSubscriptionStatus(
+export async function createOrUpdateUserSubscriptionStatus(
   userId: string,
   subscriptionStatus: string,
   paymentStatus: string,
-  billingCycle?: string
+  billingCycle: string
 ): Promise<void> {
   try {
     await db
@@ -223,7 +223,7 @@ export async function updateUserSubscriptionStatus(
         paymentStatus,
         apiUsage: 0, // default values for other fields
         maxUsage: 0,
-        billingCycle: "",
+        billingCycle,
         tokenUsage: 0,
         createdAt: new Date(),
       })
@@ -232,18 +232,46 @@ export async function updateUserSubscriptionStatus(
         set: {
           subscriptionStatus,
           paymentStatus,
-          billingCycle
+          billingCycle,
         },
       });
 
-    console.log(
-      `Updated or created subscription status for User ID: ${userId}`
-    );
+    console.log(`Updated or created subscription status for User ID: ${userId}`);
   } catch (error) {
-    console.error(
-      "Error updating or creating subscription status for User ID:",
-      userId
-    );
+    console.error("Error updating or creating subscription status for User ID:", userId);
+    console.error(error);
+  }
+}
+
+export async function handleFailedPayment(
+  userId: string,
+  subscriptionStatus: string,
+  paymentStatus: string
+): Promise<void> {
+  try {
+    await db
+      .insert(UserUsageTable)
+      .values({
+        userId,
+        subscriptionStatus,
+        paymentStatus,
+        billingCycle: "",
+        apiUsage: 0, // default values for other fields
+        maxUsage: 0,
+        tokenUsage: 0,
+        createdAt: new Date(),
+      })
+      .onConflictDoUpdate({
+        target: [UserUsageTable.userId],
+        set: {
+          subscriptionStatus,
+          paymentStatus,
+        },
+      });
+
+    console.log(`Updated or created failed payment status for User ID: ${userId}`);
+  } catch (error) {
+    console.error("Error updating or creating failed payment status for User ID:", userId);
     console.error(error);
   }
 }

@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import Stripe from "stripe";
-import { updateUserSubscriptionStatus } from "@/drizzle/schema";
-import { clerkClient } from "@clerk/nextjs/server";
+import { createOrUpdateUserSubscriptionStatus, handleFailedPayment } from "@/drizzle/schema";
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY as string, {
   apiVersion: "2024-04-10",
@@ -44,25 +43,9 @@ export async function POST(req: NextRequest) {
       console.log(session.payment_status);
       console.log('session.mode', session.mode);
 
-      try {
-        console.log("updating clerk metadata for user", session.metadata?.userId);
-        await clerkClient.users.updateUserMetadata(session.metadata?.userId as string, {
-          publicMetadata: {
-            stripe: {
-              status: session.status,
-              payment: session.payment_status,
-              billingCycle: session.mode === 'subscription' ? 'monthly' : 'lifetime',
-            },
-          },
-        });
-      } catch (error) {
-        console.error(`Error updating user metadata: ${error}`);
-      }
-      console.log("metadata updated");
-
       const billingCycle = session.mode === 'subscription' ? 'monthly' : 'lifetime';
 
-      await updateUserSubscriptionStatus(
+      await createOrUpdateUserSubscriptionStatus(
         session.metadata?.userId,
         session.status,
         session.payment_status,
@@ -75,7 +58,7 @@ export async function POST(req: NextRequest) {
       const subscription = event.data.object;
       const userId = subscription.metadata?.userId;
       if (userId) {
-        await updateUserSubscriptionStatus(userId, "canceled", "canceled");
+        await handleFailedPayment(userId, "canceled", "canceled");
         console.log(`Subscription canceled for user ${userId}`);
       }
       break;
@@ -84,7 +67,7 @@ export async function POST(req: NextRequest) {
       const invoice = event.data.object;
       const userId = invoice.metadata?.userId;
       if (userId) {
-        await updateUserSubscriptionStatus(userId, "incomplete", "failed");
+        await handleFailedPayment(userId, "incomplete", "failed");
         console.log(`Payment failed for user ${userId}`);
       }
       break;
