@@ -96,7 +96,7 @@ export default function Component() {
                 </li>
                 <li className="flex items-center space-x-2">
                   <CheckIcon className="h-5 w-5 text-green-500" />
-                  <span>120 min meeting transcription</span>
+                  <span>120 min audio transcription</span>
                 </li>
                 <li className="flex items-center space-x-2">
                   <CheckIcon className="h-5 w-5 text-green-500" />
@@ -145,18 +145,20 @@ export default function Component() {
                 <li className="flex items-center space-x-2">
                   <CheckIcon className="h-5 w-5 text-green-500" />
                   <span>
-                    Pay-as-you-go with your own OpenAl key. 
+                    Pay-as-you-go with your own OpenAl key
                   </span>
                 </li>
                 <li className="flex items-center space-x-2">
                   <CheckIcon className="h-5 w-5 text-green-500" />
                   <span>
-                  One month of credits on us! (incl. Hobby Plan)
+                   Privacy-focused
                   </span>
                 </li>
                 <li className="flex items-center space-x-2">
+                </li>
+                <li className="flex items-center space-x-2">
                   <CheckIcon className="h-5 w-5 text-green-500" />
-                  <span>Seamless no-sweat setup</span>
+                  <span>Quick guided setup</span>
                 </li>
 
                 <li className="flex items-center space-x-2">

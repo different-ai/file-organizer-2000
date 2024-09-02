@@ -208,7 +208,42 @@ export const checkUserSubscriptionStatus = async (userId: string) => {
   }
 };
 
-export async function updateUserSubscriptionStatus(
+export async function createOrUpdateUserSubscriptionStatus(
+  userId: string,
+  subscriptionStatus: string,
+  paymentStatus: string,
+  billingCycle: string
+): Promise<void> {
+  try {
+    await db
+      .insert(UserUsageTable)
+      .values({
+        userId,
+        subscriptionStatus,
+        paymentStatus,
+        apiUsage: 0, // default values for other fields
+        maxUsage: 0,
+        billingCycle,
+        tokenUsage: 0,
+        createdAt: new Date(),
+      })
+      .onConflictDoUpdate({
+        target: [UserUsageTable.userId],
+        set: {
+          subscriptionStatus,
+          paymentStatus,
+          billingCycle,
+        },
+      });
+
+    console.log(`Updated or created subscription status for User ID: ${userId}`);
+  } catch (error) {
+    console.error("Error updating or creating subscription status for User ID:", userId);
+    console.error(error);
+  }
+}
+
+export async function handleFailedPayment(
   userId: string,
   subscriptionStatus: string,
   paymentStatus: string
@@ -220,9 +255,9 @@ export async function updateUserSubscriptionStatus(
         userId,
         subscriptionStatus,
         paymentStatus,
+        billingCycle: "",
         apiUsage: 0, // default values for other fields
         maxUsage: 0,
-        billingCycle: "",
         tokenUsage: 0,
         createdAt: new Date(),
       })
@@ -234,14 +269,9 @@ export async function updateUserSubscriptionStatus(
         },
       });
 
-    console.log(
-      `Updated or created subscription status for User ID: ${userId}`
-    );
+    console.log(`Updated or created failed payment status for User ID: ${userId}`);
   } catch (error) {
-    console.error(
-      "Error updating or creating subscription status for User ID:",
-      userId
-    );
+    console.error("Error updating or creating failed payment status for User ID:", userId);
     console.error(error);
   }
 }

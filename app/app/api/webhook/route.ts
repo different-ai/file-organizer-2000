@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import Stripe from "stripe";
-import { updateUserSubscriptionStatus } from "@/drizzle/schema";
+import { createOrUpdateUserSubscriptionStatus, handleFailedPayment } from "@/drizzle/schema";
 import { clerkClient } from "@clerk/nextjs/server";
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY as string, {
@@ -42,6 +42,7 @@ export async function POST(req: NextRequest) {
       console.log(`User ID: ${session.metadata?.userId}`);
       console.log(session.status);
       console.log(session.payment_status);
+      console.log('session.mode', session.mode);
       try {
         console.log(
           "updating clerk metadata for user",
@@ -52,6 +53,8 @@ export async function POST(req: NextRequest) {
           {
             publicMetadata: {
               stripe: {
+                // stripe customer id
+                customerId: session.customer,
                 status: session.status,
                 payment: session.payment_status,
               },
@@ -61,11 +64,14 @@ export async function POST(req: NextRequest) {
       } catch (error) {
         console.error(`Error updating user metadata: ${error}`);
       }
-      console.log("metadata updated");
-      await updateUserSubscriptionStatus(
+
+      const billingCycle = session.mode === 'subscription' ? 'monthly' : 'lifetime';
+
+      await createOrUpdateUserSubscriptionStatus(
         session.metadata?.userId,
         session.status,
-        session.payment_status
+        session.payment_status,
+        billingCycle
       );
       console.log("User subscription status updated");
       break;
@@ -74,7 +80,7 @@ export async function POST(req: NextRequest) {
       const subscription = event.data.object;
       const userId = subscription.metadata?.userId;
       if (userId) {
-        await updateUserSubscriptionStatus(userId, "canceled", "canceled");
+        await handleFailedPayment(userId, "canceled", "canceled");
         console.log(`Subscription canceled for user ${userId}`);
       }
       break;
@@ -83,7 +89,7 @@ export async function POST(req: NextRequest) {
       const invoice = event.data.object;
       const userId = invoice.metadata?.userId;
       if (userId) {
-        await updateUserSubscriptionStatus(userId, "incomplete", "failed");
+        await handleFailedPayment(userId, "incomplete", "failed");
         console.log(`Payment failed for user ${userId}`);
       }
       break;

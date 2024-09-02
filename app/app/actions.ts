@@ -1,7 +1,9 @@
 "use server";
-import { UserUsageTable, createOrUpdateUserUsage } from "@/drizzle/schema";
+import {  createOrUpdateUserUsage } from "@/drizzle/schema";
 import { auth, clerkClient } from "@clerk/nextjs/server";
 import { Unkey } from "@unkey/api";
+import { db, UserUsageTable as UserUsageTableImport } from "@/drizzle/schema";
+import { eq } from "drizzle-orm";
 
 import { checkUserSubscriptionStatus } from "../drizzle/schema";
 
@@ -38,10 +40,12 @@ export async function create() {
   const isPaidUser =
     (user?.publicMetadata as CustomJwtSessionClaims["publicMetadata"])?.stripe
       ?.status === "complete";
-
+      if (!isPaidUser) {
+        throw new Error("User is not subscribed to a paid plan");
+      }  const billingCycle = await getUserBillingCycle(userId);
   const refillAmount = 1000 * 1000;
   console.log("creating with refill amount", refillAmount);
-  await createOrUpdateUserUsage(userId, refillAmount, "monthly");
+  await createOrUpdateUserUsage(userId, refillAmount, billingCycle);
 
   const key = await unkey.keys.create({
     name: name,
@@ -49,4 +53,21 @@ export async function create() {
     apiId,
   });
   return { key: key.result };
+}
+
+export async function getUserBillingCycle(userId: string) {
+  if (!userId) return "monthly"; // Default to monthly if no userId
+
+  try {
+    const user = await db
+      .select({ billingCycle: UserUsageTableImport.billingCycle })
+      .from(UserUsageTableImport)
+      .where(eq(UserUsageTableImport.userId, userId))
+      .limit(1);
+
+    return user[0]?.billingCycle || "monthly"; // Default to monthly if not found
+  } catch (error) {
+    console.error("Error fetching user billing cycle:", error);
+    return "monthly"; // Default to monthly in case of error
+  }
 }
