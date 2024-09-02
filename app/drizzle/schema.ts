@@ -223,7 +223,7 @@ export async function updateUserSubscriptionStatus(
         paymentStatus,
         apiUsage: 0, // default values for other fields
         maxUsage: 0,
-        billingCycle,
+        billingCycle: "",
         tokenUsage: 0,
         createdAt: new Date(),
       })
