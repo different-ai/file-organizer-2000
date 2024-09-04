@@ -10,49 +10,17 @@ interface AssistantViewProps {
 const SectionHeader: React.FC<{ 
   text: string; 
   icon?: string; 
-  onRefresh?: () => void;
-  useAiTags?: boolean;
 }> = ({
   text,
   icon,
-  onRefresh,
-  useAiTags: useAiTags
 }) => {
-  const [isSpinning, setIsSpinning] = React.useState(false);
 
-  const handleRefresh = () => {
-    setIsSpinning(true);
-    onRefresh();
-    setTimeout(() => setIsSpinning(false), 1000); // Stop spinning after 1 second
-  };
+
 
   return (
     <h6 className="assistant-section-header">
       {icon && <span className="assistant-section-icon">{icon}</span>}
       {text}
-      {onRefresh && (
-        <button 
-          onClick={handleRefresh} 
-          className={`refresh-icon-button ${isSpinning ? 'spinning' : ''}`}
-          title={useAiTags 
-            ? "Switch to tags from your vault" 
-            : "Generate tags using AI"}
-        >
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            width="15"
-            height="15"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          >
-            <path d="M21.5 2v6h-6M2.5 22v-6h6M2 11.5a10 10 0 0 1 18.8-4.3M22 12.5a10 10 0 0 1-18.8 4.3" />
-          </svg>
-        </button>
-      )}
     </h6>
   );
 };
@@ -100,36 +68,24 @@ const SimilarTags: React.FC<{
       ) : (
         <div className="tags-container">
           <div>
-            <h6>Existing Tags</h6>
-            {existingTags && existingTags.length > 0 ? (
-              existingTags.map((tag, index) => (
-                <span
-                  key={index}
-                  className="tag existing-tag"
-                  onClick={() => plugin.appendTag(file!, tag)}
-                >
-                  {tag}
-                </span>
-              ))
-            ) : (
-              <div>No existing tags found</div>
-            )}
+{[...new Set([...(existingTags || []), ...(newTags || [])])].map((tag, index) => (
+  <span
+    key={index}
+    className={`tag ${existingTags?.includes(tag) ? 'existing-tag' : 'new-tag'}`}
+    onClick={() => plugin.appendTag(file!, tag)}
+  >
+    {tag}
+  </span>
+))}
+{existingTags?.length === 0 && newTags?.length === 0 && (
+  <div>No tags found</div>
+)}
           </div>
           <div>
-            <h6>New Tags</h6>
-            {newTags && newTags.length > 0 ? (
-              newTags.map((tag, index) => (
-                <span
-                  key={index}
-                  className="tag new-tag"
-                  onClick={() => plugin.appendTag(file!, tag)}
-                >
-                  {tag}
-                </span>
-              ))
-            ) : (
-              <div>No new tags found</div>
-            )}
+
+          </div>
+          <div>
+
           </div>
         </div>
       )}
@@ -778,17 +734,14 @@ export const AssistantView: React.FC<AssistantViewProps> = ({ plugin, leaf }) =>
       />
 
       <SectionHeader 
-        text={` ${useAiTags ? 'Suggested' : 'Vault'} tags`} 
+        text="Tags"
         icon="🏷️" 
-        onRefresh={refreshTags}
-        useAiTags={useAiTags}
       />
       <SimilarTags 
         key={refreshKey} 
         plugin={plugin} 
         file={activeFile} 
         content={noteContent} 
-        useAiTags={useAiTags}
       />
 
       <SectionHeader text="Suggested title" icon="💡" />

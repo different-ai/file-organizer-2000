@@ -101,7 +101,7 @@ Provide the tags in order of relevance, starting with the most important tag${is
     model,
     temperature: 0.5,
     schema: z.object({
-      tags: z.array(z.string().refine(tag => tag.toLowerCase() !== 'none')).length(5),
+      tags: z.array(z.string().refine(tag => tag.toLowerCase() !== 'none')).length(3),
     }),
     prompt: prompt,
   });

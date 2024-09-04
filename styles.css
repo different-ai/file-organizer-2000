@@ -922,11 +922,39 @@
 }
 
 .tag.existing-tag {
-  background-color: #e0e0e0;
-  color: #333;
+  background: var(--background-secondary);
+  border-radius: 0.25rem;
+  padding: 0.25rem 0.5rem;
+  font-size: 0.9rem;
+  color: var(--text-normal);
+  cursor: pointer;
 }
 
 .tag.new-tag {
-  background-color: #4caf50;
+  /* background: var(--background-primary-alt); */
+  border: 1px dashed var(--text-muted);
+  color: var(--text-muted);
+}
+
+.tag.new-tag::before {
+  /* content: '+'; */
+  margin-right: 0.25rem;
+  color: var(--text-accent);
+}
+.tag {
+  background: var(--background-secondary);
+  border-radius: 0.25rem;
+  padding: 0.25rem 0.5rem;
+  font-size: 0.9rem;
+  color: var(--text-normal);
+  cursor: pointer;
+  margin-right: 0.25rem;
+
+
+}
+.tag:hover {
   color: white;
+  background: var(--interactive-accent);
+  font-weight: var(--nav-item-weight-hover);
+  /* border: none; */
 }
