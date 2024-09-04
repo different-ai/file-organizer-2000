@@ -42,7 +42,6 @@ export const UserUsageTable = pgTable(
 // or update the existing record if one does exist
 export async function createOrUpdateUserUsage(
   userId: string,
-  maxUsage: number,
   billingCycle: string
 ): Promise<void> {
   const result = await db
@@ -50,13 +49,12 @@ export async function createOrUpdateUserUsage(
     .values({
       userId,
       apiUsage: 0,
-      maxUsage,
+      maxUsage: 0,
       billingCycle,
     })
     .onConflictDoUpdate({
       target: [UserUsageTable.userId],
       set: {
-        maxUsage,
         billingCycle,
       },
     });
@@ -95,10 +93,7 @@ export const checkApiUsage = async (userId: string) => {
       .execute();
 
     console.log("User Usage Results for User ID:", userId, userUsage);
-    if (userUsage.length === 0) {
-      console.log("No usage record found for User ID:", userId);
-      await createOrUpdateUserUsage(userId, 2000, "monthly");
-    }
+
     if (userUsage[0].apiUsage >= userUsage[0].maxUsage) {
       console.log("User has exceeded their API usage limit");
 

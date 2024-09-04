@@ -42,14 +42,16 @@ export async function create() {
       ?.status === "complete";
       if (!isPaidUser) {
         throw new Error("User is not subscribed to a paid plan");
-      }  const billingCycle = await getUserBillingCycle(userId);
-  const refillAmount = 1000 * 1000;
-  console.log("creating with refill amount", refillAmount);
-  await createOrUpdateUserUsage(userId, refillAmount, billingCycle);
+  }
+  const billingCycle = await getUserBillingCycle(userId);
+  await createOrUpdateUserUsage(userId, billingCycle);
 
   const key = await unkey.keys.create({
     name: name,
     ownerId: userId,
+    meta: {
+      billingCycle,
+    },
     apiId,
   });
   return { key: key.result };
