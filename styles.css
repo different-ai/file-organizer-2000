@@ -920,3 +920,13 @@
   border-radius: 0.25rem;
   cursor: pointer;
 }
+
+.tag.existing-tag {
+  background-color: #e0e0e0;
+  color: #333;
+}
+
+.tag.new-tag {
+  background-color: #4caf50;
+  color: white;
+}

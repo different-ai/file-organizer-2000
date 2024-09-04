@@ -52,6 +52,68 @@ export async function generateTags(
   return response;
 }
 
+export async function generateExistingTags(
+  content: string,
+  fileName: string,
+  vaultTags: string[],
+  model: LanguageModel
+) {
+  const prompt = `Given the text "${content}" and the file name "${fileName}", identify the 3 most relevant tags from the following list: ${vaultTags.join(", ")}. Only include tags that are highly relevant and directly related to the main topics or themes of the content. If there are fewer than 3 highly relevant tags, return only those that are truly relevant. Prioritize specificity and accuracy over quantity.`;
+
+  const response = await generateObject({
+    model,
+    temperature: 0,
+    schema: z.object({
+      tags: z.array(z.string()).max(3),
+      relevance: z.array(z.number().min(0).max(1)).length(3),
+    }),
+    prompt: prompt,
+  });
+
+  response.object.tags = response.object.tags.map(tag => {
+    const tagWithoutSpaces = tag.replace(/\s+/g, '');
+    return tagWithoutSpaces.startsWith('#') ? tagWithoutSpaces : '#' + tagWithoutSpaces;
+  });
+
+  return response;
+}
+export async function generateNewTags(
+  content: string,
+  fileName: string,
+  model: LanguageModel
+) {
+  const isUntitled = fileName.toLowerCase().includes('untitled');
+  const prompt = `Analyze the ${isUntitled ? 'content' : 'file name "' + fileName + '" and the content'} "${content}". Generate 3 tags that a professional would use in a work environment for this note${isUntitled ? '' : ', giving significant importance to the file name'}. Consider these guidelines:
+
+1. ${isUntitled ? 'Focus on the main topics or themes in the content.' : 'The file name is crucial - it often contains the main topic or purpose of the note.'}
+2. Use natural, intuitive tags that reflect the main topic${isUntitled ? 's from the content' : ' from the file name and key points from the content'}.
+3. Include at least one tag that describes the type of content (e.g., script, email, draft, report, meeting-notes).
+4. Tags should be concise and professional, strongly preferring single-word tags. Only use multi-word tags if absolutely necessary.
+5. All tags must be in lowercase.
+6. If a multi-word tag is unavoidable, use hyphens to separate words (e.g., 'project-planning').
+7. Include a mix of general and specific tags, but lean towards specificity${isUntitled ? '' : ' based on the file name'}.
+8. Consider common workplace categories such as project names, departments, document types, or business processes.
+9. Avoid overly personal or informal tags.
+
+Provide the tags in order of relevance, starting with the most important tag${isUntitled ? ' derived from the content' : ' derived from the file name'}. Remember, single-word tags are strongly preferred, and all tags must be lowercase.`;
+
+  const response = await generateObject({
+    model,
+    temperature: 0.5,
+    schema: z.object({
+      tags: z.array(z.string().refine(tag => tag.toLowerCase() !== 'none')).length(5),
+    }),
+    prompt: prompt,
+  });
+
+  response.object.tags = response.object.tags.map(tag => {
+    const tagWithoutSpaces = tag.replace(/\s+/g, '');
+    return tagWithoutSpaces.startsWith('#') ? tagWithoutSpaces : '#' + tagWithoutSpaces;
+  });
+
+  return response;
+}
+
 // Function to generate alias variations
 export async function generateAliasVariations(
   fileName: string,

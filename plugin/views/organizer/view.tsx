@@ -61,22 +61,29 @@ const SimilarTags: React.FC<{
   plugin: FileOrganizer;
   file: TFile | null;
   content: string;
-  useAiTags: boolean;
-}> = ({ plugin, file, content, useAiTags: useAiTags }) => {
-  const [suggestions, setSuggestions] = React.useState<string[] | null>(null);
+}> = ({ plugin, file, content }) => {
+  const [existingTags, setExistingTags] = React.useState<string[] | null>(null);
+  const [newTags, setNewTags] = React.useState<string[] | null>(null);
   const [loading, setLoading] = React.useState<boolean>(false);
 
   React.useEffect(() => {
     const suggestTags = async () => {
-      if (!content) {
-        setSuggestions([]);
+      if (!content || !file) {
+        setExistingTags([]);
+        setNewTags([]);
         return;
       }
-      setSuggestions(null);
+      setExistingTags(null);
+      setNewTags(null);
       setLoading(true);
       try {
-        const tags = await plugin.getSimilarTags(content, file.basename, useAiTags);
-        setSuggestions(tags);
+        const vaultTags = await plugin.getAllVaultTags();
+        const [existingTagsResult, newTagsResult] = await Promise.all([
+          plugin.getExistingTags(content, file.basename, vaultTags),
+          plugin.getNewTags(content, file.basename)
+        ]);
+        setExistingTags(existingTagsResult);
+        setNewTags(newTagsResult);
       } catch (error) {
         console.error(error);
       } finally {
@@ -84,7 +91,7 @@ const SimilarTags: React.FC<{
       }
     };
     suggestTags();
-  }, [content, useAiTags]);
+  }, [content]);
 
   return (
     <div className="assistant-section tags-section">
@@ -92,18 +99,38 @@ const SimilarTags: React.FC<{
         <div>Loading...</div>
       ) : (
         <div className="tags-container">
-          {suggestions &&
-            suggestions.map((tag, index) => (
-              <span
-                key={index}
-                className="tag"
-                onClick={() => plugin.appendTag(file!, tag)}
-              >
-                {tag}
-              </span>
-            ))}
-          {!suggestions && <div>No tags found</div>}
-          {suggestions && suggestions.length === 0 && <div>No tags found</div>}
+          <div>
+            <h6>Existing Tags</h6>
+            {existingTags && existingTags.length > 0 ? (
+              existingTags.map((tag, index) => (
+                <span
+                  key={index}
+                  className="tag existing-tag"
+                  onClick={() => plugin.appendTag(file!, tag)}
+                >
+                  {tag}
+                </span>
+              ))
+            ) : (
+              <div>No existing tags found</div>
+            )}
+          </div>
+          <div>
+            <h6>New Tags</h6>
+            {newTags && newTags.length > 0 ? (
+              newTags.map((tag, index) => (
+                <span
+                  key={index}
+                  className="tag new-tag"
+                  onClick={() => plugin.appendTag(file!, tag)}
+                >
+                  {tag}
+                </span>
+              ))
+            ) : (
+              <div>No new tags found</div>
+            )}
+          </div>
         </div>
       )}
     </div>

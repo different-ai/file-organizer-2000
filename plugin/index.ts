@@ -965,6 +965,42 @@ export default class FileOrganizer extends Plugin {
     }
   }
 
+  async getExistingTags(content: string, fileName: string, vaultTags: string[]): Promise<string[]> {
+    try {
+      const response = await fetch(`${this.getServerUrl()}/api/tags/existing`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${this.settings.API_KEY}`
+        },
+        body: JSON.stringify({ content, fileName, vaultTags })
+      });
+      const data = await response.json();
+      return data.generatedTags;
+    } catch (error) {
+      console.error('Error fetching existing tags:', error);
+      return [];
+    }
+  }
+  
+  async getNewTags(content: string, fileName: string): Promise<string[]> {
+    try {
+      const response = await fetch(`${this.getServerUrl()}/api/tags/new`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${this.settings.API_KEY}`
+        },
+        body: JSON.stringify({ content, fileName })
+      });
+      const data = await response.json();
+      return data.generatedTags;
+    } catch (error) {
+      console.error('Error fetching new tags:', error);
+      return [];
+    }
+  }
+
   async getAllVaultTags(): Promise<string[]> {
     // Fetch all tags from the vault
     // @ts-ignore
