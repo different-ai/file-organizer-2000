@@ -99,7 +99,7 @@ Provide the tags in order of relevance, starting with the most important tag${is
 
   const response = await generateObject({
     model,
-    temperature: 0.5,
+    temperature: 0,
     schema: z.object({
       tags: z.array(z.string().refine(tag => tag.toLowerCase() !== 'none')).length(3),
     }),

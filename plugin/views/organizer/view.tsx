@@ -29,7 +29,8 @@ const SimilarTags: React.FC<{
   plugin: FileOrganizer;
   file: TFile | null;
   content: string;
-}> = ({ plugin, file, content }) => {
+  refreshKey: number;
+}> = ({ plugin, file, content, refreshKey }) => {
   const [existingTags, setExistingTags] = React.useState<string[] | null>(null);
   const [newTags, setNewTags] = React.useState<string[] | null>(null);
   const [loading, setLoading] = React.useState<boolean>(false);
@@ -51,7 +52,9 @@ const SimilarTags: React.FC<{
           plugin.getNewTags(content, file.basename)
         ]);
         setExistingTags(existingTagsResult);
-        setNewTags(newTagsResult);
+        // Filter out any new tags that are already in existingTags
+        const filteredNewTags = newTagsResult.filter(tag => !existingTagsResult.includes(tag));
+        setNewTags(filteredNewTags);
       } catch (error) {
         console.error(error);
       } finally {
@@ -59,7 +62,12 @@ const SimilarTags: React.FC<{
       }
     };
     suggestTags();
-  }, [content]);
+  }, [content, refreshKey]);
+
+  const allTags = React.useMemo(() => {
+    const uniqueTags = new Set([...(existingTags || []), ...(newTags || [])]);
+    return Array.from(uniqueTags);
+  }, [existingTags, newTags]);
 
   return (
     <div className="assistant-section tags-section">
@@ -68,24 +76,18 @@ const SimilarTags: React.FC<{
       ) : (
         <div className="tags-container">
           <div>
-{[...new Set([...(existingTags || []), ...(newTags || [])])].map((tag, index) => (
-  <span
-    key={index}
-    className={`tag ${existingTags?.includes(tag) ? 'existing-tag' : 'new-tag'}`}
-    onClick={() => plugin.appendTag(file!, tag)}
-  >
-    {tag}
-  </span>
-))}
-{existingTags?.length === 0 && newTags?.length === 0 && (
-  <div>No tags found</div>
-)}
-          </div>
-          <div>
-
-          </div>
-          <div>
-
+            {allTags.map((tag, index) => (
+              <span
+                key={index}
+                className={`tag ${existingTags?.includes(tag) ? 'existing-tag' : 'new-tag'}`}
+                onClick={() => plugin.appendTag(file!, tag)}
+              >
+                {tag}
+              </span>
+            ))}
+            {allTags.length === 0 && (
+              <div>No tags found</div>
+            )}
           </div>
         </div>
       )}
@@ -166,14 +168,15 @@ const RenameSuggestion: React.FC<{
   plugin: FileOrganizer;
   file: TFile | null;
   content: string;
-}> = ({ plugin, file, content }) => {
+  refreshKey: number;
+}> = ({ plugin, file, content, refreshKey }) => {
   const [alias, setTitle] = React.useState<string | null>(null);
   const [loading, setLoading] = React.useState<boolean>(false);
   const [error, setError] = React.useState<string | null>(null);
 
   React.useEffect(() => {
     const suggestAlias = async () => {
-      if (!content) {
+      if (!content || !file) {
         setTitle(null);
         return;
       }
@@ -197,7 +200,7 @@ const RenameSuggestion: React.FC<{
       }
     };
     suggestAlias();
-  }, [content]);
+  }, [content, refreshKey]);
 
   return (
     <div className="assistant-section alias-section">
@@ -236,14 +239,15 @@ const AliasSuggestionBox: React.FC<{
   plugin: FileOrganizer;
   file: TFile | null;
   content: string;
-}> = ({ plugin, file, content }) => {
+  refreshKey: number;
+}> = ({ plugin, file, content, refreshKey }) => {
   const [aliases, setAliases] = React.useState<string[]>([]);
   const [loading, setLoading] = React.useState<boolean>(false);
   const [error, setError] = React.useState<string | null>(null);
 
   React.useEffect(() => {
     const suggestAliases = async () => {
-      if (!content) {
+      if (!content || !file) {
         setAliases([]);
         return;
       }
@@ -264,7 +268,7 @@ const AliasSuggestionBox: React.FC<{
       }
     };
     suggestAliases();
-  }, [content]);
+  }, [content, refreshKey]);
 
   const handleAliasClick = (alias: string) => {
     plugin.appendAlias(file, alias);
@@ -304,13 +308,14 @@ const SimilarFolderBox: React.FC<{
   plugin: FileOrganizer;
   file: TFile | null;
   content: string;
-}> = ({ plugin, file, content }) => {
+  refreshKey: number;
+}> = ({ plugin, file, content, refreshKey }) => {
   const [folder, setFolder] = React.useState<string | null>(null);
   const [loading, setLoading] = React.useState<boolean>(false);
 
   React.useEffect(() => {
     const suggestFolder = async () => {
-      if (!content) return;
+      if (!content || !file) return;
       setFolder(null);
       setLoading(true);
       const suggestedFolder = await plugin.getAIClassifiedFolder(
@@ -321,7 +326,7 @@ const SimilarFolderBox: React.FC<{
       setLoading(false);
     };
     suggestFolder();
-  }, [content]);
+  }, [content, refreshKey]);
 
   return (
     <div className="assistant-section folder-section">
@@ -412,7 +417,8 @@ const ClassificationBox: React.FC<{
   plugin: FileOrganizer;
   file: TFile | null;
   content: string;
-}> = ({ plugin, file, content }) => {
+  refreshKey: number;
+}> = ({ plugin, file, content, refreshKey }) => {
   const [classification, setClassification] = React.useState<Classification | null>(null);
   const [templates, setTemplates] = React.useState<Template[]>([]);
   const [selectedTemplate, setSelectedTemplate] = React.useState<Template | null>(null);
@@ -422,7 +428,7 @@ const ClassificationBox: React.FC<{
 
   React.useEffect(() => {
     const fetchClassificationAndTemplates = async () => {
-      if (!content) return;
+      if (!content || !file) return;
       try {
         const fileContent = await plugin.app.vault.read(file!);
         const result = await plugin.classifyContent(fileContent, file!.basename);
@@ -446,7 +452,7 @@ const ClassificationBox: React.FC<{
     return () => {
       document.removeEventListener('mousedown', handleClickOutside);
     };
-  }, [content, file, plugin]);
+  }, [content, file, plugin, refreshKey]);
 
   const handleFormat = async (template: Template) => {
     try {
@@ -614,7 +620,6 @@ export const AssistantView: React.FC<AssistantViewProps> = ({ plugin, leaf }) =>
   const [noteContent, setNoteContent] = React.useState<string>("");
   const [hasAudio, setHasAudio] = React.useState<boolean>(false);
   const [refreshKey, setRefreshKey] = React.useState<number>(0);
-  const [useAiTags, setUseAiTags] = React.useState<boolean>(false);
 
   const refreshAssistant = () => {
     setRefreshKey((prevKey) => prevKey + 1);
@@ -689,17 +694,8 @@ export const AssistantView: React.FC<AssistantViewProps> = ({ plugin, leaf }) =>
     return validMediaExtensions.includes(file.extension);
   };
 
-  const refreshTags = () => {
-    if (activeFile) {
-      setUseAiTags((prev) => !prev);
-      setRefreshKey((prevKey) => prevKey + 1);
-    }
-  };
 
-  React.useEffect(() => {
-    // Reset useAiTags when a new file is opened
-    setUseAiTags(false);
-  }, [activeFile]);
+
 
   // if active file is null, display a placeholder (e.g. when opening a file in the Fo2k folder)
   if (!activeFile) {
@@ -731,6 +727,7 @@ export const AssistantView: React.FC<AssistantViewProps> = ({ plugin, leaf }) =>
         plugin={plugin}
         file={activeFile}
         content={noteContent}
+        refreshKey={refreshKey}
       />
 
       <SectionHeader 
@@ -738,10 +735,10 @@ export const AssistantView: React.FC<AssistantViewProps> = ({ plugin, leaf }) =>
         icon="🏷️" 
       />
       <SimilarTags 
-        key={refreshKey} 
         plugin={plugin} 
         file={activeFile} 
         content={noteContent} 
+        refreshKey={refreshKey} 
       />
 
       <SectionHeader text="Suggested title" icon="💡" />
@@ -749,6 +746,7 @@ export const AssistantView: React.FC<AssistantViewProps> = ({ plugin, leaf }) =>
         plugin={plugin}
         file={activeFile}
         content={noteContent}
+        refreshKey={refreshKey}
       />
       {plugin.settings.enableAliasGeneration && (
         <>
@@ -758,6 +756,7 @@ export const AssistantView: React.FC<AssistantViewProps> = ({ plugin, leaf }) =>
             plugin={plugin}
             file={activeFile}
             content={noteContent}
+            refreshKey={refreshKey}
           />
         </>
       )}
@@ -767,6 +766,7 @@ export const AssistantView: React.FC<AssistantViewProps> = ({ plugin, leaf }) =>
         plugin={plugin}
         file={activeFile}
         content={noteContent}
+        refreshKey={refreshKey}
       />
 
       {plugin.settings.enableSimilarFiles && (

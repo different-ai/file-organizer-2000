@@ -942,12 +942,7 @@
   color: var(--text-accent);
 }
 .tag {
-  background: var(--background-secondary);
-  border-radius: 0.25rem;
-  padding: 0.25rem 0.5rem;
-  font-size: 0.9rem;
-  color: var(--text-normal);
-  cursor: pointer;
+
   margin-right: 0.25rem;
 
 
