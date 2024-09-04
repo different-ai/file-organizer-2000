@@ -36,7 +36,7 @@ export async function generateTags(
   const response = await generateObject({
     model,
     schema: z.object({
-      tags: z.array(z.string().refine(tag => tag.toLowerCase() !== 'none')).length(5),
+      tags: z.array(z.string().refine(tag => tag.toLowerCase() !== 'none')).length(3),
     }),
 
     prompt: prompt,
