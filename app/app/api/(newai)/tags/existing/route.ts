@@ -11,14 +11,7 @@ export async function POST(request: NextRequest) {
     const model = getModel(process.env.MODEL_NAME);
     const generateTagsData = await generateExistingTags(content, fileName, vaultTags, model);
     
-    // Strict filtering of generated tags
-    const generatedTags = generateTagsData.object.tags?.filter(tag => {
-      const normalizedTag = tag.startsWith('#') ? tag.slice(1) : tag;
-      return vaultTags.some(vaultTag => {
-        const normalizedVaultTag = vaultTag.startsWith('#') ? vaultTag.slice(1) : vaultTag;
-        return normalizedVaultTag.toLowerCase() === normalizedTag.toLowerCase();
-      });
-    }) ?? [];
+    const generatedTags = generateTagsData.object.tags ?? [];
 
     const tokens = generateTagsData.usage.totalTokens;
     console.log("incrementing token usage existing tags", userId, tokens);

@@ -81,7 +81,7 @@ const SimilarTags: React.FC<{
               className={`tag ${existingTags?.includes(tag) ? 'existing-tag' : 'new-tag'}`}
               onClick={() => plugin.appendTag(file!, tag)}
             >
-              {tag}
+              #{tag}
             </span>
           ))}
           {allTags.length === 0 && (
