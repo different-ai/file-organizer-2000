@@ -20,13 +20,14 @@ export async function generateTags(
   vaultTags: string[] | null,
   model: LanguageModel
 ) {
+
   let prompt: string;
   // when in vault tags mode
   if (Array.isArray(vaultTags)) {
     // Use existing tags from the vault
-    prompt = `Given the text "${content}" (and if relevant ${fileName}), identify the 5 most relevant tags from the following list, sorted from most commonly found to least commonly found: ${vaultTags.join(
+    prompt = `Given the text "${content}" (and if relevant ${fileName}), identify the at most 3 relevant tags from the following list, sorted from most commonly found to least commonly found: ${vaultTags.join(
       ", "
-    )}. Do not include 'none' as a tag.`;
+    )}`
     // when in generate new tags mode
   } else {
     // Generate likely tags
@@ -36,18 +37,87 @@ export async function generateTags(
   const response = await generateObject({
     model,
     schema: z.object({
-      tags: z.array(z.string().refine(tag => tag.toLowerCase() !== 'none')).length(5),
+      tags: z.array(z.string().refine(tag => tag.toLowerCase() !== 'none')).length(3),
     }),
 
     prompt: prompt,
   });
 
-  // Post-process all tags to ensure they have a '#' prefix
-  response.object.tags = response.object.tags.map(tag => {
-    // remove spaces from the tag
-    const tagWithoutSpaces = tag.replace(/\s+/g, '');
-    return tagWithoutSpaces.startsWith('#') ? tagWithoutSpaces : '#' + tagWithoutSpaces;
+// Post-process all tags to ensure they have a '#' prefix
+response.object.tags = response.object.tags.map(tag => {
+  // remove spaces from the tag
+  const tagWithoutSpaces = tag.replace(/\s+/g, '');
+  return tagWithoutSpaces.startsWith('#') ? tagWithoutSpaces : '#' + tagWithoutSpaces;
+});
+
+  return response;
+}
+
+export async function generateExistingTags(
+  content: string,
+  fileName: string,
+  vaultTags: string[],
+  model: LanguageModel
+) {
+const prompt = `For "${content}" (file: "${fileName}"), select up to 3 tags from: ${vaultTags.join(", ")}. Only choose tags with an evident link to the main topics that is not too specific. If none meet this criterion, return null.`;
+
+  const response = await generateObject({
+    model,
+    temperature: 0,
+    schema: z.object({
+      tags: z.array(z.string()).max(3),
+    }),
+    prompt: prompt,
   });
+
+
+// Filter tags based on relevance and format them
+response.object.tags = response.object.tags
+  .filter((tag, index) => {
+    const cleanedTag = tag.toLowerCase();
+    return cleanedTag !== 'none' && cleanedTag !== '' 
+  })
+  .map(tag => tag.replace(/\s+/g, '').toLowerCase());
+  return response;
+}
+export async function generateNewTags(
+  content: string,
+  fileName: string,
+  model: LanguageModel
+) {
+  const isUntitled = fileName.toLowerCase().includes('untitled');
+  const prompt = `Generate 3 tags for the ${isUntitled ? 'content' : 'file "' + fileName + '" and content'} "${content}":
+  
+  1. One tag reflecting the topic or platform
+  2. One tag indicating the document type (e.g., meeting_notes, research, brainstorm, draft).
+  3. One more specific tag inspired by the file name 
+  4. Use  underscores for multi-word tags.
+  5. Ensure tags are concise and reusable across notes.
+  6. Return null if no tags can be generated.
+  
+  Examples:
+  - Use moderately broad tags like fitness_plan, not overly specific like monday_dumbells_20kg.
+  - For "humility and leadership", use humility.`
+
+
+  const response = await generateObject({
+    model,
+    temperature: 0.5,
+    schema: z.object({
+      tags: z.array(z.string()).max(3),
+    }),
+    prompt: prompt,
+  });
+
+  // Filter tags based on relevance and format them
+// Filter tags based on relevance and format them
+response.object.tags = response.object.tags
+  .filter((tag, index) => {
+    const cleanedTag = tag.toLowerCase();
+
+    return cleanedTag !== 'none' && cleanedTag !== '' 
+  })
+  .map(tag => tag.replace(/\s+/g, '').toLowerCase());
 
   return response;
 }
