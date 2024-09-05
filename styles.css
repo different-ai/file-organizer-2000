@@ -37,21 +37,31 @@
 .tags-container {
   display: flex;
   flex-wrap: wrap;
-  gap: 0.25rem;
+  gap: 0.5rem;
 }
 
 .tag {
-  background: var(--background-secondary);
   border-radius: 0.25rem;
   padding: 0.25rem 0.5rem;
   font-size: 0.9rem;
-  color: var(--text-normal);
   cursor: pointer;
+  transition: background-color 0.2s, color 0.2s;
+}
+
+.tag.existing-tag {
+  background: var(--background-secondary);
+  color: var(--text-normal);
+}
+
+.tag.new-tag {
+  background: transparent;
+  border: 1px dashed var(--text-muted);
+  color: var(--text-muted);
 }
 
 .tag:hover {
-  color: white;
   background: var(--interactive-accent);
+  color: white;
   font-weight: var(--nav-item-weight-hover);
 }
 

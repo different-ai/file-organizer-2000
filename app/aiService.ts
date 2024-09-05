@@ -45,12 +45,11 @@ export async function generateTags(
 
 // Post-process all tags to ensure they have a '#' prefix
 response.object.tags = response.object.tags.map(tag => {
-  // Remove spaces and convert to lowercase
-  const cleanedTag = tag.replace(/\s+/g, '').toLowerCase();
-  
-  // Add '#' prefix if not present
-  return cleanedTag.startsWith('#') ? cleanedTag : `#${cleanedTag}`;
+  // remove spaces from the tag
+  const tagWithoutSpaces = tag.replace(/\s+/g, '');
+  return tagWithoutSpaces.startsWith('#') ? tagWithoutSpaces : '#' + tagWithoutSpaces;
 });
+
   return response;
 }
 

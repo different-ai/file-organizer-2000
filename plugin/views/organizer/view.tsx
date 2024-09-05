@@ -75,20 +75,18 @@ const SimilarTags: React.FC<{
         <div>Loading...</div>
       ) : (
         <div className="tags-container">
-          <div>
-            {allTags.map((tag, index) => (
-              <span
-                key={index}
-                className={`tag ${existingTags?.includes(tag) ? 'existing-tag' : 'new-tag'}`}
-                onClick={() => plugin.appendTag(file!, tag)}
-              >
-                {tag.startsWith('#') ? tag : `#${tag}`}
-              </span>
-            ))}
-            {allTags.length === 0 && (
-              <div>No tags found</div>
-            )}
-          </div>
+          {allTags.map((tag, index) => (
+            <span
+              key={index}
+              className={`tag ${existingTags?.includes(tag) ? 'existing-tag' : 'new-tag'}`}
+              onClick={() => plugin.appendTag(file!, tag)}
+            >
+              {tag}
+            </span>
+          ))}
+          {allTags.length === 0 && (
+            <div>No tags found</div>
+          )}
         </div>
       )}
     </div>
