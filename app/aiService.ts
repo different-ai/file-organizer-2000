@@ -93,8 +93,7 @@ export async function generateNewTags(
   3. One more specific tag inspired by the file name 
   4. Use  underscores for multi-word tags.
   5. Ensure tags are concise and reusable across notes.
-  6. Prefer one word tags.
-  7. Return null if no tags can be generated.
+  6. Return null if no tags can be generated.
   
   Examples:
   - Use moderately broad tags like fitness_plan, not overly specific like monday_dumbells_20kg.
