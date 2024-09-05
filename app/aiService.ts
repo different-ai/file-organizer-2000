@@ -20,13 +20,14 @@ export async function generateTags(
   vaultTags: string[] | null,
   model: LanguageModel
 ) {
+
   let prompt: string;
   // when in vault tags mode
   if (Array.isArray(vaultTags)) {
     // Use existing tags from the vault
-    prompt = `Given the text "${content}" (and if relevant ${fileName}), identify the 5 most relevant tags from the following list, sorted from most commonly found to least commonly found: ${vaultTags.join(
+    prompt = `Given the text "${content}" (and if relevant ${fileName}), identify the at most 3 relevant tags from the following list, sorted from most commonly found to least commonly found: ${vaultTags.join(
       ", "
-    )}. Do not include 'none' as a tag.`;
+    )}`
     // when in generate new tags mode
   } else {
     // Generate likely tags
@@ -59,7 +60,7 @@ export async function generateExistingTags(
   model: LanguageModel
 ) {
   const prompt = `Given the text "${content}" and the file name "${fileName}", identify the 3 most relevant tags from the following list: ${vaultTags.join(", ")}. Only include tags that are highly relevant and directly related to the main topics or themes of the content. If there are fewer than 3 highly relevant tags, return only those that are truly relevant. Prioritize specificity and accuracy over quantity.`;
-
+  console.log("vaultTags", vaultTags);
   const response = await generateObject({
     model,
     temperature: 0,
@@ -70,11 +71,16 @@ export async function generateExistingTags(
     prompt: prompt,
   });
 
-  response.object.tags = response.object.tags.map(tag => {
-    const tagWithoutSpaces = tag.replace(/\s+/g, '');
-    return tagWithoutSpaces.startsWith('#') ? tagWithoutSpaces : '#' + tagWithoutSpaces;
-  });
-
+  // Filter out 'none' tags and format remaining tags
+  response.object.tags = response.object.tags
+    .filter(tag => {
+      const lowercaseTag = tag.toLowerCase().replace(/^#/, '');
+      return lowercaseTag !== 'none' && lowercaseTag !== '';
+    })
+    .map(tag => {
+      const tagWithoutSpaces = tag.replace(/\s+/g, '').toLowerCase();
+      return tagWithoutSpaces.startsWith('#') ? tagWithoutSpaces : '#' + tagWithoutSpaces;
+    });
   return response;
 }
 export async function generateNewTags(
@@ -96,6 +102,8 @@ export async function generateNewTags(
   Examples:
   - Use moderately broad tags like fitness_plan, not overly specific like monday_dumbells_20kg.
   - For "humility and leadership", use humility.`
+
+  
   const response = await generateObject({
     model,
     temperature: 0.5,
