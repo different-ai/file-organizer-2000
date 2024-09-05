@@ -43,13 +43,14 @@ export async function generateTags(
     prompt: prompt,
   });
 
-  // Post-process all tags to ensure they have a '#' prefix
-  response.object.tags = response.object.tags.map(tag => {
-    // remove spaces from the tag
-    const tagWithoutSpaces = tag.replace(/\s+/g, '');
-    return tagWithoutSpaces.startsWith('#') ? tagWithoutSpaces : '#' + tagWithoutSpaces;
-  });
-
+// Post-process all tags to ensure they have a '#' prefix
+response.object.tags = response.object.tags.map(tag => {
+  // Remove spaces and convert to lowercase
+  const cleanedTag = tag.replace(/\s+/g, '').toLowerCase();
+  
+  // Add '#' prefix if not present
+  return cleanedTag.startsWith('#') ? cleanedTag : `#${cleanedTag}`;
+});
   return response;
 }
 
@@ -59,31 +60,25 @@ export async function generateExistingTags(
   vaultTags: string[],
   model: LanguageModel
 ) {
-const prompt = `For "${content}" (file: "${fileName}"), select up to 3 tags from: ${vaultTags.join(", ")}. Only choose tags with an evident link to the main topics that is not too specific. If none meet this criterion, return []. Output as JSON array.`;
+const prompt = `For "${content}" (file: "${fileName}"), select up to 3 tags from: ${vaultTags.join(", ")}. Only choose tags with an evident link to the main topics that is not too specific. If none meet this criterion, return null.`;
 
   const response = await generateObject({
     model,
     temperature: 0,
     schema: z.object({
       tags: z.array(z.string()).max(3),
-      relevance: z.array(z.number().min(0).max(1)).length(3),
     }),
     prompt: prompt,
   });
 
 
-  // Filter tags based on relevance and format them
-  response.object.tags = response.object.tags
-    .filter((tag, index) => {
-      const lowercaseTag = tag.toLowerCase().replace(/^#/, '');
-      const isRelevant = response.object.relevance[index] >= 0.9;
-      return lowercaseTag !== 'none' && lowercaseTag !== '' && isRelevant;
-    })
-    .map(tag => {
-      const tagWithoutSpaces = tag.replace(/\s+/g, '').toLowerCase();
-      return tagWithoutSpaces.startsWith('#') ? tagWithoutSpaces : '#' + tagWithoutSpaces;
-    });
-
+// Filter tags based on relevance and format them
+response.object.tags = response.object.tags
+  .filter((tag, index) => {
+    const cleanedTag = tag.toLowerCase();
+    return cleanedTag !== 'none' && cleanedTag !== '' 
+  })
+  .map(tag => tag.replace(/\s+/g, '').toLowerCase());
   return response;
 }
 export async function generateNewTags(
@@ -97,7 +92,7 @@ export async function generateNewTags(
   1. One tag reflecting the topic or platform
   2. One tag indicating the document type (e.g., meeting_notes, research, brainstorm, draft).
   3. One more specific tag inspired by the file name 
-  4. Use lowercase and underscores for multi-word tags.
+  4. Use  underscores for multi-word tags.
   5. Ensure tags are concise and reusable across notes.
   6. Prefer one word tags.
   7. Return null if no tags can be generated.
@@ -112,22 +107,19 @@ export async function generateNewTags(
     temperature: 0.5,
     schema: z.object({
       tags: z.array(z.string()).max(3),
-      relevance: z.array(z.number().min(0).max(1)).length(3),
     }),
     prompt: prompt,
   });
 
   // Filter tags based on relevance and format them
-  response.object.tags = response.object.tags
-    .filter((tag, index) => {
-      const lowercaseTag = tag.toLowerCase().replace(/^#/, '');
-      const isRelevant = response.object.relevance[index] >= 0.8;
-      return lowercaseTag !== 'none' && lowercaseTag !== '' && isRelevant;
-    })
-    .map(tag => {
-      const tagWithoutSpaces = tag.replace(/\s+/g, '').toLowerCase();
-      return tagWithoutSpaces.startsWith('#') ? tagWithoutSpaces : '#' + tagWithoutSpaces;
-    });
+// Filter tags based on relevance and format them
+response.object.tags = response.object.tags
+  .filter((tag, index) => {
+    const cleanedTag = tag.toLowerCase();
+
+    return cleanedTag !== 'none' && cleanedTag !== '' 
+  })
+  .map(tag => tag.replace(/\s+/g, '').toLowerCase());
 
   return response;
 }
