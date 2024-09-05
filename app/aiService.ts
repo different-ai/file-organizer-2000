@@ -59,8 +59,8 @@ export async function generateExistingTags(
   vaultTags: string[],
   model: LanguageModel
 ) {
-  const prompt = `Given the text "${content}" and the file name "${fileName}", identify the 3 most relevant tags from the following list: ${vaultTags.join(", ")}. Only include tags that are highly relevant and directly related to the main topics or themes of the content. If there are fewer than 3 highly relevant tags, return only those that are truly relevant. Prioritize specificity and accuracy over quantity.`;
-  console.log("vaultTags", vaultTags);
+const prompt = `For "${content}" (file: "${fileName}"), select up to 3 tags from: ${vaultTags.join(", ")}. Only choose tags with an evident link to the main topics that is not too specific. If none meet this criterion, return []. Output as JSON array.`;
+
   const response = await generateObject({
     model,
     temperature: 0,
@@ -71,16 +71,19 @@ export async function generateExistingTags(
     prompt: prompt,
   });
 
-  // Filter out 'none' tags and format remaining tags
+
+  // Filter tags based on relevance and format them
   response.object.tags = response.object.tags
-    .filter(tag => {
+    .filter((tag, index) => {
       const lowercaseTag = tag.toLowerCase().replace(/^#/, '');
-      return lowercaseTag !== 'none' && lowercaseTag !== '';
+      const isRelevant = response.object.relevance[index] >= 0.9;
+      return lowercaseTag !== 'none' && lowercaseTag !== '' && isRelevant;
     })
     .map(tag => {
       const tagWithoutSpaces = tag.replace(/\s+/g, '').toLowerCase();
       return tagWithoutSpaces.startsWith('#') ? tagWithoutSpaces : '#' + tagWithoutSpaces;
     });
+
   return response;
 }
 export async function generateNewTags(
@@ -103,20 +106,28 @@ export async function generateNewTags(
   - Use moderately broad tags like fitness_plan, not overly specific like monday_dumbells_20kg.
   - For "humility and leadership", use humility.`
 
-  
+
   const response = await generateObject({
     model,
     temperature: 0.5,
     schema: z.object({
-      tags: z.array(z.string().refine(tag => tag.toLowerCase() !== 'none')).length(3),
+      tags: z.array(z.string()).max(3),
+      relevance: z.array(z.number().min(0).max(1)).length(3),
     }),
     prompt: prompt,
   });
 
-  response.object.tags = response.object.tags.map(tag => {
-    const tagWithoutSpaces = tag.replace(/\s+/g, '');
-    return tagWithoutSpaces.startsWith('#') ? tagWithoutSpaces : '#' + tagWithoutSpaces;
-  });
+  // Filter tags based on relevance and format them
+  response.object.tags = response.object.tags
+    .filter((tag, index) => {
+      const lowercaseTag = tag.toLowerCase().replace(/^#/, '');
+      const isRelevant = response.object.relevance[index] >= 0.8;
+      return lowercaseTag !== 'none' && lowercaseTag !== '' && isRelevant;
+    })
+    .map(tag => {
+      const tagWithoutSpaces = tag.replace(/\s+/g, '').toLowerCase();
+      return tagWithoutSpaces.startsWith('#') ? tagWithoutSpaces : '#' + tagWithoutSpaces;
+    });
 
   return response;
 }

@@ -190,11 +190,11 @@ const RenameSuggestion: React.FC<{
         );
         setTitle(suggestedAlias);
         if (!suggestedAlias) {
-          setError("No alias could be generated.");
+          setError("No title could be generated.");
         }
       } catch (err) {
-        console.error("Failed to generate alias:", err);
-        setError("Error generating alias.");
+        console.error("Failed to generate title:", err);
+        setError("Error generating title.");
       } finally {
         setLoading(false);
       }
@@ -207,7 +207,7 @@ const RenameSuggestion: React.FC<{
       {loading ? (
         <div>Loading...</div>
       ) : error ? (
-        <div className="error-message">{}</div>
+        <div className="error-container">{error}</div>
       ) : (
         <div className="alias-container">
           {alias ? (
@@ -280,7 +280,7 @@ const AliasSuggestionBox: React.FC<{
       {loading ? (
         <div>Loading...</div>
       ) : error ? (
-        <div className="error-message">{error}</div>
+        <div className="error-contrainer">{error}</div>
       ) : (
         <div className="alias-container">
           {aliases.length > 0 ? (
