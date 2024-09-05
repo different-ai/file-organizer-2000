@@ -61,6 +61,12 @@ export async function handleAuthorization(req: NextRequest) {
     console.error(result);
     throw new AuthorizationError(`Unauthorized: ${result.code}`, 401);
   }
+
+  // Check if the user has a lifetime billing cycle
+  if (result.meta?.billingCycle === "lifetime") {
+    throw new AuthorizationError("Lifetime Access users need to provide their own key", 403);
+  }
+
   // check if has active subscription
   const hasActiveSubscription = await checkUserSubscriptionStatus(
     result.ownerId
