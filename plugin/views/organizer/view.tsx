@@ -280,7 +280,7 @@ const AliasSuggestionBox: React.FC<{
       {loading ? (
         <div>Loading...</div>
       ) : error ? (
-        <div className="error-contrainer">{error}</div>
+        <div className="error-container">{error}</div>
       ) : (
         <div className="alias-container">
           {aliases.length > 0 ? (
