@@ -59,7 +59,7 @@ export async function generateExistingTags(
   vaultTags: string[],
   model: LanguageModel
 ) {
-const prompt = `For "${content}" (file: "${fileName}"), select up to 3 tags from: ${vaultTags.join(", ")}. Only choose tags with an evident link to the main topics that is not too specific. If none meet this criterion, return null.`;
+  const prompt = `For "${content}" (file: "${fileName}"), select up to 3 tags from: ${vaultTags.join(", ")}. Only choose tags with an evident link to the main topics that is not too specific. If none meet this criterion, return null.`;
 
   const response = await generateObject({
     model,
@@ -70,16 +70,17 @@ const prompt = `For "${content}" (file: "${fileName}"), select up to 3 tags from
     prompt: prompt,
   });
 
+  // Filter tags based on relevance, format them, and exclude existing tags
+  response.object.tags = response.object.tags
+    .filter((tag) => {
+      const cleanedTag = tag.toLowerCase().replace(/\s+/g, '');
+      return cleanedTag !== 'none' && cleanedTag !== '' && !content.toLowerCase().includes(`#${cleanedTag}`);
+    })
+    .map(tag => tag.replace(/\s+/g, '').toLowerCase());
 
-// Filter tags based on relevance and format them
-response.object.tags = response.object.tags
-  .filter((tag, index) => {
-    const cleanedTag = tag.toLowerCase();
-    return cleanedTag !== 'none' && cleanedTag !== '' 
-  })
-  .map(tag => tag.replace(/\s+/g, '').toLowerCase());
   return response;
 }
+
 export async function generateNewTags(
   content: string,
   fileName: string,
@@ -91,14 +92,14 @@ export async function generateNewTags(
   1. One tag reflecting the topic or platform
   2. One tag indicating the document type (e.g., meeting_notes, research, brainstorm, draft).
   3. One more specific tag inspired by the file name 
-  4. Use  underscores for multi-word tags.
+  4. Use underscores for multi-word tags.
   5. Ensure tags are concise and reusable across notes.
   6. Return null if no tags can be generated.
+  7. Do not suggest tags that are already present in the content.
   
   Examples:
   - Use moderately broad tags like fitness_plan, not overly specific like monday_dumbells_20kg.
   - For "humility and leadership", use humility.`
-
 
   const response = await generateObject({
     model,
@@ -109,15 +110,13 @@ export async function generateNewTags(
     prompt: prompt,
   });
 
-  // Filter tags based on relevance and format them
-// Filter tags based on relevance and format them
-response.object.tags = response.object.tags
-  .filter((tag, index) => {
-    const cleanedTag = tag.toLowerCase();
-
-    return cleanedTag !== 'none' && cleanedTag !== '' 
-  })
-  .map(tag => tag.replace(/\s+/g, '').toLowerCase());
+  // Filter tags based on relevance, format them, and exclude existing tags
+  response.object.tags = response.object.tags
+    .filter((tag) => {
+      const cleanedTag = tag.toLowerCase().replace(/\s+/g, '');
+      return cleanedTag !== 'none' && cleanedTag !== '' && !content.toLowerCase().includes(`#${cleanedTag}`);
+    })
+    .map(tag => tag.replace(/\s+/g, '').toLowerCase());
 
   return response;
 }
