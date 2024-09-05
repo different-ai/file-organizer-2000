@@ -82,15 +82,21 @@ export async function POST(req: NextRequest) {
       if (userId) {
         await handleFailedPayment(userId, "canceled", "canceled");
         console.log(`Subscription canceled for user ${userId}`);
+      } else {
+        console.error('Could not find user id');
       }
       break;
     }
     case "invoice.payment_failed": {
       const invoice = event.data.object;
-      const userId = invoice.metadata?.userId;
+      const userId = invoice.subscription_details?.metadata?.userId;
+      console.log('invoice', invoice);
+
       if (userId) {
         await handleFailedPayment(userId, "incomplete", "failed");
         console.log(`Payment failed for user ${userId}`);
+      } else {
+        console.error('Could not find user id');
       }
       break;
     }
