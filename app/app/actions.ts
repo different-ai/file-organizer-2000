@@ -17,35 +17,39 @@ export async function isPaidUser(userId: string) {
   }
 }
 
-export async function create() {
+export async function createLicenseKey() {
   "use server";
   const { userId } = auth();
+  console.log("Creating license key - User authenticated:", !!userId);
   if (!userId) {
     return null;
   }
+
   const token = process.env.UNKEY_ROOT_KEY;
   const apiId = process.env.UNKEY_API_ID;
+  console.log("Unkey configuration - Token exists:", !!token, "API ID exists:", !!apiId);
 
   if (!token || !apiId) {
     return null;
   }
 
-  // const name = (formData.get("name") as string) ?? "My Awesome API";
   const name = "my api key";
   const unkey = new Unkey({ token });
 
-  // Check if the user is a paid user
-  const user = await clerkClient.users.getUser(userId);
 
-  const isPaidUser =
-    (user?.publicMetadata as CustomJwtSessionClaims["publicMetadata"])?.stripe
-      ?.status === "complete";
-      if (!isPaidUser) {
-        throw new Error("User is not subscribed to a paid plan");
+  if (!isPaidUser) {
+    console.log("Error: User not subscribed to a paid plan");
+    throw new Error("User is not subscribed to a paid plan");
   }
+
+  console.log("Fetching user billing cycle");
   const billingCycle = await getUserBillingCycle(userId);
+  console.log("User billing cycle:", billingCycle);
+
+  console.log("Updating user usage");
   await createOrUpdateUserUsage(userId, billingCycle);
 
+  console.log("Creating Unkey license key");
   const key = await unkey.keys.create({
     name: name,
     ownerId: userId,
@@ -54,11 +58,13 @@ export async function create() {
     },
     apiId,
   });
+
+  console.log("License key created successfully", key.result);
   return { key: key.result };
 }
 
 export async function getUserBillingCycle(userId: string) {
-  if (!userId) return "monthly"; // Default to monthly if no userId
+  if (!userId) return "none"; // Default to monthly if no userId
 
   try {
     const user = await db
@@ -67,9 +73,9 @@ export async function getUserBillingCycle(userId: string) {
       .where(eq(UserUsageTableImport.userId, userId))
       .limit(1);
 
-    return user[0]?.billingCycle || "monthly"; // Default to monthly if not found
+    return user[0]?.billingCycle || "none"; // Default to monthly if not found
   } catch (error) {
     console.error("Error fetching user billing cycle:", error);
-    return "monthly"; // Default to monthly in case of error
+    return "none"; // Default to monthly in case of error
   }
 }

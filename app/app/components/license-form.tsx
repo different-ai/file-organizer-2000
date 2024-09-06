@@ -7,19 +7,18 @@ import {
   CardDescription,
   CardFooter,
   CardHeader,
-  CardTitle,
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { useEffect, useState } from "react";
-import { create, isPaidUser } from "../actions";
-import CheckoutButton from "@/components/ui/CheckoutButton";
+import { createLicenseKey, isPaidUser } from "../actions";
+import CheckoutButton from "@/components/ui/checkout-button";
 import { useUser } from "@clerk/nextjs";
 
 const LicenseForm = () => {
   const [licenseKey, setLicenseKey] = useState<string>("");
   const [isPaid, setIsPaid] = useState(false);
   async function onCreate(formData: FormData) {
-    const res = await create();
+    const res = await createLicenseKey();
     // @ts-ignore
     if (res?.error) {
       // @ts-ignore
