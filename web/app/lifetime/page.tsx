@@ -57,37 +57,76 @@ export default async function LifetimeAccessPage() {
             <div className="flex flex-col">
               <div className="w-full mb-6">
                 <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 max-w-xl mx-auto">
-                  <h2 className="text-2xl font-bold mb-4 text-gray-800 dark:text-gray-200">Setup Instructions for Lifetime Access</h2>
+                  <h2 className="text-2xl font-bold mb-4 text-gray-800 dark:text-gray-200">
+                    Setup Instructions for Lifetime Access
+                  </h2>
                   <ol className="list-decimal list-outside ml-4 space-y-4 text-gray-700 dark:text-gray-300">
                     <li>
                       <strong>Deploy your own instance:</strong>
-                      <a href="https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2Fdifferent-ai%2Ffile-organizer-2000%2Ftree%2Fmaster%2Fweb&env=OPENAI_API_KEY,SOLO_API_KEY&envDescription=SOLO_API_KEY%20is%20a%20bit%20like%20your%20password%20you%20can%20choose%20it%20to%20be%20whatever%20you%20want%20and%20you%27ll%20need%20to%20re-use%20in%20the%20plugin%20settings&envLink=https%3A%2F%2Fgithub.com%2Fdifferent-ai%2Ffile-organizer-2000%2Fblob%2Fmaster%2Ftutorials%2Fenv-vars.md&project-name=file-organizer-2000&repository-name=file-organizer-2000&build-command=npm%20run%20build:self-host" target="_blank" rel="noopener noreferrer" className="block mt-2">
-                        <img src="https://vercel.com/button" alt="Deploy with Vercel" className="hover:opacity-80 transition-opacity" />
+                      <a
+                        href="https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2Fdifferent-ai%2Ffile-organizer-2000%2Ftree%2Fmaster%2Fweb&env=OPENAI_API_KEY,SOLO_API_KEY&envDescription=For%20SOLO_API_KEY%2C%20enter%20your%20lifetime%20license%20key%20you%20generated%20on%20the%20dashboard&envLink=https%3A%2F%2Fgithub.com%2Fdifferent-ai%2Ffile-organizer-2000%2Fblob%2Fmaster%2Ftutorials%2Fenv-vars.md&project-name=file-organizer-2000&repository-name=file-organizer-2000&build-command=npm%20run%20build:self-host"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="block mt-2"
+                      >
+                        <img
+                          src="https://vercel.com/button"
+                          alt="Deploy with Vercel"
+                          className="hover:opacity-80 transition-opacity"
+                        />
                       </a>
                       <ul className="list-disc list-outside ml-4 mt-2 space-y-1 text-sm">
-                        <li>During deployment, enter your <a href="https://platform.openai.com/api-keys" target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:underline">OpenAI API Key</a>.</li>
-                        <li>For the SOLO_API_KEY, use the license key generated below.</li>
+                        <li>
+                          During deployment, enter your{" "}
+                          <a
+                            href="https://platform.openai.com/api-keys"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-blue-500 hover:underline"
+                          >
+                            OpenAI API Key
+                          </a>
+                          .
+                        </li>
+                        <li>
+                          For the SOLO_API_KEY, use the license key generated
+                          below.
+                        </li>
                       </ul>
                     </li>
                     <li>
                       <strong>Configure plugin settings:</strong>
                       <ul className="list-disc list-outside ml-4 mt-2 space-y-1 text-sm">
-                        <li>In Obsidian, go to Settings &gt; Community Plugins &gt; File Organizer 2000 &gt; Advanced Settings</li>
+                        <li>
+                          In Obsidian, go to Settings &gt; Community Plugins
+                          &gt; File Organizer 2000 &gt; Advanced Settings
+                        </li>
                         <li>Enable "Self-Hosting" toggle</li>
-                        <li>In the "Server URL" field, enter your Vercel deployment URL</li>
+                        <li>
+                          In the "Server URL" field, enter your Vercel
+                          deployment URL
+                        </li>
                       </ul>
                     </li>
                     <li>
                       <strong>Activate your license:</strong>
                       <ul className="list-disc list-outside ml-4 mt-2 space-y-1 text-sm">
-                        <li>In the plugin settings, enter your license key in the "File Organizer License Key" field.</li>
-                        <li>Click the "Activate" button to activate your license.</li>
+                        <li>
+                          In the plugin settings, enter your license key in the
+                          "File Organizer License Key" field.
+                        </li>
+                        <li>
+                          Click the "Activate" button to activate your license.
+                        </li>
                       </ul>
                     </li>
                     <li>
-                      <strong>That's it! 🎉</strong> 
+                      <strong>That's it! 🎉</strong>
                       <ul className="list-disc list-outside ml-4 mt-2 space-y-1 text-sm">
-                        <li>Now open the assistant sidebar to see if it works. Enjoy the plugin!</li> 
+                        <li>
+                          Now open the assistant sidebar to see if it works.
+                          Enjoy the plugin!
+                        </li>
                       </ul>
                     </li>
                   </ol>
