@@ -13,7 +13,7 @@ import {
   extractTextFromImage,
   generateTranscriptFromAudio,
   identifyConceptsAndFetchChunks,
-} from "../app/aiService";
+} from "../web/aiService";
 import { getModelFromTask } from "../standalone/models";
 import { arrayBufferToBase64, requestUrl } from "obsidian";
 import { logMessage } from "../utils";
