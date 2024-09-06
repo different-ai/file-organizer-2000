@@ -31,7 +31,7 @@ export async function POST(req: NextRequest) {
       },
       mode: "subscription",
       allow_promotion_codes: true,
-      success_url: `${req.headers.get("origin")}/members`,
+      success_url: `${req.headers.get("origin")}/subscribers`,
       cancel_url: `${req.headers.get("origin")}/`,
     });
     console.log("Checkout session created:", session.id);

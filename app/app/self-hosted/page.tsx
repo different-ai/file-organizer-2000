@@ -7,8 +7,8 @@ export default function NoUserManagementPage() {
       <div className="flex-1 mb-8 flex items-center justify-center pt-16">
         <div className="flex flex-col w-full max-w-6xl items-center">
           <p className="text-gray-500 dark:text-gray-400 px-4 mb-8">
-            Just paste this URL in the plugin settings in Obsidian and
-            you're good to go!
+            Just paste this URL in the plugin settings in Obsidian and you're
+            good to go!
           </p>
           <div className="text-center">
             <ArrowDownIcon className="mx-auto h-12 w-12 text-gray-400" />
@@ -18,9 +18,7 @@ export default function NoUserManagementPage() {
             <a href="obsidian://show-plugin?id=fileorganizer2000">
               <Button className="max-w-xs w-full sm:w-auto">Download</Button>
             </a>
-            <p className="mt-3 text-sm text-gray-600">
-              Requires Obsidian app.
-            </p>
+            <p className="mt-3 text-sm text-gray-600">Requires Obsidian app.</p>
           </div>
         </div>
       </div>

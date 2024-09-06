@@ -29,7 +29,7 @@ export async function POST(req: NextRequest) {
       },
       allow_promotion_codes: true,
       mode: "payment",
-      success_url: `${req.headers.get("origin")}/members`,
+      success_url: `${req.headers.get("origin")}/lifetime`,
       cancel_url: `${req.headers.get("origin")}/`,
     });
     console.log("One-time payment session created:", session.id);
