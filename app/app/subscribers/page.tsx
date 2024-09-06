@@ -1,6 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { ArrowDownIcon } from "@/components/ui/icons";
 import UserManagement from "@/components/user-management";
+import { LicenseForm } from "../components/license-form";
 
 export default function MonthlySubscriptionPage() {
   return (
@@ -29,6 +30,7 @@ export default function MonthlySubscriptionPage() {
             </div>
           </div>
           <div className="flex-1 space-y-8 flex flex-col">
+            <LicenseForm />
             <div className="text-center">
               <ArrowDownIcon className="mx-auto h-12 w-12 text-gray-400" />
               <p className="text-gray-800 mt-6 text-xl sm:text-2xl font-extrabold mt-2 mb-4">
