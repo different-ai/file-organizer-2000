@@ -3,7 +3,10 @@ import { ArrowDownIcon } from "@/components/ui/icons";
 import UserManagement from "@/components/user-management";
 import { LicenseForm } from "../components/license-form";
 
-export default function MonthlySubscriptionPage() {
+export default function SubscribersDashboard() {
+  if (process.env.USER_MANAGEMENT_ENABLED !== "true") {
+    return <div>User management is disabled</div>;
+  }
   return (
     <div className="flex min-h-screen py-7 px-4 sm:px-6 lg:px-8 flex-col">
       <div className="flex-1 mb-8 flex items-center justify-center pt-16">

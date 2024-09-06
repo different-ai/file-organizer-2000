@@ -2,7 +2,6 @@ import { auth } from "@clerk/nextjs/server";
 import { Button } from "@/components/ui/button";
 import { UserButton } from "@clerk/nextjs";
 import { LicenseForm } from "../components/license-form";
-import { getUserBillingCycle } from "../actions";
 import { ArrowDownIcon } from "@/components/ui/icons";
 
 function UserManagement() {
@@ -20,6 +19,9 @@ function UserManagement() {
 }
 
 export default async function LifetimeAccessPage() {
+  if (process.env.USER_MANAGEMENT_ENABLED !== "true") {
+    return <div>User management is disabled</div>;
+  }
   const { userId } = auth();
 
   // uncoment before september 30th
