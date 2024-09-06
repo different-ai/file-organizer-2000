@@ -19,7 +19,7 @@ function UserManagement() {
 }
 
 export default async function LifetimeAccessPage() {
-  if (process.env.USER_MANAGEMENT_ENABLED !== "true") {
+  if (process.env.ENABLE_USER_MANAGEMENT !== "true") {
     return <div>User management is disabled</div>;
   }
   const { userId } = auth();

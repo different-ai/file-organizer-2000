@@ -4,7 +4,7 @@ import UserManagement from "@/components/user-management";
 import { LicenseForm } from "../components/license-form";
 
 export default function SubscribersDashboard() {
-  if (process.env.USER_MANAGEMENT_ENABLED !== "true") {
+  if (process.env.ENABLE_USER_MANAGEMENT !== "true") {
     return <div>User management is disabled</div>;
   }
   return (
