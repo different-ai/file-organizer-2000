@@ -7,12 +7,11 @@ import {
   CardDescription,
   CardFooter,
   CardHeader,
-  CardTitle,
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { useEffect, useState } from "react";
 import { create, isPaidUser } from "../actions";
-import CheckoutButton from "@/components/ui/CheckoutButton";
+import CheckoutButton from "@/components/ui/checkout-button";
 import { useUser } from "@clerk/nextjs";
 
 const LicenseForm = () => {
