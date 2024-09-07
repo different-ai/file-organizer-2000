@@ -29,6 +29,7 @@ import {
   formatDocumentContentRouter,
   generateAliasVariationsRouter,
   generateDocumentTitleRouter,
+  generateMultipleDocumentTitlesRouter,
   generateRelationshipsRouter,
   generateTagsRouter,
   guessRelevantFolderRouter,
@@ -203,7 +204,7 @@ export default class FileOrganizer extends Plugin {
     const classification = classificationResult?.type;
     const aiFormattedText = classificationResult?.formattedText || "";
 
-  // Determine the folder path based on formatted content (if available) or original content
+    // Determine the folder path based on formatted content (if available) or original content
     const newPath = await this.getAIClassifiedFolder(
       classification && aiFormattedText ? aiFormattedText : textToFeedAi,
       file.path
@@ -278,8 +279,7 @@ export default class FileOrganizer extends Plugin {
     if (metadata.shouldCreateMarkdownContainer) {
       await this.app.vault.modify(fileToOrganize, text);
       this.appendToCustomLogFile(
-        `Annotated ${
-          metadata.shouldCreateMarkdownContainer ? "media" : "file"
+        `Annotated ${metadata.shouldCreateMarkdownContainer ? "media" : "file"
         } [[${metadata.newName}]]`
       );
     }
@@ -789,12 +789,12 @@ export default class FileOrganizer extends Plugin {
 
   getAllFolders(): string[] {
     const allFolders = getAllFolders(this.app);
-    
+
     // if ignoreFolders includes * then return all folders
     if (this.settings.ignoreFolders.includes("*")) {
       return [];
     }
-    
+
     return allFolders
       .filter(folder => !this.settings.ignoreFolders.includes(folder))
       .filter(folder => folder !== this.settings.pathToWatch)
@@ -865,6 +865,27 @@ export default class FileOrganizer extends Plugin {
       renameInstructions
     );
     return formatToSafeName(name);
+  }
+
+  async generateMultipleNamesFromContent(
+    content: string,
+    currentName: string
+  ): Promise<string[]> {
+    try {
+      const titles = await generateMultipleDocumentTitlesRouter(
+        content,
+        currentName,
+        this.settings.usePro,
+        this.getServerUrl(),
+        this.settings.API_KEY,
+        this.settings.renameInstructions
+      );
+      return titles;
+    } catch (error) {
+      console.error("Error generating multiple names:", error);
+      new Notice("Failed to generate name suggestions");
+      return [];
+    }
   }
 
   async compressImage(fileContent: Buffer): Promise<Buffer> {
@@ -983,7 +1004,7 @@ export default class FileOrganizer extends Plugin {
       return [];
     }
   }
-  
+
   async getNewTags(content: string, fileName: string): Promise<string[]> {
     try {
       const response = await fetch(`${this.getServerUrl()}/api/tags/new`, {

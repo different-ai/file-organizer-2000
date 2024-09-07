@@ -1033,3 +1033,48 @@
 .move-note-button {
   display: none;
 }
+/* Title Suggestion Styles */
+/* Title Suggestion Styles */
+.title-container {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.title-suggestion {
+  display: flex;
+  align-items: center;
+  background: var(--background-secondary);
+  border-radius: 0.25rem;
+  padding: 0.5rem;
+  font-size: 0.9rem;
+  color: var(--text-normal);
+  cursor: pointer;
+  transition: background-color 0.2s, color 0.2s;
+  width: 100%;
+  text-align: left;
+}
+
+.title-suggestion:hover {
+  background: var(--interactive-accent);
+  color: var(--text-on-accent);
+}
+
+.title-suggestion::before {
+  content: "";
+  margin-right: 0.5rem;
+  width: 0rem;
+  display: inline-block;
+  text-align: center;
+}
+
+.title-suggestion::after {
+  content: "✓";
+  margin-left: auto;
+  font-weight: bold;
+  width: 1.5em;
+  display: inline-block;
+  text-align: center;
+}
+
+

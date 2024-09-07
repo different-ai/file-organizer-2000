@@ -43,12 +43,12 @@ export async function generateTags(
     prompt: prompt,
   });
 
-// Post-process all tags to ensure they have a '#' prefix
-response.object.tags = response.object.tags.map(tag => {
-  // remove spaces from the tag
-  const tagWithoutSpaces = tag.replace(/\s+/g, '');
-  return tagWithoutSpaces.startsWith('#') ? tagWithoutSpaces : '#' + tagWithoutSpaces;
-});
+  // Post-process all tags to ensure they have a '#' prefix
+  response.object.tags = response.object.tags.map(tag => {
+    // remove spaces from the tag
+    const tagWithoutSpaces = tag.replace(/\s+/g, '');
+    return tagWithoutSpaces.startsWith('#') ? tagWithoutSpaces : '#' + tagWithoutSpaces;
+  });
 
   return response;
 }
@@ -261,6 +261,33 @@ export async function generateDocumentTitle(
   return response;
 }
 
+export async function generateMultipleDocumentTitles(
+  document: string,
+  currentName: string,
+  model: LanguageModel,
+  renameInstructions: string
+) {
+  const prompt = `You are an AI specialized in generating concise and relevant document titles. Ensure each title is under 50 characters, contains no special characters, and is highly specific to the document's content.
+      Additional context:
+      Time: ${new Date().toISOString()}
+      Current Name: ${currentName}
+      Document Content: ${document}
+      Provide 3 suitable but varied titles
+      ${renameInstructions}
+      `;
+  const system = `Only answer with human readable titles`;
+
+  const response = await generateObject({
+    model,
+    schema: z.object({
+      names: z.array(z.string().max(60)).length(3),
+    }),
+    system,
+    prompt,
+  });
+
+  return response;
+}
 // Function to extract text from image
 export async function extractTextFromImage(
   image: ArrayBuffer,

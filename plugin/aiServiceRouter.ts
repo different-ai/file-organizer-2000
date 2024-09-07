@@ -289,6 +289,46 @@ export async function generateDocumentTitleRouter(
   }
 }
 
+
+export async function generateMultipleDocumentTitlesRouter(
+  content: string,
+  currentName: string,
+  usePro: boolean,
+  serverUrl: string,
+  apiKey: string,
+  renameInstructions: string
+): Promise<string[]> {
+  if (true) {
+    const response = await makeApiRequest(() =>
+      requestUrl({
+        url: `${serverUrl}/api/title/multiple`,
+        method: "POST",
+        contentType: "application/json",
+        body: JSON.stringify({
+          document: content,
+          instructions: renameInstructions,
+          currentName,
+        }),
+        throw: false,
+        headers: {
+          Authorization: `Bearer ${apiKey}`,
+        },
+      })
+    );
+    const { titles } = await response.json;
+    console.log("titles", titles);
+    return titles;
+  } else {
+    const model = getModelFromTask("name");
+    const response = await generateMultipleDocumentTitles(
+      content,
+      currentName,
+      model,
+      renameInstructions
+    );
+    return response.object.names;
+  }
+}
 export async function formatDocumentContentRouter(
   content: string,
   formattingInstruction: string,

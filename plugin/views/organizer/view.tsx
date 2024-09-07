@@ -1,5 +1,5 @@
 import * as React from "react";
-import { Notice, TFile, WorkspaceLeaf} from "obsidian";
+import { Notice, TFile, WorkspaceLeaf } from "obsidian";
 import FileOrganizer, { validMediaExtensions } from "../../index";
 
 interface AssistantViewProps {
@@ -7,16 +7,10 @@ interface AssistantViewProps {
   leaf: WorkspaceLeaf;
 }
 
-const SectionHeader: React.FC<{ 
-  text: string; 
-  icon?: string; 
-}> = ({
-  text,
-  icon,
-}) => {
-
-
-
+const SectionHeader: React.FC<{
+  text: string;
+  icon?: string;
+}> = ({ text, icon }) => {
   return (
     <h6 className="assistant-section-header">
       {icon && <span className="assistant-section-icon">{icon}</span>}
@@ -49,11 +43,13 @@ const SimilarTags: React.FC<{
         const vaultTags = await plugin.getAllVaultTags();
         const [existingTagsResult, newTagsResult] = await Promise.all([
           plugin.getExistingTags(content, file.basename, vaultTags),
-          plugin.getNewTags(content, file.basename)
+          plugin.getNewTags(content, file.basename),
         ]);
         setExistingTags(existingTagsResult);
         // Filter out any new tags that are already in existingTags
-        const filteredNewTags = newTagsResult.filter(tag => !existingTagsResult.includes(tag));
+        const filteredNewTags = newTagsResult.filter(
+          tag => !existingTagsResult.includes(tag)
+        );
         setNewTags(filteredNewTags);
       } catch (error) {
         console.error(error);
@@ -78,15 +74,15 @@ const SimilarTags: React.FC<{
           {allTags.map((tag, index) => (
             <span
               key={index}
-              className={`tag ${existingTags?.includes(tag) ? 'existing-tag' : 'new-tag'}`}
+              className={`tag ${
+                existingTags?.includes(tag) ? "existing-tag" : "new-tag"
+              }`}
               onClick={() => plugin.appendTag(file!, tag)}
             >
-        #{tag.replace(/^#+/, '')}
+              #{tag.replace(/^#+/, "")}
             </span>
           ))}
-          {allTags.length === 0 && (
-            <div>No tags found</div>
-          )}
+          {allTags.length === 0 && <div>No tags found</div>}
         </div>
       )}
     </div>
@@ -110,9 +106,9 @@ const DocumentChunks: React.FC<{
       const result = await plugin.identifyConceptsAndFetchChunks(content);
       console.log("result", result);
 
-      setConcepts(result.object.concepts.map((c) => c.name));
+      setConcepts(result.object.concepts.map(c => c.name));
       setChunks(
-        result.object.concepts.map((c) => ({
+        result.object.concepts.map(c => ({
           concept: c.name,
           content: c.chunk,
         }))
@@ -134,7 +130,11 @@ const DocumentChunks: React.FC<{
 
   return (
     <div className="document-chunks">
-      <button onClick={parseDocument} disabled={loading} className="parse-document-button">
+      <button
+        onClick={parseDocument}
+        disabled={loading}
+        className="parse-document-button"
+      >
         {loading ? "Parsing..." : "Parse Document"}
       </button>
       {concepts.length > 0 && (
@@ -143,7 +143,7 @@ const DocumentChunks: React.FC<{
             <div key={index}>
               <h4>{concept}</h4>
               {chunks
-                .filter((chunk) => chunk.concept === concept)
+                .filter(chunk => chunk.concept === concept)
                 .map((chunk, chunkIndex) => (
                   <div key={chunkIndex} className="chunk-container">
                     <div className="chunk-content">
@@ -168,62 +168,64 @@ const RenameSuggestion: React.FC<{
   content: string;
   refreshKey: number;
 }> = ({ plugin, file, content, refreshKey }) => {
-  const [alias, setTitle] = React.useState<string | null>(null);
+  const [titles, setTitles] = React.useState<string[] | null>(null);
   const [loading, setLoading] = React.useState<boolean>(false);
   const [error, setError] = React.useState<string | null>(null);
 
   React.useEffect(() => {
-    const suggestAlias = async () => {
+    const suggestTitles = async () => {
       if (!content || !file) {
-        setTitle(null);
+        setTitles(null);
         return;
       }
-      setTitle(null);
+      setTitles(null);
       setLoading(true);
       setError(null);
       try {
-        const suggestedAlias = await plugin.generateNameFromContent(
+        const suggestedTitles = await plugin.generateMultipleNamesFromContent(
           content,
           file.basename
         );
-        setTitle(suggestedAlias);
-        if (!suggestedAlias) {
-          setError("No title could be generated.");
+        setTitles(suggestedTitles);
+        if (!suggestedTitles || suggestedTitles.length === 0) {
+          setError("No titles could be generated.");
         }
       } catch (err) {
-        console.error("Failed to generate title:", err);
-        setError("Error generating title.");
+        console.error("Failed to generate titles:", err);
+        setError("Error generating titles.");
       } finally {
         setLoading(false);
       }
     };
-    suggestAlias();
+    suggestTitles();
   }, [content, refreshKey]);
 
+  const handleTitleClick = (title: string) => {
+    if (file && file.parent) {
+      plugin.moveFile(file, title, file.parent.path);
+    } else {
+      console.error("File or file parent is null.");
+    }
+  };
+
   return (
-    <div className="assistant-section alias-section">
+    <div className="assistant-section title-section">
       {loading ? (
         <div>Loading...</div>
       ) : error ? (
         <div className="error-container">{error}</div>
       ) : (
-        <div className="alias-container">
-          {alias ? (
-            <>
-              <span className="alias">{alias}</span>
+        <div className="title-container">
+          {titles && titles.length > 0 ? (
+            titles.map((title, index) => (
               <button
-                className="rename-alias-button"
-                onClick={() => {
-                  if (file && file.parent) {
-                    plugin.moveFile(file, alias, file.parent.path);
-                  } else {
-                    console.error("File or file parent is null.");
-                  }
-                }}
+                key={index}
+                className="title-suggestion"
+                onClick={() => handleTitleClick(title)}
               >
-                Rename
+                {title}
               </button>
-            </>
+            ))
           ) : (
             <div>No suggestions found</div>
           )}
@@ -270,7 +272,7 @@ const AliasSuggestionBox: React.FC<{
 
   const handleAliasClick = (alias: string) => {
     plugin.appendAlias(file, alias);
-    setAliases((prevAliases) => prevAliases.filter((a) => a !== alias));
+    setAliases(prevAliases => prevAliases.filter(a => a !== alias));
   };
 
   return (
@@ -426,9 +428,11 @@ const ClassificationBox: React.FC<{
   content: string;
   refreshKey: number;
 }> = ({ plugin, file, content, refreshKey }) => {
-  const [classification, setClassification] = React.useState<Classification | null>(null);
+  const [classification, setClassification] =
+    React.useState<Classification | null>(null);
   const [templates, setTemplates] = React.useState<Template[]>([]);
-  const [selectedTemplate, setSelectedTemplate] = React.useState<Template | null>(null);
+  const [selectedTemplate, setSelectedTemplate] =
+    React.useState<Template | null>(null);
   const [showDropdown, setShowDropdown] = React.useState<boolean>(false);
   const [formatting, setFormatting] = React.useState<boolean>(false);
   const dropdownRef = React.useRef<HTMLDivElement>(null);
@@ -438,7 +442,10 @@ const ClassificationBox: React.FC<{
       if (!content || !file) return;
       try {
         const fileContent = await plugin.app.vault.read(file!);
-        const result = await plugin.classifyContent(fileContent, file!.basename);
+        const result = await plugin.classifyContent(
+          fileContent,
+          file!.basename
+        );
         setClassification(result);
         setSelectedTemplate(result); // Set the initial classification as the selected template
         const fetchedTemplates = await plugin.getTemplates();
@@ -450,14 +457,17 @@ const ClassificationBox: React.FC<{
     fetchClassificationAndTemplates();
 
     const handleClickOutside = (event: MouseEvent) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+      if (
+        dropdownRef.current &&
+        !dropdownRef.current.contains(event.target as Node)
+      ) {
         setShowDropdown(false);
       }
     };
 
-    document.addEventListener('mousedown', handleClickOutside);
+    document.addEventListener("mousedown", handleClickOutside);
     return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener("mousedown", handleClickOutside);
     };
   }, [content, file, plugin, refreshKey]);
 
@@ -465,7 +475,11 @@ const ClassificationBox: React.FC<{
     try {
       setFormatting(true);
       const fileContent = await plugin.app.vault.read(file!);
-      await plugin.formatContent(file!, fileContent, template.formattingInstruction);
+      await plugin.formatContent(
+        file!,
+        fileContent,
+        template.formattingInstruction
+      );
       setClassification(template);
       setSelectedTemplate(null);
     } catch (error) {
@@ -479,10 +493,12 @@ const ClassificationBox: React.FC<{
     if (selectedTemplate) {
       return `Format as ${selectedTemplate.type}`;
     }
-    return 'Select template';
+    return "Select template";
   };
 
-  const dropdownTemplates = templates.filter(t => t.type !== selectedTemplate?.type);
+  const dropdownTemplates = templates.filter(
+    t => t.type !== selectedTemplate?.type
+  );
 
   return (
     <div className="assistant-section classification-section">
@@ -494,12 +510,25 @@ const ClassificationBox: React.FC<{
             onClick={() => setShowDropdown(!showDropdown)}
           >
             <span className="split-button-text">{getDisplayText()}</span>
-            <svg className="split-button-arrow" width="12" height="12" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <path d="M6 9L12 15L18 9" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+            <svg
+              className="split-button-arrow"
+              width="12"
+              height="12"
+              viewBox="0 0 24 24"
+              fill="none"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                d="M6 9L12 15L18 9"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
             </svg>
           </button>
           {showDropdown && (
-            <div className={`dropdown-menu ${showDropdown ? 'show' : ''}`}>
+            <div className={`dropdown-menu ${showDropdown ? "show" : ""}`}>
               {dropdownTemplates.map((template, index) => (
                 <div
                   key={index}
@@ -513,7 +542,9 @@ const ClassificationBox: React.FC<{
                 </div>
               ))}
               {dropdownTemplates.length === 0 && (
-                <div className="dropdown-item">No other templates available</div>
+                <div className="dropdown-item">
+                  No other templates available
+                </div>
               )}
             </div>
           )}
@@ -601,7 +632,12 @@ const RefreshButton: React.FC<{ onRefresh: () => void }> = ({ onRefresh }) => {
   };
 
   return (
-    <button className={`refresh-button flex items-center ${isSpinning ? 'spinning' : ''}`} onClick={handleRefresh}>
+    <button
+      className={`refresh-button flex items-center ${
+        isSpinning ? "spinning" : ""
+      }`}
+      onClick={handleRefresh}
+    >
       <svg
         xmlns="http://www.w3.org/2000/svg"
         width="15"
@@ -621,26 +657,30 @@ const RefreshButton: React.FC<{ onRefresh: () => void }> = ({ onRefresh }) => {
   );
 };
 
-
-export const AssistantView: React.FC<AssistantViewProps> = ({ plugin, leaf }) => {
+export const AssistantView: React.FC<AssistantViewProps> = ({
+  plugin,
+  leaf,
+}) => {
   const [activeFile, setActiveFile] = React.useState<TFile | null>(null);
   const [noteContent, setNoteContent] = React.useState<string>("");
   const [hasAudio, setHasAudio] = React.useState<boolean>(false);
   const [refreshKey, setRefreshKey] = React.useState<number>(0);
 
   const refreshAssistant = () => {
-    setRefreshKey((prevKey) => prevKey + 1);
+    setRefreshKey(prevKey => prevKey + 1);
   };
 
   React.useEffect(() => {
     const onFileOpen = async () => {
       // Check if the Assistant view is visible before processing
-      const isVisible = leaf.view.containerEl.isShown() && !plugin.app.workspace.rightSplit.collapsed;
-      
+      const isVisible =
+        leaf.view.containerEl.isShown() &&
+        !plugin.app.workspace.rightSplit.collapsed;
+
       if (!isVisible) return;
-      
+
       // force slow down
-      await new Promise((resolve) => setTimeout(resolve, 500));
+      await new Promise(resolve => setTimeout(resolve, 500));
       const file = plugin.app.workspace.getActiveFile();
 
       if (!file || !file.path) {
@@ -670,7 +710,7 @@ export const AssistantView: React.FC<AssistantViewProps> = ({ plugin, leaf }) =>
         plugin.settings.logFolderPath,
         plugin.settings.templatePaths,
       ];
-      const isInSettingsPath = settingsPaths.some((path) =>
+      const isInSettingsPath = settingsPaths.some(path =>
         file.path.includes(path)
       );
       if (isInSettingsPath) {
@@ -687,7 +727,10 @@ export const AssistantView: React.FC<AssistantViewProps> = ({ plugin, leaf }) =>
       setHasAudio(hasAudioEmbed(content));
     };
     const fileOpenEventRef = plugin.app.workspace.on("file-open", onFileOpen);
-    const layoutChangeRef = plugin.app.workspace.on("layout-change", onFileOpen);
+    const layoutChangeRef = plugin.app.workspace.on(
+      "layout-change",
+      onFileOpen
+    );
     onFileOpen();
 
     return () => {
@@ -734,15 +777,12 @@ export const AssistantView: React.FC<AssistantViewProps> = ({ plugin, leaf }) =>
         refreshKey={refreshKey}
       />
 
-      <SectionHeader 
-        text="Tags"
-        icon="🏷️" 
-      />
-      <SimilarTags 
-        plugin={plugin} 
-        file={activeFile} 
-        content={noteContent} 
-        refreshKey={refreshKey} 
+      <SectionHeader text="Tags" icon="🏷️" />
+      <SimilarTags
+        plugin={plugin}
+        file={activeFile}
+        content={noteContent}
+        refreshKey={refreshKey}
       />
 
       <SectionHeader text="Titles" icon="💡" />
