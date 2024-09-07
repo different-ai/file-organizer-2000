@@ -963,48 +963,65 @@
   font-weight: var(--nav-item-weight-hover);
   /* border: none; */
 }
-
 /* Folder Suggestion Styles */
 .folder-container {
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
-  align-items: flex-start; /* Align buttons to the left */
 }
 
 .folder-suggestion {
-  box-shadow: none !important;
-  background: transparent !important;
+  
+  display: flex;
+  align-items: center;
+  background: var(--background-secondary);
   border-radius: 0.25rem;
-  padding: 0.5rem 1rem;
+  padding: 0.5rem;
   font-size: 0.9rem;
   color: var(--text-normal);
   cursor: pointer;
-  text-align: left;
   transition: background-color 0.2s, color 0.2s;
-  width: auto; /* Allow button to shrink to fit its content */
-  max-width: 100%; /* Ensure button doesn't overflow its container */
-  white-space: nowrap; /* Prevent text from wrapping */
-  overflow: hidden; /* Hide overflowed text */
-  text-overflow: ellipsis; /* Add ellipsis for overflowed text */
+  width: 100%;
+  text-align: left;
 }
 
 .folder-suggestion:hover {
-  background-color: var(--interactive-accent) !important;
+  background: var(--interactive-accent);
   color: var(--text-on-accent);
 }
 
-/* New style for the last folder suggestion */
+.folder-suggestion::before {
+  content: "";
+  margin-right: 0.5rem;
+  width: 0rem;
+  display: inline-block;
+  text-align: center;
+}
+
+.folder-suggestion::after {
+  content: ">";
+  margin-left: auto;
+  font-weight: bold;
+  width: 1.5em;
+  display: inline-block;
+  text-align: center;
+}
+
 .folder-suggestion:last-child {
   background: transparent;
   border: 1px dashed var(--text-muted);
   color: var(--text-muted);
+  box-shadow: none !important;
+}
+
+.folder-suggestion:last-child::after {
+  content: "+";
 }
 
 .folder-suggestion:last-child:hover {
-  color: white;
   background: var(--interactive-accent);
-  font-weight: var(--nav-item-weight-hover);
+  color: var(--text-on-accent);
+  border-color: var(--interactive-accent);
 }
 
 /* You can remove these styles if they're no longer needed */
