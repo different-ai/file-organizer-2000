@@ -162,6 +162,27 @@ export async function guessRelevantFolder(
   return response;
 }
 
+export async function guessRelevantFoldersV2(
+  content: string,
+  fileName: string,
+  folders: string[],
+  requestCount: number,
+  model: LanguageModel
+) {
+  const sanitizedFileName = fileName.split('/').pop();
+  console.log("sanitizedFileName", sanitizedFileName);
+  const response = await generateObject({
+    model,
+    schema: z.object({
+      suggestedFolders: z.array(z.string()).max(3)
+    }),
+    prompt: `Given the content: "${content}" and the file name: "${sanitizedFileName}", suggest up to ${Math.min(requestCount - 1, 2)} relevant folders from the following list: ${folders.join(
+      ", "
+    )} And invent one new relevant folder that is not on the list, but inspired by its structure and naming conventions. Add it at end of the array. The total number of suggested folders should not exceed 3.`,
+  });
+  return response;
+}
+
 // Function to create a new folder if none is found
 export async function createNewFolder(
   content: string,

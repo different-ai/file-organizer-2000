@@ -184,6 +184,35 @@ export async function guessRelevantFolderRouter(
   const { folder: guessedFolder } = await response.json;
   return guessedFolder;
 }
+export async function guessRelevantFoldersRouterV2(
+  content: string,
+  filePath: string,
+  folders: string[],
+  serverUrl: string,
+  apiKey: string
+): Promise<string[]> {
+  logMessage("folderss", folders);
+  const response = await makeApiRequest(() =>
+    requestUrl({
+      url: `${serverUrl}/api/folders/v2`,
+      method: "POST",
+      contentType: "application/json",
+      body: JSON.stringify({
+        content,
+        fileName: filePath,
+        folders,
+        // number of folders to suggest
+        requestCount: 3,
+      }),
+      throw: false,
+      headers: {
+        Authorization: `Bearer ${apiKey}`,
+      },
+    })
+  );
+  const { folders: guessedFolders } = await response.json;
+  return guessedFolders;
+}
 
 export async function generateRelationshipsRouter(
   activeFileContent: string,

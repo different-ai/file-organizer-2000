@@ -32,6 +32,7 @@ import {
   generateRelationshipsRouter,
   generateTagsRouter,
   guessRelevantFolderRouter,
+  guessRelevantFoldersRouterV2,
   identifyConceptsAndFetchChunksRouter,
   identifyConceptsRouter,
 } from "./aiServiceRouter";
@@ -1266,7 +1267,7 @@ export default class FileOrganizer extends Plugin {
   async getTemplates(): Promise<{ type: string; formattingInstruction: string }[]> {
     console.log("Getting templates from filesystem");
     const templateFolder = this.app.vault.getAbstractFileByPath(this.settings.templatePaths);
-    
+
     if (!templateFolder || !(templateFolder instanceof TFolder)) {
       console.error("Template folder not found or is not a valid folder.");
       return [];
@@ -1275,7 +1276,7 @@ export default class FileOrganizer extends Plugin {
     console.log("Files in template folder:", templateFolder.children.map(file => file.name));
 
     const templateFiles = templateFolder.children.filter(file => file instanceof TFile) as TFile[];
-    
+
     const templates = await Promise.all(
       templateFiles.map(async file => ({
         type: file.basename,
@@ -1285,5 +1286,50 @@ export default class FileOrganizer extends Plugin {
 
     console.log("Templates fetched from filesystem:", templates);
     return templates;
+  }
+
+  async getAIClassifiedFoldersV2(content: string, filePath: string): Promise<string[]> {
+    const uniqueFolders = await this.getAllFolders();
+    if (this.settings.ignoreFolders.includes("*")) {
+      return [this.settings.defaultDestinationPath];
+    }
+    const currentFolder = this.app.vault.getAbstractFileByPath(filePath)?.parent?.path || '';
+    const filteredFolders = uniqueFolders
+      .filter(folder => folder !== currentFolder)
+      .filter(folder => folder !== filePath)
+      .filter(folder => folder !== this.settings.defaultDestinationPath)
+      .filter(folder => folder !== this.settings.attachmentsPath)
+      .filter(folder => folder !== this.settings.logFolderPath)
+      .filter(folder => folder !== this.settings.pathToWatch)
+      .filter(folder => folder !== this.settings.templatePaths)
+      .filter(folder => !folder.includes("_FileOrganizer2000"))
+      // if  this.settings.ignoreFolders has one or more folder specified, filter them out including subfolders
+      .filter(folder => {
+        const hasIgnoreFolders =
+          this.settings.ignoreFolders.length > 0 &&
+          this.settings.ignoreFolders[0] !== "";
+        if (!hasIgnoreFolders) return true;
+        const isFolderIgnored = this.settings.ignoreFolders.some(ignoreFolder =>
+          folder.startsWith(ignoreFolder)
+        );
+        return !isFolderIgnored;
+      })
+      .filter(folder => folder !== "/");
+
+
+    try {
+      const guessedFolders = await guessRelevantFoldersRouterV2(
+        content,
+        filePath,
+        filteredFolders,
+        this.getServerUrl(),
+        this.settings.API_KEY
+      );
+
+      return guessedFolders;
+    } catch (error) {
+      console.error("Error in getAIClassifiedFoldersV2:", error);
+      return [this.settings.defaultDestinationPath];
+    }
   }
 }

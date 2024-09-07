@@ -963,3 +963,56 @@
   font-weight: var(--nav-item-weight-hover);
   /* border: none; */
 }
+
+/* Folder Suggestion Styles */
+.folder-container {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  align-items: flex-start; /* Align buttons to the left */
+}
+
+.folder-suggestion {
+  background: var(--background-secondary);
+  border: 1px solid var(--background-modifier-border);
+  border-radius: 0.25rem;
+  padding: 0.5rem 1rem;
+  font-size: 0.9rem;
+  color: var(--text-normal);
+  cursor: pointer;
+  text-align: left;
+  transition: background-color 0.2s, color 0.2s;
+  width: auto; /* Allow button to shrink to fit its content */
+  max-width: 100%; /* Ensure button doesn't overflow its container */
+  white-space: nowrap; /* Prevent text from wrapping */
+  overflow: hidden; /* Hide overflowed text */
+  text-overflow: ellipsis; /* Add ellipsis for overflowed text */
+}
+
+.folder-suggestion:hover {
+  background-color: var(--interactive-accent);
+  color: var(--text-on-accent);
+}
+
+/* New style for the last folder suggestion */
+.folder-suggestion:last-child {
+  background: transparent;
+  border: 1px dashed var(--text-muted);
+  color: var(--text-muted);
+}
+
+.folder-suggestion:last-child:hover {
+  color: white;
+  background: var(--interactive-accent);
+  font-weight: var(--nav-item-weight-hover);
+}
+
+/* You can remove these styles if they're no longer needed */
+.folder {
+  font-size: 1rem;
+  color: var(--text-normal);
+}
+
+.move-note-button {
+  display: none;
+}

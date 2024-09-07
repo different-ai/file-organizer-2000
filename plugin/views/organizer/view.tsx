@@ -308,23 +308,29 @@ const SimilarFolderBox: React.FC<{
   content: string;
   refreshKey: number;
 }> = ({ plugin, file, content, refreshKey }) => {
-  const [folder, setFolder] = React.useState<string | null>(null);
+  const [folders, setFolders] = React.useState<string[]>([]);
   const [loading, setLoading] = React.useState<boolean>(false);
 
   React.useEffect(() => {
-    const suggestFolder = async () => {
+    const suggestFolders = async () => {
       if (!content || !file) return;
-      setFolder(null);
+      setFolders([]);
       setLoading(true);
-      const suggestedFolder = await plugin.getAIClassifiedFolder(
+      const suggestedFolders = await plugin.getAIClassifiedFoldersV2(
         content,
         file.path
       );
-      setFolder(suggestedFolder);
+      setFolders(suggestedFolders);
       setLoading(false);
     };
-    suggestFolder();
+    suggestFolders();
   }, [content, refreshKey]);
+
+  const handleFolderClick = (folder: string) => {
+    if (file) {
+      plugin.moveFile(file, file.basename, folder);
+    }
+  };
 
   return (
     <div className="assistant-section folder-section">
@@ -332,13 +338,16 @@ const SimilarFolderBox: React.FC<{
         <div>Loading...</div>
       ) : (
         <div className="folder-container">
-          <span className="folder">{folder}</span>
-          <button
-            className="move-note-button"
-            onClick={() => plugin.moveFile(file!, file!.basename, folder)}
-          >
-            Move
-          </button>
+          {folders.map((folder, index) => (
+            <button
+              key={index}
+              className="folder-suggestion"
+              onClick={() => handleFolderClick(folder)}
+            >
+              {folder}
+            </button>
+          ))}
+          {folders.length === 0 && <div>No suitable folders found</div>}
         </div>
       )}
     </div>
@@ -691,9 +700,6 @@ export const AssistantView: React.FC<AssistantViewProps> = ({ plugin, leaf }) =>
     if (!file) return false;
     return validMediaExtensions.includes(file.extension);
   };
-
-
-
 
   // if active file is null, display a placeholder (e.g. when opening a file in the Fo2k folder)
   if (!activeFile) {
