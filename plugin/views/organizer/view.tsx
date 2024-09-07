@@ -745,7 +745,7 @@ export const AssistantView: React.FC<AssistantViewProps> = ({ plugin, leaf }) =>
         refreshKey={refreshKey} 
       />
 
-      <SectionHeader text="Suggested title" icon="💡" />
+      <SectionHeader text="Titles" icon="💡" />
       <RenameSuggestion
         plugin={plugin}
         file={activeFile}
@@ -754,7 +754,7 @@ export const AssistantView: React.FC<AssistantViewProps> = ({ plugin, leaf }) =>
       />
       {plugin.settings.enableAliasGeneration && (
         <>
-          <SectionHeader text="Suggested aliases" icon="💡" />
+          <SectionHeader text="Aliases" icon="💡" />
 
           <AliasSuggestionBox
             plugin={plugin}
@@ -765,7 +765,7 @@ export const AssistantView: React.FC<AssistantViewProps> = ({ plugin, leaf }) =>
         </>
       )}
 
-      <SectionHeader text="Suggested folder" icon="📁" />
+      <SectionHeader text="Folders" icon="📁" />
       <SimilarFolderBox
         plugin={plugin}
         file={activeFile}

@@ -973,8 +973,8 @@
 }
 
 .folder-suggestion {
-  background: var(--background-secondary);
-  border: 1px solid var(--background-modifier-border);
+  box-shadow: none !important;
+  background: transparent !important;
   border-radius: 0.25rem;
   padding: 0.5rem 1rem;
   font-size: 0.9rem;
@@ -990,7 +990,7 @@
 }
 
 .folder-suggestion:hover {
-  background-color: var(--interactive-accent);
+  background-color: var(--interactive-accent) !important;
   color: var(--text-on-accent);
 }
 
