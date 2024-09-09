@@ -16,7 +16,7 @@ export async function POST(request: NextRequest) {
     1. One tag reflecting the topic or platform
     2. One tag indicating the document type (e.g., meeting_notes, research, brainstorm, draft).
     3. One more specific tag inspired by the file name 
-    4. Use underscores for multi-word tags.
+    4. Use hyphens for multi-word tags.
     5. Ensure tags are concise and reusable across notes.
     6. Return null if no tags can be generated.
     7. Do not suggest tags that are already present in the content.
