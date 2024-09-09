@@ -168,62 +168,64 @@ const RenameSuggestion: React.FC<{
   content: string;
   refreshKey: number;
 }> = ({ plugin, file, content, refreshKey }) => {
-  const [alias, setTitle] = React.useState<string | null>(null);
+  const [titles, setTitles] = React.useState<string[] | null>(null);
   const [loading, setLoading] = React.useState<boolean>(false);
   const [error, setError] = React.useState<string | null>(null);
 
   React.useEffect(() => {
-    const suggestAlias = async () => {
+    const suggestTitles = async () => {
       if (!content || !file) {
-        setTitle(null);
+        setTitles(null);
         return;
       }
-      setTitle(null);
+      setTitles(null);
       setLoading(true);
       setError(null);
       try {
-        const suggestedAlias = await plugin.generateNameFromContent(
+        const suggestedTitles = await plugin.generateMultipleNamesFromContent(
           content,
           file.basename
         );
-        setTitle(suggestedAlias);
-        if (!suggestedAlias) {
-          setError("No title could be generated.");
+        setTitles(suggestedTitles);
+        if (!suggestedTitles || suggestedTitles.length === 0) {
+          setError("No titles could be generated.");
         }
       } catch (err) {
-        console.error("Failed to generate title:", err);
-        setError("Error generating title.");
+        console.error("Failed to generate titles:", err);
+        setError("Error generating titles.");
       } finally {
         setLoading(false);
       }
     };
-    suggestAlias();
+    suggestTitles();
   }, [content, refreshKey]);
 
+  const handleTitleClick = (title: string) => {
+    if (file && file.parent) {
+      plugin.moveFile(file, title, file.parent.path);
+    } else {
+      console.error("File or file parent is null.");
+    }
+  };
+
   return (
-    <div className="assistant-section alias-section">
+    <div className="assistant-section title-section">
       {loading ? (
         <div>Loading...</div>
       ) : error ? (
         <div className="error-container">{error}</div>
       ) : (
-        <div className="alias-container">
-          {alias ? (
-            <>
-              <span className="alias">{alias}</span>
+        <div className="title-container">
+          {titles && titles.length > 0 ? (
+            titles.map((title, index) => (
               <button
-                className="rename-alias-button"
-                onClick={() => {
-                  if (file && file.parent) {
-                    plugin.moveFile(file, alias, file.parent.path);
-                  } else {
-                    console.error("File or file parent is null.");
-                  }
-                }}
+                key={index}
+                className="title-suggestion"
+                onClick={() => handleTitleClick(title)}
               >
-                Rename
+                {title}
               </button>
-            </>
+            ))
           ) : (
             <div>No suggestions found</div>
           )}

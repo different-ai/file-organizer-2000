@@ -853,6 +853,7 @@ export default class FileOrganizer extends Plugin {
     content: string,
     currentName: string
   ): Promise<string> {
+
     const renameInstructions = this.settings.renameInstructions;
     logMessage("renameInstructions", renameInstructions);
     const name = await generateDocumentTitleRouter(
@@ -864,6 +865,28 @@ export default class FileOrganizer extends Plugin {
       renameInstructions
     );
     return formatToSafeName(name);
+  }
+
+  async generateMultipleNamesFromContent(content: string, currentName: string): Promise<string[]> {
+    const renameInstructions = this.settings.renameInstructions;
+    const response = await makeApiRequest(() =>
+      requestUrl({
+        url: `${this.getServerUrl()}/api/title/multiple`,
+        method: "POST",
+        contentType: "application/json",
+        body: JSON.stringify({
+          document: content,
+          renameInstructions,
+          currentName,
+        }),
+        throw: false,
+        headers: {
+          Authorization: `Bearer ${this.settings.API_KEY}`,
+        },
+      })
+    );
+    const { titles } = await response.json;
+    return titles;
   }
 
   async compressImage(fileContent: Buffer): Promise<Buffer> {
@@ -965,40 +988,42 @@ export default class FileOrganizer extends Plugin {
     }
   }
 
-  async getExistingTags(content: string, fileName: string, vaultTags: string[]): Promise<string[]> {
-    try {
-      const response = await fetch(`${this.getServerUrl()}/api/tags/existing`, {
-        method: 'POST',
+  async getExistingTags(
+    content: string,
+    fileName: string,
+    vaultTags: string[]
+  ): Promise<string[]> {
+    const response = await makeApiRequest(() =>
+      requestUrl({
+        url: `${this.getServerUrl()}/api/tags/existing`,
+        method: "POST",
+        contentType: "application/json",
+        body: JSON.stringify({ content, fileName, vaultTags }),
+        throw: false,
         headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${this.settings.API_KEY}`
+          Authorization: `Bearer ${this.settings.API_KEY}`,
         },
-        body: JSON.stringify({ content, fileName, vaultTags })
-      });
-      const data = await response.json();
-      return data.generatedTags;
-    } catch (error) {
-      console.error('Error fetching existing tags:', error);
-      return [];
-    }
+      })
+    );
+    const { generatedTags } = await response.json;
+    return generatedTags;
   }
 
   async getNewTags(content: string, fileName: string): Promise<string[]> {
-    try {
-      const response = await fetch(`${this.getServerUrl()}/api/tags/new`, {
-        method: 'POST',
+    const response = await makeApiRequest(() =>
+      requestUrl({
+        url: `${this.getServerUrl()}/api/tags/new`,
+        method: "POST",
+        contentType: "application/json",
+        body: JSON.stringify({ content, fileName }),
+        throw: false,
         headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${this.settings.API_KEY}`
-        },
-        body: JSON.stringify({ content, fileName })
-      });
-      const data = await response.json();
-      return data.generatedTags;
-    } catch (error) {
-      console.error('Error fetching new tags:', error);
-      return [];
-    }
+          Authorization: `Bearer ${this.settings.API_KEY}`,
+        }
+      })
+    );
+    const { generatedTags } = await response.json;
+    return generatedTags;
   }
 
   async getAllVaultTags(): Promise<string[]> {
@@ -1264,7 +1289,7 @@ export default class FileOrganizer extends Plugin {
   }
 
   async getTemplates(): Promise<{ type: string; formattingInstruction: string }[]> {
-    console.log("Getting templates from filesystem");
+
     const templateFolder = this.app.vault.getAbstractFileByPath(this.settings.templatePaths);
 
     if (!templateFolder || !(templateFolder instanceof TFolder)) {
@@ -1272,7 +1297,6 @@ export default class FileOrganizer extends Plugin {
       return [];
     }
 
-    console.log("Files in template folder:", templateFolder.children.map(file => file.name));
 
     const templateFiles = templateFolder.children.filter(file => file instanceof TFile) as TFile[];
 
@@ -1283,7 +1307,6 @@ export default class FileOrganizer extends Plugin {
       }))
     );
 
-    console.log("Templates fetched from filesystem:", templates);
     return templates;
   }
 

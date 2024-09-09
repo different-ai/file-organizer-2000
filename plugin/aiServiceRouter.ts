@@ -87,6 +87,9 @@ export async function generateTagsRouter(
   const { generatedTags } = await response.json;
   return generatedTags;
 }
+
+
+
 export async function createNewFolderRouter(
   content: string,
   fileName: string,

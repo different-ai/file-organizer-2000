@@ -963,6 +963,42 @@
   font-weight: var(--nav-item-weight-hover);
   /* border: none; */
 }
+/* Title Suggestion Styles */
+.title-container {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  justify-content: flex-start; /* Left align the items */
+  align-items: flex-start; /* Align items to the top */
+}
+
+.title-suggestion {
+  box-shadow: none !important;
+  background: var(--background-secondary) !important;
+  border-radius: 0.25rem;
+  padding: 0.25rem 0.5rem;
+  font-size: 0.9rem;
+  color: var(--text-normal);
+  cursor: pointer;
+  transition: background-color 0.2s, color 0.2s;
+  border: none;
+  text-align: left;
+}
+
+.title-suggestion:hover {
+  background-color: var(--interactive-accent) !important;
+  color: white;
+  font-weight: var(--nav-item-weight-hover);
+}
+
+
+
+.error-container {
+  color: var(--text-error);
+  font-size: 0.9rem;
+  margin-top: 0.5rem;
+}
+
 /* Folder Suggestion Styles */
 .folder-container {
   display: flex;
