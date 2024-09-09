@@ -968,61 +968,37 @@
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
-}
+  justify-content: flex-start; /* Left align the items */
+  align-items: flex-start; /* Align items to the top */}
 
 .folder-suggestion {
-  
-  display: flex;
-  align-items: center;
-  background: var(--background-secondary);
+  box-shadow: none !important;
+  background: var(--background-secondary) !important;
   border-radius: 0.25rem;
-  padding: 0.5rem;
+  padding: 0.25rem 0.5rem;
   font-size: 0.9rem;
   color: var(--text-normal);
   cursor: pointer;
   transition: background-color 0.2s, color 0.2s;
-  width: 100%;
-  text-align: left;
 }
 
 .folder-suggestion:hover {
-  background: var(--interactive-accent);
-  color: var(--text-on-accent);
+  background-color: var(--interactive-accent) !important;
+  color: white;
+  font-weight: var(--nav-item-weight-hover);
 }
 
-.folder-suggestion::before {
-  content: "";
-  margin-right: 0.5rem;
-  width: 0rem;
-  display: inline-block;
-  text-align: center;
-}
-
-.folder-suggestion::after {
-  content: ">";
-  margin-left: auto;
-  font-weight: bold;
-  width: 1.5em;
-  display: inline-block;
-  text-align: center;
-}
-
-.folder-suggestion:last-child {
+.folder-suggestion.new-folder {
   background: transparent;
   border: 1px dashed var(--text-muted);
   color: var(--text-muted);
-  box-shadow: none !important;
-}
-
-.folder-suggestion:last-child::after {
-  content: "+";
 }
 
 .folder-suggestion:last-child:hover {
+  color: white;
   background: var(--interactive-accent);
-  color: var(--text-on-accent);
-  border-color: var(--interactive-accent);
-}
+  font-weight: var(--nav-item-weight-hover);
+} */
 
 /* You can remove these styles if they're no longer needed */
 .folder {
