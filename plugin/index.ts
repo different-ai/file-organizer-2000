@@ -854,6 +854,7 @@ export default class FileOrganizer extends Plugin {
     content: string,
     currentName: string
   ): Promise<string> {
+
     const renameInstructions = this.settings.renameInstructions;
     logMessage("renameInstructions", renameInstructions);
     const name = await generateDocumentTitleRouter(
@@ -865,6 +866,28 @@ export default class FileOrganizer extends Plugin {
       renameInstructions
     );
     return formatToSafeName(name);
+  }
+
+  async generateMultipleNamesFromContent(content: string, currentName: string): Promise<string[]> {
+    const renameInstructions = this.settings.renameInstructions;
+    const response = await makeApiRequest(() =>
+      requestUrl({
+        url: `${this.getServerUrl()}/api/title/multiple`,
+        method: "POST",
+        contentType: "application/json",
+        body: JSON.stringify({
+          document: content,
+          renameInstructions,
+          currentName,
+        }),
+        throw: false,
+        headers: {
+          Authorization: `Bearer ${this.settings.API_KEY}`,
+        },
+      })
+    );
+    const { titles } = await response.json;
+    return titles;
   }
 
   async compressImage(fileContent: Buffer): Promise<Buffer> {
@@ -1267,7 +1290,7 @@ export default class FileOrganizer extends Plugin {
   }
 
   async getTemplates(): Promise<{ type: string; formattingInstruction: string }[]> {
-    console.log("Getting templates from filesystem");
+
     const templateFolder = this.app.vault.getAbstractFileByPath(this.settings.templatePaths);
 
     if (!templateFolder || !(templateFolder instanceof TFolder)) {
@@ -1275,7 +1298,6 @@ export default class FileOrganizer extends Plugin {
       return [];
     }
 
-    console.log("Files in template folder:", templateFolder.children.map(file => file.name));
 
     const templateFiles = templateFolder.children.filter(file => file instanceof TFile) as TFile[];
 
@@ -1286,7 +1308,6 @@ export default class FileOrganizer extends Plugin {
       }))
     );
 
-    console.log("Templates fetched from filesystem:", templates);
     return templates;
   }
 }
