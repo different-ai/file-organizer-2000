@@ -51,6 +51,26 @@ export async function generateTags(
   return response;
 }
 
+export async function generateExistingTags(
+  content: string,
+  fileName: string,
+  vaultTags: string[],
+  model: LanguageModel
+) {
+  const prompt = `For "${content}" (file: "${fileName}"), select up to 3 tags from: ${vaultTags.join(", ")}. Only choose tags with an evident link to the main topics that is not too specific. If none meet this criterion, return null.`;
+
+  const response = await generateObject({
+    model,
+    temperature: 0,
+    schema: z.object({
+      tags: z.array(z.string()).max(3),
+    }),
+    prompt: prompt,
+  });
+
+  return response;
+}
+
 
 
 
@@ -94,6 +114,8 @@ export async function guessRelevantFolder(
 
   return response;
 }
+
+
 
 // Function to create a new folder if none is found
 export async function createNewFolder(

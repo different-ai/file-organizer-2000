@@ -310,23 +310,48 @@ const SimilarFolderBox: React.FC<{
   content: string;
   refreshKey: number;
 }> = ({ plugin, file, content, refreshKey }) => {
-  const [folder, setFolder] = React.useState<string | null>(null);
+  const [existingFolders, setExistingFolders] = React.useState<string[]>([]);
+  const [newFolders, setNewFolders] = React.useState<string[]>([]);
   const [loading, setLoading] = React.useState<boolean>(false);
 
   React.useEffect(() => {
-    const suggestFolder = async () => {
+    const suggestFolders = async () => {
       if (!content || !file) return;
-      setFolder(null);
+      setExistingFolders([]);
+      setNewFolders([]);
       setLoading(true);
-      const suggestedFolder = await plugin.getAIClassifiedFolder(
-        content,
-        file.path
-      );
-      setFolder(suggestedFolder);
-      setLoading(false);
+      try {
+        const [existingFoldersResult, newFoldersResult] = await Promise.all([
+          plugin.getExistingFolders(content, file.path),
+          plugin.getNewFolders(content, file.path),
+        ]);
+
+        setExistingFolders(existingFoldersResult);
+        // Filter out new folders that are already in existing folders
+        const uniqueNewFolders = newFoldersResult.filter(
+          folder => !existingFoldersResult.includes(folder)
+        );
+        setNewFolders(uniqueNewFolders);
+      } catch (error) {
+        console.error("Error fetching folders:", error);
+      } finally {
+        setLoading(false);
+      }
     };
-    suggestFolder();
+    suggestFolders();
   }, [content, refreshKey]);
+
+  const handleFolderClick = async (folder: string) => {
+    if (file) {
+      try {
+        await plugin.moveFile(file, file.basename, folder);
+        new Notice(`Moved ${file.basename} to ${folder}`);
+      } catch (error) {
+        console.error("Error moving file:", error);
+        new Notice(`Failed to move ${file.basename} to ${folder}`);
+      }
+    }
+  };
 
   return (
     <div className="assistant-section folder-section">
@@ -334,13 +359,27 @@ const SimilarFolderBox: React.FC<{
         <div>Loading...</div>
       ) : (
         <div className="folder-container">
-          <span className="folder">{folder}</span>
-          <button
-            className="move-note-button"
-            onClick={() => plugin.moveFile(file!, file!.basename, folder)}
-          >
-            Move
-          </button>
+          {existingFolders.map((folder, index) => (
+            <button
+              key={`existing-${index}`}
+              className="folder-suggestion existing-folder"
+              onClick={() => handleFolderClick(folder)}
+            >
+              {folder}
+            </button>
+          ))}
+          {newFolders.map((folder, index) => (
+            <button
+              key={`new-${index}`}
+              className="folder-suggestion new-folder"
+              onClick={() => handleFolderClick(folder)}
+            >
+              {folder}
+            </button>
+          ))}
+          {existingFolders.length === 0 && newFolders.length === 0 && (
+            <div>No suitable folders found</div>
+          )}
         </div>
       )}
     </div>
@@ -776,7 +815,7 @@ export const AssistantView: React.FC<AssistantViewProps> = ({
         refreshKey={refreshKey}
       />
 
-      <SectionHeader text="Suggested title" icon="💡" />
+      <SectionHeader text="Titles" icon="💡" />
       <RenameSuggestion
         plugin={plugin}
         file={activeFile}
@@ -785,7 +824,7 @@ export const AssistantView: React.FC<AssistantViewProps> = ({
       />
       {plugin.settings.enableAliasGeneration && (
         <>
-          <SectionHeader text="Suggested aliases" icon="💡" />
+          <SectionHeader text="Aliases" icon="💡" />
 
           <AliasSuggestionBox
             plugin={plugin}
@@ -796,7 +835,7 @@ export const AssistantView: React.FC<AssistantViewProps> = ({
         </>
       )}
 
-      <SectionHeader text="Suggested folder" icon="📁" />
+      <SectionHeader text="Folders" icon="📁" />
       <SimilarFolderBox
         plugin={plugin}
         file={activeFile}
