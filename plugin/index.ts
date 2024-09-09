@@ -48,6 +48,7 @@ import {
 import { checkLicenseKey } from "./apiUtils";
 import { AIChatView } from "./views/ai-chat/view";
 import { makeApiRequest } from "./apiUtils";
+
 type TagCounts = {
   [key: string]: number;
 };
@@ -988,40 +989,42 @@ export default class FileOrganizer extends Plugin {
     }
   }
 
-  async getExistingTags(content: string, fileName: string, vaultTags: string[]): Promise<string[]> {
-    try {
-      const response = await fetch(`${this.getServerUrl()}/api/tags/existing`, {
-        method: 'POST',
+  async getExistingTags(
+    content: string,
+    fileName: string,
+    vaultTags: string[]
+  ): Promise<string[]> {
+    const response = await makeApiRequest(() =>
+      requestUrl({
+        url: `${this.getServerUrl()}/api/tags/existing`,
+        method: "POST",
+        contentType: "application/json",
+        body: JSON.stringify({ content, fileName, vaultTags }),
+        throw: false,
         headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${this.settings.API_KEY}`
+          Authorization: `Bearer ${this.settings.API_KEY}`,
         },
-        body: JSON.stringify({ content, fileName, vaultTags })
-      });
-      const data = await response.json();
-      return data.generatedTags;
-    } catch (error) {
-      console.error('Error fetching existing tags:', error);
-      return [];
-    }
+      })
+    );
+    const { generatedTags } = await response.json;
+    return generatedTags;
   }
 
   async getNewTags(content: string, fileName: string): Promise<string[]> {
-    try {
-      const response = await fetch(`${this.getServerUrl()}/api/tags/new`, {
-        method: 'POST',
+    const response = await makeApiRequest(() =>
+      requestUrl({
+        url: `${this.getServerUrl()}/api/tags/new`,
+        method: "POST",
+        contentType: "application/json",
+        body: JSON.stringify({ content, fileName }),
+        throw: false,
         headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${this.settings.API_KEY}`
-        },
-        body: JSON.stringify({ content, fileName })
-      });
-      const data = await response.json();
-      return data.generatedTags;
-    } catch (error) {
-      console.error('Error fetching new tags:', error);
-      return [];
-    }
+          Authorization: `Bearer ${this.settings.API_KEY}`,
+        }
+      })
+    );
+    const { generatedTags } = await response.json;
+    return generatedTags;
   }
 
   async getAllVaultTags(): Promise<string[]> {
