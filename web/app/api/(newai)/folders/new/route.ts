@@ -25,7 +25,7 @@ export async function POST(request: NextRequest) {
         const suggestedFolders = response.object.suggestedFolders;
         // increment tokenUsage
         const tokens = response.usage.totalTokens;
-        console.log("incrementing token usage folders/existing", userId, tokens);
+        console.log("incrementing token usage folders/new", userId, tokens);
         await incrementAndLogTokenUsage(userId, tokens);
         return NextResponse.json({
             folders: suggestedFolders,
