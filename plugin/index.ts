@@ -8,6 +8,7 @@ import {
   WorkspaceLeaf,
   normalizePath,
   loadPdfJs,
+  requestUrl,
 } from "obsidian";
 import { logMessage, formatToSafeName } from "../utils";
 import { FileOrganizerSettingTab } from "./views/configuration/tabs";
@@ -32,7 +33,6 @@ import {
   generateRelationshipsRouter,
   generateTagsRouter,
   guessRelevantFolderRouter,
-  guessRelevantFoldersRouterV2,
   identifyConceptsAndFetchChunksRouter,
   identifyConceptsRouter,
 } from "./aiServiceRouter";
@@ -47,7 +47,7 @@ import {
 } from "./fileUtils";
 import { checkLicenseKey } from "./apiUtils";
 import { AIChatView } from "./views/ai-chat/view";
-
+import { makeApiRequest } from "./apiUtils";
 type TagCounts = {
   [key: string]: number;
 };
@@ -203,7 +203,7 @@ export default class FileOrganizer extends Plugin {
     const classification = classificationResult?.type;
     const aiFormattedText = classificationResult?.formattedText || "";
 
-  // Determine the folder path based on formatted content (if available) or original content
+    // Determine the folder path based on formatted content (if available) or original content
     const newPath = await this.getAIClassifiedFolder(
       classification && aiFormattedText ? aiFormattedText : textToFeedAi,
       file.path
@@ -278,8 +278,7 @@ export default class FileOrganizer extends Plugin {
     if (metadata.shouldCreateMarkdownContainer) {
       await this.app.vault.modify(fileToOrganize, text);
       this.appendToCustomLogFile(
-        `Annotated ${
-          metadata.shouldCreateMarkdownContainer ? "media" : "file"
+        `Annotated ${metadata.shouldCreateMarkdownContainer ? "media" : "file"
         } [[${metadata.newName}]]`
       );
     }
@@ -789,12 +788,12 @@ export default class FileOrganizer extends Plugin {
 
   getAllFolders(): string[] {
     const allFolders = getAllFolders(this.app);
-    
+
     // if ignoreFolders includes * then return all folders
     if (this.settings.ignoreFolders.includes("*")) {
       return [];
     }
-    
+
     return allFolders
       .filter(folder => !this.settings.ignoreFolders.includes(folder))
       .filter(folder => folder !== this.settings.pathToWatch)
@@ -983,7 +982,7 @@ export default class FileOrganizer extends Plugin {
       return [];
     }
   }
-  
+
   async getNewTags(content: string, fileName: string): Promise<string[]> {
     try {
       const response = await fetch(`${this.getServerUrl()}/api/tags/new`, {
@@ -1316,17 +1315,26 @@ export default class FileOrganizer extends Plugin {
       })
       .filter(folder => folder !== "/");
 
-
     try {
-      const guessedFolders = await guessRelevantFoldersRouterV2(
-        content,
-        filePath,
-        filteredFolders,
-        this.getServerUrl(),
-        this.settings.API_KEY
+      const response = await makeApiRequest(() =>
+        requestUrl({
+          url: `${this.getServerUrl()}/api/folders/v2`,
+          method: "POST",
+          contentType: "application/json",
+          body: JSON.stringify({
+            content,
+            fileName: filePath,
+            folders: filteredFolders,
+          }),
+          throw: false,
+          headers: {
+            Authorization: `Bearer ${this.settings.API_KEY}`
+          },
+        })
       );
+      const { folders: guessedFolders } = await response.json;
+      return guessedFolders
 
-      return guessedFolders;
     } catch (error) {
       console.error("Error in getAIClassifiedFoldersV2:", error);
       return [this.settings.defaultDestinationPath];
