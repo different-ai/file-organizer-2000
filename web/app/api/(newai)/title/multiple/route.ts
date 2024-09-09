@@ -30,9 +30,6 @@ export async function POST(request: NextRequest) {
     });
     const titles = generateTitlesData.object.names;
     const tokens = generateTitlesData.usage.totalTokens;
-    console.log("generateTitlesData", generateTitlesData);
-    console.log("titles", titles);
-    console.log("incrementing token usage titles", userId, tokens);
     await incrementAndLogTokenUsage(userId, tokens);
 
     const response = NextResponse.json({ titles });
