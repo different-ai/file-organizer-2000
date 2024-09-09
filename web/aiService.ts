@@ -1,12 +1,10 @@
 import {
-  GenerateObjectResult,
   LanguageModel,
   generateObject,
   generateText,
   streamObject,
 } from "ai";
 import { z } from "zod";
-import { NextResponse } from "next/server";
 import fs from "fs";
 import { promises as fsPromises } from "fs";
 import { tmpdir } from "os";
