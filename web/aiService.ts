@@ -1,12 +1,10 @@
 import {
-  GenerateObjectResult,
   LanguageModel,
   generateObject,
   generateText,
   streamObject,
 } from "ai";
 import { z } from "zod";
-import { NextResponse } from "next/server";
 import fs from "fs";
 import { promises as fsPromises } from "fs";
 import { tmpdir } from "os";
@@ -43,83 +41,18 @@ export async function generateTags(
     prompt: prompt,
   });
 
-// Post-process all tags to ensure they have a '#' prefix
-response.object.tags = response.object.tags.map(tag => {
-  // remove spaces from the tag
-  const tagWithoutSpaces = tag.replace(/\s+/g, '');
-  return tagWithoutSpaces.startsWith('#') ? tagWithoutSpaces : '#' + tagWithoutSpaces;
-});
-
-  return response;
-}
-
-export async function generateExistingTags(
-  content: string,
-  fileName: string,
-  vaultTags: string[],
-  model: LanguageModel
-) {
-  const prompt = `For "${content}" (file: "${fileName}"), select up to 3 tags from: ${vaultTags.join(", ")}. Only choose tags with an evident link to the main topics that is not too specific. If none meet this criterion, return null.`;
-
-  const response = await generateObject({
-    model,
-    temperature: 0,
-    schema: z.object({
-      tags: z.array(z.string()).max(3),
-    }),
-    prompt: prompt,
+  // Post-process all tags to ensure they have a '#' prefix
+  response.object.tags = response.object.tags.map(tag => {
+    // remove spaces from the tag
+    const tagWithoutSpaces = tag.replace(/\s+/g, '');
+    return tagWithoutSpaces.startsWith('#') ? tagWithoutSpaces : '#' + tagWithoutSpaces;
   });
 
-  // Filter tags based on relevance, format them, and exclude existing tags
-  response.object.tags = response.object.tags
-    .filter((tag) => {
-      const cleanedTag = tag.toLowerCase().replace(/\s+/g, '');
-      return cleanedTag !== 'none' && cleanedTag !== '' && !content.toLowerCase().includes(`#${cleanedTag}`);
-    })
-    .map(tag => tag.replace(/\s+/g, '').toLowerCase());
-
   return response;
 }
 
-export async function generateNewTags(
-  content: string,
-  fileName: string,
-  model: LanguageModel
-) {
-  const isUntitled = fileName.toLowerCase().includes('untitled');
-  const prompt = `Generate 3 tags for the ${isUntitled ? 'content' : 'file "' + fileName + '" and content'} "${content}":
-  
-  1. One tag reflecting the topic or platform
-  2. One tag indicating the document type (e.g., meeting_notes, research, brainstorm, draft).
-  3. One more specific tag inspired by the file name 
-  4. Use underscores for multi-word tags.
-  5. Ensure tags are concise and reusable across notes.
-  6. Return null if no tags can be generated.
-  7. Do not suggest tags that are already present in the content.
-  
-  Examples:
-  - Use moderately broad tags like fitness_plan, not overly specific like monday_dumbells_20kg.
-  - For "humility and leadership", use humility.`
 
-  const response = await generateObject({
-    model,
-    temperature: 0.5,
-    schema: z.object({
-      tags: z.array(z.string()).max(3),
-    }),
-    prompt: prompt,
-  });
 
-  // Filter tags based on relevance, format them, and exclude existing tags
-  response.object.tags = response.object.tags
-    .filter((tag) => {
-      const cleanedTag = tag.toLowerCase().replace(/\s+/g, '');
-      return cleanedTag !== 'none' && cleanedTag !== '' && !content.toLowerCase().includes(`#${cleanedTag}`);
-    })
-    .map(tag => tag.replace(/\s+/g, '').toLowerCase());
-
-  return response;
-}
 
 // Function to generate alias variations
 export async function generateAliasVariations(
