@@ -88,50 +88,7 @@ export async function generateTagsRouter(
   return generatedTags;
 }
 
-export async function getExistingTagsRouter(
-  content: string,
-  fileName: string,
-  vaultTags: string[],
-  serverUrl: string,
-  apiKey: string
-): Promise<string[]> {
-  const response = await makeApiRequest(() =>
-    requestUrl({
-      url: `${serverUrl}/api/tags/existing`,
-      method: "POST",
-      contentType: "application/json",
-      body: JSON.stringify({ content, fileName, vaultTags }),
-      throw: false,
-      headers: {
-        Authorization: `Bearer ${apiKey}`,
-      },
-    })
-  );
-  const { generatedTags } = await response.json;
-  return generatedTags;
-}
 
-export async function getNewTagsRouter(
-  content: string,
-  fileName: string,
-  serverUrl: string,
-  apiKey: string
-): Promise<string[]> {
-  const response = await makeApiRequest(() =>
-    requestUrl({
-      url: `${serverUrl}/api/tags/new`,
-      method: "POST",
-      contentType: "application/json",
-      body: JSON.stringify({ content, fileName }),
-      throw: false,
-      headers: {
-        Authorization: `Bearer ${apiKey}`,
-      },
-    })
-  );
-  const { generatedTags } = await response.json;
-  return generatedTags;
-}
 
 export async function createNewFolderRouter(
   content: string,

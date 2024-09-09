@@ -32,8 +32,6 @@ import {
   generateDocumentTitleRouter,
   generateRelationshipsRouter,
   generateTagsRouter,
-  getExistingTagsRouter,
-  getNewTagsRouter,
   guessRelevantFolderRouter,
   identifyConceptsAndFetchChunksRouter,
   identifyConceptsRouter,
