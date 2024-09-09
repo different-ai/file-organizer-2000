@@ -8,6 +8,7 @@ import {
   WorkspaceLeaf,
   normalizePath,
   loadPdfJs,
+  requestUrl,
 } from "obsidian";
 import { logMessage, formatToSafeName } from "../utils";
 import { FileOrganizerSettingTab } from "./views/configuration/tabs";
@@ -48,6 +49,7 @@ import {
 } from "./fileUtils";
 import { checkLicenseKey } from "./apiUtils";
 import { AIChatView } from "./views/ai-chat/view";
+import { makeApiRequest } from "./apiUtils";
 
 type TagCounts = {
   [key: string]: number;
@@ -204,7 +206,7 @@ export default class FileOrganizer extends Plugin {
     const classification = classificationResult?.type;
     const aiFormattedText = classificationResult?.formattedText || "";
 
-  // Determine the folder path based on formatted content (if available) or original content
+    // Determine the folder path based on formatted content (if available) or original content
     const newPath = await this.getAIClassifiedFolder(
       classification && aiFormattedText ? aiFormattedText : textToFeedAi,
       file.path
@@ -279,8 +281,7 @@ export default class FileOrganizer extends Plugin {
     if (metadata.shouldCreateMarkdownContainer) {
       await this.app.vault.modify(fileToOrganize, text);
       this.appendToCustomLogFile(
-        `Annotated ${
-          metadata.shouldCreateMarkdownContainer ? "media" : "file"
+        `Annotated ${metadata.shouldCreateMarkdownContainer ? "media" : "file"
         } [[${metadata.newName}]]`
       );
     }
@@ -790,12 +791,12 @@ export default class FileOrganizer extends Plugin {
 
   getAllFolders(): string[] {
     const allFolders = getAllFolders(this.app);
-    
+
     // if ignoreFolders includes * then return all folders
     if (this.settings.ignoreFolders.includes("*")) {
       return [];
     }
-    
+
     return allFolders
       .filter(folder => !this.settings.ignoreFolders.includes(folder))
       .filter(folder => folder !== this.settings.pathToWatch)
@@ -972,22 +973,37 @@ export default class FileOrganizer extends Plugin {
     fileName: string,
     vaultTags: string[]
   ): Promise<string[]> {
-    return await getExistingTagsRouter(
-      content,
-      fileName,
-      vaultTags,
-      this.getServerUrl(),
-      this.settings.API_KEY
+    const response = await makeApiRequest(() =>
+      requestUrl({
+        url: `${this.getServerUrl()}/api/tags/existing`,
+        method: "POST",
+        contentType: "application/json",
+        body: JSON.stringify({ content, fileName, vaultTags }),
+        throw: false,
+        headers: {
+          Authorization: `Bearer ${this.settings.API_KEY}`,
+        },
+      })
     );
+    const { generatedTags } = await response.json;
+    return generatedTags;
   }
 
   async getNewTags(content: string, fileName: string): Promise<string[]> {
-    return await getNewTagsRouter(
-      content,
-      fileName,
-      this.getServerUrl(),
-      this.settings.API_KEY
+    const response = await makeApiRequest(() =>
+      requestUrl({
+        url: `${this.getServerUrl()}/api/tags/new`,
+        method: "POST",
+        contentType: "application/json",
+        body: JSON.stringify({ content, fileName }),
+        throw: false,
+        headers: {
+          Authorization: `Bearer ${this.settings.API_KEY}`,
+        }
+      })
     );
+    const { generatedTags } = await response.json;
+    return generatedTags;
   }
 
   async getAllVaultTags(): Promise<string[]> {
@@ -1255,7 +1271,7 @@ export default class FileOrganizer extends Plugin {
   async getTemplates(): Promise<{ type: string; formattingInstruction: string }[]> {
     console.log("Getting templates from filesystem");
     const templateFolder = this.app.vault.getAbstractFileByPath(this.settings.templatePaths);
-    
+
     if (!templateFolder || !(templateFolder instanceof TFolder)) {
       console.error("Template folder not found or is not a valid folder.");
       return [];
@@ -1264,7 +1280,7 @@ export default class FileOrganizer extends Plugin {
     console.log("Files in template folder:", templateFolder.children.map(file => file.name));
 
     const templateFiles = templateFolder.children.filter(file => file instanceof TFile) as TFile[];
-    
+
     const templates = await Promise.all(
       templateFiles.map(async file => ({
         type: file.basename,
