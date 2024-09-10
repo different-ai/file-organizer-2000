@@ -86,7 +86,7 @@ Choose between the setups below:
    For Linux/macOS:
 
    ```sh
-   cd app && npm run build:self-host &&  npm run start
+   cd web && npm run build:self-host &&  npm run start
    ```
 
    And make sure you have your  `OPENAI_API_KEY` variable set up in your `.env.local` file inside the app root folder.
@@ -94,7 +94,7 @@ Choose between the setups below:
    For Windows (PowerShell):
 
    ```sh
-   cd app; npm run build:self-host; npm run start
+   cd web; npm run build:self-host; npm run start
     ```
 
    And make sure you have your  `OPENAI_API_KEY` variable set up in your `.env.local` file inside the app root folder.
