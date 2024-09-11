@@ -81,19 +81,37 @@ AI Instructions:
 
 export async function moveFile(
   app: App,
-  file: TFile,
-  humanReadableFileName: string,
+  sourceFile: TFile,
+  newFileName: string,
   destinationFolder = ""
-) {
-  let destinationPath = `${destinationFolder}/${humanReadableFileName}.${file.extension}`;
-  if (await app.vault.adapter.exists(normalizePath(destinationPath))) {
+): Promise<TFile> {
+  // Extract the file extension from the source file
+  const fileExtension = sourceFile.extension;
+
+  // Construct the initial target path
+  let targetPath = `${destinationFolder}/${newFileName}.${fileExtension}`;
+  const normalizedTargetPath = normalizePath(targetPath);
+
+  // Check if a file with the same name already exists in the destination
+  if (await app.vault.adapter.exists(normalizedTargetPath)) {
+    // If it exists, create a unique filename by adding a timestamp
     const timestamp = Date.now();
-    const timestampedFileName = `${humanReadableFileName}_${timestamp}`;
-    destinationPath = `${destinationFolder}/${timestampedFileName}.${file.extension}`;
+    const uniqueFileName = `${newFileName}_${timestamp}`;
+    targetPath = `${destinationFolder}/${uniqueFileName}.${fileExtension}`;
   }
+
+  // Normalize the final path
+  const normalizedFinalPath = normalizePath(targetPath);
+
+  // Ensure the destination folder exists
   await ensureFolderExists(app, destinationFolder);
-  await app.vault.rename(file, `${destinationPath}`);
-  return file;
+
+  // Move the file and update all links
+  await app.fileManager.renameFile(sourceFile, normalizedFinalPath);
+
+  // Get the moved file object and return it
+  const movedFile = app.vault.getAbstractFileByPath(normalizedFinalPath) as TFile;
+  return movedFile;
 }
 
 export function isTFolder(file: any): file is TFolder {
