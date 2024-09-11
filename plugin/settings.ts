@@ -40,6 +40,7 @@ export class FileOrganizerSettings {
   openAIBaseUrl = "https://api.openai.com/v1";
   enableScreenpipe = false;
   useVaultTitles = true;
+  enableFileRenaming = true;
   userModels: {
     [key: string]: {
       url: string;
