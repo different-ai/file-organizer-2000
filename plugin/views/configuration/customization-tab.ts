@@ -84,7 +84,7 @@ export class CustomizationTab {
       .setHeading();
 
     new Setting(customizationTabContent)
-      .setName("Enable Alias Generation")
+      .setName("Alias Generation")
       .setDesc("Enable the generation of aliases in the assistant sidebar.")
       .addToggle((toggle) =>
         toggle
@@ -95,7 +95,7 @@ export class CustomizationTab {
           })
       );
     new Setting(customizationTabContent)
-      .setName("Enable Similar Files")
+      .setName("Similar Files")
       .setDesc("Enable the display of similar files in the assistant sidebar.")
       .addToggle((toggle) =>
         toggle
@@ -106,7 +106,7 @@ export class CustomizationTab {
           })
       );
     new Setting(customizationTabContent)
-      .setName("Enable Atomic Notes")
+      .setName("Atomic Notes")
       .setDesc(
         "Enable the generation of atomic notes in the assistant sidebar."
       )
@@ -120,7 +120,7 @@ export class CustomizationTab {
       );
 
     new Setting(customizationTabContent)
-      .setName("Enable Screenpipe Integration")
+      .setName("Screenpipe Integration")
       .setDesc("Enable Screenpipe integration for productivity analysis and meeting summaries.")
       .addToggle((toggle) =>
         toggle
@@ -132,11 +132,23 @@ export class CustomizationTab {
       );
 
     new Setting(customizationTabContent)
+      .setName("Personalized Titles")
+      .setDesc("Use random titles from your vault to improve AI-generated titles. This feature feeds 20 random vault titles to the AI for better context.")
+      .addToggle((toggle) =>
+        toggle
+          .setValue(this.plugin.settings.useVaultTitles)
+          .onChange(async (value) => {
+            this.plugin.settings.useVaultTitles = value;
+            await this.plugin.saveSettings();
+          })
+      );
+
+    new Setting(customizationTabContent)
       .setName("Custom Formatting")
       .setHeading();
 
     new Setting(customizationTabContent)
-      .setName("Enable Document Auto-Formatting")
+      .setName("Document Auto-Formatting")
       .setDesc(
         "Automatically format documents processed through the inbox when content matches a category of your AI templates."
       )
@@ -161,6 +173,8 @@ export class CustomizationTab {
         "To specify the document type for AI formatting, please add a file inside the template folder of File Organizer. Each file should be named according to the document type it represents (e.g., 'workout'). The content of each file should be the prompt that will be applied to the formatting. Additionally, you can access and manage these document types directly through the AI sidebar in the application."
       )
       .setDisabled(true);
+
+
 
     return customizationTabContent;
   }

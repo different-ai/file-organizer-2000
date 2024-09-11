@@ -869,6 +869,7 @@ export default class FileOrganizer extends Plugin {
 
   async generateMultipleNamesFromContent(content: string, currentName: string): Promise<string[]> {
     const renameInstructions = this.settings.renameInstructions;
+    const vaultTitles = this.settings.useVaultTitles ? this.getRandomVaultTitles(20) : [];
     const response = await makeApiRequest(() =>
       requestUrl({
         url: `${this.getServerUrl()}/api/title/multiple`,
@@ -878,6 +879,7 @@ export default class FileOrganizer extends Plugin {
           document: content,
           renameInstructions,
           currentName,
+          vaultTitles,
         }),
         throw: false,
         headers: {
@@ -887,6 +889,19 @@ export default class FileOrganizer extends Plugin {
     );
     const { titles } = await response.json;
     return titles;
+  }
+  // get random titles from the users vault to get better titles suggestions
+  getRandomVaultTitles(count: number): string[] {
+    const allFiles = this.app.vault.getFiles();
+    const filteredFiles = allFiles.filter(file =>
+      file.extension === "md" &&
+      !file.basename.toLowerCase().includes("untitled") &&
+      !file.basename.toLowerCase().includes("backup") &&
+      !file.path.includes(this.settings.backupFolderPath)
+    );
+    const shuffled = filteredFiles.sort(() => 0.5 - Math.random());
+    console.log("shuffled", shuffled);
+    return shuffled.slice(0, count).map(file => file.basename);
   }
 
   async compressImage(fileContent: Buffer): Promise<Buffer> {

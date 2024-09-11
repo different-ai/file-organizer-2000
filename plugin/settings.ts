@@ -39,6 +39,7 @@ export class FileOrganizerSettings {
   ollamaModels: string[] = ["codegemma"];
   openAIBaseUrl = "https://api.openai.com/v1";
   enableScreenpipe = false;
+  useVaultTitles = true;
   userModels: {
     [key: string]: {
       url: string;
