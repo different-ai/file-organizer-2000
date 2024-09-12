@@ -8,7 +8,7 @@ import { generateObject } from "ai";
 export async function POST(request: NextRequest) {
   try {
     const { userId } = await handleAuthorization(request);
-    const { document, renameInstructions, currentName } = await request.json();
+    const { document, renameInstructions, currentName, vaultTitles } = await request.json();
     const model = getModel(process.env.MODEL_NAME);
     const prompt = `As an AI specializing in document analysis, your task is to generate highly specific and unique titles for the given document. Analyze the content thoroughly to identify key elements such as:
 
@@ -28,6 +28,11 @@ export async function POST(request: NextRequest) {
     Time: ${new Date().toISOString()}
     Current Name: ${currentName}
     Document Content: ${document}
+
+    ${vaultTitles && vaultTitles.length > 0 ? `
+      Strongly inspire the structure and tone of the title from this titles list:
+    ${vaultTitles.join('\n')}
+` : ''}
 
     ${renameInstructions}
 
