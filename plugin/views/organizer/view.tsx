@@ -11,6 +11,7 @@ import { RefreshButton } from "./components/refresh-button";
 import { ClassificationBox } from "./components/classification-box";
 import { TranscriptionButton } from "./components/transcription-button";
 import { SimilarFilesBox } from "./components/similar-files-box";
+import { EmptyState } from "./components/empty-state";
 
 interface AssistantViewProps {
   plugin: FileOrganizer;
@@ -61,27 +62,33 @@ export const AssistantView: React.FC<AssistantViewProps> = ({
 
   if (error) {
     return (
-      <div className="assistant-error">
-        <p>{error}</p>
-        <button onClick={refreshContext}>Try Again</button>
-      </div>
+      <EmptyState 
+        message={`Error: ${error}. Click refresh to try again.`}
+        showRefresh={true}
+        onRefresh={refreshContext}
+      />
     );
   }
 
   if (!activeFile) {
     return (
-      <div className="assistant-placeholder">
-        Open a file outside the File Organizer 2000 folder to see AI suggestions
-      </div>
+      <EmptyState message="Open a file outside the File Organizer 2000 folder to see AI suggestions" />
     );
   }
 
   if (isMediaFile(activeFile)) {
     return (
-      <div className="assistant-placeholder">
-        To process an image or audio file, move it to the File Organizer 2000
-        Inbox Folder (e.g. for image text extraction or audio transcription).
-      </div>
+      <EmptyState message="To process an image or audio file, move it to the File Organizer 2000 Inbox Folder (e.g. for image text extraction or audio transcription)." />
+    );
+  }
+
+  if (!noteContent.trim()) {
+    return (
+      <EmptyState 
+        message="This file is empty. Add some content and click refresh to see AI suggestions."
+        showRefresh={true}
+        onRefresh={refreshContext}
+      />
     );
   }
 

@@ -867,29 +867,7 @@ export default class FileOrganizer extends Plugin {
     return formatToSafeName(name);
   }
 
-  async generateMultipleNamesFromContent(content: string, currentName: string): Promise<string[]> {
-    const renameInstructions = this.settings.renameInstructions;
-    const vaultTitles = this.settings.useVaultTitles ? this.getRandomVaultTitles(20) : [];
-    const response = await makeApiRequest(() =>
-      requestUrl({
-        url: `${this.getServerUrl()}/api/title/multiple`,
-        method: "POST",
-        contentType: "application/json",
-        body: JSON.stringify({
-          document: content,
-          renameInstructions,
-          currentName,
-          vaultTitles,
-        }),
-        throw: false,
-        headers: {
-          Authorization: `Bearer ${this.settings.API_KEY}`,
-        },
-      })
-    );
-    const { titles } = await response.json;
-    return titles;
-  }
+
   // get random titles from the users vault to get better titles suggestions
   getRandomVaultTitles(count: number): string[] {
     const allFiles = this.app.vault.getFiles();
