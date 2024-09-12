@@ -11,7 +11,6 @@ export async function POST(request: NextRequest) {
         const { content, fileName, folders } = await request.json();
         const model = getModel(process.env.MODEL_NAME);
         const sanitizedFileName = fileName.split('/').pop();
-        console.log("sanitizedFileName", sanitizedFileName);
         const response = await generateObject({
             model,
             schema: z.object({
