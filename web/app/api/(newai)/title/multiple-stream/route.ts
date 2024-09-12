@@ -4,6 +4,7 @@ import { z } from "zod";
 import { incrementAndLogTokenUsage } from "@/lib/incrementAndLogTokenUsage";
 import { handleAuthorization } from "@/lib/handleAuthorization";
 import { NextResponse, NextRequest } from "next/server";
+import { getModel } from '@/lib/models';
 
 // Allow streaming responses up to 30 seconds
 export const maxDuration = 30;
@@ -46,7 +47,7 @@ export async function POST(req: NextRequest) {
     Remember, the goal is to create titles that are instantly informative and distinguishable from other documents.`;
 
     const result = await streamObject({
-      model: openai('gpt-4-turbo'),
+      model: getModel(process.env.MODEL_NAME || 'gpt-4o-2024-08-06'),
       
       schema: titleSchema,
       prompt,
