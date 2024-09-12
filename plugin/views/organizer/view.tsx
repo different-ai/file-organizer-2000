@@ -1,6 +1,7 @@
 import * as React from "react";
-import { Notice, TFile, WorkspaceLeaf } from "obsidian";
+import { TFile, WorkspaceLeaf } from "obsidian";
 import FileOrganizer, { validMediaExtensions } from "../../index";
+import { debounce } from 'lodash';
 
 import { SectionHeader } from "./components/section-header";
 import { SimilarTags } from "./components/similar-tags";
@@ -22,43 +23,54 @@ export const AssistantView: React.FC<AssistantViewProps> = ({
   plugin,
   leaf,
 }) => {
-  
   const [activeFile, setActiveFile] = React.useState<TFile | null>(null);
   const [noteContent, setNoteContent] = React.useState<string>("");
   const [refreshKey, setRefreshKey] = React.useState<number>(0);
   const [error, setError] = React.useState<string | null>(null);
 
-  React.useEffect(() => {
-    const updateActiveFile = async () => {
-      try {
-        const file = plugin.app.workspace.getActiveFile();
+  const updateActiveFile = React.useCallback(async () => {
+    try {
+      const file = plugin.app.workspace.getActiveFile();
+      if (file && (!activeFile || file.path !== activeFile.path)) {
         setActiveFile(file);
-        if (file) {
-          const content = await plugin.app.vault.read(file);
-          setNoteContent(content);
-        }
-      } catch (err) {
-        console.error("Error updating active file:", err);
-        setError("Failed to load file content");
+        const content = await plugin.app.vault.read(file);
+        setNoteContent(content);
       }
-    };
+    } catch (err) {
+      console.error("Error updating active file:", err);
+      setError("Failed to load file content");
+    }
+  }, [plugin.app.workspace, plugin.app.vault, activeFile]);
 
+  React.useEffect(() => {
     updateActiveFile();
-    const eventRef = plugin.app.workspace.on("active-leaf-change", updateActiveFile);
+    const debouncedUpdate = debounce(updateActiveFile, 300);
+    const eventRef = plugin.app.workspace.on("file-open", debouncedUpdate);
     return () => {
       plugin.app.workspace.offref(eventRef);
+      debouncedUpdate.cancel();
     };
-  }, []);
+  }, [updateActiveFile, plugin.app.workspace]);
 
-  const refreshContext = () => {
+  const refreshContext = React.useCallback(() => {
     setRefreshKey(prevKey => prevKey + 1);
     setError(null);
-  };
+    updateActiveFile();
+  }, [updateActiveFile]);
 
   const isMediaFile = (file: TFile | null): boolean => {
     if (!file) return false;
     return validMediaExtensions.includes(file.extension);
   };
+
+  const renderSection = React.useCallback((component: React.ReactNode, errorMessage: string) => {
+    try {
+      return component;
+    } catch (err) {
+      console.error(errorMessage, err);
+      return <div className="section-error">{errorMessage}</div>;
+    }
+  }, []);
 
   if (error) {
     return (
@@ -91,15 +103,6 @@ export const AssistantView: React.FC<AssistantViewProps> = ({
       />
     );
   }
-
-  const renderSection = (component: React.ReactNode, errorMessage: string) => {
-    try {
-      return component;
-    } catch (err) {
-      console.error(errorMessage, err);
-      return <div className="section-error">{errorMessage}</div>;
-    }
-  };
 
   return (
     <div className="assistant-container">
