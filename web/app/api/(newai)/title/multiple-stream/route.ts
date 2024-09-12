@@ -8,7 +8,7 @@ import { NextResponse, NextRequest } from "next/server";
 // Allow streaming responses up to 30 seconds
 export const maxDuration = 30;
 
-export const titleSchema = z.object({
+const titleSchema = z.object({
   names: z.array(z.string().max(60)).length(3),
 });
 
