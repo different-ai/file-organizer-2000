@@ -10,7 +10,7 @@ import {
   loadPdfJs,
   requestUrl,
 } from "obsidian";
-import { logMessage, formatToSafeName } from "../utils";
+import { logMessage, formatToSafeName, sanitizeTag } from "../utils";
 import { FileOrganizerSettingTab } from "./views/configuration/tabs";
 import {
   ASSISTANT_VIEW_TYPE,
@@ -983,45 +983,7 @@ export default class FileOrganizer extends Plugin {
     }
   }
 
-  async getExistingTags(
-    content: string,
-    fileName: string,
-    vaultTags: string[]
-  ): Promise<string[]> {
-    const response = await makeApiRequest(() =>
-      requestUrl({
-        url: `${this.getServerUrl()}/api/tags/existing`,
-        method: "POST",
-        contentType: "application/json",
-        body: JSON.stringify({ content, fileName, vaultTags }),
-        throw: false,
-        headers: {
-          Authorization: `Bearer ${this.settings.API_KEY}`,
-        },
-      })
-    );
-    const { generatedTags } = await response.json;
-    return generatedTags;
-  }
-
-  async getNewTags(content: string, fileName: string): Promise<string[]> {
-    const response = await makeApiRequest(() =>
-      requestUrl({
-        url: `${this.getServerUrl()}/api/tags/new`,
-        method: "POST",
-        contentType: "application/json",
-        body: JSON.stringify({ content, fileName }),
-        throw: false,
-        headers: {
-          Authorization: `Bearer ${this.settings.API_KEY}`,
-        }
-      })
-    );
-    const { generatedTags } = await response.json;
-    return generatedTags;
-  }
-
-  async getAllVaultTags(): Promise<string[]> {
+   async getAllVaultTags(): Promise<string[]> {
     // Fetch all tags from the vault
     // @ts-ignore
     const tags: TagCounts = this.app.metadataCache.getTags();
@@ -1104,10 +1066,10 @@ export default class FileOrganizer extends Plugin {
     return destinationFolder;
   }
 
+
   async appendTag(file: TFile, tag: string) {
     // Ensure the tag starts with a hash symbol
-    const formattedTag = tag.startsWith("#") ? tag : `#${tag}`;
-
+    const formattedTag = sanitizeTag(tag);
     // Append similar tags
     if (this.settings.useSimilarTagsInFrontmatter) {
       await this.appendToFrontMatter(file, "tags", formattedTag);
