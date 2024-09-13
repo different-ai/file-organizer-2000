@@ -4,14 +4,14 @@ import FileOrganizer, { validMediaExtensions } from "../../index";
 import { debounce } from 'lodash';
 
 import { SectionHeader } from "./components/section-header";
-import { SimilarTags } from "./components/similar-tags";
-import { DocumentChunks } from "./components/document-chunks";
-import { RenameSuggestion } from "./components/rename-suggestion";
-import { SimilarFolderBox } from "./components/similar-folder-box";
+import { SimilarTags } from "./tags";
+import { DocumentChunks } from "./chunks";
+import { RenameSuggestion } from "./title";
+import { SimilarFolderBox } from "./folder";
 import { RefreshButton } from "./components/refresh-button";
-import { ClassificationBox } from "./components/classification-box";
-import { TranscriptionButton } from "./components/transcription-button";
-import { SimilarFilesBox } from "./components/similar-files-box";
+import { ClassificationBox } from "./classification";
+import { TranscriptionButton } from "./transcript";
+import { SimilarFilesBox } from "./files";
 import { EmptyState } from "./components/empty-state";
 
 interface AssistantViewProps {

@@ -2,7 +2,7 @@ import * as React from "react";
 import { TFile } from "obsidian";
 import { experimental_useObject as useObject } from "ai/react";
 import FileOrganizer from "../../../index";
-import { titleSchema } from "../components/rename-suggestion";
+import { titleSchema } from "../title";
 
 export const useTitleSuggestions = (
   plugin: FileOrganizer,

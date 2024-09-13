@@ -1,9 +1,9 @@
 import * as React from "react";
 import { TFile, requestUrl } from "obsidian";
-import FileOrganizer from "../../../index";
-import { makeApiRequest } from "../../../apiUtils";
-import { sanitizeTag } from "../../../../utils";
-import { TagSkeletonLoader } from "./tag-skeleton-loader";
+import FileOrganizer from "../../index";
+import { makeApiRequest } from "../../apiUtils";
+import { sanitizeTag } from "../../../utils";
+import { SkeletonLoader } from "./components/skeleton-loader";
 import { motion, AnimatePresence } from "framer-motion";
 
 interface SimilarTagsProps {
@@ -77,7 +77,7 @@ export const SimilarTags: React.FC<SimilarTagsProps> = ({
 
         const [existingTagsResult, newTagsResult] = await Promise.all([
           getExistingTags(content, file.basename, vaultTags),
-          getNewTags(content, file.basename)
+          getNewTags(content, file.basename),
         ]);
 
         setExistingTags(existingTagsResult || []);
@@ -96,8 +96,21 @@ export const SimilarTags: React.FC<SimilarTagsProps> = ({
     plugin.appendTag(file!, tag);
   };
 
-  if (loading) return <TagSkeletonLoader />;
-  if (initialLoadComplete && existingTags.length === 0 && newTags.length === 0) {
+  if (loading)
+    return (
+      <SkeletonLoader
+        count={4}
+        width="60px"
+        height="24px"
+        style={{ padding: "8px" }}
+        rows={1}
+      />
+    );
+  if (
+    initialLoadComplete &&
+    existingTags.length === 0 &&
+    newTags.length === 0
+  ) {
     return <div>No tags found</div>;
   }
 

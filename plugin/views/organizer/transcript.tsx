@@ -1,6 +1,6 @@
 import * as React from "react";
 import { TFile, Notice } from "obsidian";
-import FileOrganizer from "../../../index";
+import FileOrganizer from "../../index";
 
 interface TranscriptionButtonProps {
   plugin: FileOrganizer;

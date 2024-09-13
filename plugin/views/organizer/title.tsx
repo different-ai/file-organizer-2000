@@ -1,11 +1,11 @@
 import * as React from "react";
 import { normalizePath, TFile } from "obsidian";
-import FileOrganizer from "../../../index";
+import FileOrganizer from "../../index";
 import { z } from "zod";
 import { motion, AnimatePresence } from "framer-motion";
-import { SkeletonLoader } from "./skeleton-loader";
-import { TitleSuggestion } from "./title-suggestion";
-import { useTitleSuggestions } from "../hooks/use-title-suggestions";
+import { SkeletonLoader } from "./components/skeleton-loader";
+import { TitleSuggestion } from "./components/title-suggestion-item";
+import { useTitleSuggestions } from "./hooks/use-title-suggestions";
 
 interface RenameSuggestionProps {
   plugin: FileOrganizer;
@@ -24,11 +24,14 @@ export const RenameSuggestion: React.FC<RenameSuggestionProps> = ({
   content,
   refreshKey,
 }) => {
-  const { titles, 
-    isLoading, 
-    error, retry } = useTitleSuggestions(plugin, file, content, refreshKey);
+  const { titles, isLoading, error, retry } = useTitleSuggestions(
+    plugin,
+    file,
+    content,
+    refreshKey
+  );
 
-    // const isLoading = true;
+  // const isLoading = true;
 
   const handleTitleClick = (title: string) => {
     if (file && file.parent) {
@@ -38,7 +41,7 @@ export const RenameSuggestion: React.FC<RenameSuggestionProps> = ({
     }
   };
 
-  if (isLoading) return <SkeletonLoader />;
+  if (isLoading) return <SkeletonLoader count={3} rows={4} width="70%" />;
   if (error) return <ErrorDisplay message={error.message} onRetry={retry} />;
   if (!titles.length) return <div>No title suggestions available</div>;
 
@@ -48,9 +51,14 @@ export const RenameSuggestion: React.FC<RenameSuggestionProps> = ({
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       variants={containerVariants}
-      style={{ display: "flex", justifyContent: "start", gap: "8px", flexDirection: "column" }}
+      style={{
+        display: "flex",
+        justifyContent: "start",
+        gap: "8px",
+        flexDirection: "column",
+      }}
     >
-      <AnimatePresence >
+      <AnimatePresence>
         {titles.map((title, index) => (
           <TitleSuggestion
             key={index}
@@ -71,7 +79,10 @@ const containerVariants = {
   },
 };
 
-const ErrorDisplay: React.FC<{ message: string; onRetry: () => void }> = ({ message, onRetry }) => (
+const ErrorDisplay: React.FC<{ message: string; onRetry: () => void }> = ({
+  message,
+  onRetry,
+}) => (
   <div className="error-container">
     <p>Error: {message}</p>
     <button onClick={onRetry}>Retry</button>
