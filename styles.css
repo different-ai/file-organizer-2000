@@ -720,6 +720,7 @@
   top: 100%;
   left: 0;
   z-index: 1000;
+  box-shadow: none;
   display: none;
   min-width: 160px;
   padding: 0;
@@ -780,6 +781,7 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
+  box-shadow: none;
 }
 
 /* Arrow icon */
@@ -831,10 +833,12 @@
   border: none;
   border-radius: 0.25rem;
   cursor: pointer;
+  boxShadow: "none"
 }
 .apply-template-button:hover {
-  background-color: var(--interactive-accent-hover);
-  color: var(--text-on-accent);
+  /* background-color: var(--interactive-accent-hover); */
+  /* color: var(--text-on-accent); */
+  boxShadow: "none"
 } 
 
 .apply-template-button:disabled {

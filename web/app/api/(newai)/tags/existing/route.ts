@@ -18,7 +18,7 @@ export async function POST(request: NextRequest) {
       model,
       temperature: 0,
       schema: z.object({
-        tags: z.array(z.string()).max(3),
+        tags: z.array(z.string()).max(3).nullable(),
       }),
       prompt: prompt,
     });

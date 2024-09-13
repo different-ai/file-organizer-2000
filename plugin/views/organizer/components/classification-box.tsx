@@ -49,11 +49,14 @@ export const ClassificationBox: React.FC<ClassificationBoxProps> = ({ plugin, fi
 
         const result = await plugin.classifyContent(fileContent, file.basename);
         console.log(result);
-        if (!result || typeof result.type !== 'string' || typeof result.formattingInstruction !== 'string') {
-          throw new Error('Invalid classification result');
+        if (result && typeof result.type === 'string' && typeof result.formattingInstruction === 'string') {
+          setClassification(result);
+          setSelectedTemplate(result);
+        } else {
+          console.warn('Invalid classification result, using empty classification');
+          setClassification(null);
+          setSelectedTemplate(null);
         }
-        setClassification(result);
-        setSelectedTemplate(result);
         setClassificationStatus('success');
 
         const fetchedTemplates = await plugin.getTemplates();
@@ -121,35 +124,37 @@ export const ClassificationBox: React.FC<ClassificationBoxProps> = ({ plugin, fi
     if (classificationStatus === 'loading') {
       return <div className="loading-message">Classifying content...</div>;
     }
-    if (classification) {
-      return (
-        <div className="template-selection-container">
-          <div className="split-button-container" ref={dropdownRef}>
-            <button
-              className="split-button-main"
-              onClick={() => setShowDropdown(!showDropdown)}
+    
+    return (
+      <div className="template-selection-container">
+        <div className="split-button-container" ref={dropdownRef}>
+          <button
+            className=""
+            style={{boxShadow: "none"}}
+            onClick={() => setShowDropdown(!showDropdown)}
+          >
+            <span className="">{getDisplayText()}</span>
+            <svg
+              className="split-button-arrow"
+              width="12"
+              height="12"
+              viewBox="0 0 24 24"
+              fill="none"
+              xmlns="http://www.w3.org/2000/svg"
             >
-              <span className="split-button-text">{getDisplayText()}</span>
-              <svg
-                className="split-button-arrow"
-                width="12"
-                height="12"
-                viewBox="0 0 24 24"
-                fill="none"
-                xmlns="http://www.w3.org/2000/svg"
-              >
-                <path
-                  d="M6 9L12 15L18 9"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-              </svg>
-            </button>
-            {showDropdown && (
-              <div className={`dropdown-menu ${showDropdown ? "show" : ""}`}>
-                {dropdownTemplates.map((template, index) => (
+              <path
+                d="M6 9L12 15L18 9"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+            </svg>
+          </button>
+          {showDropdown && (
+            <div className={`dropdown-menu ${showDropdown ? "show" : ""}`}>
+              {dropdownTemplates.length > 0 ? (
+                dropdownTemplates.map((template, index) => (
                   <div
                     key={index}
                     className="dropdown-item"
@@ -160,26 +165,24 @@ export const ClassificationBox: React.FC<ClassificationBoxProps> = ({ plugin, fi
                   >
                     {template.type}
                   </div>
-                ))}
-                {dropdownTemplates.length === 0 && (
-                  <div className="dropdown-item">
-                    No other templates available
-                  </div>
-                )}
-              </div>
-            )}
-          </div>
-          <button
-            className="apply-template-button"
-            disabled={!selectedTemplate || formatting}
-            onClick={() => selectedTemplate && handleFormat(selectedTemplate)}
-          >
-            {formatting ? "Applying..." : "Apply"}
-          </button>
+                ))
+              ) : (
+                <div className="dropdown-item">
+                  No templates available
+                </div>
+              )}
+            </div>
+          )}
         </div>
-      );
-    }
-    return <div className="empty-message">No classification available</div>;
+        <button
+          className="apply-template-button"
+          disabled={!selectedTemplate || formatting}
+          onClick={() => selectedTemplate && handleFormat(selectedTemplate)}
+        >
+          {formatting ? "Applying..." : "Apply"}
+        </button>
+      </div>
+    );
   };
 
   return (
