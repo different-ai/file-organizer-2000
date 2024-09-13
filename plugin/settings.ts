@@ -10,7 +10,6 @@ export class FileOrganizerSettings {
   templatePaths = "_FileOrganizer2000/Templates";
   useSimilarTags = true;
   renameInstructions = "Create a concise, descriptive name for the document based on its key content. Prioritize clarity and searchability, using specific terms that will make the document easy to find later. Avoid generic words and focus on unique, identifying elements.";
-  useAutoAppend = false;
   usePro = true;
   useSimilarTagsInFrontmatter = false;
   processedTag = false;
@@ -20,33 +19,12 @@ export class FileOrganizerSettings {
   enableDocumentClassification = false;
   ignoreFolders = [""];
   stagingFolder = ".fileorganizer2000/staging";
-  enableAnthropic = false;
-  anthropicApiKey = "";
-  anthropicModel = "claude-3-opus-20240229";
-  enableOpenAI = true;
   openAIApiKey = "";
-  openAIModel = "gpt-4o";
   enableSelfHosting = false;
-  enableOllama = false;
   selfHostingURL = "http://localhost:3000";
-  taggingModel = "gpt-4o";
-  foldersModel = "gpt-4o";
-  relationshipsModel = "gpt-4o";
-  nameModel = "gpt-4o";
-  classifyModel = "gpt-4o";
-  visionModel = "gpt-4o";
-  formatModel = "gpt-4o";
-  ollamaModels: string[] = ["codegemma"];
-  openAIBaseUrl = "https://api.openai.com/v1";
   enableScreenpipe = false;
   useVaultTitles = true;
-  userModels: {
-    [key: string]: {
-      url: string;
-      apiKey: string;
-      provider: "openai" | "ollama" | "anthropic";
-    };
-  } = {};
+
 }
 
 export const DEFAULT_SETTINGS = new FileOrganizerSettings();

@@ -707,17 +707,7 @@ export default class FileOrganizer extends Plugin {
     await this.moveFile(file, file.basename, destinationFolder);
   }
 
-  // let's unpack this into processFileV2
-  async renameTagAndOrganize(file: TFile, content: string, fileName: string) {
-    const destinationFolder = await this.getAIClassifiedFolder(
-      content,
-      file.path
-    );
-    new Notice(`Most similar folder: ${destinationFolder}`, 3000);
-    await this.appendAlias(file, file.basename);
-    await this.moveFile(file, fileName, destinationFolder);
-    await this.appendSimilarTags(content, file);
-  }
+
 
   async showAssistantSidebar() {
     this.app.workspace.detachLeavesOfType(ASSISTANT_VIEW_TYPE);
@@ -977,7 +967,7 @@ export default class FileOrganizer extends Plugin {
       await this.processFileV2(file);
     }
   }
-  async getSimilarTags(content: string, fileName: string, useAiTags: boolean): Promise<string[]> {
+  async getSimilarTags(content: string, fileName: string): Promise<string[]> {
     const tags: string[] = await this.getAllVaultTags();
 
     if (tags.length === 0) {
@@ -985,8 +975,7 @@ export default class FileOrganizer extends Plugin {
       return [];
     }
 
-    if (!useAiTags) {
-      // Use the existing tags from the vault
+      // Generate popular tags and select from them
       return await generateTagsRouter(
         content,
         fileName,
@@ -995,17 +984,6 @@ export default class FileOrganizer extends Plugin {
         this.getServerUrl(),
         this.settings.API_KEY
       );
-    } else {
-      // Generate popular tags and select from them
-      return await generateTagsRouter(
-        content,
-        fileName,
-        useAiTags ? [] : tags,
-        this.settings.usePro,
-        this.getServerUrl(),
-        this.settings.API_KEY
-      );
-    }
   }
 
    async getAllVaultTags(): Promise<string[]> {
