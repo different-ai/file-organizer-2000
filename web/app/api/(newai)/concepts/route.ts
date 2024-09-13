@@ -2,7 +2,7 @@ import { NextResponse, NextRequest } from "next/server";
 import { handleAuthorization } from "@/lib/handleAuthorization";
 import { incrementAndLogTokenUsage } from "@/lib/incrementAndLogTokenUsage";
 import { getModel } from "@/lib/models";
-import { identifyConcepts } from "@/aiService";
+import { identifyConcepts } from "../aiService";
 
 export async function POST(request: NextRequest) {
   try {

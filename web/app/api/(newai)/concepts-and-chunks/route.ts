@@ -2,7 +2,7 @@ import { NextResponse, NextRequest } from "next/server";
 import { getModel } from "@/lib/models";
 import { incrementAndLogTokenUsage } from "@/lib/incrementAndLogTokenUsage";
 import { handleAuthorization } from "@/lib/handleAuthorization";
-import { identifyConceptsAndFetchChunks } from "@/aiService";
+import { identifyConceptsAndFetchChunks } from "../aiService";
 
 export const maxDuration = 60; // This function can run for a maximum of 5 seconds
 
