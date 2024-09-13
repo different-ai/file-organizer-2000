@@ -131,10 +131,12 @@ export default class FileOrganizer extends Plugin {
   }
 
   getServerUrl(): string {
-    const serverUrl = this.settings.enableSelfHosting
+    let serverUrl = this.settings.enableSelfHosting
       ? this.settings.selfHostingURL
       : "https://app.fileorganizer2000.com";
 
+    // Remove trailing slash (/) at end of url if there is one; prevents errors for /api/chat requests
+    serverUrl = serverUrl.replace(/\/$/, '');
     logMessage(`Using server URL: ${serverUrl}`);
 
     return serverUrl;
