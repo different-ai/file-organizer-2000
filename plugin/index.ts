@@ -145,31 +145,56 @@ export default class FileOrganizer extends Plugin {
   // all files in inbox will go through this function
   async processFileV2(originalFile: TFile, oldPath?: string): Promise<void> {
     try {
-      new Notice(`Looking at ${originalFile.basename}`, 3000);
+      new Notice(`Processing ${originalFile.basename}`, 3000);
 
-      if (
-        !originalFile.extension ||
-        !isValidExtension(originalFile.extension)
-      ) {
+      if (!originalFile.extension || !isValidExtension(originalFile.extension)) {
+        new Notice("Unsupported file type. Skipping.", 3000);
         return;
       }
 
       await this.checkAndCreateFolders();
 
-      const text = await this.getTextFromFile(originalFile);
+      let text: string;
+      try {
+        text = await this.getTextFromFile(originalFile);
+      } catch (error) {
+        new Notice(`Error reading file ${originalFile.basename}`, 3000);
+        console.error(`Error in getTextFromFile:`, error);
+        return;
+      }
 
-      const instructions = await this.generateInstructions(originalFile);
-      const metadata = await this.generateMetadata(
-        originalFile,
-        instructions,
-        text,
-        oldPath
-      );
-      await this.executeInstructions(metadata, originalFile, text);
+      let instructions: any;
+      try {
+        instructions = await this.generateInstructions(originalFile);
+      } catch (error) {
+        new Notice(`Error generating instructions for ${originalFile.basename}`, 3000);
+        console.error(`Error in generateInstructions:`, error);
+        return;
+      }
+
+      let metadata: any;
+      try {
+        metadata = await this.generateMetadata(
+          originalFile,
+          instructions,
+          text,
+          oldPath
+        );
+      } catch (error) {
+        new Notice(`Error generating metadata for ${originalFile.basename}`, 3000);
+        console.error(`Error in generateMetadata:`, error);
+        return;
+      }
+
+      try {
+        await this.executeInstructions(metadata, originalFile, text);
+      } catch (error) {
+        new Notice(`Error executing instructions for ${originalFile.basename}`, 3000);
+        console.error(`Error in executeInstructions:`, error);
+      }
     } catch (error) {
-      new Notice(`Error processing ${originalFile.basename}`, 3000);
-      new Notice(error.message, 6000);
-      console.error(error);
+      new Notice(`Unexpected error processing ${originalFile.basename}`, 3000);
+      console.error(`Error in processFileV2:`, error);
     }
   }
 

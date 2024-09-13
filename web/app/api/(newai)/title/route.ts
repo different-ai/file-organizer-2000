@@ -1,5 +1,5 @@
 import { NextResponse, NextRequest } from "next/server";
-import { generateDocumentTitle } from "../../../../aiService";
+import { generateDocumentTitle } from "../aiService";
 import { incrementAndLogTokenUsage } from "@/lib/incrementAndLogTokenUsage";
 import { handleAuthorization } from "@/lib/handleAuthorization";
 import { getModel } from "@/lib/models";

@@ -1,5 +1,5 @@
 import { NextResponse, NextRequest } from "next/server";
-import { fetchChunksForConcept } from "../../../../aiService";
+import { fetchChunksForConcept } from "../aiService";
 import { getModel } from "@/lib/models";
 import { incrementAndLogTokenUsage } from "@/lib/incrementAndLogTokenUsage";
 import { handleAuthorization } from "@/lib/handleAuthorization";

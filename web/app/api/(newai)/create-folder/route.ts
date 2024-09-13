@@ -1,4 +1,4 @@
-import { createNewFolder } from "../../../../aiService";
+import { createNewFolder } from "../aiService";
 import { NextResponse, NextRequest } from "next/server";
 import { getModel } from "@/lib/models";
 import { incrementAndLogTokenUsage } from "@/lib/incrementAndLogTokenUsage";

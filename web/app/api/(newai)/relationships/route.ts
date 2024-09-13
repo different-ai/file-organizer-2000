@@ -1,4 +1,4 @@
-import { generateRelationships } from "../../../../aiService";
+import { generateRelationships } from "../aiService";
 import { NextRequest, NextResponse } from "next/server";
 import { handleAuthorization } from "@/lib/handleAuthorization";
 import { incrementAndLogTokenUsage } from "@/lib/incrementAndLogTokenUsage";
