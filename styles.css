@@ -981,6 +981,7 @@
   background: var(--background-secondary) !important;
   border-radius: 0.25rem;
   padding: 0.25rem 0.5rem;
+  width: max-content;
   font-size: 0.9rem;
   color: var(--text-normal);
   cursor: pointer;
