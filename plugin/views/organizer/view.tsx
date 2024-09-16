@@ -1,7 +1,7 @@
 import * as React from "react";
 import { TFile, WorkspaceLeaf } from "obsidian";
 import FileOrganizer, { validMediaExtensions } from "../../index";
-import { debounce } from 'lodash';
+import { debounce } from "lodash";
 
 import { SectionHeader } from "./components/section-header";
 import { SimilarTags } from "./tags";
@@ -31,7 +31,7 @@ export const AssistantView: React.FC<AssistantViewProps> = ({
   const updateActiveFile = React.useCallback(async () => {
     try {
       const file = plugin.app.workspace.getActiveFile();
-      if (file && (!activeFile || file.path !== activeFile.path)) {
+      if (file) {
         setActiveFile(file);
         const content = await plugin.app.vault.read(file);
         setNoteContent(content);
@@ -40,7 +40,7 @@ export const AssistantView: React.FC<AssistantViewProps> = ({
       console.error("Error updating active file:", err);
       setError("Failed to load file content");
     }
-  }, [plugin.app.workspace, plugin.app.vault, activeFile]);
+  }, [plugin.app.workspace, plugin.app.vault]);
 
   React.useEffect(() => {
     updateActiveFile();
@@ -63,18 +63,21 @@ export const AssistantView: React.FC<AssistantViewProps> = ({
     return validMediaExtensions.includes(file.extension);
   };
 
-  const renderSection = React.useCallback((component: React.ReactNode, errorMessage: string) => {
-    try {
-      return component;
-    } catch (err) {
-      console.error(errorMessage, err);
-      return <div className="section-error">{errorMessage}</div>;
-    }
-  }, []);
+  const renderSection = React.useCallback(
+    (component: React.ReactNode, errorMessage: string) => {
+      try {
+        return component;
+      } catch (err) {
+        console.error(errorMessage, err);
+        return <div className="section-error">{errorMessage}</div>;
+      }
+    },
+    []
+  );
 
   if (error) {
     return (
-      <EmptyState 
+      <EmptyState
         message={`Error: ${error}. Click refresh to try again.`}
         showRefresh={true}
         onRefresh={refreshContext}
@@ -93,10 +96,9 @@ export const AssistantView: React.FC<AssistantViewProps> = ({
       <EmptyState message="To process an image or audio file, move it to the File Organizer 2000 Inbox Folder (e.g. for image text extraction or audio transcription)." />
     );
   }
-
   if (!noteContent.trim()) {
     return (
-      <EmptyState 
+      <EmptyState
         message="This file is empty. Add some content and click refresh to see AI suggestions."
         showRefresh={true}
         onRefresh={refreshContext}
@@ -106,7 +108,7 @@ export const AssistantView: React.FC<AssistantViewProps> = ({
 
   return (
     <div className="assistant-container">
-        <RefreshButton onRefresh={refreshContext} />
+      <RefreshButton onRefresh={refreshContext} />
       <div className="assistant-header">
         <SectionHeader text="Looking at" />
         <div className="active-note-title">{activeFile.basename}</div>
