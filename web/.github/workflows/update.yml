@@ -1,8 +1,6 @@
 name: File Organizer 2000 Updater
 
 on:
-  repository_dispatch:
-    types: [update-from-parent]
   workflow_dispatch:
     inputs:
       reason:
