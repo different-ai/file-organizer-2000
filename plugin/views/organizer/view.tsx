@@ -30,11 +30,13 @@ export const AssistantView: React.FC<AssistantViewProps> = ({
 
   const updateActiveFile = React.useCallback(async () => {
     // Check if the Assistant view is visible before processing
-    const isVisible = leaf.view.containerEl.isShown() && !plugin.app.workspace.rightSplit.collapsed;
+    const isVisible =
+      leaf.view.containerEl.isShown() &&
+      !plugin.app.workspace.rightSplit.collapsed;
     if (!isVisible) return;
 
     try {
-      const file = plugin.app.workspace.getActiveFile();
+      const file = plugin.app.workspace.getActiveFile()
       if (file) {
         setActiveFile(file);
         const content = await plugin.app.vault.read(file);
@@ -44,17 +46,28 @@ export const AssistantView: React.FC<AssistantViewProps> = ({
       console.error("Error updating active file:", err);
       setError("Failed to load file content");
     }
-  }, [plugin.app.workspace, plugin.app.vault, leaf.view.containerEl, plugin.app.workspace.rightSplit.collapsed]);
+  }, [
+    plugin.app.workspace,
+    plugin.app.vault,
+    leaf.view.containerEl,
+    plugin.app.workspace.rightSplit.collapsed,
+    leaf.view.containerEl.isShown,
+  ]);
 
   React.useEffect(() => {
     updateActiveFile();
     const debouncedUpdate = debounce(updateActiveFile, 300);
     const eventRef = plugin.app.workspace.on("file-open", debouncedUpdate);
+    const activeLeafChange = plugin.app.workspace.on("active-leaf-change", debouncedUpdate);
+
+
+
     return () => {
       plugin.app.workspace.offref(eventRef);
+      plugin.app.workspace.offref(activeLeafChange);
       debouncedUpdate.cancel();
     };
-  }, [updateActiveFile, plugin.app.workspace]);
+  }, [updateActiveFile, plugin.app.workspace, leaf.view.containerEl]);
 
   const refreshContext = React.useCallback(() => {
     setRefreshKey(prevKey => prevKey + 1);

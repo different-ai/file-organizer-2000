@@ -48,7 +48,6 @@ export const ClassificationBox: React.FC<ClassificationBoxProps> = ({ plugin, fi
         setContentLoadStatus('success');
 
         const result = await plugin.classifyContent(fileContent, file.basename);
-        console.log(result);
         if (result && typeof result.type === 'string' && typeof result.formattingInstruction === 'string') {
           setClassification(result);
           setSelectedTemplate(result);

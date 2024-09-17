@@ -77,7 +77,6 @@ const Tiptap: React.FC<TiptapProps> = ({
                 },
               ])
               .run()
-              console.log(props, "props");
 
             if (props.type === 'file') {
               const newSelectedFile = {
@@ -92,14 +91,12 @@ const Tiptap: React.FC<TiptapProps> = ({
               setSelectedFiles(newSelectedFiles);
               onFileSelect(newSelectedFiles);
             } else if (props.type === 'tag') {
-              console.log(props.title, "props.title");
               const newSelectedTags = selectedTags.includes(props.title)
                 ? selectedTags
                 : [...selectedTags, props.title];
               setSelectedTags(newSelectedTags);
               onTagSelect(newSelectedTags);
             } else if (props.type === 'folder') {
-              console.log(props.title, "props.title");
               const newSelectedFolders = selectedFolders.includes(props.path || props.title)
                 ? selectedFolders
                 : [...selectedFolders, props.path || props.title];

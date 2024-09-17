@@ -7,10 +7,9 @@ import { titleSchema } from "../title";
 export const useTitleSuggestions = (
   plugin: FileOrganizer,
   file: TFile | null,
-  content: string,
   refreshKey: number
 ) => {
-  const { object, submit, isLoading, error } = useObject({
+  const { object, submit, isLoading, error, stop } = useObject({
     api: `${plugin.getServerUrl()}/api/title/multiple-stream`,
     schema: titleSchema,
     fetch: async (URL, req) => {
@@ -29,20 +28,26 @@ export const useTitleSuggestions = (
   const [retryCount, setRetryCount] = React.useState(0);
 
   React.useEffect(() => {
-    if (file && content) {
-      const renameInstructions = plugin.settings.renameInstructions;
-      const vaultTitles = plugin.settings.useVaultTitles
-        ? plugin.getRandomVaultTitles(20)
-        : [];
+    const fetchData = async () => {
+      if (file) {
+        const content = await plugin.app.vault.read(file);
+        const renameInstructions = plugin.settings.renameInstructions;
+        const vaultTitles = plugin.settings.useVaultTitles
+          ? plugin.getRandomVaultTitles(20)
+          : [];
 
-      submit({
-        document: content,
-        renameInstructions,
-        currentName: file.basename,
-        vaultTitles,
-      });
-    }
-  }, [file, content, refreshKey, plugin, retryCount]);
+        submit({
+          document: content,
+          renameInstructions,
+          currentName: file.basename,
+          vaultTitles,
+        });
+      }
+    };
+    stop()
+
+    fetchData();
+  }, [file, refreshKey, plugin, retryCount]);
 
   const retry = () => setRetryCount(prev => prev + 1);
 

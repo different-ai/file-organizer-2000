@@ -898,7 +898,6 @@ export default class FileOrganizer extends Plugin {
       !file.path.includes(this.settings.backupFolderPath)
     );
     const shuffled = filteredFiles.sort(() => 0.5 - Math.random());
-    console.log("shuffled", shuffled);
     return shuffled.slice(0, count).map(file => file.basename);
   }
 
@@ -974,7 +973,7 @@ export default class FileOrganizer extends Plugin {
     const tags: string[] = await this.getAllVaultTags();
 
     if (tags.length === 0) {
-      console.log("No tags found");
+      console.info("No tags found");
       return [];
     }
 

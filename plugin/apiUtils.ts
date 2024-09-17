@@ -4,7 +4,6 @@ export async function makeApiRequest<T>(
   requestFn: () => Promise<RequestUrlResponse>
 ): Promise<RequestUrlResponse> {
   const response: RequestUrlResponse = await requestFn();
-  console.log("response", response);
   if (response.status >= 200 && response.status < 300) {
     return response;
   }

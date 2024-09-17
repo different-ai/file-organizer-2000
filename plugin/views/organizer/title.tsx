@@ -21,17 +21,15 @@ export const titleSchema = z.object({
 export const RenameSuggestion: React.FC<RenameSuggestionProps> = ({
   plugin,
   file,
-  content,
   refreshKey,
 }) => {
   const { titles, isLoading, error, retry } = useTitleSuggestions(
     plugin,
     file,
-    content,
     refreshKey
   );
 
-  // const isLoading = true;
+
 
   const handleTitleClick = (title: string) => {
     if (file && file.parent) {

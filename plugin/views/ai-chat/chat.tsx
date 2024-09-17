@@ -1,4 +1,10 @@
-import React, { useState, useEffect, useRef, useCallback, useMemo } from "react";
+import React, {
+  useState,
+  useEffect,
+  useRef,
+  useCallback,
+  useMemo,
+} from "react";
 import { useChat, UseChatOptions } from "@ai-sdk/react";
 import { getEncoding } from "js-tiktoken";
 import { TFolder, TFile, moment, App } from "obsidian";
@@ -17,7 +23,7 @@ import {
   getYouTubeVideoTitle,
 } from "./youtube-transcript";
 import { logMessage } from "../../../utils";
-import { summarizeMeeting, getDailyInformation } from './screenpipe-utils';
+import { summarizeMeeting, getDailyInformation } from "./screenpipe-utils";
 
 interface ChatComponentProps {
   plugin: FileOrganizer;
@@ -46,27 +52,36 @@ const filterNotesByDateRange = async (
   const filteredFiles = files.filter(file => {
     // Get the file's modification date
     const fileDate = moment(file.stat.mtime);
-    
+
     // Check if the file's date is within the specified range
     const isWithinDateRange = fileDate.isBetween(start, end, null, "[]");
-    
+
     // Check if the file is in the logs folder
     const isInLogsFolder = file.path.startsWith(plugin.settings.logFolderPath);
-    const isInTemplatesFolder = file.path.startsWith(plugin.settings.templatePaths);
-    const isInBackupsFolder = file.path.startsWith(plugin.settings.backupFolderPath);
+    const isInTemplatesFolder = file.path.startsWith(
+      plugin.settings.templatePaths
+    );
+    const isInBackupsFolder = file.path.startsWith(
+      plugin.settings.backupFolderPath
+    );
 
     logMessage(
       `File: ${file.basename}, ` +
-      `Date: ${fileDate.format("YYYY-MM-DD")}, ` +
-      `In Date Range: ${isWithinDateRange}, ` +
-      `Not in Logs Folder: ${!isInLogsFolder}`
+        `Date: ${fileDate.format("YYYY-MM-DD")}, ` +
+        `In Date Range: ${isWithinDateRange}, ` +
+        `Not in Logs Folder: ${!isInLogsFolder}`
     );
-    
+
     // Include the file if it's within the date range  + not in the logs folder + not in the templates folder + not in the backups folder
-    return isWithinDateRange && !isInLogsFolder && !isInTemplatesFolder && !isInBackupsFolder;
+    return (
+      isWithinDateRange &&
+      !isInLogsFolder &&
+      !isInTemplatesFolder &&
+      !isInBackupsFolder
+    );
   });
 
- logMessage(filteredFiles.length, "filteredFiles");
+  logMessage(filteredFiles.length, "filteredFiles");
 
   const fileContents = await Promise.all(
     filteredFiles.map(async file => ({
@@ -136,7 +151,7 @@ export const ChatComponent: React.FC<ChatComponentProps> = ({
 
   // Log all the selected stuff
   useEffect(() => {
-   // logMessage(selectedFiles, "selectedFiles");
+    // logMessage(selectedFiles, "selectedFiles");
     logMessage(selectedTags, "selectedTags");
     logMessage(selectedFolders, "selectedFolders");
     logMessage(selectedYouTubeVideos, "selectedYouTubeVideos");
@@ -168,9 +183,9 @@ export const ChatComponent: React.FC<ChatComponentProps> = ({
         return null;
       })
     );
-// Filter out null results
+    // Filter out null results
     const filteredResults = searchResults.filter(result => result !== null);
-//
+    //
     if (filteredResults.length === 0) {
       logMessage("No files returned");
     }
@@ -194,7 +209,6 @@ export const ChatComponent: React.FC<ChatComponentProps> = ({
     return fileContents; // Make sure to stringify the result
   };
 
-    console.log(plugin.settings.enableScreenpipe, "enableScreenpipe");
   const handleScreenpipeAction = async (toolCall: any) => {
     if (!plugin.settings.enableScreenpipe) {
       return "Screenpipe integration is not enabled. Please enable it in the plugin settings.";
@@ -227,11 +241,14 @@ export const ChatComponent: React.FC<ChatComponentProps> = ({
   };
 
   // Create a memoized body object that updates when its dependencies change
-  const chatBody = useMemo(() => ({
-    unifiedContext,
-    enableScreenpipe: plugin.settings.enableScreenpipe,
-    currentDatetime: moment().format("YYYY-MM-DDTHH:mm:ssZ")
-  }), [unifiedContext, plugin.settings.enableScreenpipe]);
+  const chatBody = useMemo(
+    () => ({
+      unifiedContext,
+      enableScreenpipe: plugin.settings.enableScreenpipe,
+      currentDatetime: moment().format("YYYY-MM-DDTHH:mm:ssZ"),
+    }),
+    [unifiedContext, plugin.settings.enableScreenpipe]
+  );
 
   const {
     isLoading: isGenerating,
@@ -249,6 +266,7 @@ export const ChatComponent: React.FC<ChatComponentProps> = ({
       Authorization: `Bearer ${apiKey}`,
     },
     keepLastMessageOnError: true,
+    maxSteps: 3,
     onError: error => {
       console.error(error);
       setErrorMessage(
@@ -258,7 +276,7 @@ export const ChatComponent: React.FC<ChatComponentProps> = ({
     onFinish: () => {
       setErrorMessage(null);
     },
-    // maxToolRoundtrips: 1,
+
     async onToolCall({ toolCall }) {
       logMessage(toolCall, "toolCall");
       if (toolCall.toolName === "getYouTubeTranscript") {
@@ -273,7 +291,11 @@ export const ChatComponent: React.FC<ChatComponentProps> = ({
             { videoId, title, transcript },
           ]);
           logMessage(transcript, "transcript");
-          return transcript;
+          addToolResult({
+            toolCallId: toolCall.toolCallId,
+            result: { transcript, title, videoId },
+          });
+          return { transcript, title, videoId };
         } catch (error) {
           console.error("Error fetching YouTube transcript:", error);
           return JSON.stringify({ error: error.message });
@@ -320,7 +342,7 @@ export const ChatComponent: React.FC<ChatComponentProps> = ({
 
         // Pass search results to the tool invocation handler
         toolCall.results = searchResults;
-logMessage(searchResults, "searchResults");
+        logMessage(searchResults, "searchResults");
         return JSON.stringify(searchResults);
       } else if (toolCall.toolName === "modifyCurrentNote") {
         const args = toolCall.args as { formattingInstruction: string };
@@ -368,7 +390,9 @@ logMessage(searchResults, "searchResults");
         };
 
         return lastModifiedFiles.length.toString();
-      } else if (["summarizeMeeting", "getDailyInformation"].includes(toolCall.toolName)) {
+      } else if (
+        ["summarizeMeeting", "getDailyInformation"].includes(toolCall.toolName)
+      ) {
         return handleScreenpipeAction(toolCall);
       }
     },
@@ -376,7 +400,6 @@ logMessage(searchResults, "searchResults");
 
   const formRef = useRef<HTMLFormElement>(null);
 
-  
   const handleSendMessage = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     logMessage(e.target, "target");
@@ -598,11 +621,11 @@ logMessage(searchResults, "searchResults");
 
       // Add Screenpipe context if available
       if (screenpipeContext) {
-        contextFiles.set('screenpipe-context', {
-          title: 'Screenpipe Data',
+        contextFiles.set("screenpipe-context", {
+          title: "Screenpipe Data",
           content: JSON.stringify(screenpipeContext),
-          path: 'screenpipe-context',
-          reference: 'Screenpipe Query Results',
+          path: "screenpipe-context",
+          reference: "Screenpipe Query Results",
         });
       }
 
@@ -801,7 +824,9 @@ logMessage(searchResults, "searchResults");
                 <SelectedItem
                   key="screenpipe-context"
                   item="Screenpipe Data"
-                  onClick={() => {/* You can add an action here if needed */}}
+                  onClick={() => {
+                    /* You can add an action here if needed */
+                  }}
                   onRemove={() => setScreenpipeContext(null)}
                   prefix="📊 "
                 />
@@ -870,14 +895,16 @@ logMessage(searchResults, "searchResults");
           <div className="tip-item-1">
             <span className="tip-icon">Tip 1️⃣</span>
             <span className="tip-text">
-              To add more files to the AI context, mention them in the chat using
-              the format @filename
+              To add more files to the AI context, mention them in the chat
+              using the format @filename
             </span>
           </div>
           <div className="tip-item-2">
             <span className="tip-icon">Tip 2️⃣</span>
             <span className="tip-text">
-              Or use prompts like "get notes from this week" or "get YouTube transcript", then follow up with your question (e.g. "summarize my notes/transcript") in a separate message
+              Or use prompts like "get notes from this week" or "get YouTube
+              transcript", then follow up with your question (e.g. "summarize my
+              notes/transcript") in a separate message
             </span>
           </div>
         </div>
