@@ -23,7 +23,6 @@ export async function POST(req: NextRequest) {
 
     const result = await streamText({
       model: openai(process.env.MODEL_NAME || "gpt-4o-2024-08-06", {
-        structuredOutputs: true,
       }),
       system: `You are a helpful assistant with access to various files, notes, YouTube video transcripts, and Screenpipe data. Your context includes:
 

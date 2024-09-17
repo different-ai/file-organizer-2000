@@ -1,5 +1,4 @@
 import { Setting } from "obsidian";
-import { configureTask } from "../standalone/models";
 import FileOrganizer from "./index";
 
 export class ModelTab {

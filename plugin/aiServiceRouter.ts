@@ -1,4 +1,6 @@
 // src/aiServiceRouter.ts
+// test redeploy
+
 import {
   classifyDocument,
   generateTags,
@@ -13,7 +15,7 @@ import {
   extractTextFromImage,
   generateTranscriptFromAudio,
   identifyConceptsAndFetchChunks,
-} from "../web/aiService";
+} from "../web/app/api/(newai)/aiService";
 import { getModelFromTask } from "../standalone/models";
 import { arrayBufferToBase64, requestUrl } from "obsidian";
 import { logMessage } from "../utils";

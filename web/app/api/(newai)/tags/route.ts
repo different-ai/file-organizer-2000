@@ -1,4 +1,4 @@
-import { generateTags } from "../../../../aiService";
+import { generateTags } from "../aiService";
 import { NextResponse, NextRequest } from "next/server";
 import { incrementAndLogTokenUsage } from "@/lib/incrementAndLogTokenUsage";
 import { handleAuthorization } from "@/lib/handleAuthorization";

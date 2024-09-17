@@ -1,0 +1,37 @@
+name: File Organizer 2000 Updater
+
+on:
+  workflow_dispatch:
+    inputs:
+      reason:
+        description: 'Reason for manual trigger'
+        required: false
+        default: 'Manual update'
+
+jobs:
+  update-repo:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout current repo
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+
+      - name: Configure Git
+        run: |
+          git config user.name github-actions
+          git config user.email github-actions@github.com
+
+      - name: Fetch parent repo
+        run: |
+          git remote add parent https://github.com/different-ai/file-organizer-2000.git
+          git fetch parent
+
+      - name: Update current repo
+        run: |
+          git checkout main
+          git read-tree --prefix=web/ -u parent/master:web
+          git commit -m "Auto-update from parent repo: ${{ github.event.inputs.reason || 'Triggered by repository_dispatch' }}"
+
+      - name: Push changes
+        run: git push origin main

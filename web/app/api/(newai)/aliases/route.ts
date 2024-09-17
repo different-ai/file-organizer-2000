@@ -1,5 +1,5 @@
 import { NextResponse, NextRequest } from "next/server";
-import { generateAliasVariations } from "../../../../aiService";
+import { generateAliasVariations } from "../aiService";
 import { handleAuthorization } from "@/lib/handleAuthorization";
 import { incrementAndLogTokenUsage } from "@/lib/incrementAndLogTokenUsage";
 import { getModel } from "@/lib/models";

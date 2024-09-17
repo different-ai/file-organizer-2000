@@ -10,7 +10,7 @@ import {
   loadPdfJs,
   requestUrl,
 } from "obsidian";
-import { logMessage, formatToSafeName } from "../utils";
+import { logMessage, formatToSafeName, sanitizeTag } from "../utils";
 import { FileOrganizerSettingTab } from "./views/configuration/tabs";
 import {
   ASSISTANT_VIEW_TYPE,
@@ -131,10 +131,12 @@ export default class FileOrganizer extends Plugin {
   }
 
   getServerUrl(): string {
-    const serverUrl = this.settings.enableSelfHosting
+    let serverUrl = this.settings.enableSelfHosting
       ? this.settings.selfHostingURL
       : "https://app.fileorganizer2000.com";
 
+    // Remove trailing slash (/) at end of url if there is one; prevents errors for /api/chat requests
+    serverUrl = serverUrl.replace(/\/$/, '');
     logMessage(`Using server URL: ${serverUrl}`);
 
     return serverUrl;
@@ -143,31 +145,56 @@ export default class FileOrganizer extends Plugin {
   // all files in inbox will go through this function
   async processFileV2(originalFile: TFile, oldPath?: string): Promise<void> {
     try {
-      new Notice(`Looking at ${originalFile.basename}`, 3000);
+      new Notice(`Processing ${originalFile.basename}`, 3000);
 
-      if (
-        !originalFile.extension ||
-        !isValidExtension(originalFile.extension)
-      ) {
+      if (!originalFile.extension || !isValidExtension(originalFile.extension)) {
+        new Notice("Unsupported file type. Skipping.", 3000);
         return;
       }
 
       await this.checkAndCreateFolders();
 
-      const text = await this.getTextFromFile(originalFile);
+      let text: string;
+      try {
+        text = await this.getTextFromFile(originalFile);
+      } catch (error) {
+        new Notice(`Error reading file ${originalFile.basename}`, 3000);
+        console.error(`Error in getTextFromFile:`, error);
+        return;
+      }
 
-      const instructions = await this.generateInstructions(originalFile);
-      const metadata = await this.generateMetadata(
-        originalFile,
-        instructions,
-        text,
-        oldPath
-      );
-      await this.executeInstructions(metadata, originalFile, text);
+      let instructions: any;
+      try {
+        instructions = await this.generateInstructions(originalFile);
+      } catch (error) {
+        new Notice(`Error generating instructions for ${originalFile.basename}`, 3000);
+        console.error(`Error in generateInstructions:`, error);
+        return;
+      }
+
+      let metadata: any;
+      try {
+        metadata = await this.generateMetadata(
+          originalFile,
+          instructions,
+          text,
+          oldPath
+        );
+      } catch (error) {
+        new Notice(`Error generating metadata for ${originalFile.basename}`, 3000);
+        console.error(`Error in generateMetadata:`, error);
+        return;
+      }
+
+      try {
+        await this.executeInstructions(metadata, originalFile, text);
+      } catch (error) {
+        new Notice(`Error executing instructions for ${originalFile.basename}`, 3000);
+        console.error(`Error in executeInstructions:`, error);
+      }
     } catch (error) {
-      new Notice(`Error processing ${originalFile.basename}`, 3000);
-      new Notice(error.message, 6000);
-      console.error(error);
+      new Notice(`Unexpected error processing ${originalFile.basename}`, 3000);
+      console.error(`Error in processFileV2:`, error);
     }
   }
 
@@ -680,17 +707,7 @@ export default class FileOrganizer extends Plugin {
     await this.moveFile(file, file.basename, destinationFolder);
   }
 
-  // let's unpack this into processFileV2
-  async renameTagAndOrganize(file: TFile, content: string, fileName: string) {
-    const destinationFolder = await this.getAIClassifiedFolder(
-      content,
-      file.path
-    );
-    new Notice(`Most similar folder: ${destinationFolder}`, 3000);
-    await this.appendAlias(file, file.basename);
-    await this.moveFile(file, fileName, destinationFolder);
-    await this.appendSimilarTags(content, file);
-  }
+
 
   async showAssistantSidebar() {
     this.app.workspace.detachLeavesOfType(ASSISTANT_VIEW_TYPE);
@@ -870,29 +887,7 @@ export default class FileOrganizer extends Plugin {
     return formatToSafeName(name);
   }
 
-  async generateMultipleNamesFromContent(content: string, currentName: string): Promise<string[]> {
-    const renameInstructions = this.settings.renameInstructions;
-    const vaultTitles = this.settings.useVaultTitles ? this.getRandomVaultTitles(20) : [];
-    const response = await makeApiRequest(() =>
-      requestUrl({
-        url: `${this.getServerUrl()}/api/title/multiple`,
-        method: "POST",
-        contentType: "application/json",
-        body: JSON.stringify({
-          document: content,
-          renameInstructions,
-          currentName,
-          vaultTitles,
-        }),
-        throw: false,
-        headers: {
-          Authorization: `Bearer ${this.settings.API_KEY}`,
-        },
-      })
-    );
-    const { titles } = await response.json;
-    return titles;
-  }
+
   // get random titles from the users vault to get better titles suggestions
   getRandomVaultTitles(count: number): string[] {
     const allFiles = this.app.vault.getFiles();
@@ -975,7 +970,7 @@ export default class FileOrganizer extends Plugin {
       await this.processFileV2(file);
     }
   }
-  async getSimilarTags(content: string, fileName: string, useAiTags: boolean): Promise<string[]> {
+  async getSimilarTags(content: string, fileName: string): Promise<string[]> {
     const tags: string[] = await this.getAllVaultTags();
 
     if (tags.length === 0) {
@@ -983,8 +978,7 @@ export default class FileOrganizer extends Plugin {
       return [];
     }
 
-    if (!useAiTags) {
-      // Use the existing tags from the vault
+      // Generate popular tags and select from them
       return await generateTagsRouter(
         content,
         fileName,
@@ -993,58 +987,9 @@ export default class FileOrganizer extends Plugin {
         this.getServerUrl(),
         this.settings.API_KEY
       );
-    } else {
-      // Generate popular tags and select from them
-      return await generateTagsRouter(
-        content,
-        fileName,
-        useAiTags ? [] : tags,
-        this.settings.usePro,
-        this.getServerUrl(),
-        this.settings.API_KEY
-      );
-    }
   }
 
-  async getExistingTags(
-    content: string,
-    fileName: string,
-    vaultTags: string[]
-  ): Promise<string[]> {
-    const response = await makeApiRequest(() =>
-      requestUrl({
-        url: `${this.getServerUrl()}/api/tags/existing`,
-        method: "POST",
-        contentType: "application/json",
-        body: JSON.stringify({ content, fileName, vaultTags }),
-        throw: false,
-        headers: {
-          Authorization: `Bearer ${this.settings.API_KEY}`,
-        },
-      })
-    );
-    const { generatedTags } = await response.json;
-    return generatedTags;
-  }
-
-  async getNewTags(content: string, fileName: string): Promise<string[]> {
-    const response = await makeApiRequest(() =>
-      requestUrl({
-        url: `${this.getServerUrl()}/api/tags/new`,
-        method: "POST",
-        contentType: "application/json",
-        body: JSON.stringify({ content, fileName }),
-        throw: false,
-        headers: {
-          Authorization: `Bearer ${this.settings.API_KEY}`,
-        }
-      })
-    );
-    const { generatedTags } = await response.json;
-    return generatedTags;
-  }
-
-  async getAllVaultTags(): Promise<string[]> {
+   async getAllVaultTags(): Promise<string[]> {
     // Fetch all tags from the vault
     // @ts-ignore
     const tags: TagCounts = this.app.metadataCache.getTags();
@@ -1127,10 +1072,10 @@ export default class FileOrganizer extends Plugin {
     return destinationFolder;
   }
 
+
   async appendTag(file: TFile, tag: string) {
     // Ensure the tag starts with a hash symbol
-    const formattedTag = tag.startsWith("#") ? tag : `#${tag}`;
-
+    const formattedTag = sanitizeTag(tag);
     // Append similar tags
     if (this.settings.useSimilarTagsInFrontmatter) {
       await this.appendToFrontMatter(file, "tags", formattedTag);
