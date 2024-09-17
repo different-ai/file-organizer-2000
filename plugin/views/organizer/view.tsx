@@ -29,6 +29,10 @@ export const AssistantView: React.FC<AssistantViewProps> = ({
   const [error, setError] = React.useState<string | null>(null);
 
   const updateActiveFile = React.useCallback(async () => {
+    // Check if the Assistant view is visible before processing
+    const isVisible = leaf.view.containerEl.isShown() && !plugin.app.workspace.rightSplit.collapsed;
+    if (!isVisible) return;
+
     try {
       const file = plugin.app.workspace.getActiveFile();
       if (file) {
@@ -40,7 +44,7 @@ export const AssistantView: React.FC<AssistantViewProps> = ({
       console.error("Error updating active file:", err);
       setError("Failed to load file content");
     }
-  }, [plugin.app.workspace, plugin.app.vault]);
+  }, [plugin.app.workspace, plugin.app.vault, leaf.view.containerEl, plugin.app.workspace.rightSplit.collapsed]);
 
   React.useEffect(() => {
     updateActiveFile();
