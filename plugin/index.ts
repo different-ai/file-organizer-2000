@@ -870,6 +870,9 @@ export default class FileOrganizer extends Plugin {
     content: string,
     currentName: string
   ): Promise<string> {
+    if (!this.settings.enableFileRenaming) {
+      return currentName; // Return the current name if renaming is disabled
+    }
 
     const renameInstructions = this.settings.renameInstructions;
     logMessage("renameInstructions", renameInstructions);

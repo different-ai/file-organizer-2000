@@ -28,7 +28,17 @@ export class CustomizationTab {
             await this.plugin.saveSettings();
           })
       );
-
+    new Setting(customizationTabContent)
+      .setName("File Renaming")
+      .setDesc("Enable file renaming when a file goes through the inbox.")
+      .addToggle((toggle) =>
+        toggle
+          .setValue(this.plugin.settings.enableFileRenaming)
+          .onChange(async (value) => {
+            this.plugin.settings.enableFileRenaming = value;
+            await this.plugin.saveSettings();
+          })
+      );
     new Setting(customizationTabContent)
       .setName("Rename Instructions")
       .setDesc(
