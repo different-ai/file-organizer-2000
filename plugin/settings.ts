@@ -24,7 +24,6 @@ export class FileOrganizerSettings {
   selfHostingURL = "http://localhost:3000";
   enableScreenpipe = false;
   useVaultTitles = true;
-<<<<<<< enable/disable-file-renaming-settings-toggle
   enableFileRenaming = true;
   userModels: {
     [key: string]: {
@@ -33,9 +32,6 @@ export class FileOrganizerSettings {
       provider: "openai" | "ollama" | "anthropic";
     };
   } = {};
-=======
-
->>>>>>> master
 }
 
 export const DEFAULT_SETTINGS = new FileOrganizerSettings();
