@@ -27,6 +27,7 @@ export const ClassificationBox: React.FC<ClassificationBoxProps> = ({ plugin, fi
   const [formatting, setFormatting] = React.useState<boolean>(false);
   const [contentLoadStatus, setContentLoadStatus] = React.useState<'loading' | 'success' | 'error'>('loading');
   const [classificationStatus, setClassificationStatus] = React.useState<'loading' | 'success' | 'error'>('loading');
+  const [errorMessage, setErrorMessage] = React.useState<string | null>(null);
   const dropdownRef = React.useRef<HTMLDivElement>(null);
 
   React.useEffect(() => {
@@ -88,7 +89,6 @@ export const ClassificationBox: React.FC<ClassificationBoxProps> = ({ plugin, fi
   const handleFormat = async (template: Template) => {
     try {
       setFormatting(true);
-      setError(null);
       if (!file) throw new Error('No file selected');
       if (!template || typeof template.type !== 'string' || typeof template.formattingInstruction !== 'string') {
         throw new Error('Invalid template');
@@ -102,6 +102,7 @@ export const ClassificationBox: React.FC<ClassificationBoxProps> = ({ plugin, fi
       setSelectedTemplate(null);
     } catch (error) {
       console.error('Error in handleFormat:', error);
+      setErrorMessage((error as Error).message);
     } finally {
       setFormatting(false);
     }
