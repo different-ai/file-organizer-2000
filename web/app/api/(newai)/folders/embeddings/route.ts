@@ -12,19 +12,21 @@ export async function POST(request: NextRequest) {
 
         // Parse the request body
         const { content,  folders } = await request.json();
+        console.log("content", content);
+        console.log("folders", folders);
 
         // Sanitize the file name
 
         // Generate embedding for the input content and file name
         const inputText = `${content}`;
         const { embedding: inputEmbedding } = await embed({
-            model: openai.embedding("text-embedding-3-small"),
+            model: openai.embedding("text-embedding-3-large"),
             value: inputText,
         });
 
         // Generate embeddings for all folder names
         const { embeddings: folderEmbeddings, usage } = await embedMany({
-            model: openai.embedding("text-embedding-3-small"),
+            model: openai.embedding("text-embedding-3-large"),
             values: folders,
         });
 
@@ -51,6 +53,7 @@ export async function POST(request: NextRequest) {
 
         console.log("Incrementing token usage folders/existing", userId, tokens);
         await incrementAndLogTokenUsage(userId, tokens);
+        console.log("topFolders", topFolders);
 
         // Return the top suggested folders
         return NextResponse.json({

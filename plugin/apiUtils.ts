@@ -3,6 +3,7 @@ import { Notice, RequestUrlResponse, requestUrl } from "obsidian";
 export async function makeApiRequest<T>(
   requestFn: () => Promise<RequestUrlResponse>
 ): Promise<RequestUrlResponse> {
+  console.log("Making API request", requestFn);
   const response: RequestUrlResponse = await requestFn();
   if (response.status >= 200 && response.status < 300) {
     return response;

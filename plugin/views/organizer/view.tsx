@@ -7,7 +7,7 @@ import { SectionHeader } from "./components/section-header";
 import { SimilarTags } from "./tags";
 import { DocumentChunks } from "./chunks";
 import { RenameSuggestion } from "./titles/box";
-import { SimilarFolderBox } from "./folder";
+import { SimilarFolderBox } from "./folders/box";
 import { RefreshButton } from "./components/refresh-button";
 import { ClassificationBox } from "./classification";
 import { TranscriptionButton } from "./transcript";
