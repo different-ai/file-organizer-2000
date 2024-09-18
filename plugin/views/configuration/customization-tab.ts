@@ -184,7 +184,22 @@ export class CustomizationTab {
       )
       .setDisabled(true);
 
+    // Experimental Settings
+    new Setting(customizationTabContent)
+      .setName("Experimental Features")
+      .setHeading();
 
+    new Setting(customizationTabContent)
+      .setName("Use Folder Embeddings")
+      .setDesc("Enable the use of folder embeddings for improving folder suggestions.")
+      .addToggle((toggle) =>
+        toggle
+          .setValue(this.plugin.settings.useFolderEmbeddings)
+          .onChange(async (value) => {
+            this.plugin.settings.useFolderEmbeddings = value;
+            await this.plugin.saveSettings();
+          })
+      );
 
     return customizationTabContent;
   }

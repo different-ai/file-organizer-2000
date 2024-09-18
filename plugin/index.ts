@@ -1301,9 +1301,13 @@ export default class FileOrganizer extends Plugin {
       .filter(folder => folder !== "/");
 
     try {
+      const apiEndpoint = this.settings.useFolderEmbeddings
+        ? '/api/folders/embeddings'
+        : '/api/folders/existing';
+
       const response = await makeApiRequest(() =>
         requestUrl({
-          url: `${this.getServerUrl()}/api/folders/existing`,
+          url: `${this.getServerUrl()}${apiEndpoint}`,
           method: "POST",
           contentType: "application/json",
           body: JSON.stringify({
