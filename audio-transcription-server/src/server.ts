@@ -2,6 +2,7 @@ import dotenv from "dotenv";
 import express, { Request, Response, NextFunction } from "express";
 import multer from "multer";
 import fs from "fs";
+import path from 'path';
 import cors from "cors";
 import { createClient } from "@deepgram/sdk";
 import { Readable } from "stream";
@@ -20,7 +21,9 @@ const storage = multer.diskStorage({
     file: Express.Multer.File,
     cb: (error: Error | null, destination: string) => void
   ) {
-    cb(null, "uploads/");
+    const uploadDir = path.join(__dirname, '..', 'uploads');
+    fs.mkdirSync(uploadDir, { recursive: true });
+    cb(null, uploadDir);
   },
   filename: function (
     req: Express.Request,

@@ -609,7 +609,7 @@ export default class FileOrganizer extends Plugin {
     formData.append("fileExtension", fileExtension);
     // const newServerUrl = "http://localhost:3001/transcribe";
     const newServerUrl =
-      "https://file-organizer-2000-production.up.railway.app/transcribe";
+      "https://file-organizer-2000-x.onrender.com/transcribe";
     const response = await fetch(newServerUrl, {
       method: "POST",
       body: formData,
@@ -977,18 +977,18 @@ export default class FileOrganizer extends Plugin {
       return [];
     }
 
-      // Generate popular tags and select from them
-      return await generateTagsRouter(
-        content,
-        fileName,
-        tags,
-        this.settings.usePro,
-        this.getServerUrl(),
-        this.settings.API_KEY
-      );
+    // Generate popular tags and select from them
+    return await generateTagsRouter(
+      content,
+      fileName,
+      tags,
+      this.settings.usePro,
+      this.getServerUrl(),
+      this.settings.API_KEY
+    );
   }
 
-   async getAllVaultTags(): Promise<string[]> {
+  async getAllVaultTags(): Promise<string[]> {
     // Fetch all tags from the vault
     // @ts-ignore
     const tags: TagCounts = this.app.metadataCache.getTags();
