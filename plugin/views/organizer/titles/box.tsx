@@ -1,11 +1,11 @@
 import * as React from "react";
 import { normalizePath, TFile } from "obsidian";
-import FileOrganizer from "../../index";
+import FileOrganizer from "../../../index";
 import { z } from "zod";
 import { motion, AnimatePresence } from "framer-motion";
-import { SkeletonLoader } from "./components/skeleton-loader";
-import { TitleSuggestion } from "./components/title-suggestion-item";
-import { useTitleSuggestions } from "./hooks/use-title-suggestions";
+import { SkeletonLoader } from "../components/skeleton-loader";
+import { TitleSuggestion } from "./title-suggestion-item";
+import { useTitleSuggestions } from "./use-title-suggestions";
 
 interface RenameSuggestionProps {
   plugin: FileOrganizer;
@@ -29,9 +29,7 @@ export const RenameSuggestion: React.FC<RenameSuggestionProps> = ({
     refreshKey
   );
 
-
-
-  const handleTitleClick = (title: string) => {
+  const handleTitleApply = (title: string) => {
     if (file && file.parent) {
       plugin.moveFile(file, title, file.parent.path);
     } else {
@@ -61,7 +59,7 @@ export const RenameSuggestion: React.FC<RenameSuggestionProps> = ({
           <TitleSuggestion
             key={index}
             title={title}
-            onClick={() => handleTitleClick(normalizePath(title))}
+            onApply={handleTitleApply}
           />
         ))}
       </AnimatePresence>

@@ -6,18 +6,24 @@ import { debounce } from "lodash";
 import { SectionHeader } from "./components/section-header";
 import { SimilarTags } from "./tags";
 import { DocumentChunks } from "./chunks";
-import { RenameSuggestion } from "./title";
+import { RenameSuggestion } from "./titles/box";
 import { SimilarFolderBox } from "./folder";
 import { RefreshButton } from "./components/refresh-button";
 import { ClassificationBox } from "./classification";
 import { TranscriptionButton } from "./transcript";
 import { SimilarFilesBox } from "./files";
 import { EmptyState } from "./components/empty-state";
+import { logMessage } from "../../../utils";
 
 interface AssistantViewProps {
   plugin: FileOrganizer;
   leaf: WorkspaceLeaf;
 }
+
+const checkIfIsMediaFile = (file: TFile | null): boolean => {
+  if (!file) return false;
+  return validMediaExtensions.includes(file.extension);
+};
 
 export const AssistantView: React.FC<AssistantViewProps> = ({
   plugin,
@@ -27,8 +33,10 @@ export const AssistantView: React.FC<AssistantViewProps> = ({
   const [noteContent, setNoteContent] = React.useState<string>("");
   const [refreshKey, setRefreshKey] = React.useState<number>(0);
   const [error, setError] = React.useState<string | null>(null);
+  const isMediaFile = React.useMemo(() => checkIfIsMediaFile(activeFile), [activeFile]);
 
   const updateActiveFile = React.useCallback(async () => {
+    logMessage("updating active file");
     // Check if the Assistant view is visible before processing
     const isVisible =
       leaf.view.containerEl.isShown() &&
@@ -36,9 +44,9 @@ export const AssistantView: React.FC<AssistantViewProps> = ({
     if (!isVisible) return;
 
     try {
-      const file = plugin.app.workspace.getActiveFile()
-      if (file) {
+      const file = plugin.app.workspace.getActiveFile();
         setActiveFile(file);
+      if (file && !isMediaFile) {
         const content = await plugin.app.vault.read(file);
         setNoteContent(content);
       }
@@ -52,33 +60,30 @@ export const AssistantView: React.FC<AssistantViewProps> = ({
     leaf.view.containerEl,
     plugin.app.workspace.rightSplit.collapsed,
     leaf.view.containerEl.isShown,
+    isMediaFile,
   ]);
 
   React.useEffect(() => {
     updateActiveFile();
     const debouncedUpdate = debounce(updateActiveFile, 300);
-    const eventRef = plugin.app.workspace.on("file-open", debouncedUpdate);
-    const activeLeafChange = plugin.app.workspace.on("active-leaf-change", debouncedUpdate);
 
+    // Attach event listeners
+    plugin.app.workspace.on("file-open", debouncedUpdate);
+    plugin.app.workspace.on("active-leaf-change", debouncedUpdate);
 
-
+    // Cleanup function to remove event listeners
     return () => {
-      plugin.app.workspace.offref(eventRef);
-      plugin.app.workspace.offref(activeLeafChange);
+      plugin.app.workspace.off("file-open", debouncedUpdate);
+      plugin.app.workspace.off("active-leaf-change", debouncedUpdate);
       debouncedUpdate.cancel();
     };
-  }, [updateActiveFile, plugin.app.workspace, leaf.view.containerEl]);
+  }, [updateActiveFile, plugin.app.workspace]);
 
   const refreshContext = React.useCallback(() => {
     setRefreshKey(prevKey => prevKey + 1);
     setError(null);
     updateActiveFile();
   }, [updateActiveFile]);
-
-  const isMediaFile = (file: TFile | null): boolean => {
-    if (!file) return false;
-    return validMediaExtensions.includes(file.extension);
-  };
 
   const renderSection = React.useCallback(
     (component: React.ReactNode, errorMessage: string) => {
@@ -108,7 +113,7 @@ export const AssistantView: React.FC<AssistantViewProps> = ({
     );
   }
 
-  if (isMediaFile(activeFile)) {
+  if (isMediaFile) {
     return (
       <EmptyState message="To process an image or audio file, move it to the File Organizer 2000 Inbox Folder (e.g. for image text extraction or audio transcription)." />
     );
