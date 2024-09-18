@@ -11,13 +11,12 @@ export async function POST(request: NextRequest) {
         const { userId } = await handleAuthorization(request);
 
         // Parse the request body
-        const { content, fileName, folders } = await request.json();
+        const { content,  folders } = await request.json();
 
         // Sanitize the file name
-        const sanitizedFileName = fileName.split('/').pop() || "";
 
         // Generate embedding for the input content and file name
-        const inputText = `${content} ${sanitizedFileName}`;
+        const inputText = `${content}`;
         const { embedding: inputEmbedding } = await embed({
             model: openai.embedding("text-embedding-3-small"),
             value: inputText,

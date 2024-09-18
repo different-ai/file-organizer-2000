@@ -93,7 +93,7 @@ export async function handleAuthorization(req: NextRequest) {
   }
 
   if (remaining <= 0) {
-    throw new AuthorizationError("Rate limit exceeded", 429);
+    throw new AuthorizationError("Rate limit exceeded. Contact support for a top up", 429);
   }
 
   await incrementApiUsage(result.ownerId);
