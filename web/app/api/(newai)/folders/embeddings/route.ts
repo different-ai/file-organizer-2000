@@ -23,7 +23,7 @@ export async function POST(request: NextRequest) {
         });
 
         // Generate embeddings for all folder names
-        const { embeddings: folderEmbeddings } = await embedMany({
+        const { embeddings: folderEmbeddings, usage } = await embedMany({
             model: openai.embedding("text-embedding-3-small"),
             values: folders,
         });
@@ -46,8 +46,8 @@ export async function POST(request: NextRequest) {
             .map(item => item.folder);
 
         // Calculate token usage
-        const tokensPerEmbedding = 1536; // As per 'text-embedding-3-small'
-        const tokens = 1 * tokensPerEmbedding + folders.length * tokensPerEmbedding;
+        const tokens = usage.tokens;
+        console.log("Incrementing token usage folders/embeddings", userId, tokens);
 
         console.log("Incrementing token usage folders/existing", userId, tokens);
         await incrementAndLogTokenUsage(userId, tokens);
