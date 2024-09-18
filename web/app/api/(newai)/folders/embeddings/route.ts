@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { handleAuthorization } from "@/lib/handleAuthorization";
 import { incrementAndLogTokenUsage } from "@/lib/incrementAndLogTokenUsage";
 import { openai } from "@ai-sdk/openai";
+import { cosineSimilarity, embed, embedMany } from "ai";
 
 export async function POST(request: NextRequest) {
     console.log("folders/embeddings");
