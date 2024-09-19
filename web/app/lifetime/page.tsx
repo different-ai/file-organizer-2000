@@ -38,7 +38,7 @@ export default async function LifetimeAccessPage() {
             <div className="relative" style={{ paddingBottom: "56.25%" }}>
               <iframe
                 className="absolute top-0 left-0 w-full h-full hidden md:block"
-                src="https://www.youtube.com/embed/XYLgqdtoeMo?controls=1&modestbranding=1&showinfo=0"
+                src="https://www.youtube.com/embed/hOobrzAlW3Q?controls=1&modestbranding=1&showinfo=0"
                 frameBorder="0"
                 allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture"
                 allowFullScreen
@@ -78,6 +78,7 @@ export default async function LifetimeAccessPage() {
                         />
                       </a>
                       <ul className="list-disc list-outside ml-4 mt-2 space-y-1 text-sm">
+                        <li>You'll need to sign up/in on vercel and github.</li>
                         <li>
                           During deployment, enter your{" "}
                           <a
@@ -88,7 +89,7 @@ export default async function LifetimeAccessPage() {
                           >
                             OpenAI API Key
                           </a>
-                          .
+                          . Make sure you have added credits to your account.
                         </li>
                         <li>
                           For the SOLO_API_KEY, use the license key generated
@@ -128,6 +129,19 @@ export default async function LifetimeAccessPage() {
                         <li>
                           Now open the assistant sidebar to see if it works.
                           Enjoy the plugin!
+                        </li>
+                        <li>
+                          The app will run with gpt-4o-2024-08-06 by default. If
+                          you want to configure another openAI compatible model,{" "}
+                          <a
+                            href="https://www.youtube.com/watch?v=yVZn-cGOMzE"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-blue-500 hover:underline"
+                          >
+                            check out this video
+                          </a>
+                          .
                         </li>
                       </ul>
                     </li>
