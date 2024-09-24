@@ -1,42 +1,24 @@
-// import { NextRequest, NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { handleAuthorization } from "@/lib/handleAuthorization";
 import { incrementAndLogTokenUsage } from "@/lib/incrementAndLogTokenUsage";
 import { openai } from "@ai-sdk/openai";
 import { cosineSimilarity, embed, embedMany } from "ai";
-import BM25TextSearch from "wink-bm25-text-search";
-import { NextRequest, NextResponse } from "next/server";
+import BM25Singleton from "./bm25";
 
 // Define constants for weighting
 const KEYWORD_WEIGHT = 0.5;
 const EMBEDDING_WEIGHT = 0.5;
 
-// Initialize BM25 Text Search with configuration
-const bm25 = BM25TextSearch({
-    fieldsToIndex: ['folder'], // Specify the field to index
-    // You can optionally customize other parameters like 'k1' and 'b' here
-});
-
-/**
- * Function to initialize BM25 index with folder names.
- * Each folder is added as a document with a 'folder' field.
- * @param folders Array of folder names
- */
-function initializeBM25(folders: string[]) {
-    folders.forEach(folder => {
-        bm25.addDoc({ folder }, folder); // { folder: 'FolderName' }, 'FolderName'
-    });
-    bm25.finalize(); // Finalize the index after adding all documents
-}
-
 /**
  * Function to compute BM25 scores for a query.
  * @param query The search query string
+ * @param bm25 BM25TextSearch instance
  * @returns A Map of folder names to their BM25 scores
  */
-function computeBM25Scores(query: string): Map<string, number> {
+function computeBM25Scores(query: string, bm25: any): Map<string, number> {
     const results = bm25.search(query);
     const scoreMap = new Map<string, number>();
-    results.forEach(result => {
+    results.forEach((result: any) => {
         scoreMap.set(result.ref, result.score);
     });
     return scoreMap;
@@ -53,11 +35,11 @@ export async function POST(request: NextRequest) {
         console.log("content", content);
         console.log("folders", folders);
 
-        // Initialize BM25 with folder names
-        initializeBM25(folders);
+        // Get BM25 instance (singleton)
+        const bm25 = BM25Singleton.getInstance(folders);
 
         // Compute BM25 scores based on input content
-        const bm25ScoresMap = computeBM25Scores(content);
+        const bm25ScoresMap = computeBM25Scores(content, bm25);
         const bm25Scores = folders.map(folder => bm25ScoresMap.get(folder) || 0);
 
         // Generate embedding for the input content
