@@ -34,7 +34,10 @@ const getBm25Instance = (() => {
             instance = new BM25TextSearch();
 
             // Define configuration with field weights
-            instance.defineConfig({ fldWeights: { folder: 1 } });
+            instance.defineConfig({
+                fldWeights: { folder: 1 },
+                bm25Params: { k1: 1.5, b: 0.75 },
+            });
 
             // Define preparation tasks
             instance.definePrepTasks([prepTask]);

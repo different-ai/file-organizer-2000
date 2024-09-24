@@ -4,10 +4,16 @@ import { incrementAndLogTokenUsage } from "@/lib/incrementAndLogTokenUsage";
 import { openai } from "@ai-sdk/openai";
 import { cosineSimilarity, embed, embedMany } from "ai";
 import getBm25Instance from "./bm25";
+import winkNLP from "wink-nlp";
+import model from "wink-eng-lite-web-model";
+
+// Initialize winkNLP
+const nlp = winkNLP(model);
+const its = nlp.its;
 
 // Define constants for weighting
-const KEYWORD_WEIGHT = 0.5;
-const EMBEDDING_WEIGHT = 0.5;
+const KEYWORD_WEIGHT = 0.3;
+const EMBEDDING_WEIGHT = 0.7;
 
 /**
  * Function to compute BM25 scores for a query.
@@ -35,24 +41,27 @@ export async function POST(request: NextRequest) {
         console.log("content", content);
         console.log("folders", folders);
 
+        // Preprocess content
+        const preprocessedContent = preprocessText(content);
+        const lemmatizedContent = preprocessedContent
+
         // Get BM25 instance (singleton)
-        const bm25 = getBm25Instance(folders);
+        const bm25 = getBm25Instance(folders.map(preprocessText));
 
         // Compute BM25 scores based on input content
-        const bm25ScoresMap = computeBM25Scores(content, bm25);
+        const bm25ScoresMap = computeBM25Scores(lemmatizedContent, bm25);
         const bm25Scores = folders.map(folder => bm25ScoresMap.get(folder) || 0);
 
         // Generate embedding for the input content
-        const inputText = `${content}`;
         const { embedding: inputEmbedding } = await embed({
-            model: openai.embedding("text-embedding-3-large"),
-            value: inputText,
+            model: openai.embedding("text-embedding-ada-002"),
+            value: lemmatizedContent,
         });
 
         // Generate embeddings for all folder names
         const { embeddings: folderEmbeddings, usage } = await embedMany({
-            model: openai.embedding("text-embedding-3-large"),
-            values: folders,
+            model: openai.embedding("text-embedding-ada-002"),
+            values: folders.map(preprocessText),
         });
 
         // Compute similarity scores between input and each folder
@@ -105,4 +114,24 @@ export async function POST(request: NextRequest) {
             );
         }
     }
+}
+
+function preprocessText(text: string): string {
+    return text.toLowerCase().replace(/[^\w\s]/gi, '');
+}
+
+function lemmatizeText(text: string): string[] {
+    return nlp.readDoc(text)
+        .tokens()
+        .filter((t) => t.out(its.type) === "word" && !t.out(its.stopWordFlag))
+        .out() // Convert to array
+        .map((t) => t.out(its.lemma));
+}
+
+function expandSynonyms(tokens: string[]): string[] {
+    // Assuming you have a synonyms dictionary
+    const synonymsDictionary: { [key: string]: string[] } = {
+        // Example: "run": ["jog", "sprint"]
+    };
+    return tokens.flatMap(token => [token, ...(synonymsDictionary[token] || [])]);
 }
