@@ -8,7 +8,7 @@ import { getModel } from "@/lib/models";
 
 
 
-export const MAX_DURATION = 60;
+export const maxDuration = 60;
 
 export async function POST(request: NextRequest) {
   try {
