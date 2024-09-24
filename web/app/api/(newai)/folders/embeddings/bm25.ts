@@ -1,41 +1,58 @@
 import BM25TextSearch from "wink-bm25-text-search";
+import winkNLP from "wink-nlp";
+import model from "wink-eng-lite-web-model";
 
-class BM25Singleton {
-    private static instance: BM25TextSearch | null = null;
+const getBm25Instance = (() => {
+    let instance: BM25TextSearch | null = null;
+    let currentFolders: string[] = [];
 
-    /**
-     * Returns a singleton instance of BM25TextSearch.
-     * Initializes the index if not already initialized.
-     * @param folders Array of folder names
-     * @returns BM25TextSearch instance
-     */
-    static getInstance(folders: string[]): BM25TextSearch {
-        if (!BM25Singleton.instance) {
-            BM25Singleton.instance = BM25TextSearch({
-                fieldsToIndex: ['folder'],
-            });
-            folders.forEach(folder => {
-                BM25Singleton.instance!.addDoc({ folder }, folder);
-            });
-            BM25Singleton.instance.finalize();
+    // Initialize winkNLP
+    const nlp = winkNLP(model);
+    const its = nlp.its;
+
+    // Define the preparation task for tokenization
+    const prepTask = (text: string): string[] => {
+        const tokens: string[] = [];
+        nlp.readDoc(text)
+            .tokens()
+            .filter((t) => t.out(its.type) === "word" && !t.out(its.stopWordFlag))
+            .each((t) =>
+                tokens.push(
+                    t.out(its.negationFlag) ? `!${t.out(its.stem)}` : t.out(its.stem)
+                )
+            );
+        return tokens;
+    };
+
+    return (folders: string[]): BM25TextSearch => {
+        const foldersChanged =
+            !instance ||
+            currentFolders.length !== folders.length ||
+            !currentFolders.every((folder, idx) => folder === folders[idx]);
+
+        if (foldersChanged) {
+            instance = new BM25TextSearch();
+
+            // Define configuration with field weights
+            instance.defineConfig({ fldWeights: { folder: 1 } });
+
+            // Define preparation tasks
+            instance.definePrepTasks([prepTask]);
+
+            // Add documents to the BM25 index
+            folders.forEach((folder, idx) =>
+                instance.addDoc({ folder }, idx)
+            );
+
+            // Consolidate the index
+            instance.consolidate();
+
+            // Update the current folders
+            currentFolders = [...folders];
         }
-        return BM25Singleton.instance;
-    }
 
-    /**
-     * Resets the BM25 index.
-     * Call this method if the folder list changes.
-     * @param folders New array of folder names
-     */
-    static resetInstance(folders: string[]) {
-        BM25Singleton.instance = BM25TextSearch({
-            fieldsToIndex: ['folder'],
-        });
-        folders.forEach(folder => {
-            BM25Singleton.instance!.addDoc({ folder }, folder);
-        });
-        BM25Singleton.instance.finalize();
-    }
-}
+        return instance;
+    };
+})();
 
-export default BM25Singleton;
+export default getBm25Instance;

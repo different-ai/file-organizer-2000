@@ -3,7 +3,7 @@ import { handleAuthorization } from "@/lib/handleAuthorization";
 import { incrementAndLogTokenUsage } from "@/lib/incrementAndLogTokenUsage";
 import { openai } from "@ai-sdk/openai";
 import { cosineSimilarity, embed, embedMany } from "ai";
-import BM25Singleton from "./bm25";
+import getBm25Instance from "./bm25";
 
 // Define constants for weighting
 const KEYWORD_WEIGHT = 0.5;
@@ -36,7 +36,7 @@ export async function POST(request: NextRequest) {
         console.log("folders", folders);
 
         // Get BM25 instance (singleton)
-        const bm25 = BM25Singleton.getInstance(folders);
+        const bm25 = getBm25Instance(folders);
 
         // Compute BM25 scores based on input content
         const bm25ScoresMap = computeBM25Scores(content, bm25);
@@ -97,6 +97,7 @@ export async function POST(request: NextRequest) {
             folders: topFolders,
         });
     } catch (error: any) {
+        console.error("Error in folders/embeddings", error);
         if (error) {
             return NextResponse.json(
                 { error: error.message },
