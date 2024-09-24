@@ -9,7 +9,7 @@ import { DocumentChunks } from "./chunks";
 import { RenameSuggestion } from "./titles/box";
 import { SimilarFolderBox } from "./folders/box";
 import { RefreshButton } from "./components/refresh-button";
-import { ClassificationBox } from "./classification";
+import { ClassificationContainer } from "./classification";
 import { TranscriptionButton } from "./transcript";
 import { SimilarFilesBox } from "./files";
 import { EmptyState } from "./components/empty-state";
@@ -137,7 +137,7 @@ export const AssistantView: React.FC<AssistantViewProps> = ({
       </div>
 
       {renderSection(
-        <ClassificationBox
+        <ClassificationContainer
           plugin={plugin}
           file={activeFile}
           content={noteContent}

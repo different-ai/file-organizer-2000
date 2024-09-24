@@ -23,6 +23,9 @@ export class FileOrganizerSettings {
   enableSelfHosting = false;
   selfHostingURL = "http://localhost:3000";
   enableScreenpipe = false;
+  enableFabric = false;
+  fabricPatternPath = "_FileOrganizer2000/Fabric/patterns";
+  useFolderEmbeddings = false;
   useVaultTitles = true;
   enableFileRenaming = true;
   userModels: {

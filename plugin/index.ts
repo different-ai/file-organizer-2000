@@ -48,6 +48,7 @@ import {
 import { checkLicenseKey } from "./apiUtils";
 import { AIChatView } from "./views/ai-chat/view";
 import { makeApiRequest } from "./apiUtils";
+
 type TagCounts = {
   [key: string]: number;
 };
@@ -241,7 +242,7 @@ export default class FileOrganizer extends Plugin {
       : [];
 
     const similarTags = instructions.shouldAppendSimilarTags
-      ? await this.getSimilarTags(textToFeedAi, documentName, false)
+      ? await this.getSimilarTags(textToFeedAi, documentName, )
       : [];
 
     return {
@@ -367,15 +368,7 @@ export default class FileOrganizer extends Plugin {
     );
   }
 
-  async createMetadataFile(file: TFile, metadata: Record<string, any>) {
-    const metadataFolderPath = "_FileOrganizer2000/.metadata";
-    await this.ensureFolderExists(metadataFolderPath);
 
-    const metadataFilePath = `${metadataFolderPath}/.${file.basename}.json`;
-    const metadataContent = JSON.stringify(metadata, null, 2);
-
-    await this.app.vault.create(metadataFilePath, metadataContent);
-  }
 
   async formatContentV2(
     file: TFile,
@@ -428,10 +421,30 @@ export default class FileOrganizer extends Plugin {
     await this.app.vault.append(currentFile, backupLink);
   }
 
+
+  async getFormatInstruction(classification: string): Promise<string> {
+    // get the template file from the classification
+    const templateFile = this.app.vault.getAbstractFileByPath(
+      `${this.settings.templatePaths}/${classification}`
+    );
+    if (!templateFile || !(templateFile instanceof TFile)) {
+      console.error("Template file not found or is not a valid file.");
+      return "";
+    }
+    return await this.app.vault.read(templateFile);
+  }
+
   async formatContent(
-    file: TFile,
-    content: string,
-    formattingInstruction: string
+    // make this an object
+    {
+    file,
+    formattingInstruction,
+    content,
+  }: {
+    file: TFile;
+    formattingInstruction: string;
+    content: string;
+  }
   ): Promise<void> {
     try {
       new Notice("Formatting content...", 3000);
@@ -450,7 +463,6 @@ export default class FileOrganizer extends Plugin {
       await this.formatStream(
         content,
         formattingInstruction,
-        this.settings.usePro,
         this.getServerUrl(),
         this.settings.API_KEY,
         updateCallback
@@ -549,21 +561,25 @@ export default class FileOrganizer extends Plugin {
   async formatStream(
     content: string,
     formattingInstruction: string,
-    usePro: boolean,
     serverUrl: string,
     apiKey: string,
     updateCallback: (partialContent: string) => void
   ): Promise<string> {
+    const requestBody: any = {
+      content,
+      formattingInstruction,
+      enableFabric: this.settings.enableFabric,
+    };
+
+
+
     const response = await fetch(`${serverUrl}/api/format-stream`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
         Authorization: `Bearer ${apiKey}`,
       },
-      body: JSON.stringify({
-        content,
-        formattingInstruction,
-      }),
+      body: JSON.stringify(requestBody),
     });
 
     if (!response.ok) {
@@ -588,6 +604,26 @@ export default class FileOrganizer extends Plugin {
 
     return formattedContent;
   }
+
+  async readPatternFiles(patternName: string): Promise<{ systemContent: string, userContent: string }> {
+    const patternDir = this.app.vault.getAbstractFileByPath(`_FileOrganizer2000/patterns/${patternName}`);
+    if (!(patternDir instanceof TFolder)) {
+      throw new Error(`Pattern directory not found: ${patternName}`);
+    }
+
+    const systemFile = patternDir.children.find(file => file.name === "system.md");
+    const userFile = patternDir.children.find(file => file.name === "user.md");
+
+    if (!(systemFile instanceof TFile) || !(userFile instanceof TFile)) {
+      throw new Error(`Missing system.md or user.md in pattern: ${patternName}`);
+    }
+
+    const systemContent = await this.app.vault.read(systemFile);
+    const userContent = await this.app.vault.read(userFile);
+
+    return { systemContent, userContent };
+  }
+
   async transcribeAudio(
     audioBuffer: ArrayBuffer,
     fileExtension: string,
@@ -609,7 +645,7 @@ export default class FileOrganizer extends Plugin {
     formData.append("fileExtension", fileExtension);
     // const newServerUrl = "http://localhost:3001/transcribe";
     const newServerUrl =
-      "https://file-organizer-2000-x.onrender.com/transcribe";
+      "https://file-organizer-2000-production.up.railway.app/transcribe";
     const response = await fetch(newServerUrl, {
       method: "POST",
       body: formData,
@@ -663,7 +699,46 @@ export default class FileOrganizer extends Plugin {
       throw e;
     }
   }
+   getClassificationsForFabric(): string[] {
+    const patternFolder = this.app.vault.getAbstractFileByPath(
+      '_FileOrganizer2000/patterns'
+    );
+    if (!patternFolder || !(patternFolder instanceof TFolder)) {
+      console.error("Pattern folder not found or is not a valid folder.");
+      return [];
+    }
+    const patternFolders = patternFolder.children.filter(file => file instanceof TFolder).map(folder => folder.name);
+    return patternFolders;
+  }
 
+  async classifyContentV2(content: string, classifications: string[]): Promise<string> {
+    const serverUrl = this.getServerUrl();
+    try {
+      const response = await fetch(`${serverUrl}/api/classify1`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${this.settings.API_KEY}`
+        },
+        body: JSON.stringify({
+          content,
+          templateNames: classifications,
+        })
+      });
+  
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+  
+      const { documentType } = await response.json();
+      return documentType;
+    } catch (error) {
+      console.error("Error in classifyContentV2:", error);
+      throw error;
+    }
+  }
+
+  // @deprecated use classifyContentV2 instead
   async classifyContent(
     content: string,
     name: string
@@ -923,7 +998,7 @@ export default class FileOrganizer extends Plugin {
   }
 
   // main.ts
-  async generateImageAnnotation(file: TFile, customPrompt?: string) {
+  async generateImageAnnotation(file: TFile, ) {
     new Notice(
       `Generating annotation for ${file.basename} this can take up to a minute`,
       8000
@@ -977,18 +1052,18 @@ export default class FileOrganizer extends Plugin {
       return [];
     }
 
-    // Generate popular tags and select from them
-    return await generateTagsRouter(
-      content,
-      fileName,
-      tags,
-      this.settings.usePro,
-      this.getServerUrl(),
-      this.settings.API_KEY
-    );
+      // Generate popular tags and select from them
+      return await generateTagsRouter(
+        content,
+        fileName,
+        tags,
+        this.settings.usePro,
+        this.getServerUrl(),
+        this.settings.API_KEY
+      );
   }
 
-  async getAllVaultTags(): Promise<string[]> {
+   async getAllVaultTags(): Promise<string[]> {
     // Fetch all tags from the vault
     // @ts-ignore
     const tags: TagCounts = this.app.metadataCache.getTags();
@@ -1381,4 +1456,6 @@ export default class FileOrganizer extends Plugin {
       return [this.settings.defaultDestinationPath];
     }
   }
-} 
+
+
+}
