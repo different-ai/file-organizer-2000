@@ -1,8 +1,35 @@
-import { NextRequest, NextResponse } from "next/server";
+// import { NextRequest, NextResponse } from "next/server";
 import { handleAuthorization } from "@/lib/handleAuthorization";
 import { incrementAndLogTokenUsage } from "@/lib/incrementAndLogTokenUsage";
 import { openai } from "@ai-sdk/openai";
 import { cosineSimilarity, embed, embedMany } from "ai";
+import BM25TextSearch from "wink-bm25-text-search";
+import { NextRequest, NextResponse } from "next/server";
+
+// Define constants for weighting
+const KEYWORD_WEIGHT = 0.5;
+const EMBEDDING_WEIGHT = 0.5;
+
+// Initialize BM25 Text Search
+const bm25 = BM25TextSearch();
+
+// Function to initialize BM25 index with folder names
+function initializeBM25(folders: string[]) {
+    folders.forEach(folder => {
+        bm25.addDoc(folder, folder);
+    });
+    bm25.finalize();
+}
+
+// Function to compute BM25 scores for a query
+function computeBM25Scores(query: string): Map<string, number> {
+    const results = bm25.search(query);
+    const scoreMap = new Map<string, number>();
+    results.forEach(result => {
+        scoreMap.set(result.ref, result.score);
+    });
+    return scoreMap;
+}
 
 export async function POST(request: NextRequest) {
     console.log("folders/embeddings");
@@ -11,13 +38,18 @@ export async function POST(request: NextRequest) {
         const { userId } = await handleAuthorization(request);
 
         // Parse the request body
-        const { content,  folders } = await request.json();
+        const { content, folders } = await request.json();
         console.log("content", content);
         console.log("folders", folders);
 
-        // Sanitize the file name
+        // Initialize BM25 with folder names
+        initializeBM25(folders);
 
-        // Generate embedding for the input content and file name
+        // Compute BM25 scores based on input content
+        const bm25ScoresMap = computeBM25Scores(content);
+        const bm25Scores = folders.map(folder => bm25ScoresMap.get(folder) || 0);
+
+        // Generate embedding for the input content
         const inputText = `${content}`;
         const { embedding: inputEmbedding } = await embed({
             model: openai.embedding("text-embedding-3-large"),
@@ -35,13 +67,26 @@ export async function POST(request: NextRequest) {
             cosineSimilarity(inputEmbedding, folderEmbedding)
         );
 
-        // Pair folders with their similarity scores
+        // Normalize BM25 scores
+        const maxBM25 = Math.max(...bm25Scores, 1);
+        const normalizedBM25 = bm25Scores.map(score => score / maxBM25);
+
+        // Normalize embedding similarity scores
+        const maxSimilarity = Math.max(...similarityScores, 1);
+        const normalizedSimilarity = similarityScores.map(score => score / maxSimilarity);
+
+        // Combine BM25 and embedding similarity scores into a hybrid score
+        const hybridScores = normalizedSimilarity.map((sim, index) => 
+            sim * EMBEDDING_WEIGHT + normalizedBM25[index] * KEYWORD_WEIGHT
+        );
+
+        // Pair folders with their hybrid scores
         const foldersWithScores = folders.map((folder, index) => ({
             folder,
-            score: similarityScores[index],
+            score: hybridScores[index],
         }));
 
-        // Sort folders by similarity score in descending order and select top 2
+        // Sort folders by hybrid score in descending order and select top 2
         const topFolders = foldersWithScores
             .sort((a, b) => b.score - a.score)
             .slice(0, 2)
@@ -51,7 +96,6 @@ export async function POST(request: NextRequest) {
         const tokens = usage.tokens;
         console.log("Incrementing token usage folders/embeddings", userId, tokens);
 
-        console.log("Incrementing token usage folders/existing", userId, tokens);
         await incrementAndLogTokenUsage(userId, tokens);
         console.log("topFolders", topFolders);
 
