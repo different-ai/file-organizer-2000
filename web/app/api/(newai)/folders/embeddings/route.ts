@@ -119,19 +119,3 @@ export async function POST(request: NextRequest) {
 function preprocessText(text: string): string {
     return text.toLowerCase().replace(/[^\w\s]/gi, '');
 }
-
-function lemmatizeText(text: string): string[] {
-    return nlp.readDoc(text)
-        .tokens()
-        .filter((t) => t.out(its.type) === "word" && !t.out(its.stopWordFlag))
-        .out() // Convert to array
-        .map((t) => t.out(its.lemma));
-}
-
-function expandSynonyms(tokens: string[]): string[] {
-    // Assuming you have a synonyms dictionary
-    const synonymsDictionary: { [key: string]: string[] } = {
-        // Example: "run": ["jog", "sprint"]
-    };
-    return tokens.flatMap(token => [token, ...(synonymsDictionary[token] || [])]);
-}
