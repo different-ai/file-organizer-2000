@@ -47,6 +47,7 @@
     "class-variance-authority": "^0.7.0",
     "clsx": "^2.0.0",
     "concurrently": "^8.2.2",
+    "date-fns": "^4.1.0",
     "dotenv": "^16.4.5",
     "dotenv-cli": "^7.4.2",
     "drizzle-kit": "^0.22.7",
