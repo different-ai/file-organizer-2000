@@ -10,18 +10,29 @@ import { NextRequest, NextResponse } from "next/server";
 const KEYWORD_WEIGHT = 0.5;
 const EMBEDDING_WEIGHT = 0.5;
 
-// Initialize BM25 Text Search
-const bm25 = BM25TextSearch();
+// Initialize BM25 Text Search with configuration
+const bm25 = BM25TextSearch({
+    fieldsToIndex: ['folder'], // Specify the field to index
+    // You can optionally customize other parameters like 'k1' and 'b' here
+});
 
-// Function to initialize BM25 index with folder names
+/**
+ * Function to initialize BM25 index with folder names.
+ * Each folder is added as a document with a 'folder' field.
+ * @param folders Array of folder names
+ */
 function initializeBM25(folders: string[]) {
     folders.forEach(folder => {
-        bm25.addDoc(folder, folder);
+        bm25.addDoc({ folder }, folder); // { folder: 'FolderName' }, 'FolderName'
     });
-    bm25.finalize();
+    bm25.finalize(); // Finalize the index after adding all documents
 }
 
-// Function to compute BM25 scores for a query
+/**
+ * Function to compute BM25 scores for a query.
+ * @param query The search query string
+ * @returns A Map of folder names to their BM25 scores
+ */
 function computeBM25Scores(query: string): Map<string, number> {
     const results = bm25.search(query);
     const scoreMap = new Map<string, number>();
