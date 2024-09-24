@@ -128,9 +128,6 @@ dependencies:
   wait-on:
     specifier: ^7.2.0
     version: 7.2.0
-  wink-bm25-text-search:
-    specifier: ^3.1.2
-    version: 3.1.2
   youtube-transcript:
     specifier: ^1.2.1
     version: 1.2.1
@@ -7082,60 +7079,6 @@ packages:
     hasBin: true
     dependencies:
       isexe: 2.0.0
-
-  /wink-bm25-text-search@3.1.2:
-    resolution: {integrity: sha512-s+xY0v/yurUhiUop/XZnf9IvO9XVuwI14X+QTW0JqlmQCg+9ZgVXTMudXKqZuQVsnm5J+RjLnqrOflnD5BLApA==}
-    dependencies:
-      wink-eng-lite-web-model: 1.8.0
-      wink-helpers: 2.0.0
-      wink-nlp: 1.14.3
-      wink-nlp-utils: 2.1.0
-    dev: false
-
-  /wink-distance@2.0.2:
-    resolution: {integrity: sha512-pyEhUB/OKFYcgOC4J6E+c+gwVA/8qg2s5n49mIcUsJZM5iDSa17uOxRQXR4rvfp+gbj55K/I08FwjFBwb6fq3g==}
-    dependencies:
-      wink-helpers: 2.0.0
-      wink-jaro-distance: 2.0.0
-    dev: false
-
-  /wink-eng-lite-web-model@1.8.0:
-    resolution: {integrity: sha512-PlSaw2tzQ2SrKYEaH6AbxIUCFnQ9H7FeReVluV9O9VpgfYYa+urttUoAgzDrVujeMkJtACAIY8eFIkQgbEMpPg==}
-    engines: {node: '>=16.0.0'}
-    dev: false
-
-  /wink-helpers@2.0.0:
-    resolution: {integrity: sha512-I/ZzXrHcNRXuoeFJmp2vMVqDI6UCK02Tds1WP4kSGAmx520gjL1BObVzF7d2ps24tyHIly9ngdB2jwhlFUjPvg==}
-    dev: false
-
-  /wink-jaro-distance@2.0.0:
-    resolution: {integrity: sha512-9bcUaXCi9N8iYpGWbFkf83OsBkg17r4hEyxusEzl+nnReLRPqxhB9YNeRn3g54SYnVRNXP029lY3HDsbdxTAuA==}
-    dev: false
-
-  /wink-nlp-utils@2.1.0:
-    resolution: {integrity: sha512-b7PcRhEBNxQmsmht70jLOkwYUyie3da4/cgEXL+CumYO5b/nwV+W7fuMXToh5BtGq1RABznmc2TGTp1Qf/JUXg==}
-    dependencies:
-      wink-distance: 2.0.2
-      wink-eng-lite-web-model: 1.8.0
-      wink-helpers: 2.0.0
-      wink-nlp: 1.14.3
-      wink-porter2-stemmer: 2.0.1
-      wink-tokenizer: 5.3.0
-    dev: false
-
-  /wink-nlp@1.14.3:
-    resolution: {integrity: sha512-lvY5iCs3T8I34F8WKS70+2P0U9dWLn3vdPf/Z+m2VK14N7OmqnPzmHfh3moHdusajoQ37Em39z0IZB9K4x/96A==}
-    dev: false
-
-  /wink-porter2-stemmer@2.0.1:
-    resolution: {integrity: sha512-0g+RkkqhRXFmSpJQStVXW5N/WsshWpJXsoDRW7DwVkGI2uDT6IBCoq3xdH5p6IHLaC6ygk7RWUsUx4alKxoagQ==}
-    dev: false
-
-  /wink-tokenizer@5.3.0:
-    resolution: {integrity: sha512-O/yAw0g3FmSgeeQuYAJJfP7fVPB4A6ay0018qASh79aWmIOyPYy4j4r9EQT8xBjicja6lCLvgRVAybmEBaATQA==}
-    dependencies:
-      emoji-regex: 9.2.2
-    dev: false
 
   /word-wrap@1.2.5:
     resolution: {integrity: sha512-BN22B5eaMMI9UMtjrGd5g5eCYPpCPDUy0FJXbYsaT5zYxjFOckS53SQDE3pWkVoWpHXVb3BrYcEN4Twa55B5cA==}
