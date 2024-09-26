@@ -152,7 +152,7 @@ export const ClassificationBox: React.FC<ClassificationBoxProps> = ({ plugin, fi
             </svg>
           </button>
           {showDropdown && (
-            <div className={`dropdown-menu ${showDropdown ? "show" : ""}`}>
+            <div className={`templates-dropdown-menu ${showDropdown ? "show" : ""}`}>
               {dropdownTemplates.length > 0 ? (
                 dropdownTemplates.map((template, index) => (
                   <div

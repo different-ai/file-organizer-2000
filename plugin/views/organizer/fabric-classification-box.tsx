@@ -215,7 +215,7 @@ export const FabricClassificationBox: React.FC<FabricClassificationBoxProps> = (
             </svg>
           </button>
           {showFabricDropdown && (
-            <div className={`dropdown-menu ${showFabricDropdown ? "show" : ""}`}>
+            <div className={`templates-dropdown-menu ${showFabricDropdown ? "show" : ""}`}>
               {availableFabricPatterns.length > 0 ? (
                 availableFabricPatterns.map((pattern, index) => (
                   <div
