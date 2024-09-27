@@ -12,30 +12,10 @@ import {
 } from "obsidian";
 import { logMessage, formatToSafeName, sanitizeTag } from "../utils";
 import { FileOrganizerSettingTab } from "./views/configuration/tabs";
-import {
-  ASSISTANT_VIEW_TYPE,
-  AssistantViewWrapper,
-} from "./views/organizer";
+import { ASSISTANT_VIEW_TYPE, AssistantViewWrapper } from "./views/organizer";
 import Jimp from "jimp";
-import {
-  FileOrganizerSettings,
-  DEFAULT_SETTINGS,
-} from "./settings";
+import { FileOrganizerSettings, DEFAULT_SETTINGS } from "./settings";
 
-import {
-  classifyDocumentRouter,
-  createNewFolderRouter,
-  extractTextFromImageRouter,
-  fetchChunksForConceptRouter,
-  formatDocumentContentRouter,
-  generateAliasVariationsRouter,
-  generateDocumentTitleRouter,
-  generateRelationshipsRouter,
-  generateTagsRouter,
-  guessRelevantFolderRouter,
-  identifyConceptsAndFetchChunksRouter,
-  identifyConceptsRouter,
-} from "./aiServiceRouter";
 import { registerEventHandlers } from "./handlers/eventHandlers";
 import { registerCommandHandlers } from "./handlers/commandHandlers";
 import {
@@ -137,7 +117,7 @@ export default class FileOrganizer extends Plugin {
       : "https://app.fileorganizer2000.com";
 
     // Remove trailing slash (/) at end of url if there is one; prevents errors for /api/chat requests
-    serverUrl = serverUrl.replace(/\/$/, '');
+    serverUrl = serverUrl.replace(/\/$/, "");
     logMessage(`Using server URL: ${serverUrl}`);
 
     return serverUrl;
@@ -148,7 +128,10 @@ export default class FileOrganizer extends Plugin {
     try {
       new Notice(`Processing ${originalFile.basename}`, 3000);
 
-      if (!originalFile.extension || !isValidExtension(originalFile.extension)) {
+      if (
+        !originalFile.extension ||
+        !isValidExtension(originalFile.extension)
+      ) {
         new Notice("Unsupported file type. Skipping.", 3000);
         return;
       }
@@ -168,7 +151,10 @@ export default class FileOrganizer extends Plugin {
       try {
         instructions = await this.generateInstructions(originalFile);
       } catch (error) {
-        new Notice(`Error generating instructions for ${originalFile.basename}`, 3000);
+        new Notice(
+          `Error generating instructions for ${originalFile.basename}`,
+          3000
+        );
         console.error(`Error in generateInstructions:`, error);
         return;
       }
@@ -182,7 +168,10 @@ export default class FileOrganizer extends Plugin {
           oldPath
         );
       } catch (error) {
-        new Notice(`Error generating metadata for ${originalFile.basename}`, 3000);
+        new Notice(
+          `Error generating metadata for ${originalFile.basename}`,
+          3000
+        );
         console.error(`Error in generateMetadata:`, error);
         return;
       }
@@ -190,7 +179,10 @@ export default class FileOrganizer extends Plugin {
       try {
         await this.executeInstructions(metadata, originalFile, text);
       } catch (error) {
-        new Notice(`Error executing instructions for ${originalFile.basename}`, 3000);
+        new Notice(
+          `Error executing instructions for ${originalFile.basename}`,
+          3000
+        );
         console.error(`Error in executeInstructions:`, error);
       }
     } catch (error) {
@@ -225,7 +217,7 @@ export default class FileOrganizer extends Plugin {
     );
 
     const classificationResult = instructions.shouldClassify
-      ? await this.classifyAndFormatDocumentV2(file, textToFeedAi)
+      ? await this.classifyAndFormat(file, textToFeedAi)
       : null;
 
     const classification = classificationResult?.type;
@@ -242,7 +234,7 @@ export default class FileOrganizer extends Plugin {
       : [];
 
     const similarTags = instructions.shouldAppendSimilarTags
-      ? await this.getSimilarTags(textToFeedAi, documentName,)
+      ? await this.getSimilarTags(textToFeedAi, documentName)
       : [];
 
     return {
@@ -265,13 +257,20 @@ export default class FileOrganizer extends Plugin {
 
   async identifyConceptsAndFetchChunks(content: string) {
     try {
-      const result = await identifyConceptsAndFetchChunksRouter(
-        content,
-        this.settings.usePro,
-        this.getServerUrl(),
-        this.settings.API_KEY
+      const response = await makeApiRequest(() =>
+        requestUrl({
+          url: `${this.getServerUrl()}/api/concepts-and-chunks`,
+          method: "POST",
+          contentType: "application/json",
+          body: JSON.stringify({ content }),
+          throw: false,
+          headers: {
+            Authorization: `Bearer ${this.settings.API_KEY}`,
+          },
+        })
       );
-      return result;
+      const { concepts } = await response.json;
+      return concepts;
     } catch (error) {
       console.error("Error in identifyConceptsAndFetchChunks:", error);
       new Notice("An error occurred while processing the document.", 6000);
@@ -306,7 +305,8 @@ export default class FileOrganizer extends Plugin {
     if (metadata.shouldCreateMarkdownContainer) {
       await this.app.vault.modify(fileToOrganize, text);
       this.appendToCustomLogFile(
-        `Annotated ${metadata.shouldCreateMarkdownContainer ? "media" : "file"
+        `Annotated ${
+          metadata.shouldCreateMarkdownContainer ? "media" : "file"
         } [[${metadata.newName}]]`
       );
     }
@@ -359,52 +359,113 @@ export default class FileOrganizer extends Plugin {
   }
 
   async generateAliasses(name: string, content: string): Promise<string[]> {
-    return await generateAliasVariationsRouter(
-      name,
-      content,
-      this.settings.usePro,
-      this.getServerUrl(),
-      this.settings.API_KEY
+    const response = await makeApiRequest(() =>
+      requestUrl({
+        url: `${this.getServerUrl()}/api/aliases`,
+        method: "POST",
+        contentType: "application/json",
+        body: JSON.stringify({
+          fileName: name,
+          content,
+        }),
+        throw: false,
+        headers: {
+          Authorization: `Bearer ${this.settings.API_KEY}`,
+        },
+      })
     );
+    const { aliases } = await response.json;
+    return aliases;
   }
 
+  async getSimilarTags(content: string, fileName: string): Promise<string[]> {
+    const tags: string[] = await this.getAllVaultTags();
 
+    if (tags.length === 0) {
+      console.info("No tags found");
+      return [];
+    }
+
+    console.log("serverUrl tag", this.getServerUrl());
+    const response = await makeApiRequest(() =>
+      requestUrl({
+        url: `${this.getServerUrl()}/api/tags`,
+        method: "POST",
+        contentType: "application/json",
+        body: JSON.stringify({
+          content,
+          fileName,
+          tags,
+        }),
+        throw: false,
+        headers: {
+          Authorization: `Bearer ${this.settings.API_KEY}`,
+        },
+      })
+    );
+    const { generatedTags } = await response.json;
+    return generatedTags;
+  }
 
   async formatContentV2(
-    file: TFile,
     content: string,
     formattingInstruction: string
   ): Promise<string> {
     try {
-      const formattedContent = await formatDocumentContentRouter(
-        content,
-        formattingInstruction,
-        this.settings.usePro,
-        this.getServerUrl(),
-        this.settings.API_KEY
+      const response = await makeApiRequest(() =>
+        requestUrl({
+          url: `${this.getServerUrl()}/api/format`,
+          method: "POST",
+          contentType: "application/json",
+          body: JSON.stringify({
+            content,
+            formattingInstruction,
+          }),
+          throw: false,
+          headers: {
+            Authorization: `Bearer ${this.settings.API_KEY}`,
+          },
+        })
       );
+
+      const { content: formattedContent } = await response.json;
       return formattedContent;
     } catch (error) {
-      console.error("Error formatting content:", error); // Added error logging
-      new Notice("An error occurred while formatting the content.", 6000); // Added user notice
+      console.error("Error formatting content:", error);
+      new Notice("An error occurred while formatting the content.", 6000);
+      return "";
     }
-    return "";
   }
-  async classifyAndFormatDocumentV2(file: TFile, content: string) {
+
+  async classifyAndFormat(file: TFile, content: string) {
     try {
-      const classification = await this.classifyContent(content, file.basename);
-      if (classification) {
+      const templates = await this.getTemplates();
+      const templateNames = templates.map(t => t.type);
+
+      const classifiedType = await this.classifyContentV2(
+        content,
+        templateNames
+      );
+
+      const selectedTemplate = templates.find(
+        t => t.type.toLowerCase() === classifiedType.toLowerCase()
+      );
+      console.log("selectedTemplate", selectedTemplate);
+
+      if (selectedTemplate) {
         const formattedText = await this.formatContentV2(
-          file,
           content,
-          classification.formattingInstruction
+          selectedTemplate.formattingInstruction
         );
+
+        console.log("formattedText", formattedText);
         return {
-          type: classification.type,
-          formattingInstruction: classification.formattingInstruction,
+          type: classifiedType,
+          formattingInstruction: selectedTemplate.formattingInstruction,
           formattedText,
         };
       }
+
       return null;
     } catch (error) {
       console.error("Error in classifyAndFormatDocumentV2:", error);
@@ -415,12 +476,12 @@ export default class FileOrganizer extends Plugin {
       return null;
     }
   }
+
   async appendBackupLinkToCurrentFile(currentFile: TFile, backupFile: TFile) {
     const backupLink = `\n\n---\n[[${backupFile.path} | Link to original file]]`;
 
     await this.app.vault.append(currentFile, backupLink);
   }
-
 
   async getFormatInstruction(classification: string): Promise<string> {
     // get the template file from the classification
@@ -472,6 +533,7 @@ export default class FileOrganizer extends Plugin {
       new Notice("An error occurred while formatting the content.", 6000);
     }
   }
+
   async createFileInInbox(content: string): Promise<void> {
     const fileName = `chunk_${Date.now()}.md`;
     const filePath = `${this.settings.pathToWatch}/${fileName}`;
@@ -482,34 +544,59 @@ export default class FileOrganizer extends Plugin {
   }
 
   async identifyConcepts(content: string): Promise<string[]> {
-    return await identifyConceptsRouter(
-      content,
-      this.settings.usePro,
-      this.getServerUrl(),
-      this.settings.API_KEY
-    );
+    try {
+      const response = await makeApiRequest(() =>
+        requestUrl({
+          url: `${this.getServerUrl()}/api/concepts`,
+          method: "POST",
+          contentType: "application/json",
+          body: JSON.stringify({
+            content,
+          }),
+          throw: false,
+          headers: {
+            Authorization: `Bearer ${this.settings.API_KEY}`,
+          },
+        })
+      );
+
+      const { concepts } = await response.json;
+      return concepts;
+    } catch (error) {
+      console.error("Error identifying concepts:", error);
+      new Notice("An error occurred while identifying concepts.", 6000);
+      return [];
+    }
   }
 
   async fetchChunkForConcept(
     content: string,
     concept: string
   ): Promise<{ content: string }> {
-    return await fetchChunksForConceptRouter(
-      content,
-      concept,
-      this.settings.usePro,
-      this.getServerUrl(),
-      this.settings.API_KEY
-    );
-  }
-  // we use this to keep track if we have already processed a file vs not
-  // to indicate it to our users (aka they won't need to send it to inbox again)
-  async tagAsProcessed(file: TFile) {
-    if (!this.settings.processedTag) {
-      return;
+    try {
+      const response = await makeApiRequest(() =>
+        requestUrl({
+          url: `${this.getServerUrl()}/api/chunks`,
+          method: "POST",
+          contentType: "application/json",
+          body: JSON.stringify({
+            content,
+            concept,
+          }),
+          throw: false,
+          headers: {
+            Authorization: `Bearer ${this.settings.API_KEY}`,
+          },
+        })
+      );
+
+      const { chunk } = await response.json;
+      return { content: chunk };
+    } catch (error) {
+      console.error("Error fetching chunk for concept:", error);
+      new Notice("An error occurred while fetching chunk for concept.", 6000);
+      return { content: "" };
     }
-    const tag = "#fo2k";
-    this.appendTag(file, tag);
   }
 
   async getClassifications(): Promise<
@@ -537,6 +624,7 @@ export default class FileOrganizer extends Plugin {
 
     return classifications;
   }
+
   async extractTextFromPDF(file: TFile): Promise<string> {
     const pdfjsLib = await loadPdfJs(); // Ensure PDF.js is loaded
     try {
@@ -555,6 +643,7 @@ export default class FileOrganizer extends Plugin {
       return "";
     }
   }
+
   async formatStream(
     content: string,
     formattingInstruction: string,
@@ -567,8 +656,6 @@ export default class FileOrganizer extends Plugin {
       formattingInstruction,
       enableFabric: this.settings.enableFabric,
     };
-
-
 
     const response = await fetch(`${serverUrl}/api/format-stream`, {
       method: "POST",
@@ -602,17 +689,25 @@ export default class FileOrganizer extends Plugin {
     return formattedContent;
   }
 
-  async readPatternFiles(patternName: string): Promise<{ systemContent: string, userContent: string }> {
-    const patternDir = this.app.vault.getAbstractFileByPath(`_FileOrganizer2000/patterns/${patternName}`);
+  async readPatternFiles(
+    patternName: string
+  ): Promise<{ systemContent: string; userContent: string }> {
+    const patternDir = this.app.vault.getAbstractFileByPath(
+      `_FileOrganizer2000/patterns/${patternName}`
+    );
     if (!(patternDir instanceof TFolder)) {
       throw new Error(`Pattern directory not found: ${patternName}`);
     }
 
-    const systemFile = patternDir.children.find(file => file.name === "system.md");
+    const systemFile = patternDir.children.find(
+      file => file.name === "system.md"
+    );
     const userFile = patternDir.children.find(file => file.name === "user.md");
 
     if (!(systemFile instanceof TFile) || !(userFile instanceof TFile)) {
-      throw new Error(`Missing system.md or user.md in pattern: ${patternName}`);
+      throw new Error(
+        `Missing system.md or user.md in pattern: ${patternName}`
+      );
     }
 
     const systemContent = await this.app.vault.read(systemFile);
@@ -696,31 +791,37 @@ export default class FileOrganizer extends Plugin {
       throw e;
     }
   }
+
   getClassificationsForFabric(): string[] {
     const patternFolder = this.app.vault.getAbstractFileByPath(
-      '_FileOrganizer2000/patterns'
+      "_FileOrganizer2000/patterns"
     );
     if (!patternFolder || !(patternFolder instanceof TFolder)) {
       console.error("Pattern folder not found or is not a valid folder.");
       return [];
     }
-    const patternFolders = patternFolder.children.filter(file => file instanceof TFolder).map(folder => folder.name);
+    const patternFolders = patternFolder.children
+      .filter(file => file instanceof TFolder)
+      .map(folder => folder.name);
     return patternFolders;
   }
 
-  async classifyContentV2(content: string, classifications: string[]): Promise<string> {
+  async classifyContentV2(
+    content: string,
+    classifications: string[]
+  ): Promise<string> {
     const serverUrl = this.getServerUrl();
     try {
       const response = await fetch(`${serverUrl}/api/classify1`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          "Authorization": `Bearer ${this.settings.API_KEY}`
+          Authorization: `Bearer ${this.settings.API_KEY}`,
         },
         body: JSON.stringify({
           content,
           templateNames: classifications,
-        })
+        }),
       });
 
       if (!response.ok) {
@@ -735,41 +836,6 @@ export default class FileOrganizer extends Plugin {
     }
   }
 
-  // @deprecated use classifyContentV2 instead
-  async classifyContent(
-    content: string,
-    name: string
-  ): Promise<{ type: string; formattingInstruction: string } | null> {
-    const classifications = await this.getClassifications();
-    const templateNames = classifications.map(c => c.type);
-
-    const documentType = await classifyDocumentRouter(
-      content,
-      name,
-      templateNames,
-      this.settings.usePro,
-      this.getServerUrl(),
-      this.settings.API_KEY
-    );
-
-    logMessage("documentType", documentType);
-
-    const selectedClassification = classifications.find(
-      c => c.type.toLowerCase() === documentType.toLowerCase()
-    );
-
-    if (selectedClassification) {
-      return {
-        type: selectedClassification.type,
-        formattingInstruction: selectedClassification.formattingInstruction,
-      };
-    }
-
-    return null;
-  }
-
-  /* experimental above until further notice */
-
   async organizeFile(file: TFile, content: string) {
     const destinationFolder = await this.getAIClassifiedFolder(
       content,
@@ -778,8 +844,6 @@ export default class FileOrganizer extends Plugin {
     new Notice(`Most similar folder: ${destinationFolder}`, 3000);
     await this.moveFile(file, file.basename, destinationFolder);
   }
-
-
 
   async showAssistantSidebar() {
     this.app.workspace.detachLeavesOfType(ASSISTANT_VIEW_TYPE);
@@ -918,12 +982,9 @@ export default class FileOrganizer extends Plugin {
       name: file.path,
     }));
 
-    const similarFiles = await generateRelationshipsRouter(
+    const similarFiles = await this.generateRelationships(
       activeFileContent,
-      fileContents,
-      this.settings.usePro,
-      this.getServerUrl(),
-      this.settings.API_KEY
+      fileContents
     );
 
     return similarFiles.filter(
@@ -931,6 +992,28 @@ export default class FileOrganizer extends Plugin {
         !settingsPaths.some(path => file.includes(path)) &&
         !this.settings.ignoreFolders.includes(file)
     );
+  }
+
+  async generateRelationships(
+    activeFileContent: string,
+    files: { name: string }[]
+  ): Promise<string[]> {
+    const response = await makeApiRequest(() =>
+      requestUrl({
+        url: `${this.getServerUrl()}/api/relationships`,
+        method: "POST",
+        contentType: "application/json",
+        body: JSON.stringify({
+          activeFileContent,
+          files,
+        }),
+        headers: {
+          Authorization: `Bearer ${this.settings.API_KEY}`,
+        },
+      })
+    );
+    const { similarFiles } = await response.json;
+    return similarFiles;
   }
 
   async moveToAttachmentFolder(file: TFile, newFileName: string) {
@@ -948,26 +1031,48 @@ export default class FileOrganizer extends Plugin {
 
     const renameInstructions = this.settings.renameInstructions;
     logMessage("renameInstructions", renameInstructions);
-    const name = await generateDocumentTitleRouter(
+    const name = await this.generateDocumentTitle(
       content,
       currentName,
-      this.settings.usePro,
-      this.getServerUrl(),
-      this.settings.API_KEY,
       renameInstructions
     );
     return formatToSafeName(name);
   }
 
+  async generateDocumentTitle(
+    content: string,
+    currentName: string,
+    renameInstructions: string
+  ): Promise<string> {
+    const response = await makeApiRequest(() =>
+      requestUrl({
+        url: `${this.getServerUrl()}/api/title`,
+        method: "POST",
+        contentType: "application/json",
+        body: JSON.stringify({
+          document: content,
+          instructions: renameInstructions,
+          currentName,
+        }),
+        throw: false,
+        headers: {
+          Authorization: `Bearer ${this.settings.API_KEY}`,
+        },
+      })
+    );
+    const { title } = await response.json;
+    return title;
+  }
 
   // get random titles from the users vault to get better titles suggestions
   getRandomVaultTitles(count: number): string[] {
     const allFiles = this.app.vault.getFiles();
-    const filteredFiles = allFiles.filter(file =>
-      file.extension === "md" &&
-      !file.basename.toLowerCase().includes("untitled") &&
-      !file.basename.toLowerCase().includes("backup") &&
-      !file.path.includes(this.settings.backupFolderPath)
+    const filteredFiles = allFiles.filter(
+      file =>
+        file.extension === "md" &&
+        !file.basename.toLowerCase().includes("untitled") &&
+        !file.basename.toLowerCase().includes("backup") &&
+        !file.path.includes(this.settings.backupFolderPath)
     );
     const shuffled = filteredFiles.sort(() => 0.5 - Math.random());
     return shuffled.slice(0, count).map(file => file.basename);
@@ -994,8 +1099,7 @@ export default class FileOrganizer extends Plugin {
     );
   }
 
-  // main.ts
-  async generateImageAnnotation(file: TFile,) {
+  async generateImageAnnotation(file: TFile) {
     new Notice(
       `Generating annotation for ${file.basename} this can take up to a minute`,
       8000
@@ -1018,16 +1122,41 @@ export default class FileOrganizer extends Plugin {
       processedArrayBuffer = arrayBuffer;
     }
 
-    const processedContent = await extractTextFromImageRouter(
-      processedArrayBuffer,
-      this.settings.usePro,
-      this.getServerUrl(),
-      this.settings.API_KEY
+    const processedContent = await this.extractTextFromImage(
+      processedArrayBuffer
     );
 
     return processedContent;
   }
 
+  async extractTextFromImage(image: ArrayBuffer): Promise<string> {
+    const base64Image = this.arrayBufferToBase64(image);
+
+    const response = await makeApiRequest(() =>
+      requestUrl({
+        url: `${this.getServerUrl()}/api/vision`,
+        method: "POST",
+        contentType: "application/json",
+        body: JSON.stringify({ image: base64Image }),
+        throw: false,
+        headers: {
+          Authorization: `Bearer ${this.settings.API_KEY}`,
+        },
+      })
+    );
+    const { text } = await response.json;
+    return text;
+  }
+
+  arrayBufferToBase64(buffer: ArrayBuffer): string {
+    let binary = "";
+    const bytes = new Uint8Array(buffer);
+    const len = bytes.byteLength;
+    for (let i = 0; i < len; i++) {
+      binary += String.fromCharCode(bytes[i]);
+    }
+    return window.btoa(binary);
+  }
   async getBacklog() {
     const allFiles = this.app.vault.getFiles();
     const pendingFiles = allFiles.filter(file =>
@@ -1040,24 +1169,6 @@ export default class FileOrganizer extends Plugin {
     for (const file of pendingFiles) {
       await this.processFileV2(file);
     }
-  }
-  async getSimilarTags(content: string, fileName: string): Promise<string[]> {
-    const tags: string[] = await this.getAllVaultTags();
-
-    if (tags.length === 0) {
-      console.info("No tags found");
-      return [];
-    }
-
-    // Generate popular tags and select from them
-    return await generateTagsRouter(
-      content,
-      fileName,
-      tags,
-      this.settings.usePro,
-      this.getServerUrl(),
-      this.settings.API_KEY
-    );
   }
 
   async getAllVaultTags(): Promise<string[]> {
@@ -1105,7 +1216,6 @@ export default class FileOrganizer extends Plugin {
       .filter(folder => folder !== this.settings.pathToWatch)
       .filter(folder => folder !== this.settings.templatePaths)
       .filter(folder => !folder.includes("_FileOrganizer2000"))
-      // if  this.settings.ignoreFolders has one or more folder specified, filter them out including subfolders
       .filter(folder => {
         const hasIgnoreFolders =
           this.settings.ignoreFolders.length > 0 &&
@@ -1118,23 +1228,19 @@ export default class FileOrganizer extends Plugin {
       })
       .filter(folder => folder !== "/");
     logMessage("filteredFolders", filteredFolders);
-    const guessedFolder = await guessRelevantFolderRouter(
+
+    const guessedFolder = await this.guessRelevantFolder(
       content,
       filePath,
-      filteredFolders,
-      this.getServerUrl(),
-      this.settings.API_KEY
+      filteredFolders
     );
 
     if (guessedFolder === null || guessedFolder === "null") {
       logMessage("no good folder, creating a new one instead");
-      const newFolderName = await createNewFolderRouter(
+      const newFolderName = await this.createNewFolder(
         content,
         filePath,
-        filteredFolders,
-        this.settings.usePro,
-        this.getServerUrl(),
-        this.settings.API_KEY
+        filteredFolders
       );
       destinationFolder = newFolderName;
     } else {
@@ -1143,6 +1249,55 @@ export default class FileOrganizer extends Plugin {
     return destinationFolder;
   }
 
+  async guessRelevantFolder(
+    content: string,
+    filePath: string,
+    folders: string[]
+  ): Promise<string | null> {
+    const response = await makeApiRequest(() =>
+      requestUrl({
+        url: `${this.getServerUrl()}/api/folders`,
+        method: "POST",
+        contentType: "application/json",
+        body: JSON.stringify({
+          content,
+          fileName: filePath,
+          folders,
+        }),
+        throw: false,
+        headers: {
+          Authorization: `Bearer ${this.settings.API_KEY}`,
+        },
+      })
+    );
+    const { folder: guessedFolder } = await response.json;
+    return guessedFolder;
+  }
+
+  async createNewFolder(
+    content: string,
+    fileName: string,
+    existingFolders: string[]
+  ): Promise<string> {
+    const response = await makeApiRequest(() =>
+      requestUrl({
+        url: `${this.getServerUrl()}/api/create-folder`,
+        method: "POST",
+        contentType: "application/json",
+        body: JSON.stringify({
+          content,
+          fileName,
+          existingFolders,
+        }),
+        throw: false,
+        headers: {
+          Authorization: `Bearer ${this.settings.API_KEY}`,
+        },
+      })
+    );
+    const { folderName } = await response.json;
+    return folderName;
+  }
 
   async appendTag(file: TFile, tag: string) {
     // Ensure the tag starts with a hash symbol
@@ -1322,34 +1477,42 @@ export default class FileOrganizer extends Plugin {
     return backupFile;
   }
 
-  async getTemplates(): Promise<{ type: string; formattingInstruction: string }[]> {
-
-    const templateFolder = this.app.vault.getAbstractFileByPath(this.settings.templatePaths);
+  async getTemplates(): Promise<
+    { type: string; formattingInstruction: string }[]
+  > {
+    const templateFolder = this.app.vault.getAbstractFileByPath(
+      this.settings.templatePaths
+    );
 
     if (!templateFolder || !(templateFolder instanceof TFolder)) {
       console.error("Template folder not found or is not a valid folder.");
       return [];
     }
 
-
-    const templateFiles = templateFolder.children.filter(file => file instanceof TFile) as TFile[];
+    const templateFiles = templateFolder.children.filter(
+      file => file instanceof TFile
+    ) as TFile[];
 
     const templates = await Promise.all(
       templateFiles.map(async file => ({
         type: file.basename,
-        formattingInstruction: await this.app.vault.read(file)
+        formattingInstruction: await this.app.vault.read(file),
       }))
     );
 
     return templates;
   }
 
-  async getExistingFolders(content: string, filePath: string): Promise<string[]> {
+  async getExistingFolders(
+    content: string,
+    filePath: string
+  ): Promise<string[]> {
     const uniqueFolders = await this.getAllFolders();
     if (this.settings.ignoreFolders.includes("*")) {
       return [this.settings.defaultDestinationPath];
     }
-    const currentFolder = this.app.vault.getAbstractFileByPath(filePath)?.parent?.path || '';
+    const currentFolder =
+      this.app.vault.getAbstractFileByPath(filePath)?.parent?.path || "";
     const filteredFolders = uniqueFolders
       .filter(folder => folder !== currentFolder)
       .filter(folder => folder !== filePath)
@@ -1374,8 +1537,8 @@ export default class FileOrganizer extends Plugin {
 
     try {
       const apiEndpoint = this.settings.useFolderEmbeddings
-        ? '/api/folders/embeddings'
-        : '/api/folders/existing';
+        ? "/api/folders/embeddings"
+        : "/api/folders/existing";
 
       const response = await makeApiRequest(() =>
         requestUrl({
@@ -1389,13 +1552,12 @@ export default class FileOrganizer extends Plugin {
           }),
           throw: false,
           headers: {
-            Authorization: `Bearer ${this.settings.API_KEY}`
+            Authorization: `Bearer ${this.settings.API_KEY}`,
           },
         })
       );
       const { folders: guessedFolders } = await response.json;
-      return guessedFolders
-
+      return guessedFolders;
     } catch (error) {
       console.error("Error in getExistingFolders:", error);
       return [this.settings.defaultDestinationPath];
@@ -1406,7 +1568,8 @@ export default class FileOrganizer extends Plugin {
     if (this.settings.ignoreFolders.includes("*")) {
       return [this.settings.defaultDestinationPath];
     }
-    const currentFolder = this.app.vault.getAbstractFileByPath(filePath)?.parent?.path || '';
+    const currentFolder =
+      this.app.vault.getAbstractFileByPath(filePath)?.parent?.path || "";
     const filteredFolders = uniqueFolders
       .filter(folder => folder !== currentFolder)
       .filter(folder => folder !== filePath)
@@ -1441,18 +1604,15 @@ export default class FileOrganizer extends Plugin {
           }),
           throw: false,
           headers: {
-            Authorization: `Bearer ${this.settings.API_KEY}`
+            Authorization: `Bearer ${this.settings.API_KEY}`,
           },
         })
       );
       const { folders: guessedFolders } = await response.json;
-      return guessedFolders
-
+      return guessedFolders;
     } catch (error) {
       console.error("Error in getNewFolders:", error);
       return [this.settings.defaultDestinationPath];
     }
   }
-
-
 }
