@@ -434,18 +434,15 @@ export default class FileOrganizer extends Plugin {
     return await this.app.vault.read(templateFile);
   }
 
-  async formatContent(
-    // make this an object
-    {
-      file,
-      formattingInstruction,
-      content,
-    }: {
-      file: TFile;
-      formattingInstruction: string;
-      content: string;
-    }
-  ): Promise<void> {
+  async formatContent({
+    file,
+    formattingInstruction,
+    content,
+  }: {
+    file: TFile;
+    formattingInstruction: string;
+    content: string;
+  }): Promise<void> {
     try {
       new Notice("Formatting content...", 3000);
 

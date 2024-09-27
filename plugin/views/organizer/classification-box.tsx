@@ -97,7 +97,11 @@ export const ClassificationBox: React.FC<ClassificationBoxProps> = ({ plugin, fi
       if (typeof fileContent !== 'string') {
         throw new Error('File content is not a string');
       }
-      await plugin.formatContent(file, fileContent, template.formattingInstruction);
+      await plugin.formatContent({
+        file: file,
+        content: fileContent,
+        formattingInstruction: template.formattingInstruction,
+      });
       setClassification(template);
       setSelectedTemplate(null);
     } catch (error) {
