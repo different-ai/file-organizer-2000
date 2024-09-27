@@ -180,6 +180,31 @@ export class CustomizationTab {
             await this.plugin.saveSettings();
           })
       );
+    
+    new Setting(customizationTabContent)
+      .setName("Enable Custom Folder Instructions")
+      .setDesc("Allow custom instructions for folder determination logic.")
+      .addToggle(toggle =>
+        toggle
+          .setValue(this.plugin.settings.enableCustomFolderInstructions)
+          .onChange(async value => {
+            this.plugin.settings.enableCustomFolderInstructions = value;
+            await this.plugin.saveSettings();
+          })
+      );
+    
+    new Setting(customizationTabContent)
+      .setName("Custom Folder Instructions")
+      .setDesc("Provide custom instructions for determining the folder for the file.")
+      .addTextArea(text =>
+        text
+          .setValue(this.plugin.settings.customFolderInstructions)
+          .onChange(async value => {
+            this.plugin.settings.customFolderInstructions = value;
+            await this.plugin.saveSettings();
+          })
+      )
+      .setDisabled(!this.plugin.settings.enableCustomFolderInstructions);    
 
     new Setting(customizationTabContent)
       .setName("Custom Formatting")

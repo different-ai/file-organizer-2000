@@ -1229,10 +1229,15 @@ export default class FileOrganizer extends Plugin {
       .filter(folder => folder !== "/");
     logMessage("filteredFolders", filteredFolders);
 
+    const customInstructions = this.settings.enableCustomFolderInstructions
+    ? this.settings.customFolderInstructions
+    : undefined;
+
     const guessedFolder = await this.guessRelevantFolder(
       content,
       filePath,
-      filteredFolders
+      filteredFolders,
+      customInstructions,
     );
 
     if (guessedFolder === null || guessedFolder === "null") {
@@ -1252,7 +1257,8 @@ export default class FileOrganizer extends Plugin {
   async guessRelevantFolder(
     content: string,
     filePath: string,
-    folders: string[]
+    folders: string[],
+    customInstructions?: string,
   ): Promise<string | null> {
     const response = await makeApiRequest(() =>
       requestUrl({
@@ -1263,6 +1269,7 @@ export default class FileOrganizer extends Plugin {
           content,
           fileName: filePath,
           folders,
+          customInstructions,
         }),
         throw: false,
         headers: {
