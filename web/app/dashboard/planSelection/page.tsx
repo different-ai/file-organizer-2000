@@ -1,56 +1,25 @@
 "use client";
-
-import { useState } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import Logo from "@/components/ui/logo";
-import { loadStripe } from "@stripe/stripe-js";
-const stripePromise = loadStripe(
-  process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY as string
-);
-export default function Component() {
-  const [selectedPlan, setSelectedPlan] = useState(null);
+import {
+  createOneTimePaymentCheckout,
+  createSubscriptionCheckout,
+} from "./actions";
 
+
+
+export default function Component() {
   const handlePlanSelection = async (plan) => {
-    setSelectedPlan(plan);
     handleCheckout(plan);
   };
 
-  const handleCheckout = async (plan) => {
-    console.log(plan);
-    let priceId;
+  const handleCheckout = async (plan: string) => {
     if (plan === "lifetime") {
-      priceId = process.env.NEXT_PUBLIC_STRIPE_LIFETIME_PRICE_ID;
-      const response = await fetch("/api/create-one-time-payment-session", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          priceId: priceId,
-        }),
-      });
-      const { session } = await response.json();
-
-      const stripe = await stripePromise;
-      await stripe?.redirectToCheckout({ sessionId: session.id });
-    }
-    if (plan === "monthly") {
-      priceId = process.env.NEXT_PUBLIC_STRIPE_MONTHLY_PRICE_ID;
-      const response = await fetch("/api/create-checkout-session", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          priceId: priceId,
-          priceName: plan,
-        }),
-      });
-      const { session } = await response.json();
-
-      const stripe = await stripePromise;
-      await stripe?.redirectToCheckout({ sessionId: session.id });
+      // Call the server action
+      await createOneTimePaymentCheckout();
+    } else if (plan === "monthly") {
+      await createSubscriptionCheckout();
     }
   };
 
@@ -61,14 +30,7 @@ export default function Component() {
         <h1 className="text-4xl font-bold mt-8 mb-2 text-center mb-8">
           Choose Your Plan
         </h1>
-        {/* <p className="text-lg text-gray-500  mt-2 mb-6 text-center">
-          Includes a 3-day free trial to get your Obsidian organized.
-        </p> */}
-        {/* <div className="bg-emerald-100 p-2 rounded-md text-emerald-900 text-center mb-8 max-w-md mx-auto">
-          <SparkleIcon className="h-5 w-5 inline-block mr-2" />
-          Special offer! Save $100 on the yearly plan. And over 45% off on the
-          monthly plan. Only valid till end of July.
-        </div> */}
+
         <div className="flex justify-center space-x-4 md:space-x-8">
           <Card className="w-[350px] p-6 bg-white rounded-lg shadow-md text-black md:w-[400px] relative border border-gray-500">
             <div className="space-y-4">
@@ -144,18 +106,13 @@ export default function Component() {
               <ul className="space-y-2">
                 <li className="flex items-center space-x-2">
                   <CheckIcon className="h-5 w-5 text-green-500" />
-                  <span>
-                    Pay-as-you-go with your own OpenAl key
-                  </span>
+                  <span>Pay-as-you-go with your own OpenAl key</span>
                 </li>
                 <li className="flex items-center space-x-2">
                   <CheckIcon className="h-5 w-5 text-green-500" />
-                  <span>
-                   Privacy-focused
-                  </span>
+                  <span>Privacy-focused</span>
                 </li>
-                <li className="flex items-center space-x-2">
-                </li>
+                <li className="flex items-center space-x-2"></li>
                 <li className="flex items-center space-x-2">
                   <CheckIcon className="h-5 w-5 text-green-500" />
                   <span>Quick guided setup</span>
@@ -203,21 +160,4 @@ function CheckIcon(props) {
   );
 }
 
-function SparkleIcon(props) {
-  return (
-    <svg
-      {...props}
-      xmlns="http://www.w3.org/2000/svg"
-      width="24"
-      height="24"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    >
-      <path d="M9.937 15.5A2 2 0 0 0 8.5 14.063l-6.135-1.582a.5.5 0 0 1 0-.962L8.5 9.936A2 2 0 0 0 9.937 8.5l1.582-6.135a.5.5 0 0 1 .963 0L14.063 8.5A2 2 0 0 0 15.5 9.937l6.135 1.581a.5.5 0 0 1 0 .964L15.5 14.063a2 2 0 0 0-1.437 1.437l-1.582 6.135a.5.5 0 0 1-.963 0z" />
-    </svg>
-  );
-}
+
