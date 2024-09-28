@@ -104,7 +104,7 @@ export async function guessRelevantFolder(
 
   const basePrompt = `Review the content: "${content}" and the file name: "${fileName}". Decide which of the following folders is the most suitable: ${folders.join(
     ", "
-  )}. Base your decision on the relevance of the content and the file name to the folder themes.`;
+  )}. Base your decision on the relevance of the content and the file name to the folder themes.  If no existing folder is suitable, respond with null.`;
 
   const prompt = customInstructions
     ? `${basePrompt} Strictly follow these custom instructions "${customInstructions}".`
