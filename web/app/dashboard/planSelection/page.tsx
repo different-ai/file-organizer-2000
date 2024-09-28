@@ -27,7 +27,7 @@ export default function Component() {
     <main className="min-h-screen bg-white text-black">
       <section className="container mx-auto px-4 py-16">
         <Logo />
-        <h1 className="text-4xl font-bold mt-8 mb-2 text-center mb-8">
+        <h1 className="text-4xl font-bold mt-8 text-center mb-8">
           Choose Your Plan
         </h1>
 
