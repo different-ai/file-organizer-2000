@@ -1,6 +1,6 @@
-import { PreSRMConfig } from "srm";
+import { PreSRMConfig } from "@u22n/srm";
 
-export const config: PreSRMConfig = {
+export const config = {
   features: {
     support: "Support",
     freeTrial: "3-day Free trial",
@@ -54,4 +54,4 @@ export const config: PreSRMConfig = {
       ],
     },
   },
-};
+} satisfies PreSRMConfig
