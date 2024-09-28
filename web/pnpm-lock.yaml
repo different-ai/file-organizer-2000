@@ -117,8 +117,8 @@ dependencies:
     specifier: 18.2.0
     version: 18.2.0(react@18.2.0)
   stripe:
-    specifier: ^15.12.0
-    version: 15.12.0
+    specifier: ^16.12.0
+    version: 16.12.0
   tailwind-merge:
     specifier: ^1.14.0
     version: 1.14.0
@@ -6550,8 +6550,8 @@ packages:
       qs: 6.13.0
     dev: false
 
-  /stripe@15.12.0:
-    resolution: {integrity: sha512-slTbYS1WhRJXVB8YXU8fgHizkUrM9KJyrw4Dd8pLEwzKHYyQTIE46EePC2MVbSDZdE24o1GdNtzmJV4PrPpmJA==}
+  /stripe@16.12.0:
+    resolution: {integrity: sha512-H7eFVLDxeTNNSn4JTRfL2//LzCbDrMSZ+2q1c7CanVWgK2qIW5TwS+0V7N9KcKZZNpYh/uCqK0PyZh/2UsaAtQ==}
     engines: {node: '>=12.*'}
     dependencies:
       '@types/node': 20.8.5
