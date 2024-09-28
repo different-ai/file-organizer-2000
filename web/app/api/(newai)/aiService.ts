@@ -107,7 +107,7 @@ export async function guessRelevantFolder(
   )}. Base your decision on the relevance of the content and the file name to the folder themes.`;
 
   const prompt = customInstructions
-    ? `${basePrompt} Follow these custom instructions: "${customInstructions}".`
+    ? `${basePrompt} Strictly follow these custom instructions "${customInstructions}".`
     : basePrompt;
 
   // eslint-disable-next-line no-case-declarations
