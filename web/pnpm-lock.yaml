@@ -43,7 +43,7 @@ dependencies:
     version: 18.2.13
   '@u22n/srm':
     specifier: github:un/srm
-    version: github.com/un/srm/37227c55c6aec9e0469aaabe295a02c30983d597
+    version: github.com/un/srm/7cd222d79ad421abb1eadbf8cbb275c22fe5ebe3
   '@unkey/api':
     specifier: ^0.19.5
     version: 0.19.5
@@ -6542,16 +6542,16 @@ packages:
     engines: {node: '>=8'}
     dev: false
 
-  /stripe@15.12.0:
-    resolution: {integrity: sha512-slTbYS1WhRJXVB8YXU8fgHizkUrM9KJyrw4Dd8pLEwzKHYyQTIE46EePC2MVbSDZdE24o1GdNtzmJV4PrPpmJA==}
+  /stripe@12.18.0:
+    resolution: {integrity: sha512-cYjgBM2SY/dTm8Lr6eMyyONaHTZHA/QjHxFUIW5WH8FevSRIGAVtXEmBkUXF1fsqe7QvvRgQSGSJZmjDacegGg==}
     engines: {node: '>=12.*'}
     dependencies:
       '@types/node': 20.8.5
       qs: 6.13.0
     dev: false
 
-  /stripe@16.12.0:
-    resolution: {integrity: sha512-H7eFVLDxeTNNSn4JTRfL2//LzCbDrMSZ+2q1c7CanVWgK2qIW5TwS+0V7N9KcKZZNpYh/uCqK0PyZh/2UsaAtQ==}
+  /stripe@15.12.0:
+    resolution: {integrity: sha512-slTbYS1WhRJXVB8YXU8fgHizkUrM9KJyrw4Dd8pLEwzKHYyQTIE46EePC2MVbSDZdE24o1GdNtzmJV4PrPpmJA==}
     engines: {node: '>=12.*'}
     dependencies:
       '@types/node': 20.8.5
@@ -7309,12 +7309,17 @@ packages:
     resolution: {integrity: sha512-XBx9AXhXktjUqnepgTiE5flcKIYWi/rme0Eaj+5Y0lftuGBq+jyRu/md4WnuxqgP1ubdpNCsYEYPxrzVHD8d6g==}
     dev: false
 
-  github.com/un/srm/37227c55c6aec9e0469aaabe295a02c30983d597:
-    resolution: {tarball: https://codeload.github.com/un/srm/tar.gz/37227c55c6aec9e0469aaabe295a02c30983d597}
+  github.com/un/srm/7cd222d79ad421abb1eadbf8cbb275c22fe5ebe3:
+    resolution: {tarball: https://codeload.github.com/un/srm/tar.gz/7cd222d79ad421abb1eadbf8cbb275c22fe5ebe3}
     name: '@u22n/srm'
-    version: 0.1.2
+    version: 1.0.0
     hasBin: true
+    peerDependencies:
+      ts-node: ^10.9.0
+    peerDependenciesMeta:
+      ts-node:
+        optional: true
     dependencies:
       dotenv: 16.4.5
-      stripe: 16.12.0
+      stripe: 12.18.0
     dev: false
