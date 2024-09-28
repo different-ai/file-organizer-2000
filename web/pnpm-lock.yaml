@@ -41,6 +41,9 @@ dependencies:
   '@types/react-dom':
     specifier: 18.2.13
     version: 18.2.13
+  '@u22n/srm':
+    specifier: github:un/srm
+    version: github.com/un/srm/333d7ef89bcdf461f2c18b39659e4d9efdd208e7
   '@unkey/api':
     specifier: ^0.19.4
     version: 0.19.5
@@ -6531,6 +6534,14 @@ packages:
       qs: 6.13.0
     dev: false
 
+  /stripe@16.12.0:
+    resolution: {integrity: sha512-H7eFVLDxeTNNSn4JTRfL2//LzCbDrMSZ+2q1c7CanVWgK2qIW5TwS+0V7N9KcKZZNpYh/uCqK0PyZh/2UsaAtQ==}
+    engines: {node: '>=12.*'}
+    dependencies:
+      '@types/node': 20.8.5
+      qs: 6.13.0
+    dev: false
+
   /styled-jsx@5.1.1(react@18.2.0):
     resolution: {integrity: sha512-pW7uC1l4mBZ8ugbiZrcIsiIvVx1UmTfw7UkC3Um2tmfUq9Bhk8IiyEIPl6F8agHgjzku6j0xQEZbfA5uSgSaCw==}
     engines: {node: '>= 12.0.0'}
@@ -7280,4 +7291,14 @@ packages:
 
   /zod@3.23.8:
     resolution: {integrity: sha512-XBx9AXhXktjUqnepgTiE5flcKIYWi/rme0Eaj+5Y0lftuGBq+jyRu/md4WnuxqgP1ubdpNCsYEYPxrzVHD8d6g==}
+    dev: false
+
+  github.com/un/srm/333d7ef89bcdf461f2c18b39659e4d9efdd208e7:
+    resolution: {tarball: https://codeload.github.com/un/srm/tar.gz/333d7ef89bcdf461f2c18b39659e4d9efdd208e7}
+    name: '@u22n/srm'
+    version: 1.0.0
+    hasBin: true
+    dependencies:
+      dotenv: 16.4.5
+      stripe: 16.12.0
     dev: false
