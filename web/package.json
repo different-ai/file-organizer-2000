@@ -3,15 +3,15 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "npm next dev",
-    "build:self-host": "npm next build",
-    "build": "npm run db:migrate && npm next build",
-    "start": "npm next start",
-    "lint": "npm next lint",
-    "db:generate": "npm run db:migrate && npm drizzle-kit generate",
-    "db:migrate": "npm run db:migrate && npm drizzle-kit migrate",
-    "db:studio": "npm run db:migrate && npm drizzle-kit studio",
-    "db:studio:prod": "npm run db:migrate && npm drizzle-kit studio"
+    "dev": "pnpm next dev",
+    "build:self-host": "pnpm next build",
+    "build": "pnpm run db:migrate && pnpm next build",
+    "start": "pnpm next start",
+    "lint": "pnpm next lint",
+    "db:generate": "pnpm drizzle-kit generate",
+    "db:migrate": "pnpm dotenv -c -- drizzle-kit migrate",
+    "db:studio": "pnpm dotenv -c -- drizzle-kit studio",
+    "db:studio:prod": "pnpm dotenv -e .env.production.local -- drizzle-kit studio"
   },
   "dependencies": {
     "@ai-sdk/anthropic": "^0.0.9",
@@ -66,5 +66,9 @@
   "devDependencies": {
     "electron": "^30.5.1",
     "electron-builder": "^24.13.3"
+  },
+  "engines": {
+    "node": "18.16.0",
+    "pnpm": "8.15.4"
   }
 }
