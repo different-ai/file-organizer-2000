@@ -180,7 +180,9 @@ export class CustomizationTab {
             await this.plugin.saveSettings();
           })
       );
-    
+
+    let customFolderInstructionsTextArea: Setting; 
+
     new Setting(customizationTabContent)
       .setName("Enable Custom Folder Instructions")
       .setDesc("Allow custom instructions for folder determination logic.")
@@ -190,10 +192,13 @@ export class CustomizationTab {
           .onChange(async value => {
             this.plugin.settings.enableCustomFolderInstructions = value;
             await this.plugin.saveSettings();
+            if (customFolderInstructionsTextArea) {
+              customFolderInstructionsTextArea.setDisabled(!value);
+            }
           })
       );
     
-    new Setting(customizationTabContent)
+    customFolderInstructionsTextArea = new Setting(customizationTabContent)
       .setName("Custom Folder Instructions")
       .setDesc("Provide custom instructions for determining the folder for the file.")
       .addTextArea(text =>
