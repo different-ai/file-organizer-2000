@@ -43,7 +43,7 @@ dependencies:
     version: 18.2.13
   '@u22n/srm':
     specifier: github:un/srm
-    version: github.com/un/srm/5def66a4174c2bb7fff070b780e5273e4ccf4382
+    version: github.com/un/srm/37227c55c6aec9e0469aaabe295a02c30983d597
   '@unkey/api':
     specifier: ^0.19.5
     version: 0.19.5
@@ -7309,8 +7309,8 @@ packages:
     resolution: {integrity: sha512-XBx9AXhXktjUqnepgTiE5flcKIYWi/rme0Eaj+5Y0lftuGBq+jyRu/md4WnuxqgP1ubdpNCsYEYPxrzVHD8d6g==}
     dev: false
 
-  github.com/un/srm/5def66a4174c2bb7fff070b780e5273e4ccf4382:
-    resolution: {tarball: https://codeload.github.com/un/srm/tar.gz/5def66a4174c2bb7fff070b780e5273e4ccf4382}
+  github.com/un/srm/37227c55c6aec9e0469aaabe295a02c30983d597:
+    resolution: {tarball: https://codeload.github.com/un/srm/tar.gz/37227c55c6aec9e0469aaabe295a02c30983d597}
     name: '@u22n/srm'
     version: 0.1.2
     hasBin: true
