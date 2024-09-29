@@ -10,6 +10,7 @@ const PostHogPageView = dynamic(() => import("./posthog-page-view"), {
 
 import "./globals.css";
 import Link from "next/link";
+import UserManagement from "@/components/user-management";
 
 export const metadata: Metadata = {
   title: "File Organizer 2000 - Dashboard",
@@ -27,13 +28,12 @@ export default function RootLayout({
         <PHProvider>
           <body className="bg-stone-100">
             <PostHogPageView />
-            <header className="p-4 border-b border-stone-300" >
-              <nav className="flex max-w-6xl mx-auto pb-2 b">
-                <div className="flex items-center space-x-6 ">
-                  <Link href="/">
-                    <Logo />
-                  </Link>
-                </div>
+            <header className="p-4 border-b border-stone-300">
+              <nav className="max-w-6xl mx-auto flex items-center space-x-6 justify-between w-full">
+                <Link href="/">
+                  <Logo />
+                </Link>
+                <UserManagement />
               </nav>
             </header>
             <main className="min-h-screen bg-stone-100 text-stone-900 font-sans">

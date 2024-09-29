@@ -7,7 +7,7 @@ import { useRouter } from "next/navigation";
 
 export default function CheckoutButton() {
   const [loading, setLoading] = useState(false);
-  const { user, isLoaded } = useUser();
+  const {  isLoaded } = useUser();
   const router = useRouter();
 
   const handleCheckout = async () => {

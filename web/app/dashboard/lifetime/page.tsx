@@ -1,7 +1,5 @@
-import { auth } from "@clerk/nextjs/server";
 import { Button } from "@/components/ui/button";
 import { UserButton } from "@clerk/nextjs";
-import { ArrowDownIcon } from "@/components/ui/icons";
 import { LicenseForm } from "@/app/components/license-form";
 
 function UserManagement() {
@@ -25,7 +23,7 @@ export default async function LifetimeAccessPage() {
   return (
     <div className="min-h-screen p-4 bg-gray-100 font-mono">
       <UserManagement />
-      <div className="max-w-6xl mx-auto mt-16">
+      <div className="max-w-6xl mx-auto">
         <h1 className="text-4xl font-bold mb-8 border-b-4 border-black pb-2">Lifetime Access Setup</h1>
         
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">

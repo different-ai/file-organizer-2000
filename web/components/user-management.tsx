@@ -9,7 +9,7 @@ export default async function UserManagement() {
   const isPaid = await isPaidUser(userId);
 
   return (
-    <div className="absolute top-4 right-4 flex items-center gap-4">
+    <div className=" top-4 right-4 flex items-center gap-4 max-w-6xl mx-auto ">
       <div className="hidden sm:block">{!isPaid && <CheckoutButton />}</div>
       <a href="https://discord.gg/udQnCRFyus" target="_blank">
         <Button className="border whitespace-nowrap">Join our discord</Button>
