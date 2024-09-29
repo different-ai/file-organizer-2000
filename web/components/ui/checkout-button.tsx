@@ -13,7 +13,7 @@ export default function CheckoutButton() {
   const handleCheckout = async () => {
     setLoading(true);
 
-    router.push("/dashboard/planSelection");
+    router.push("/dashboard/pricing");
 
     setLoading(false);
   };

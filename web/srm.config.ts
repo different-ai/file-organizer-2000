@@ -1,17 +1,20 @@
 import { PreSRMConfig } from "@u22n/srm";
 
+const features = {
+  support: "Support",
+  freeTrial: "3-day Free trial",
+  noExternalAI: "No external AI subscription needed",
+  easySetup: "Seamless no-sweat setup",
+  fileLimit: "~1000 files per month",
+  audioTranscription: "120 min audio transcription p/m",
+  moneyBackGuarantee: "30 days money-back guarantee",
+  premiumSupport: "Premium support",
+  privacy: "Privacy-focused",
+  guidedSetup: "Quick guided setup",
+  payAsYouGo: "Pay-as-you-go with your own OpenAI key",
+};
 export const config = {
-  features: {
-    support: "Support",
-    freeTrial: "3-day Free trial",
-    noExternalAI: "No external AI subscription needed",
-    easySetup: "Seamless no-sweat setup",
-    fileLimit: "~1000 files per month",
-    audioTranscription: "120 min audio transcription p/m",
-    moneyBackGuarantee: "30 days money-back guarantee",
-    premiumSupport: "Premium support",
-    privacy: "Privacy-focused",
-  },
+  features: features,
   products: {
     Hobby: {
       name: "Subscription Plan",
@@ -23,18 +26,24 @@ export const config = {
           interval: "month",
           type: "recurring",
         },
+        yearly: {
+          // $150
+          amount: 15000, // Adjust this to match your current price
+          interval: "year",
+          type: "recurring",
+        },
       },
       features: [
-        "support",
-        "freeTrial",
-        "noExternalAI",
-        "easySetup",
-        "fileLimit",
-        "audioTranscription",
-        "moneyBackGuarantee",
+        features.support,
+        features.freeTrial,
+        features.noExternalAI,
+        features.easySetup,
+        features.fileLimit,
+        features.audioTranscription,
+        features.moneyBackGuarantee,
       ],
     },
-    lifetime: {
+    Lifetime: {
       name: "Lifetime Payment",
       id: "lifetime",
       prices: {
@@ -46,12 +55,14 @@ export const config = {
         },
       },
       features: [
-        "support",
-        "privacy",
-        "premiumSupport",
-        "audioTranscription",
-        "moneyBackGuarantee",
+        features.support,
+        features.privacy,
+        features.premiumSupport,
+        features.audioTranscription,
+        features.moneyBackGuarantee,
+        features.guidedSetup,
+        features.payAsYouGo,
       ],
     },
   },
-} satisfies PreSRMConfig
+} satisfies PreSRMConfig;

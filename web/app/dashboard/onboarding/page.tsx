@@ -2,21 +2,7 @@ import { Button } from "@/components/ui/button";
 import { ArrowRightIcon } from "@/components/ui/icons";
 import UserManagement from "@/components/user-management";
 
-const PlayIcon = () => (
-  <svg
-    xmlns="http://www.w3.org/2000/svg"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-    className="w-6 h-6"
-  >
-    <line x1="5" y1="12" x2="19" y2="12"></line>
-    <polyline points="12 5 19 12 12 19"></polyline>
-  </svg>
-);
+
 
 export default function OnboardingPage() {
   return (
@@ -47,10 +33,10 @@ export default function OnboardingPage() {
           </div>
           <div className="text-center">
             <ArrowRightIcon className="mx-auto h-12 w-12 text-gray-400" />
-            <p className="text-gray-800 mt-6 text-xl sm:text-2xl font-extrabold mt-2 mb-4">
+            <p className="text-gray-800text-xl sm:text-2xl font-extrabold mt-2 mb-4">
               Get started with File Organizer 2000
             </p>
-            <a href="/dashboard/planSelection">
+            <a href="/dashboard/pricing">
               <Button className="max-w-xs w-full sm:w-auto">
                 Choose a Plan
               </Button>

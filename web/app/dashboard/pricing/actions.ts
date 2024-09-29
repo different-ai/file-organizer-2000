@@ -12,11 +12,11 @@ export async function createOneTimePaymentCheckout() {
   const origin = headersList.get("origin") || "";
 
   const url =
-    await srm.products.lifetime.prices.lifetime.createOneTimePaymentCheckoutUrl(
+    await srm.products.Lifetime.prices.lifetime.createOneTimePaymentCheckoutUrl(
       {
         userId: userId,
-        successUrl: `${origin}/lifetime`,
-        cancelUrl: `${origin}/`,
+        successUrl: `${origin}/dashboard/lifetime`,
+        cancelUrl: `${origin}/dashboard`,
         allowPromotionCodes: true,
       }
     );
@@ -34,8 +34,26 @@ export async function createSubscriptionCheckout() {
   
   const checkoutUrl = await srm.products.Hobby.prices.monthly.createSubscriptionCheckoutUrl({
     userId,
-    successUrl: `${origin}/subscribers`,
-    cancelUrl: `${origin}/`,
+    successUrl: `${origin}/dashboard/subscribers`,
+    cancelUrl: `${origin}/dashboard`,
+    trialPeriodDays: 3,
+    allowPromotionCodes: true,
+  });
+
+  redirect(checkoutUrl);
+}
+
+export async function createYearlySubscriptionCheckout() {
+  "use server";
+  const { userId } = auth();
+
+  const headersList = headers();
+  const origin = headersList.get("origin") || "";
+  
+  const checkoutUrl = await srm.products.Hobby.prices.yearly.createSubscriptionCheckoutUrl({
+    userId,
+    successUrl: `${origin}/dashboard/subscribers`,
+    cancelUrl: `${origin}/dashboard`,
     trialPeriodDays: 3,
     allowPromotionCodes: true,
   });

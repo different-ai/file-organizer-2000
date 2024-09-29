@@ -2,13 +2,14 @@
   "Hobby": {
     "productId": "prod_QvpOEuOaotAGWe",
     "prices": {
-      "monthly": "price_1Q3xjKFX2CGyoHQvgVpsiJ0J"
+      "monthly": "price_1Q3xjKFX2CGyoHQvgVpsiJ0J",
+      "yearly": "price_1Q4RTnFX2CGyoHQviA94u4lZ"
     }
   },
-  "lifetime": {
-    "productId": "prod_QvpOE2gx36oWQz",
+  "Lifetime": {
+    "productId": "prod_QwK8cLdZAsZ7Ap",
     "prices": {
-      "lifetime": "price_1Q3xjLFX2CGyoHQvSyzzI4vH"
+      "lifetime": "price_1Q4RToFX2CGyoHQvE32Nu3FY"
     }
   }
 }
