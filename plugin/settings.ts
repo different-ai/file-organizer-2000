@@ -35,6 +35,8 @@ export class FileOrganizerSettings {
       provider: "openai" | "ollama" | "anthropic";
     };
   } = {};
+  enableCustomFolderInstructions = false;
+  customFolderInstructions = "";
 }
 
 export const DEFAULT_SETTINGS = new FileOrganizerSettings();

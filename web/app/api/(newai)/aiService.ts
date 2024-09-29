@@ -98,17 +98,25 @@ export async function guessRelevantFolder(
   content: string,
   fileName: string,
   folders: string[],
-  model: LanguageModel
+  model: LanguageModel,
+  customInstructions?: string,
 ) {
+
+  const basePrompt = `Review the content: "${content}" and the file name: "${fileName}". Decide which of the following folders is the most suitable: ${folders.join(
+    ", "
+  )}. Base your decision on the relevance of the content and the file name to the folder themes.  If no existing folder is suitable, respond with null.`;
+
+  const prompt = customInstructions
+    ? `${basePrompt} Strictly follow these custom instructions "${customInstructions}".`
+    : basePrompt;
+
   // eslint-disable-next-line no-case-declarations
   const response = await generateObject({
     model,
     schema: z.object({
       suggestedFolder: z.string().nullable(),
     }),
-    prompt: `Review the content: "${content}" and the file name: "${fileName}". Decide which of the following folders is the most suitable: ${folders.join(
-      ", "
-    )}. Base your decision on the relevance of the content and the file name to the folder themes. If no existing folder is suitable, respond with null.`,
+    prompt: prompt,
   });
 
 

@@ -8,13 +8,14 @@ import { getModel } from "@/lib/models";
 export async function POST(request: NextRequest) {
   try {
     const { userId } = await handleAuthorization(request);
-    const { content, fileName, folders } = await request.json();
+    const { content, fileName, folders, customInstructions } = await request.json();
     const model = getModel(process.env.MODEL_NAME);
     const response = await guessRelevantFolder(
       content,
       fileName,
       folders,
-      model
+      model,
+      customInstructions
     );
     // increment tokenUsage
     const tokens = response.usage.totalTokens;
