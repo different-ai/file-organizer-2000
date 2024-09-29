@@ -181,35 +181,40 @@ export class CustomizationTab {
           })
       );
 
-    let customFolderInstructionsTextArea: Setting; 
-
+    let customFolderInstructionsTextArea: Setting;
+    // Create a new setting for enabling custom logic for folder determination for notes processed via inbox
     new Setting(customizationTabContent)
-      .setName("Enable Custom Folder Instructions")
-      .setDesc("Allow custom instructions for folder determination logic.")
+      .setName("Enable Custom Logic for Folder Determination")
+      .setDesc("Use instructions below to determine folder placement for notes processed through the inbox.")
       .addToggle(toggle =>
         toggle
+          // Set the initial value based on the plugin's settings
           .setValue(this.plugin.settings.enableCustomFolderInstructions)
           .onChange(async value => {
+            // Update the plugin's setting when the toggle is changed
             this.plugin.settings.enableCustomFolderInstructions = value;
             await this.plugin.saveSettings();
+            // Enable or disable the custom instructions text area based on the toggle
             if (customFolderInstructionsTextArea) {
               customFolderInstructionsTextArea.setDisabled(!value);
             }
           })
       );
-    
+    // Initialize the text area for custom folder determination instructions
     customFolderInstructionsTextArea = new Setting(customizationTabContent)
-      .setName("Custom Folder Instructions")
-      .setDesc("Provide custom instructions for determining the folder for the file.")
+      .setName("Custom Folder Determination Instructions")
+      .setDesc("Provide custom instructions for determining which folders to place your notes in.")
       .addTextArea(text =>
         text
+          // Set the initial value from the plugin's settings
           .setValue(this.plugin.settings.customFolderInstructions)
           .onChange(async value => {
             this.plugin.settings.customFolderInstructions = value;
             await this.plugin.saveSettings();
           })
       )
-      .setDisabled(!this.plugin.settings.enableCustomFolderInstructions);    
+      // Disable the text area if custom folder instructions are not enabled
+      .setDisabled(!this.plugin.settings.enableCustomFolderInstructions);
 
     new Setting(customizationTabContent)
       .setName("Custom Formatting")
