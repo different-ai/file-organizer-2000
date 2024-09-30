@@ -47,7 +47,7 @@
     "ollama-ai-provider": "^0.7.0",
     "openai": "^4.65.0",
     "postcss": "8.4.31",
-    "posthog-js": "^1.165.0",
+    "posthog-js": "^1.165.1",
     "posthog-node": "^4.2.0",
     "react": "18.2.0",
     "react-dom": "18.2.0",
@@ -62,10 +62,6 @@
     "wink-nlp": "^2.3.0",
     "youtube-transcript": "^1.2.1",
     "zod": "^3.23.8"
-  },
-  "devDependencies": {
-    "electron": "^30.5.1",
-    "electron-builder": "^24.13.3"
   },
   "packageManager": "pnpm@8.15.4"
 }
