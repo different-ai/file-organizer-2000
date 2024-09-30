@@ -5,7 +5,8 @@
   "scripts": {
     "dev": "pnpm next dev",
     "build:self-host": "pnpm next build",
-    "build": "pnpm run db:migrate && pnpm next build",
+    "prebuild": "pnpm run db:migrate && npx @u22n/srm deploy",
+    "build": "pnpm next build",
     "start": "pnpm next start",
     "lint": "pnpm next lint",
     "db:generate": "pnpm drizzle-kit generate",
