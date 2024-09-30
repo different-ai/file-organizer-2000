@@ -1,22 +1,19 @@
 "use client";
 import { useState } from "react";
-import { loadStripe } from "@stripe/stripe-js";
 import { Button } from "./button";
 import { useUser } from "@clerk/nextjs";
 import { useRouter } from "next/navigation";
-const stripePromise = loadStripe(
-  process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY as string
-);
+
 
 export default function CheckoutButton() {
   const [loading, setLoading] = useState(false);
-  const { user, isLoaded } = useUser();
+  const {  isLoaded } = useUser();
   const router = useRouter();
 
   const handleCheckout = async () => {
     setLoading(true);
 
-    router.push("/dashboard/planSelection");
+    router.push("/dashboard/pricing");
 
     setLoading(false);
   };

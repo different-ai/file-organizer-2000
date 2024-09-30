@@ -4,7 +4,7 @@ import { createOrUpdateUserSubscriptionStatus, handleFailedPayment } from "@/dri
 import { clerkClient } from "@clerk/nextjs/server";
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY as string, {
-  apiVersion: "2024-04-10",
+  apiVersion: "2022-11-15",
 });
 const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET as string;
 

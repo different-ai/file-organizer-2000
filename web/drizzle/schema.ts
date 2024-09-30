@@ -190,6 +190,10 @@ export const checkUserSubscriptionStatus = async (userId: string) => {
       .where(eq(UserUsageTable.userId, userId))
       .limit(1)
       .execute();
+    console.log("User Usage Results for User ID:", userId, userUsage);
+    if (!userUsage[0]) {
+      return false;
+    }
     if (userUsage[0].subscriptionStatus === "active") {
       return true;
     }
