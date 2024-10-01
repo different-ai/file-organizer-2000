@@ -13,6 +13,11 @@ const features = {
   guidedSetup: "Quick guided setup",
   payAsYouGo: "Pay-as-you-go with your own OpenAI key",
 };
+
+const targetUrl = process.env.VERCEL_PROJECT_PRODUCTION_URL || "http://localhost:3000";
+const webhookEndpoint = `${targetUrl}/api/webhook`;
+
+
 export const config = {
   features: features,
   products: {
@@ -64,5 +69,13 @@ export const config = {
         features.payAsYouGo,
       ],
     },
+  },
+  webhooks: {
+    endpoint: webhookEndpoint,
+    events: [
+      "checkout.session.completed",
+      "customer.subscription.deleted",
+      "invoice.payment_failed",
+    ],
   },
 } satisfies PreSRMConfig;
