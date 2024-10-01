@@ -15,7 +15,7 @@ const features = {
 };
 
 const targetUrl = process.env.VERCEL_PROJECT_PRODUCTION_URL || "http://localhost:3000";
-const webhookEndpoint = `${targetUrl}/api/webhook`;
+const webhookEndpoint = `https://${targetUrl}/api/webhook`;
 
 
 export const config = {
