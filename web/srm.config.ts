@@ -13,6 +13,25 @@ const features = {
   guidedSetup: "Quick guided setup",
   payAsYouGo: "Pay-as-you-go with your own OpenAI key",
 };
+
+
+// Simplified environment-based target URL configuration
+const getTargetUrl = () => {
+  if (process.env.VERCEL_ENV === "production") {
+    return process.env.VERCEL_PROJECT_PRODUCTION_URL;
+  }
+
+  if (process.env.VERCEL_ENV === "preview") {
+    return process.env.VERCEL_BRANCH_URL;
+  }
+
+  return "localhost:3000";
+};
+
+const targetUrl = getTargetUrl();
+const webhookEndpoint = `https://${targetUrl}/api/webhook`;
+
+
 export const config = {
   features: features,
   products: {
@@ -64,5 +83,13 @@ export const config = {
         features.payAsYouGo,
       ],
     },
+  },
+  webhooks: {
+    endpoint: webhookEndpoint,
+    events: [
+      "checkout.session.completed",
+      "customer.subscription.deleted",
+      "invoice.payment_failed",
+    ],
   },
 } satisfies PreSRMConfig;
