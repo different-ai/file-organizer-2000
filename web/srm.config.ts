@@ -14,7 +14,21 @@ const features = {
   payAsYouGo: "Pay-as-you-go with your own OpenAI key",
 };
 
-const targetUrl = process.env.VERCEL_PROJECT_PRODUCTION_URL || "http://localhost:3000";
+
+// Simplified environment-based target URL configuration
+const getTargetUrl = () => {
+  if (process.env.VERCEL_ENV === "production") {
+    return process.env.VERCEL_PROJECT_PRODUCTION_URL;
+  }
+
+  if (process.env.VERCEL_ENV === "preview") {
+    return process.env.VERCEL_BRANCH_URL;
+  }
+
+  return "localhost:3000";
+};
+
+const targetUrl = getTargetUrl();
 const webhookEndpoint = `https://${targetUrl}/api/webhook`;
 
 
