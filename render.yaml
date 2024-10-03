@@ -3,8 +3,8 @@ services:
   name: File Organizer 2000
   runtime: node
   rootDir: ./web
-  buildCommand: npm install; npm run build:self-host
-  startCommand: npm start
+  buildCommand: pnpm install; pnpm run build:self-host
+  startCommand: pnpm start
   autoDeploy: true
   envVars:
   - key: NODE_ENV
