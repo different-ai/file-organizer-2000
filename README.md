@@ -2,6 +2,10 @@
 
 
 
+
+
+# File Organizer 2000
+
 <p align="center">
         <a href="https://discord.gg/UWH53WqFuE">
         <img src="https://img.shields.io/discord/1231880202259533865?label=Join%20our%20Discord&logo=discord&style=flat" alt="Join us on Discord">
@@ -19,8 +23,6 @@
 
     
 </p>
-
-# File Organizer 2000
 
 An Obsidian plugin to quickly find your notes, make connections between ideas, and keep everything organized.
 
