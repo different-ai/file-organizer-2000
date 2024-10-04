@@ -1,13 +1,15 @@
 
 
 
-<p align="center">
-    <a href="https://www.youtube.com/@another-ai" target="_blank">
-       <img alt="YouTube Channel Subscribers" src="https://img.shields.io/youtube/channel/subscribers/UCd24YzGlvtIG4DYD3zlYLwg">
-    </a>
-</p>
+
 
 <p align="center">
+        <a href="https://discord.gg/UWH53WqFuE">
+        <img src="https://img.shields.io/discord/823813159592001537?color=5865F2&logo=discord&logoColor=white&style=flat-square" alt="Join us on Discord">
+    </a>
+        <a href="https://www.youtube.com/@another-ai" target="_blank">
+       <img alt="YouTube Channel Subscribers" src="https://img.shields.io/youtube/channel/subscribers/UCd24YzGlvtIG4DYD3zlYLwg">
+    </a>
    <a href="https://console.algora.io/org/different-ai/bounties?status=completed">
        <img src="https://img.shields.io/endpoint?url=https%3A%2F%2Fconsole.algora.io%2Fapi%2Fshields%2Fdifferent-ai%2Fbounties%3Fstatus%3Dcompleted" alt="Rewarded Bounties">
    </a>
@@ -15,6 +17,9 @@
        <img src="https://img.shields.io/endpoint?url=https%3A%2F%2Fconsole.algora.io%2Fapi%2Fshields%2Fdifferent-ai%2Fbounties%3Fstatus%3Dopen" alt="Open Bounties">
    </a>
 
+
+    
+</p>
 
 # File Organizer 2000
 
