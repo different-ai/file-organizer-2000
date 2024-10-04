@@ -1,3 +1,16 @@
+
+<p align="center">
+    <a href="https://screenpi.pe" target="_blank">
+        <img src="https://img.shields.io/badge/Download%20The-Desktop%20App-blue?style=for-the-badge" alt="Download the Desktop App">
+    </a>
+</p>
+
+<p align="center">
+    <a href="https://www.youtube.com/@different_ai" target="_blank">
+       <img alt="YouTube Channel Subscribers" src="https://img.shields.io/youtube/channel/subscribers/UCwjkpAsb70_mENKvy7hT5bw">
+    </a>
+</p>
+
 <p align="center">
    <a href="https://console.algora.io/org/different-ai/bounties?status=completed">
        <img src="https://img.shields.io/endpoint?url=https%3A%2F%2Fconsole.algora.io%2Fapi%2Fshields%2Fdifferent-ai%2Fbounties%3Fstatus%3Dcompleted" alt="Rewarded Bounties">
