@@ -1,3 +1,12 @@
+<p align="center">
+   <a href="https://console.algora.io/org/different-ai/bounties?status=completed">
+       <img src="https://img.shields.io/endpoint?url=https%3A%2F%2Fconsole.algora.io%2Fapi%2Fshields%2Fmediar-ai%2Fbounties%3Fstatus%3Dcompleted" alt="Rewarded Bounties">
+   </a>
+   <a href="https://console.algora.io/org/different-ai/bounties?status=open">
+       <img src="https://img.shields.io/endpoint?url=https%3A%2F%2Fconsole.algora.io%2Fapi%2Fshields%2Fmediar-ai%2Fbounties%3Fstatus%3Dopen" alt="Open Bounties">
+   </a>
+
+
 # File Organizer 2000
 
 An Obsidian plugin to quickly find your notes, make connections between ideas, and keep everything organized.
