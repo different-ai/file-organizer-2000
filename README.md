@@ -1,7 +1,7 @@
 
 <p align="center">
     <a href="https://screenpi.pe" target="_blank">
-        <img src="https://img.shields.io/badge/Download%20The-Desktop%20App-blue?style=for-the-badge" alt="Download the Desktop App">
+        <img src="obsidian://show-plugin?id=fileorganizer2000" alt="Download the Plugin">
     </a>
 </p>
 
