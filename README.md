@@ -2,7 +2,7 @@
 
 
 <p align="center">
-    <a href="https://www.youtube.com/@different_ai" target="_blank">
+    <a href="https://www.youtube.com/@another-ai" target="_blank">
        <img alt="YouTube Channel Subscribers" src="https://img.shields.io/youtube/channel/subscribers/UCwjkpAsb70_mENKvy7hT5bw">
     </a>
 </p>
