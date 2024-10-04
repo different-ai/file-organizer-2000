@@ -7,24 +7,21 @@
 # File Organizer 2000
 
 <p align="left">
-<a>
-        [![Visit Website](https://img.shields.io/badge/Visit-File%20Organizer%202000-brightgreen?style=for-the-badge&logo=internetexplorer)](https://fileorganizer2000.com/)
-</a>
-        <a href="https://discord.gg/UWH53WqFuE">
-        <img src="https://img.shields.io/discord/1231880202259533865?label=Join%20our%20Discord&logo=discord&style=flat" alt="Join us on Discord">
-    </a>
-        <a href="https://www.youtube.com/@another-ai" target="_blank">
-       <img alt="YouTube Channel Subscribers" src="https://img.shields.io/youtube/channel/subscribers/UCd24YzGlvtIG4DYD3zlYLwg">
-    </a>
-   <a href="https://console.algora.io/org/different-ai/bounties?status=completed">
-       <img src="https://img.shields.io/endpoint?url=https%3A%2F%2Fconsole.algora.io%2Fapi%2Fshields%2Fdifferent-ai%2Fbounties%3Fstatus%3Dcompleted" alt="Rewarded Bounties">
-   </a>
-   <a href="https://console.algora.io/org/different-ai/bounties?status=open">
-       <img src="https://img.shields.io/endpoint?url=https%3A%2F%2Fconsole.algora.io%2Fapi%2Fshields%2Fdifferent-ai%2Fbounties%3Fstatus%3Dopen" alt="Open Bounties">
-   </a>
-
-
-    
+  <a href="https://fileorganizer2000.com/">
+    <img src="https://img.shields.io/badge/Visit-File%20Organizer%202000-brightgreen?style=for-the-badge&logo=internetexplorer" alt="Visit Website">
+  </a>
+  <a href="https://discord.gg/UWH53WqFuE">
+    <img src="https://img.shields.io/discord/1231880202259533865?label=Join%20our%20Discord&logo=discord&style=flat" alt="Join us on Discord">
+  </a>
+  <a href="https://www.youtube.com/@another-ai" target="_blank">
+    <img src="https://img.shields.io/youtube/channel/subscribers/UCd24YzGlvtIG4DYD3zlYLwg" alt="YouTube Channel Subscribers">
+  </a>
+  <a href="https://console.algora.io/org/different-ai/bounties?status=completed">
+    <img src="https://img.shields.io/endpoint?url=https%3A%2F%2Fconsole.algora.io%2Fapi%2Fshields%2Fdifferent-ai%2Fbounties%3Fstatus%3Dcompleted" alt="Rewarded Bounties">
+  </a>
+  <a href="https://console.algora.io/org/different-ai/bounties?status=open">
+    <img src="https://img.shields.io/endpoint?url=https%3A%2F%2Fconsole.algora.io%2Fapi%2Fshields%2Fdifferent-ai%2Fbounties%3Fstatus%3Dopen" alt="Open Bounties">
+  </a>
 </p>
 
 An Obsidian plugin to quickly find your notes, make connections between ideas, and keep everything organized.
