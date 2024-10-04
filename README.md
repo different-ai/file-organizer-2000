@@ -1,10 +1,5 @@
 
-<p align="center">
-    <a href="obsidian://show-plugin?id=fileorganizer2000" target="_blank">
-    <img src="https://img.shields.io/badge/Download%20The-Desktop%20App-blue?style=for-the-badge" alt="Download the Plugin">
 
-</a>
-</p>
 
 <p align="center">
     <a href="https://www.youtube.com/@different_ai" target="_blank">
