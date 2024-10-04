@@ -4,7 +4,7 @@
 
 <p align="center">
         <a href="https://discord.gg/UWH53WqFuE">
-        <img src="https://img.shields.io/discord/https://discord.gg/UWH53WqFuE?color=5865F2&logo=discord&logoColor=white&style=flat-square" alt="Join us on Discord">
+        <img src="https://img.shields.io/discord/UWH53WqFuE?label=Join%20our%20Discord&logo=discord&style=flat" alt="Join us on Discord">
     </a>
         <a href="https://www.youtube.com/@another-ai" target="_blank">
        <img alt="YouTube Channel Subscribers" src="https://img.shields.io/youtube/channel/subscribers/UCd24YzGlvtIG4DYD3zlYLwg">
