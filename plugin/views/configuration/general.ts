@@ -71,7 +71,7 @@ export class ModelTab {
     });
     getLicenseButton.style.marginTop = "1rem";
     getLicenseButton.addEventListener("click", () => {
-      window.open("https://app.fileorganizer2000.com", "_blank");
+      window.open("https://fileorganizer2000.com/?utm_source=obsidian&utm_medium=in-app&utm_campaign=get-license", "_blank");
     });
 
     const youtubeEmbedEl = container.createEl("div", {
