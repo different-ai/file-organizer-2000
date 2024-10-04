@@ -7,7 +7,7 @@
 # File Organizer 2000
 
 <p>
-<a href="https://fileorganizer2000.com/"><img src="https://img.shields.io/badge/Check%20out-File%20Organizer%202000-brightgreen" alt="Check out File Organizer 2000"></a>
+<a href="https://fileorganizer2000.com/"><img src="https://img.shields.io/badge/Check%20out-File%20Organizer%202000-purple" alt="Check out File Organizer 2000"></a>
   <a href="https://discord.gg/UWH53WqFuE"><img src="https://img.shields.io/discord/1231880202259533865?label=Discord&logo=discord&logoColor=white" alt="Join Discord"></a>
   <a href="https://www.youtube.com/@another-ai"><img src="https://img.shields.io/youtube/channel/subscribers/UCd24YzGlvtIG4DYD3zlYLwg?label=YouTube" alt="YouTube Subscribers"></a>
   <a href="https://console.algora.io/org/different-ai/bounties?status=completed"><img src="https://img.shields.io/endpoint?url=https%3A%2F%2Fconsole.algora.io%2Fapi%2Fshields%2Fdifferent-ai%2Fbounties%3Fstatus%3Dcompleted&label=Rewarded" alt="Rewarded Bounties"></a>
