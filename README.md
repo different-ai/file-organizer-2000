@@ -5,6 +5,7 @@
 
 
 # File Organizer 2000
+[![Visit Website](https://img.shields.io/badge/Visit-File%20Organizer%202000-brightgreen?style=for-the-badge&logo=internetexplorer)](https://fileorganizer2000.com/)
 
 <p align="left">
         <a href="https://discord.gg/UWH53WqFuE">
