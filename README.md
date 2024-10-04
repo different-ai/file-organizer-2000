@@ -7,9 +7,6 @@
 # File Organizer 2000
 
 <p align="left">
-  <a href="https://fileorganizer2000.com/">
-    <img src="https://img.shields.io/badge/Visit-File%20Organizer%202000-brightgreen?style=for-the-badge&logo=internetexplorer" alt="Visit Website">
-  </a>
   <a href="https://discord.gg/UWH53WqFuE">
     <img src="https://img.shields.io/discord/1231880202259533865?label=Join%20our%20Discord&logo=discord&style=flat" alt="Join us on Discord">
   </a>
