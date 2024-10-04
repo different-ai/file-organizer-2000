@@ -3,7 +3,7 @@
 
 <p align="center">
     <a href="https://www.youtube.com/@another-ai" target="_blank">
-       <img alt="YouTube Channel Subscribers" src="https://img.shields.io/youtube/channel/subscribers/UCwjkpAsb70_mENKvy7hT5bw">
+       <img alt="YouTube Channel Subscribers" src="https://img.shields.io/youtube/channel/subscribers/UCd24YzGlvtIG4DYD3zlYLwg">
     </a>
 </p>
 
