@@ -6,7 +6,7 @@
 
 # File Organizer 2000
 
-<p align="center">
+<p align="left">
         <a href="https://discord.gg/UWH53WqFuE">
         <img src="https://img.shields.io/discord/1231880202259533865?label=Join%20our%20Discord&logo=discord&style=flat" alt="Join us on Discord">
     </a>
