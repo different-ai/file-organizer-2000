@@ -33,10 +33,7 @@ export const AssistantView: React.FC<AssistantViewProps> = ({
   const [noteContent, setNoteContent] = React.useState<string>("");
   const [refreshKey, setRefreshKey] = React.useState<number>(0);
   const [error, setError] = React.useState<string | null>(null);
-  const isMediaFile = React.useMemo(
-    () => checkIfIsMediaFile(activeFile),
-    [activeFile]
-  );
+  const isMediaFile = React.useMemo(() => checkIfIsMediaFile(activeFile), [activeFile]);
 
   const updateActiveFile = React.useCallback(async () => {
     logMessage("updating active file");
