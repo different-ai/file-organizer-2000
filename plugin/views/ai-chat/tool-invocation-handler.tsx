@@ -5,6 +5,8 @@ import styled from "@emotion/styled";
 interface ToolInvocationHandlerProps {
   toolInvocation: any; // Replace 'any' with a more specific type if available
   addToolResult: (result: { toolCallId: string; result: string }) => void;
+  onInvocation: (toolInvocation: any) => void;
+  selectedYouTubeVideos: { videoId: string; title: string; transcript: string }[];
   results // Add results prop to handle when no search results are found
 }
 
@@ -44,7 +46,7 @@ const StyledButton = styled.button`
   }
 `;
 
-function ToolInvocationHandler({ toolInvocation, addToolResult, results }: ToolInvocationHandlerProps) {
+function ToolInvocationHandler({ toolInvocation, addToolResult, results, onInvocation, selectedYouTubeVideos }: ToolInvocationHandlerProps) {
   const toolCallId = toolInvocation.toolCallId;
   const handleAddResult = (result: string) => addToolResult({ toolCallId, result });
 
@@ -116,11 +118,15 @@ function ToolInvocationHandler({ toolInvocation, addToolResult, results }: ToolI
       case "getYouTubeTranscript":
         return (
           <ToolContent>
-            {"result" in toolInvocation
-              ? toolInvocation.result.error
-                ? `Oops! Couldn't fetch the transcript: ${toolInvocation.result.error}`
-                : "YouTube transcript successfully retrieved"
-              : "Fetching the video transcript..."}
+            {"result" in toolInvocation ? (
+              selectedYouTubeVideos.some(video => video.videoId === toolInvocation.result) ? (
+                "YouTube transcript successfully retrieved"
+              ) : (
+                "Oops! Couldn't fetch the transcript for the specified video."
+              )
+            ) : (
+              "Fetching the video transcript..."
+            )}
           </ToolContent>
         );
 
@@ -195,6 +201,7 @@ function ToolInvocationHandler({ toolInvocation, addToolResult, results }: ToolI
     }
   };
 
+  onInvocation(toolInvocation);
   return (
     <ToolInvocationWrapper
       initial={{ opacity: 0, y: 20 }}
