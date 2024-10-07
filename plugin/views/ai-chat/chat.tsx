@@ -146,14 +146,9 @@ export const ChatComponent: React.FC<ChatComponentProps> = ({
   const [contextSize, setContextSize] = useState(0);
   const [maxContextSize, setMaxContextSize] = useState(80 * 1000); // Default to GPT-3.5-turbo
   const [screenpipeContext, setScreenpipeContext] = useState<any>(null);
-  const [transcriptRetrieved, setTranscriptRetrieved] = useState(false);
 
   logMessage(unifiedContext, "unifiedContext");
 
-  const errorMessages = [
-    "don't have access to the transcript for the YouTube video",
-    "couldn't retrieve the transcript for the YouTube video",
-  ];
   // Log all the selected stuff
   useEffect(() => {
     // logMessage(selectedFiles, "selectedFiles");
@@ -271,7 +266,7 @@ export const ChatComponent: React.FC<ChatComponentProps> = ({
       Authorization: `Bearer ${apiKey}`,
     },
     keepLastMessageOnError: true,
-    maxSteps: 3,
+    maxSteps: 1,
     onError: error => {
       console.error(error);
       setErrorMessage(
@@ -698,32 +693,8 @@ export const ChatComponent: React.FC<ChatComponentProps> = ({
     calculateContextSize();
   }, [unifiedContext]);
 
-  const isTranscriptRetrieved = (videoId) => {
-    return selectedYouTubeVideos.some((video) => video.videoId === videoId);
-  };
-
-  const handleToolInvocation = (toolInvocation) => {
-    if (toolInvocation.toolName === "getYouTubeTranscript") {
-      const { videoId } = toolInvocation.args;
-
-      if (isTranscriptRetrieved(videoId)) {
-        setTranscriptRetrieved(true);
-      }
-    }
-  };
-
-  const filteredMessages = messages.filter(message => {
-    const isAssistantMessage = message.role === "assistant" && message.content.includes("transcript");
-    
-    const isErrorMessage = errorMessages.some(errorMessage => message.content.includes(errorMessage));
-  
-    return !(isAssistantMessage && isErrorMessage && transcriptRetrieved);
-  });
-
   const isContextOverLimit = contextSize > maxContextSize;
   console.log("messages::::", messages);
-  console.log("history::::", history);
-  console.log("transcriptRetrieved::::", transcriptRetrieved);
 
   return (
     <div className="chat-component">
@@ -737,7 +708,7 @@ export const ChatComponent: React.FC<ChatComponentProps> = ({
               </div>
             </div>
           ))}
-          {filteredMessages.map(message => (
+          {messages.map(message => (
             <div key={message.id} className={`message `}>
               <Avatar role={message.role as "user" | "assistant"} />
               <div className="message-content">
@@ -757,7 +728,6 @@ export const ChatComponent: React.FC<ChatComponentProps> = ({
                       // search results (files added to context)
                       results={toolInvocation.results}
                       selectedYouTubeVideos={selectedYouTubeVideos}
-                      onInvocation={handleToolInvocation}
                     />
                   )
                 )}

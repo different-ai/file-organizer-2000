@@ -5,7 +5,6 @@ import styled from "@emotion/styled";
 interface ToolInvocationHandlerProps {
   toolInvocation: any; // Replace 'any' with a more specific type if available
   addToolResult: (result: { toolCallId: string; result: string }) => void;
-  onInvocation: (toolInvocation: any) => void;
   selectedYouTubeVideos: { videoId: string; title: string; transcript: string }[];
   results // Add results prop to handle when no search results are found
 }
@@ -46,7 +45,7 @@ const StyledButton = styled.button`
   }
 `;
 
-function ToolInvocationHandler({ toolInvocation, addToolResult, results, onInvocation, selectedYouTubeVideos }: ToolInvocationHandlerProps) {
+function ToolInvocationHandler({ toolInvocation, addToolResult, results, selectedYouTubeVideos }: ToolInvocationHandlerProps) {
   const toolCallId = toolInvocation.toolCallId;
   const handleAddResult = (result: string) => addToolResult({ toolCallId, result });
 
@@ -201,7 +200,6 @@ function ToolInvocationHandler({ toolInvocation, addToolResult, results, onInvoc
     }
   };
 
-  onInvocation(toolInvocation);
   return (
     <ToolInvocationWrapper
       initial={{ opacity: 0, y: 20 }}
