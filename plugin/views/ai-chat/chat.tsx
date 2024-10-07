@@ -281,13 +281,10 @@ export const ChatComponent: React.FC<ChatComponentProps> = ({
       logMessage(toolCall, "toolCall");
       if (toolCall.toolName === "getYouTubeTranscript") {
         const args = toolCall.args as { videoId: string };
-        console.log("args", args);
         const { videoId } = args;
         try {
           const transcript = await getYouTubeTranscript(videoId);
-          console.log("transcript", transcript);
           const title = await getYouTubeVideoTitle(videoId);
-          console.log("title", title);
           setSelectedYouTubeVideos(prev => [
             ...prev,
 
@@ -694,7 +691,6 @@ export const ChatComponent: React.FC<ChatComponentProps> = ({
   }, [unifiedContext]);
 
   const isContextOverLimit = contextSize > maxContextSize;
-  console.log("messages::::", messages);
 
   return (
     <div className="chat-component">
