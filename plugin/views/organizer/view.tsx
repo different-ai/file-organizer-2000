@@ -45,11 +45,11 @@ export const AssistantView: React.FC<AssistantViewProps> = ({
 
     try {
       const file = plugin.app.workspace.getActiveFile();
-        setActiveFile(file);
       if (file && !isMediaFile) {
         const content = await plugin.app.vault.read(file);
         setNoteContent(content);
       }
+      setActiveFile(file);
     } catch (err) {
       console.error("Error updating active file:", err);
       setError("Failed to load file content");
