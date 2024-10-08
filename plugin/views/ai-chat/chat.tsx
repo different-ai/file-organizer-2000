@@ -266,7 +266,7 @@ export const ChatComponent: React.FC<ChatComponentProps> = ({
       Authorization: `Bearer ${apiKey}`,
     },
     keepLastMessageOnError: true,
-    maxSteps: 3,
+    maxSteps: 1,
     onError: error => {
       console.error(error);
       setErrorMessage(
