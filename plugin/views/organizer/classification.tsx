@@ -18,17 +18,14 @@ export const ClassificationContainer: React.FC<ClassificationBoxProps> = ({
   refreshKey,
 }) => {
   return (
-    <div className="classification-container ">
+    <div className="classification-container space-y-4 mt-3">
       {/* Existing Classification Box */}
-      <h2 className="tw-text-2xl">Transform</h2>
-
       <ClassificationBox
         plugin={plugin}
         file={file}
         content={content}
         refreshKey={refreshKey}
       />
-      <h4 >Fabric</h4>
       {plugin.settings.enableFabric && (
         <FabricClassificationBox
           plugin={plugin}

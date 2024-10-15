@@ -195,6 +195,7 @@ export const ClassificationBox: React.FC<ClassificationBoxProps> = ({ plugin, fi
 
   return (
     <div className="bg-[--background-primary-alt] text-[--text-normal] p-4 rounded-lg shadow-md">
+      <div className="font-semibold pb-2">User Templates</div>
       {renderContent()}
     </div>
   );

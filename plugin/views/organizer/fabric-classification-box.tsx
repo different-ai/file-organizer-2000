@@ -317,6 +317,7 @@ export const FabricClassificationBox: React.FC<
 
   return (
     <div className="bg-[--background-primary-alt] text-[--text-normal] p-4 rounded-lg shadow-md">
+      <div className="font-semibold pb-2">Fabric</div>
       {renderFabricContent()}
       {errorMessage && (
         <div className="mt-2 text-[--text-error] p-2 rounded-md bg-[--background-modifier-error]">
