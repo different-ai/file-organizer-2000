@@ -1,6 +1,6 @@
 {
   "name": "fileorganizer2000",
-  "version": "1.47.10",
+  "version": "1.90.1",
   "description": "AI File Organizer 2000",
   "main": "main.js",
   "scripts": {
@@ -59,6 +59,5 @@
     "ts-node": "^10.9.2",
     "youtube-transcript": "^1.2.1",
     "zod": "^3.23.8"
-  },
-  "packageManager": "pnpm@8.15.4"
+  }
 }
