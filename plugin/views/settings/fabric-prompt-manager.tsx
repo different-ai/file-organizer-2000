@@ -13,6 +13,8 @@ export const FabricPromptManager: React.FC<FabricPromptManagerProps> = ({ plugin
 
   useEffect(() => {
     checkExistingPrompts();
+    plugin.settings.fabricPatternPath = "_FileOrganizer2000/Fabric/";
+    plugin.saveSettings();
   }, []);
 
   const checkExistingPrompts = async () => {

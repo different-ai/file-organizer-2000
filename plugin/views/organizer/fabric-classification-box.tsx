@@ -27,6 +27,10 @@ export const FabricClassificationBox: React.FC<FabricClassificationBoxProps> = (
   const [errorMessage, setErrorMessage] = React.useState<string | null>(null);
 
   const fabricDropdownRef = React.useRef<HTMLDivElement>(null);
+  const patternsPath = React.useMemo(() => 
+    `${plugin.settings.fabricPatternPath.replace(/\/$/, "")}/patterns`,
+    [plugin.settings.fabricPatternPath]
+  );
 
   /**
    * Formats content using Fabric structure.
@@ -73,10 +77,12 @@ export const FabricClassificationBox: React.FC<FabricClassificationBoxProps> = (
       }
 
       try {
-        const patternFolder = plugin.app.vault.getAbstractFileByPath(plugin.settings.fabricPatternPath);
+        console.log(patternsPath);
+        const patternFolder = plugin.app.vault.getAbstractFileByPath(patternsPath);
+        console.log(patternFolder);
 
         if (!patternFolder || !(patternFolder instanceof TFolder)) {
-          throw new Error(`Fabric patterns directory not found: ${plugin.settings.fabricPatternPath}`);
+          throw new Error(`Fabric patterns directory not found: ${patternsPath}`);
         }
 
         const folders = patternFolder.children.filter(file => file instanceof TFolder) as TFolder[];
@@ -110,7 +116,7 @@ export const FabricClassificationBox: React.FC<FabricClassificationBoxProps> = (
     return () => {
       document.removeEventListener("mousedown", handleClickOutside);
     };
-  }, [content, file, plugin, refreshKey]);
+  }, [content, file, plugin, refreshKey, patternsPath]);
 
   /**
    * Handles applying the selected Fabric pattern.
@@ -123,7 +129,6 @@ export const FabricClassificationBox: React.FC<FabricClassificationBoxProps> = (
         throw new Error("Invalid Fabric pattern");
       }
 
-      const patternsPath = plugin.settings.fabricPatternPath;
       const systemFilePath = `${patternsPath}/${pattern.name}/system.md`;
       const systemFile = plugin.app.vault.getAbstractFileByPath(systemFilePath) as TFile;
 
