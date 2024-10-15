@@ -1383,6 +1383,9 @@ export default class FileOrganizer extends Plugin {
       this.showAssistantSidebar();
     });
 
+    this.settings.fabricPatternPath = "_FileOrganizer2000/Fabric";
+    this.saveSettings();
+
     // Register command handlers
     registerCommandHandlers(this);
 
