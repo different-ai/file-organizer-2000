@@ -1,6 +1,7 @@
 import * as React from "react";
 import { Notice, TFile, TFolder } from "obsidian";
 import FileOrganizer from "../../index";
+import { useEffect } from "react";
 
 interface FabricClassificationBoxProps {
   plugin: FileOrganizer;
@@ -13,22 +14,28 @@ type FabricPattern = {
   name: string;
 };
 
-export const FabricClassificationBox: React.FC<FabricClassificationBoxProps> = ({
-  plugin,
-  file,
-  content,
-  refreshKey,
-}) => {
-  const [fabricPatterns, setFabricPatterns] = React.useState<FabricPattern[]>([]);
-  const [selectedFabricPattern, setSelectedFabricPattern] = React.useState<FabricPattern | null>(null);
-  const [showFabricDropdown, setShowFabricDropdown] = React.useState<boolean>(false);
+export const FabricClassificationBox: React.FC<
+  FabricClassificationBoxProps
+> = ({ plugin, file, content, refreshKey }) => {
+  const [fabricPatterns, setFabricPatterns] = React.useState<FabricPattern[]>(
+    []
+  );
+  const [selectedFabricPattern, setSelectedFabricPattern] =
+    React.useState<FabricPattern | null>(null);
+  const [showFabricDropdown, setShowFabricDropdown] =
+    React.useState<boolean>(false);
   const [isFormatting, setIsFormatting] = React.useState<boolean>(false);
-  const [loadStatus, setLoadStatus] = React.useState<"success" | "error">("success");
+  const [loadStatus, setLoadStatus] = React.useState<"success" | "error">(
+    "success"
+  );
   const [errorMessage, setErrorMessage] = React.useState<string | null>(null);
+  const [classifiedPattern, setClassifiedPattern] = React.useState<
+    string | null
+  >(null);
 
   const fabricDropdownRef = React.useRef<HTMLDivElement>(null);
-  const patternsPath = React.useMemo(() => 
-    `${plugin.settings.fabricPatternPath.replace(/\/$/, "")}/patterns`,
+  const patternsPath = React.useMemo(
+    () => `${plugin.settings.fabricPatternPath.replace(/\/$/, "")}/patterns`,
     [plugin.settings.fabricPatternPath]
   );
 
@@ -42,21 +49,26 @@ export const FabricClassificationBox: React.FC<FabricClassificationBoxProps> = (
   }): Promise<void> => {
     try {
       new Notice("Formatting content with Fabric...", 3000);
-      const response = await fetch(`${plugin.getServerUrl()}/api/fabric-classify/`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${plugin.settings.API_KEY}`,
-        },
-        body: JSON.stringify({
-          content: params.content,
-          systemContent: params.systemContent,
-          enableFabric: true,
-        }),
-      });
+      const response = await fetch(
+        `${plugin.getServerUrl()}/api/fabric-classify/`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${plugin.settings.API_KEY}`,
+          },
+          body: JSON.stringify({
+            content: params.content,
+            systemContent: params.systemContent,
+            enableFabric: true,
+          }),
+        }
+      );
 
       if (!response.ok) {
-        throw new Error(`Fabric formatting failed with status: ${response.status}`);
+        throw new Error(
+          `Fabric formatting failed with status: ${response.status}`
+        );
       }
 
       const data = await response.json();
@@ -68,6 +80,56 @@ export const FabricClassificationBox: React.FC<FabricClassificationBoxProps> = (
     }
   };
 
+  /**
+   * Automatically classifies the content using the /api/classify1 endpoint.
+   */
+  const autoClassifyContent = React.useCallback(async () => {
+    if (!content || !file || fabricPatterns.length === 0) {
+      return;
+    }
+
+    try {
+      console.log("Attempting auto-classification");
+      const response = await fetch(`${plugin.getServerUrl()}/api/classify1`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${plugin.settings.API_KEY}`,
+        },
+        body: JSON.stringify({
+          content: content,
+          fileName: file.name,
+          templateNames: fabricPatterns.map(pattern => pattern.name),
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error(`Classification failed with status: ${response.status}`);
+      }
+
+      const { documentType } = await response.json();
+      console.log("Classified as:", documentType);
+      setClassifiedPattern(documentType);
+
+      const matchedPattern = fabricPatterns.find(pattern => pattern.name === documentType);
+      if (matchedPattern) {
+        setSelectedFabricPattern(matchedPattern);
+      }
+
+      new Notice(`Classified as: ${documentType}`, 3000);
+    } catch (error) {
+      console.error("Error in autoClassifyContent:", error);
+      setErrorMessage(`Classification failed: ${(error as Error).message}`);
+    }
+  }, [content, file, fabricPatterns, plugin]);
+
+  React.useEffect(() => {
+    if (!content || !file) return;
+    if (!fabricPatterns) return;
+    console.log("autoClassifyContent", fabricPatterns);
+    autoClassifyContent();
+  }, [content, file, plugin, refreshKey, fabricPatterns]);
+
   React.useEffect(() => {
     const fetchFabricPatternsEffect = async () => {
       if (!content || !file) {
@@ -78,14 +140,19 @@ export const FabricClassificationBox: React.FC<FabricClassificationBoxProps> = (
 
       try {
         console.log(patternsPath);
-        const patternFolder = plugin.app.vault.getAbstractFileByPath(patternsPath);
+        const patternFolder =
+          plugin.app.vault.getAbstractFileByPath(patternsPath);
         console.log(patternFolder);
 
         if (!patternFolder || !(patternFolder instanceof TFolder)) {
-          throw new Error(`Fabric patterns directory not found: ${patternsPath}`);
+          throw new Error(
+            `Fabric patterns directory not found: ${patternsPath}`
+          );
         }
 
-        const folders = patternFolder.children.filter(file => file instanceof TFolder) as TFolder[];
+        const folders = patternFolder.children.filter(
+          file => file instanceof TFolder
+        ) as TFolder[];
         const patterns = folders.map(folder => ({ name: folder.name }));
 
         if (!patterns.length) {
@@ -116,6 +183,8 @@ export const FabricClassificationBox: React.FC<FabricClassificationBoxProps> = (
     return () => {
       document.removeEventListener("mousedown", handleClickOutside);
     };
+
+    // Auto-classify when content or file changes
   }, [content, file, plugin, refreshKey, patternsPath]);
 
   /**
@@ -130,7 +199,9 @@ export const FabricClassificationBox: React.FC<FabricClassificationBoxProps> = (
       }
 
       const systemFilePath = `${patternsPath}/${pattern.name}/system.md`;
-      const systemFile = plugin.app.vault.getAbstractFileByPath(systemFilePath) as TFile;
+      const systemFile = plugin.app.vault.getAbstractFileByPath(
+        systemFilePath
+      ) as TFile;
 
       if (!systemFile) {
         throw new Error(`System file not found for pattern: ${pattern.name}`);
@@ -175,7 +246,8 @@ export const FabricClassificationBox: React.FC<FabricClassificationBoxProps> = (
     if (loadStatus === "error") {
       return (
         <div className="text-[--text-error] p-2 rounded-md bg-[--background-modifier-error]">
-          Unable to load Fabric patterns. Please download them from the customization tab.
+          Unable to load Fabric patterns. Please download them from the
+          customization tab.
         </div>
       );
     }
@@ -219,7 +291,9 @@ export const FabricClassificationBox: React.FC<FabricClassificationBoxProps> = (
                   </div>
                 ))
               ) : (
-                <div className="px-3 py-2 text-[--text-muted]">No Fabric patterns available</div>
+                <div className="px-3 py-2 text-[--text-muted]">
+                  No Fabric patterns available
+                </div>
               )}
             </div>
           )}
@@ -227,11 +301,13 @@ export const FabricClassificationBox: React.FC<FabricClassificationBoxProps> = (
         <button
           className={`px-4 py-2 rounded-md transition-colors duration-200 ${
             !selectedFabricPattern || isFormatting
-              ? 'bg-[--background-modifier-border] text-[--text-muted] cursor-not-allowed'
-              : 'bg-[--interactive-accent] text-white hover:bg-[--interactive-accent-hover]'
+              ? "bg-[--background-modifier-border] text-[--text-muted] cursor-not-allowed"
+              : "bg-[--interactive-accent] text-white hover:bg-[--interactive-accent-hover]"
           }`}
           disabled={!selectedFabricPattern || isFormatting}
-          onClick={() => selectedFabricPattern && handleApplyFabric(selectedFabricPattern)}
+          onClick={() =>
+            selectedFabricPattern && handleApplyFabric(selectedFabricPattern)
+          }
         >
           {isFormatting ? "Applying..." : "Apply"}
         </button>
@@ -242,7 +318,11 @@ export const FabricClassificationBox: React.FC<FabricClassificationBoxProps> = (
   return (
     <div className="bg-[--background-primary-alt] text-[--text-normal] p-4 rounded-lg shadow-md">
       {renderFabricContent()}
-      {errorMessage && <div className="mt-2 text-[--text-error] p-2 rounded-md bg-[--background-modifier-error]">{errorMessage}</div>}
+      {errorMessage && (
+        <div className="mt-2 text-[--text-error] p-2 rounded-md bg-[--background-modifier-error]">
+          {errorMessage}
+        </div>
+      )}
     </div>
   );
 };
