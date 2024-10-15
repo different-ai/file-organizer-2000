@@ -1,6 +1,6 @@
 import * as React from "react";
 import { motion } from "framer-motion";
-import { CheckIcon as CheckMark } from "lucide-react"; // Import the CheckMark icon
+import { CheckIcon } from "lucide-react";
 
 interface TitleSuggestionProps {
   title: string;
@@ -12,45 +12,43 @@ export const TitleSuggestion: React.FC<TitleSuggestionProps> = ({
   onApply,
 }) => {
   const [editableTitle, setEditableTitle] = React.useState(title);
+  const [isFocused, setIsFocused] = React.useState(false);
+
+  const handleApply = () => {
+    onApply(editableTitle.trim());
+  };
 
   return (
     <motion.div
       variants={itemVariants}
-      className="title-suggestion-item flex items-center"
-      style={{
-        width: "100%",
-        display: "flex",
-        alignItems: "center",
-        gap: "8px",
-      }}
+      className=""
     >
-      <input
-        type="text"
-        style={{
-          width: "75%",
-        }}
-        value={editableTitle}
-        onChange={(e) => setEditableTitle(e.target.value)}
-        onKeyDown={(e) => {
-          if (e.key === "Enter") {
-            onApply(editableTitle); // Submit title on Enter key press
-          }
-        }}
-        className="flex-grow p-2 border rounded"
-      />
-      <button
-        onClick={() => onApply(editableTitle)}
-        style={{
-          background: "none",
-          border: "none",
-          cursor: "pointer",
-          padding: 0,
-          margin: 0,
-          boxShadow: "none",
-        }}
-      >
-        <CheckMark /> {/* Use the CheckMark icon here */}
-      </button>
+      <div className="flex items-center w-full gap-2">
+        <input
+          type="text"
+          value={editableTitle}
+          onChange={(e) => setEditableTitle(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === "Enter") {
+              handleApply();
+            }
+          }}
+          onFocus={() => setIsFocused(true)}
+          onBlur={() => setIsFocused(false)}
+          className={`flex-grow p-2 bg-transparent text-[--text-normal] rounded-md transition-all duration-200 ${
+            isFocused
+              ? "border border-[--interactive-accent] ring-2 ring-[--interactive-accent] ring-opacity-50"
+              : "border border-transparent hover:border-[--background-modifier-border]"
+          }`}
+        />
+        <button
+          onClick={handleApply}
+          className="p-2 text-[--text-muted] hover:text-[--text-normal] focus:outline-none focus:ring-2 focus:ring-[--interactive-accent] rounded-md transition-colors duration-200"
+          aria-label="Apply title"
+        >
+          <CheckIcon className="w-5 h-5" />
+        </button>
+      </div>
     </motion.div>
   );
 };

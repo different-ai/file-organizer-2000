@@ -22,7 +22,6 @@ export const ClassificationContainer: React.FC<ClassificationBoxProps> = ({
       {/* Existing Classification Box */}
       <h2 className="tw-text-2xl">Transform</h2>
 
-      <h4>UserDefined</h4>
       <ClassificationBox
         plugin={plugin}
         file={file}

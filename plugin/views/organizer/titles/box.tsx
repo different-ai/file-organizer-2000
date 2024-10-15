@@ -43,7 +43,7 @@ export const RenameSuggestion: React.FC<RenameSuggestionProps> = ({
 
   return (
     <motion.div
-      className="grid grid-cols-1 gap-4"
+      className="grid grid-cols-1 gap-4 bg-[--background-primary-alt] p-3 rounded-lg shadow-md"
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       variants={containerVariants}

@@ -126,25 +126,22 @@ export const ClassificationBox: React.FC<ClassificationBoxProps> = ({ plugin, fi
 
   const renderContent = () => {
     if (contentLoadStatus === 'error' || classificationStatus === 'error') {
-      return <div className="error-message">Unable to process the content. Please try again later.</div>;
+      return <div className="text-[--text-error] p-2 rounded-md bg-[--background-modifier-error]">Unable to process the content. Please try again later.</div>;
     }
     if (classificationStatus === 'loading') {
-      return <div className="loading-message">Classifying content...</div>;
+      return <div className="text-[--text-muted] p-2">Classifying content...</div>;
     }
     
     return (
-      <div className="template-selection-container">
-        <div className="split-button-container" ref={dropdownRef}>
+      <div className="flex flex-col space-y-2">
+        <div className="relative" ref={dropdownRef}>
           <button
-            className=""
-            style={{boxShadow: "none"}}
+            className="w-full flex items-center justify-between px-3 py-2 bg-[--background-secondary] text-[--text-normal] rounded-md hover:bg-[--background-modifier-hover] transition-colors duration-200"
             onClick={() => setShowDropdown(!showDropdown)}
           >
-            <span className="">{getDisplayText()}</span>
+            <span>{getDisplayText()}</span>
             <svg
-              className="split-button-arrow"
-              width="12"
-              height="12"
+              className="w-4 h-4 ml-2"
               viewBox="0 0 24 24"
               fill="none"
               xmlns="http://www.w3.org/2000/svg"
@@ -159,12 +156,12 @@ export const ClassificationBox: React.FC<ClassificationBoxProps> = ({ plugin, fi
             </svg>
           </button>
           {showDropdown && (
-            <div className={`templates-dropdown-menu ${showDropdown ? "show" : ""}`}>
+            <div className="absolute z-10 w-full mt-1 bg-[--background-primary] border border-[--background-modifier-border] rounded-md shadow-lg">
               {dropdownTemplates.length > 0 ? (
                 dropdownTemplates.map((template, index) => (
                   <div
                     key={index}
-                    className="dropdown-item"
+                    className="px-3 py-2 cursor-pointer hover:bg-[--background-modifier-hover] text-[--text-normal]"
                     onClick={() => {
                       setSelectedTemplate(template);
                       setShowDropdown(false);
@@ -174,7 +171,7 @@ export const ClassificationBox: React.FC<ClassificationBoxProps> = ({ plugin, fi
                   </div>
                 ))
               ) : (
-                <div className="dropdown-item">
+                <div className="px-3 py-2 text-[--text-muted]">
                   No templates available
                 </div>
               )}
@@ -182,7 +179,11 @@ export const ClassificationBox: React.FC<ClassificationBoxProps> = ({ plugin, fi
           )}
         </div>
         <button
-          className="apply-template-button"
+          className={`px-4 py-2 rounded-md transition-colors duration-200 ${
+            !selectedTemplate || formatting
+              ? 'bg-[--background-modifier-border] text-[--text-muted] cursor-not-allowed'
+              : 'bg-[--interactive-accent] text-white hover:bg-[--interactive-accent-hover]'
+          }`}
           disabled={!selectedTemplate || formatting}
           onClick={() => selectedTemplate && handleFormat(selectedTemplate)}
         >
@@ -193,7 +194,7 @@ export const ClassificationBox: React.FC<ClassificationBoxProps> = ({ plugin, fi
   };
 
   return (
-    <div className="assistant-section classification-section">
+    <div className="bg-[--background-primary-alt] text-[--text-normal] p-4 rounded-lg shadow-md">
       {renderContent()}
     </div>
   );

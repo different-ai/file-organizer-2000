@@ -169,25 +169,22 @@ export const FabricClassificationBox: React.FC<FabricClassificationBoxProps> = (
   const renderFabricContent = () => {
     if (loadStatus === "error") {
       return (
-        <div className="error-message">
+        <div className="text-[--text-error] p-2 rounded-md bg-[--background-modifier-error]">
           Unable to load Fabric patterns. Please download them from the customization tab.
         </div>
       );
     }
 
     return (
-      <div className="fabric-pattern-selection-container flex gap-2">
-        <div className="" ref={fabricDropdownRef}>
+      <div className="flex flex-col space-y-2">
+        <div className="relative" ref={fabricDropdownRef}>
           <button
-            className=""
-            style={{ boxShadow: "none" }}
+            className="w-full flex items-center justify-between px-3 py-2 bg-[--background-secondary] text-[--text-normal] rounded-md hover:bg-[--background-modifier-hover] transition-colors duration-200"
             onClick={() => setShowFabricDropdown(!showFabricDropdown)}
           >
-            <span className="">{getFabricDisplayText()}</span>
+            <span>{getFabricDisplayText()}</span>
             <svg
-              className="split-button-arrow"
-              width="12"
-              height="12"
+              className="w-4 h-4 ml-2"
               viewBox="0 0 24 24"
               fill="none"
               xmlns="http://www.w3.org/2000/svg"
@@ -202,12 +199,12 @@ export const FabricClassificationBox: React.FC<FabricClassificationBoxProps> = (
             </svg>
           </button>
           {showFabricDropdown && (
-            <div className={`templates-dropdown-menu ${showFabricDropdown ? "show" : ""}`}>
+            <div className="absolute z-10 w-full mt-1 bg-[--background-primary] border border-[--background-modifier-border] rounded-md shadow-lg">
               {availableFabricPatterns.length > 0 ? (
                 availableFabricPatterns.map((pattern, index) => (
                   <div
                     key={index}
-                    className="dropdown-item"
+                    className="px-3 py-2 cursor-pointer hover:bg-[--background-modifier-hover] text-[--text-normal]"
                     onClick={() => {
                       setSelectedFabricPattern(pattern);
                       setShowFabricDropdown(false);
@@ -217,17 +214,19 @@ export const FabricClassificationBox: React.FC<FabricClassificationBoxProps> = (
                   </div>
                 ))
               ) : (
-                <div className="dropdown-item">No Fabric patterns available</div>
+                <div className="px-3 py-2 text-[--text-muted]">No Fabric patterns available</div>
               )}
             </div>
           )}
         </div>
         <button
-          className="apply-pattern-button"
+          className={`px-4 py-2 rounded-md transition-colors duration-200 ${
+            !selectedFabricPattern || isFormatting
+              ? 'bg-[--background-modifier-border] text-[--text-muted] cursor-not-allowed'
+              : 'bg-[--interactive-accent] text-white hover:bg-[--interactive-accent-hover]'
+          }`}
           disabled={!selectedFabricPattern || isFormatting}
-          onClick={() =>
-            selectedFabricPattern && handleApplyFabric(selectedFabricPattern)
-          }
+          onClick={() => selectedFabricPattern && handleApplyFabric(selectedFabricPattern)}
         >
           {isFormatting ? "Applying..." : "Apply"}
         </button>
@@ -236,9 +235,9 @@ export const FabricClassificationBox: React.FC<FabricClassificationBoxProps> = (
   };
 
   return (
-    <div className="fabric-assistant-section classification-section">
+    <div className="bg-[--background-primary-alt] text-[--text-normal] p-4 rounded-lg shadow-md">
       {renderFabricContent()}
-      {errorMessage && <div className="error-message">{errorMessage}</div>}
+      {errorMessage && <div className="mt-2 text-[--text-error] p-2 rounded-md bg-[--background-modifier-error]">{errorMessage}</div>}
     </div>
   );
 };

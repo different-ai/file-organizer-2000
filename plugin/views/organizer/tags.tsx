@@ -6,6 +6,40 @@ import { sanitizeTag } from "../../../utils";
 import { SkeletonLoader } from "./components/skeleton-loader";
 import { motion, AnimatePresence } from "framer-motion";
 
+// Base Tag Component
+const BaseTag: React.FC<{
+  tag: string;
+  onClick: (tag: string) => void;
+  className?: string;
+}> = ({ tag, onClick, className }) => (
+  <motion.span
+    className={`inline-block rounded px-2 py-1 text-sm cursor-pointer transition-colors duration-200 ${className}`}
+    onClick={() => onClick(tag)}
+    initial={{ opacity: 0, scale: 0.8 }}
+    animate={{ opacity: 1, scale: 1 }}
+    exit={{ opacity: 0, scale: 0.8 }}
+    transition={{ duration: 0.2 }}
+  >
+    {sanitizeTag(tag)}
+  </motion.span>
+);
+
+// Existing Tag Component
+const ExistingTag: React.FC<{ tag: string; onClick: (tag: string) => void }> = (props) => (
+  <BaseTag
+    {...props}
+    className="bg-[--background-secondary] text-[--text-normal] hover:text-[--text-on-accent] hover:bg-[--interactive-accent] hover:font-medium"
+  />
+);
+
+// New Tag Component
+const NewTag: React.FC<{ tag: string; onClick: (tag: string) => void }> = (props) => (
+  <BaseTag
+    {...props}
+    className="bg-transparent border border-dashed border-[--text-muted] text-[--text-muted] hover:text-[--text-on-accent] hover:bg-[--interactive-accent] hover:font-medium"
+  />
+);
+
 interface SimilarTagsProps {
   plugin: FileOrganizer;
   file: TFile | null;
@@ -96,59 +130,52 @@ export const SimilarTags: React.FC<SimilarTagsProps> = ({
     plugin.appendTag(file!, tag);
   };
 
-  if (loading)
+  const renderContent = () => {
+    if (loading) {
+      return (
+        <SkeletonLoader
+          count={4}
+          width="60px"
+          height="24px"
+          className="p-2"
+          rows={1}
+        />
+      );
+    }
+    if (initialLoadComplete && existingTags.length === 0 && newTags.length === 0) {
+      return <div className="text-[--text-muted] p-2">No tags found</div>;
+    }
+
     return (
-      <SkeletonLoader
-        count={4}
-        width="60px"
-        height="24px"
-        style={{ padding: "8px" }}
-        rows={1}
-      />
+      <motion.div
+        className="flex flex-wrap gap-2"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ duration: 0.3 }}
+      >
+        <AnimatePresence>
+          {existingTags.map((tag, index) => (
+            <ExistingTag
+              key={`existing-${index}`}
+              tag={tag}
+              onClick={handleTagClick}
+            />
+          ))}
+          {newTags.map((tag, index) => (
+            <NewTag
+              key={`new-${index}`}
+              tag={tag}
+              onClick={handleTagClick}
+            />
+          ))}
+        </AnimatePresence>
+      </motion.div>
     );
-  if (
-    initialLoadComplete &&
-    existingTags.length === 0 &&
-    newTags.length === 0
-  ) {
-    return <div>No tags found</div>;
-  }
+  };
 
   return (
-    <motion.div
-      className="tags-container"
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      transition={{ duration: 0.3 }}
-    >
-      <AnimatePresence>
-        {existingTags.map((tag, index) => (
-          <motion.span
-            key={`existing-${index}`}
-            className="tag existing-tag"
-            onClick={() => handleTagClick(tag)}
-            initial={{ opacity: 0, scale: 0.8 }}
-            animate={{ opacity: 1, scale: 1 }}
-            exit={{ opacity: 0, scale: 0.8 }}
-            transition={{ duration: 0.2 }}
-          >
-            {sanitizeTag(tag)}
-          </motion.span>
-        ))}
-        {newTags.map((tag, index) => (
-          <motion.span
-            key={`new-${index}`}
-            className="tag new-tag"
-            onClick={() => handleTagClick(tag)}
-            initial={{ opacity: 0, scale: 0.8 }}
-            animate={{ opacity: 1, scale: 1 }}
-            exit={{ opacity: 0, scale: 0.8 }}
-            transition={{ duration: 0.2 }}
-          >
-            {sanitizeTag(tag)}
-          </motion.span>
-        ))}
-      </AnimatePresence>
-    </motion.div>
+    <div className="bg-[--background-primary-alt] text-[--text-normal] p-4 rounded-lg shadow-md">
+      {renderContent()}
+    </div>
   );
 };
