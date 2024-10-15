@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import FileOrganizer from '../../index';
+import { FabricPromptManager } from './fabric-prompt-manager';
 
 interface CustomizationTabProps {
   plugin: FileOrganizer;
@@ -36,7 +37,7 @@ export const CustomizationTab: React.FC<CustomizationTabProps> = ({ plugin }) =>
   };
 
   return (
-    <div className="customization-settings">
+    <div className="p-4 space-y-4">
       <ToggleSetting
         name="FileOrganizer logs"
         description="Allows you to keep track of the changes made by file Organizer."
@@ -79,7 +80,7 @@ export const CustomizationTab: React.FC<CustomizationTabProps> = ({ plugin }) =>
         onChange={(value) => handleToggleChange(value, setProcessedTag, 'processedTag')}
       />
 
-      <h3>Experimental features</h3>
+      <h3 className="text-lg font-semibold mt-6 mb-2">Experimental features</h3>
 
       <ToggleSetting
         name="Enable Fabric-like Formatting"
@@ -145,7 +146,7 @@ export const CustomizationTab: React.FC<CustomizationTabProps> = ({ plugin }) =>
         disabled={!enableCustomFolderInstructions}
       />
 
-      <h3>Custom Formatting</h3>
+      <h3 className="text-lg font-semibold mt-6 mb-2">Custom Formatting</h3>
 
       <ToggleSetting
         name="Document Auto-Formatting"
@@ -162,6 +163,17 @@ export const CustomizationTab: React.FC<CustomizationTabProps> = ({ plugin }) =>
           </div>
         </div>
       </div>
+
+      <ToggleSetting
+        name="Enable Fabric-like Formatting"
+        description="Use Fabric-like prompt structure for document formatting."
+        value={enableFabric}
+        onChange={(value) => handleToggleChange(value, setEnableFabric, 'enableFabric')}
+      />
+
+      {enableFabric && (
+        <FabricPromptManager plugin={plugin} />
+      )}
     </div>
   );
 };
@@ -174,16 +186,17 @@ interface ToggleSettingProps {
 }
 
 const ToggleSetting: React.FC<ToggleSettingProps> = ({ name, description, value, onChange }) => (
-  <div className="setting-item">
-    <div className="setting-item-info">
-      <div className="setting-item-name">{name}</div>
-      <div className="setting-item-description">{description}</div>
+  <div className="flex items-center justify-between py-2">
+    <div>
+      <div className="font-medium text-[--text-normal]">{name}</div>
+      <div className="text-sm text-[--text-muted]">{description}</div>
     </div>
-    <div className="setting-item-control">
+    <div>
       <input
         type="checkbox"
         checked={value}
         onChange={(e) => onChange(e.target.checked)}
+        className="form-checkbox h-5 w-5 text-[--interactive-accent]"
       />
     </div>
   </div>
@@ -198,17 +211,15 @@ interface TextAreaSettingProps {
 }
 
 const TextAreaSetting: React.FC<TextAreaSettingProps> = ({ name, description, value, onChange, disabled }) => (
-  <div className="setting-item">
-    <div className="setting-item-info">
-      <div className="setting-item-name">{name}</div>
-      <div className="setting-item-description">{description}</div>
-    </div>
-    <div className="setting-item-control">
-      <textarea
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
-        disabled={disabled}
-      />
-    </div>
+  <div className="py-2">
+    <div className="font-medium text-[--text-normal]">{name}</div>
+    <div className="text-sm text-[--text-muted] mb-1">{description}</div>
+    <textarea
+      value={value}
+      onChange={(e) => onChange(e.target.value)}
+      disabled={disabled}
+      className="w-full px-3 py-2 text-[--text-normal] bg-[--background-primary] border border-[--background-modifier-border] rounded-lg focus:outline-none focus:border-[--interactive-accent] disabled:bg-[--background-secondary]"
+      rows={4}
+    />
   </div>
 );

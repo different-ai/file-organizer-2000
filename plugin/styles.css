@@ -1,0 +1,221 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Custom styles that might still be needed */
+
+/* Obsidian-specific styles */
+.theme-dark {
+  --ai-chat-background: var(--background-primary-alt);
+  --ai-chat-text: var(--text-normal);
+  --ai-chat-user-message: var(--background-secondary-alt);
+  --ai-chat-assistant-message: var(--background-secondary);
+}
+
+.theme-light {
+  --ai-chat-background: var(--background-primary);
+  --ai-chat-text: var(--text-normal);
+  --ai-chat-user-message: var(--background-secondary);
+  --ai-chat-assistant-message: var(--background-primary-alt);
+}
+
+/* AI Chat Sidebar Styles */
+.ai-chat-sidebar {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  max-height: 100vh;
+  background: var(--ai-chat-background);
+  color: var(--ai-chat-text);
+}
+
+.chat-component {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  max-height: calc(100vh - 50px);
+  overflow: hidden;
+}
+
+.chat-messages {
+  flex-grow: 1;
+  overflow-y: auto;
+  padding: 1rem;
+  display: flex;
+  flex-direction: column;
+}
+
+.chat-messages-inner {
+  display: flex;
+  flex-direction: column;
+  min-height: min-content;
+}
+
+.chat-input-wrapper {
+  flex-shrink: 0;
+  margin-top: 1rem;
+}
+
+.chat-input-form {
+  display: flex;
+  align-items: flex-end;
+}
+
+.tiptap-wrapper {
+  flex-grow: 1;
+  max-height: 150px;
+  overflow-y: auto;
+}
+
+.send-button {
+  flex-shrink: 0;
+}
+
+.message {
+  display: flex;
+  align-items: start;
+  margin-bottom: 1rem;
+  user-select: text;
+}
+
+.message-content {
+  margin-left: 0.5rem;
+  position: relative;
+  padding: 10px;
+  margin: 5px 0;
+  border-radius: 8px;
+}
+
+.assistant-message,
+.user-message {
+  user-select: text;
+}
+
+.assistant-message {
+  background-color: var(--ai-chat-assistant-message);
+}
+
+/* Tiptap Editor Styles */
+.tiptap {
+  border: 1px solid var(--background-modifier-border);
+  border-radius: 4px;
+  padding: 8px;
+  min-height: 2.65rem;
+  max-height: 500px;
+  overflow-y: auto;
+  background-color: var(--background-primary);
+  color: var(--text-normal);
+}
+
+.tiptap:focus {
+  outline: none;
+  border-color: var(--interactive-accent);
+}
+
+.tiptap p {
+  margin: 0;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+}
+
+/* Spinner Styles */
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.spinning svg {
+  animation: spin 1s linear infinite;
+}
+
+/* Context Container Styles */
+.context-container {
+  background-color: var(--nav-item-background-active);
+  border-radius: 8px;
+  padding: 10px;
+  margin-bottom: 10px;
+}
+
+/* Styles for components that might still be using these classes */
+.tag.existing-tag {
+  background: var(--background-secondary);
+  border-radius: 0.25rem;
+  padding: 0.25rem 0.5rem;
+  font-size: 0.9rem;
+  color: var(--text-normal);
+  cursor: pointer;
+}
+
+.tag.new-tag {
+  /* border: 1px dashed var(--text-muted); */
+  color: var(--text-muted);
+}
+
+.tag:hover {
+  color: white;
+  background: var(--interactive-accent);
+  font-weight: var(--nav-item-weight-hover);
+}
+
+/* Title and Folder Suggestion Styles */
+.title-suggestion,
+.folder-suggestion {
+  box-shadow: none !important;
+  background: var(--background-secondary) !important;
+  border-radius: 0.25rem;
+  padding: 0.25rem 0.5rem;
+  font-size: 0.9rem;
+  color: var(--text-normal);
+  cursor: pointer;
+  transition: background-color 0.2s, color 0.2s;
+}
+
+.title-suggestion:hover,
+.folder-suggestion:hover {
+  background-color: var(--interactive-accent) !important;
+  color: white;
+  font-weight: var(--nav-item-weight-hover);
+}
+
+.folder-suggestion.new-folder {
+  background: transparent;
+  border: 1px dashed var(--text-muted);
+  color: var(--text-muted);
+}
+
+/* Apply Tailwind to a specific class */
+@layer utilities {
+  .fo2k-* {
+    @apply *;
+  }
+}
+
+/* Fabric Prompt Manager Styles */
+.fabric-prompt-manager {
+  margin-top: 1rem;
+}
+
+.progress-bar-container {
+  margin-top: 0.5rem;
+  background-color: var(--background-secondary);
+  border-radius: 4px;
+  height: 20px;
+  overflow: hidden;
+  position: relative;
+}
+
+.progress-bar {
+  background-color: var(--interactive-accent);
+  height: 100%;
+  transition: width 0.3s ease;
+}
+
+.progress-bar-container span {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  color: var(--text-on-accent);
+  font-size: 12px;
+  font-weight: bold;
+}
