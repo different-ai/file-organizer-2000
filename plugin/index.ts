@@ -1,3 +1,5 @@
+// import '../styles.css'; // Removed to prevent JS from injecting CSS
+
 import {
   Plugin,
   Notice,
@@ -11,7 +13,7 @@ import {
   requestUrl,
 } from "obsidian";
 import { logMessage, formatToSafeName, sanitizeTag } from "../utils";
-import { FileOrganizerSettingTab } from "./views/configuration/tabs";
+import { FileOrganizerSettingTab } from "./views/settings/view";
 import { ASSISTANT_VIEW_TYPE, AssistantViewWrapper } from "./views/organizer";
 import Jimp from "jimp";
 import { FileOrganizerSettings, DEFAULT_SETTINGS } from "./settings";
@@ -1392,12 +1394,16 @@ export default class FileOrganizer extends Plugin {
   }
 
   async initializeChat() {
-    this.addRibbonIcon("bot", "Fo2k Chat", () => {
-      this.activateView();
-    });
+    // Only add the ribbon icon and register the view if it hasn't been done before
+    if (!this.app.workspace.getLeavesOfType("ai-chat-view").length) {
+      this.addRibbonIcon("bot", "Fo2k Chat", () => {
+        this.activateView();
+      });
 
-    this.registerView("ai-chat-view", leaf => new AIChatView(leaf, this));
+      this.registerView("ai-chat-view", leaf => new AIChatView(leaf, this));
+    }
 
+    // This command can be added regardless of whether the view is registered
     this.addCommand({
       id: "open-ai-chat",
       name: "Fo2k Open AI Chat",

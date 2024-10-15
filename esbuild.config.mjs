@@ -1,6 +1,7 @@
 import esbuild from "esbuild";
 import process from "process";
 import builtins from "builtin-modules";
+import postcss from 'esbuild-postcss';
 
 
 const banner = `/*
@@ -17,7 +18,10 @@ const context = await esbuild.context({
 	banner: {
 		js: banner,
 	},
-	entryPoints: ["plugin/index.ts"],
+	entryPoints: {
+		main: "plugin/index.ts",
+		styles: "plugin/styles.css",
+	},
 	bundle: true,
 	external: [
 		"obsidian",
@@ -34,19 +38,21 @@ const context = await esbuild.context({
 		"@lezer/highlight",
 		"@lezer/lr",
 		"sharp",
-
 		...builtins,
 	],
 	format: "cjs",
-	define: {
-		"process.env.NODE_ENV": prod ? "'production'" : "'development'",
-	},
-	platform: "node",
 	target: "es2018",
 	logLevel: "info",
 	sourcemap: prod ? false : "inline",
 	treeShaking: true,
-	outfile: "main.js",
+	outdir: ".", // Output to the root directory
+	plugins: [
+		postcss({
+			plugins: ['tailwindcss', 'autoprefixer'],
+			inject: false,
+			extract: true,
+		}),
+	],
 });
 
 if (prod) {

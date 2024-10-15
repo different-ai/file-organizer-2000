@@ -1,7 +1,8 @@
 // GeneralTab.ts
 
 import { Setting, Notice } from "obsidian";
-import FileOrganizer from "./index";
+import FileOrganizer from "../../index";
+
 
 export class ModelTab {
   private plugin: FileOrganizer;

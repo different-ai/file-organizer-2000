@@ -8,7 +8,6 @@
     "build": "node esbuild.config.mjs production",
     "version": "node version-bump.mjs && git add manifest.json versions.json",
     "test": "ts-node ./standalone/index.test.ts",
-    "generate-prompt": "ts-node ./standalone/auto-fix.ts",
     "release": "node release.js"
   },
   "author": "",
@@ -19,9 +18,13 @@
     "@types/react-dom": "^18.3.0",
     "@typescript-eslint/eslint-plugin": "5.29.0",
     "@typescript-eslint/parser": "5.29.0",
+    "autoprefixer": "^10.4.20",
     "builtin-modules": "3.3.0",
     "esbuild": "0.17.3",
+    "esbuild-postcss": "^0.0.4",
     "obsidian": "latest",
+    "postcss": "^8.4.31",
+    "tailwindcss": "^3.4.14",
     "tslib": "2.4.0",
     "typescript": "^5.2.2"
   },

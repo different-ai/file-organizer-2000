@@ -29,7 +29,10 @@ export class AIChatView extends ItemView {
   async onOpen(): Promise<void> {
     const container = this.containerEl.children[1];
     container.empty();
-    this.root = createRoot(container);
+    
+    if (!this.root) {
+      this.root = createRoot(container);
+    }
     this.root.render(
       <AppContext.Provider value={{ plugin: this.plugin, root: this.root }}>
         <AIChatSidebar

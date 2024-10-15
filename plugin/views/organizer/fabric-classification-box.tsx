@@ -23,37 +23,13 @@ export const FabricClassificationBox: React.FC<FabricClassificationBoxProps> = (
   const [selectedFabricPattern, setSelectedFabricPattern] = React.useState<FabricPattern | null>(null);
   const [showFabricDropdown, setShowFabricDropdown] = React.useState<boolean>(false);
   const [isFormatting, setIsFormatting] = React.useState<boolean>(false);
-  const [loadStatus, setLoadStatus] = React.useState<"loading" | "success" | "error">("loading");
+  const [loadStatus, setLoadStatus] = React.useState<"success" | "error">("success");
   const [errorMessage, setErrorMessage] = React.useState<string | null>(null);
 
   const fabricDropdownRef = React.useRef<HTMLDivElement>(null);
 
   /**
-   * Retrieves all folder names from the fabricPatternPath.
-   * @returns Array of FabricPattern
-   */
-  const getFabricPatterns = async (): Promise<FabricPattern[]> => {
-    try {
-      const patternsPath = plugin.settings.fabricPatternPath;
-      await plugin.ensureFolderExists(patternsPath);
-      const patternFolder = plugin.app.vault.getAbstractFileByPath(patternsPath);
-      
-      if (!patternFolder || !(patternFolder instanceof TFolder)) {
-        throw new Error(`Fabric patterns directory not found: ${patternsPath}`);
-      }
-
-      const folders = patternFolder.children.filter(file => file instanceof TFolder) as TFolder[];
-      return folders.map(folder => ({ name: folder.name }));
-      
-    } catch (error) {
-      console.error("Error in getFabricPatterns:", error);
-      return [];
-    }
-  };
-
-  /**
    * Formats content using Fabric structure.
-   * @param params Parameters including file, systemContent, and content.
    */
   const formatFabricContent = async (params: {
     file: TFile;
@@ -89,17 +65,22 @@ export const FabricClassificationBox: React.FC<FabricClassificationBoxProps> = (
   };
 
   React.useEffect(() => {
-    const fetchFabricPatterns = async () => {
+    const fetchFabricPatternsEffect = async () => {
       if (!content || !file) {
         setLoadStatus("error");
         console.error("No content or file available for Fabric classification");
         return;
       }
 
-      setLoadStatus("loading");
-
       try {
-        const patterns = await getFabricPatterns();
+        const patternFolder = plugin.app.vault.getAbstractFileByPath(plugin.settings.fabricPatternPath);
+
+        if (!patternFolder || !(patternFolder instanceof TFolder)) {
+          throw new Error(`Fabric patterns directory not found: ${plugin.settings.fabricPatternPath}`);
+        }
+
+        const folders = patternFolder.children.filter(file => file instanceof TFolder) as TFolder[];
+        const patterns = folders.map(folder => ({ name: folder.name }));
 
         if (!patterns.length) {
           throw new Error("No Fabric patterns found");
@@ -114,7 +95,7 @@ export const FabricClassificationBox: React.FC<FabricClassificationBoxProps> = (
       }
     };
 
-    fetchFabricPatterns();
+    fetchFabricPatternsEffect();
 
     const handleClickOutside = (event: MouseEvent) => {
       if (
@@ -131,6 +112,9 @@ export const FabricClassificationBox: React.FC<FabricClassificationBoxProps> = (
     };
   }, [content, file, plugin, refreshKey]);
 
+  /**
+   * Handles applying the selected Fabric pattern.
+   */
   const handleApplyFabric = async (pattern: FabricPattern) => {
     try {
       setIsFormatting(true);
@@ -165,6 +149,9 @@ export const FabricClassificationBox: React.FC<FabricClassificationBoxProps> = (
     }
   };
 
+  /**
+   * Returns display text based on selected Fabric pattern.
+   */
   const getFabricDisplayText = () => {
     if (selectedFabricPattern) {
       return `Format as ${selectedFabricPattern.name}`;
@@ -176,21 +163,21 @@ export const FabricClassificationBox: React.FC<FabricClassificationBoxProps> = (
     t => t.name !== selectedFabricPattern?.name
   );
 
+  /**
+   * Renders the Fabric pattern selection UI.
+   */
   const renderFabricContent = () => {
     if (loadStatus === "error") {
       return (
         <div className="error-message">
-          Unable to load Fabric patterns. Please check the configuration.
+          Unable to load Fabric patterns. Please download them from the customization tab.
         </div>
       );
     }
-    if (loadStatus === "loading") {
-      return <div className="loading-message">Loading Fabric patterns...</div>;
-    }
 
     return (
-      <div className="fabric-pattern-selection-container">
-        <div className="split-button-container" ref={fabricDropdownRef}>
+      <div className="fabric-pattern-selection-container flex gap-2">
+        <div className="" ref={fabricDropdownRef}>
           <button
             className=""
             style={{ boxShadow: "none" }}

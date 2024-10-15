@@ -129,11 +129,11 @@ export const AssistantView: React.FC<AssistantViewProps> = ({
   }
 
   return (
-    <div className="assistant-container">
+    <div className="tw-p-4 fo2k">
       <RefreshButton onRefresh={refreshContext} />
-      <div className="assistant-header">
+      <div className="tw-mb-4">
         <SectionHeader text="Looking at" />
-        <div className="active-note-title">{activeFile.basename}</div>
+        <div className="tw-text-lg tw-text-accent tw-mb-4">{activeFile.basename}</div>
       </div>
 
       {renderSection(
