@@ -15,7 +15,8 @@ import {
 import { logMessage, formatToSafeName, sanitizeTag } from "../utils";
 import { FileOrganizerSettingTab } from "./views/settings/view";
 import { ASSISTANT_VIEW_TYPE, AssistantViewWrapper } from "./views/organizer";
-import Jimp from "jimp";
+import Jimp from "jimp/es/index";
+
 import { FileOrganizerSettings, DEFAULT_SETTINGS } from "./settings";
 
 import { registerEventHandlers } from "./handlers/eventHandlers";
