@@ -89,7 +89,7 @@ export const FabricClassificationBox: React.FC<
     }
 
     try {
-      console.log("Attempting auto-classification");
+      logMessage("Attempting auto-classification");
       const response = await fetch(`${plugin.getServerUrl()}/api/classify1`, {
         method: "POST",
         headers: {
@@ -108,7 +108,7 @@ export const FabricClassificationBox: React.FC<
       }
 
       const { documentType } = await response.json();
-      console.log("Classified as:", documentType);
+      logMessage("Classified as:", documentType);
       setClassifiedPattern(documentType);
 
       const matchedPattern = fabricPatterns.find(pattern => pattern.name === documentType);
@@ -126,7 +126,7 @@ export const FabricClassificationBox: React.FC<
   React.useEffect(() => {
     if (!content || !file) return;
     if (!fabricPatterns) return;
-    console.log("autoClassifyContent", fabricPatterns);
+    logMessage("autoClassifyContent", fabricPatterns);
     autoClassifyContent();
   }, [content, file, plugin, refreshKey, fabricPatterns]);
 
@@ -139,10 +139,10 @@ export const FabricClassificationBox: React.FC<
       }
 
       try {
-        console.log(patternsPath);
+        logMessage(patternsPath);
         const patternFolder =
           plugin.app.vault.getAbstractFileByPath(patternsPath);
-        console.log(patternFolder);
+        logMessage(patternFolder);
 
         if (!patternFolder || !(patternFolder instanceof TFolder)) {
           throw new Error(

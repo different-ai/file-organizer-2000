@@ -24,7 +24,7 @@ async function queryScreenpipe(params: ScreenpipeQueryParams) {
     if (params.appName) queryParams.append('app_name', params.appName);
 
     const url = `http://localhost:3030/search?${queryParams}`;
-    console.log('Querying Screenpipe with URL:', url);
+    logMessage('Querying Screenpipe with URL:', url);
 
     const response = await fetch(url, {
       method: 'GET',
@@ -33,11 +33,11 @@ async function queryScreenpipe(params: ScreenpipeQueryParams) {
       },
     });
 
-    console.log('Response status:', response.status);
-    console.log('Response headers:', response.headers);
+    logMessage('Response status:', response.status);
+    logMessage('Response headers:', response.headers);
 
     const responseText = await response.text();
-    console.log('Response body:', responseText);
+    logMessage('Response body:', responseText);
 
     if (!response.ok) {
       throw new Error(`HTTP error! status: ${response.status}, message: ${responseText}`);

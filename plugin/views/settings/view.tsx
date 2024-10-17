@@ -29,7 +29,7 @@ export class FileOrganizerSettingTab extends PluginSettingTab {
   }
 
   hide(): void {
-    console.log("hide");
+    logMessage("hide");
     if (this.root) {
       this.root.unmount();
       this.root = null;

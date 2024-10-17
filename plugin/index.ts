@@ -389,7 +389,7 @@ export default class FileOrganizer extends Plugin {
       return [];
     }
 
-    console.log("serverUrl tag", this.getServerUrl());
+    logMessage("serverUrl tag", this.getServerUrl());
     const response = await makeApiRequest(() =>
       requestUrl({
         url: `${this.getServerUrl()}/api/tags`,
@@ -453,7 +453,7 @@ export default class FileOrganizer extends Plugin {
       const selectedTemplate = templates.find(
         t => t.type.toLowerCase() === classifiedType.toLowerCase()
       );
-      console.log("selectedTemplate", selectedTemplate);
+      logMessage("selectedTemplate", selectedTemplate);
 
       if (selectedTemplate) {
         const formattedText = await this.formatContentV2(
@@ -461,7 +461,7 @@ export default class FileOrganizer extends Plugin {
           selectedTemplate.formattingInstruction
         );
 
-        console.log("formattedText", formattedText);
+        logMessage("formattedText", formattedText);
         return {
           type: classifiedType,
           formattingInstruction: selectedTemplate.formattingInstruction,

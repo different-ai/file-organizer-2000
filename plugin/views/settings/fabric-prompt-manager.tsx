@@ -73,7 +73,7 @@ export const FabricPromptManager: React.FC<FabricPromptManagerProps> = ({ plugin
         await plugin.app.vault.create(localShaPath, latestSha);
         setHasExistingPrompts(true);
       } else {
-        console.log('Prompts are already up to date');
+        logMessage('Prompts are already up to date');
       }
     } catch (error) {
       console.error('Error downloading Fabric prompts:', error);
