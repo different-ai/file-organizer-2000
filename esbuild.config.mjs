@@ -53,6 +53,9 @@ const context = await esbuild.context({
 			extract: true,
 		}),
 	],
+	define: prod ? {
+		'process.env.NODE_ENV': '"production"'
+	} : {},
 });
 
 if (prod) {
