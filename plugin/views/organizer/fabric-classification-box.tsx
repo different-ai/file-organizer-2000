@@ -48,7 +48,6 @@ export const FabricClassificationBox: React.FC<
     systemContent: string;
   }): Promise<void> => {
     try {
-      new Notice("Formatting content with Fabric...", 3000);
       const response = await fetch(
         `${plugin.getServerUrl()}/api/fabric-classify/`,
         {
@@ -116,7 +115,6 @@ export const FabricClassificationBox: React.FC<
         setSelectedFabricPattern(matchedPattern);
       }
 
-      new Notice(`Classified as: ${documentType}`, 3000);
     } catch (error) {
       console.error("Error in autoClassifyContent:", error);
       setErrorMessage(`Classification failed: ${(error as Error).message}`);
@@ -198,6 +196,9 @@ export const FabricClassificationBox: React.FC<
         throw new Error("Invalid Fabric pattern");
       }
 
+      // Create a backup of the file before formatting
+      const backupFile = await plugin.backupTheFileAndAddReferenceToCurrentFile(file);
+
       const systemFilePath = `${patternsPath}/${pattern.name}/system.md`;
       const systemFile = plugin.app.vault.getAbstractFileByPath(
         systemFilePath
@@ -210,13 +211,25 @@ export const FabricClassificationBox: React.FC<
       const systemContent = await plugin.app.vault.read(systemFile);
       const fileContent = await plugin.app.vault.read(file);
 
-      await formatFabricContent({
-        file,
-        content: fileContent,
+      let formattedContent = "";
+      const updateCallback = async (partialContent: string) => {
+        formattedContent = partialContent;
+        await plugin.app.vault.modify(file, formattedContent);
+      };
+
+      await plugin.formatStream(
+        fileContent,
         systemContent,
-      });
+        plugin.getServerUrl(),
+        plugin.settings.API_KEY,
+        updateCallback
+      );
+
+      // Append the backup link to the current file
+      await plugin.appendBackupLinkToCurrentFile(file, backupFile);
 
       setSelectedFabricPattern(null);
+      new Notice("Content formatted successfully with Fabric", 3000);
     } catch (error) {
       console.error("Error in handleApplyFabric:", error);
       setErrorMessage((error as Error).message);
