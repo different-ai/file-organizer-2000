@@ -1,7 +1,7 @@
 import * as React from "react";
 import { Notice, TFile, TFolder } from "obsidian";
 import FileOrganizer from "../../index";
-import { useEffect } from "react";
+import { logMessage } from "../../../utils";
 
 interface FabricClassificationBoxProps {
   plugin: FileOrganizer;

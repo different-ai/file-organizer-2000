@@ -1,4 +1,5 @@
-import { groupBy } from 'lodash';
+import { groupBy } from "lodash";
+import { logMessage } from "../../../utils";
 
 interface ScreenpipeQueryParams {
   startTime: string;

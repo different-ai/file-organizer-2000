@@ -1,4 +1,6 @@
 import { Notice, RequestUrlResponse, requestUrl } from "obsidian";
+import { logMessage } from "../utils";
+
 
 export async function makeApiRequest<T>(
   requestFn: () => Promise<RequestUrlResponse>

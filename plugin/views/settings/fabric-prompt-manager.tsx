@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import FileOrganizer from '../../index';
-import { TFolder } from 'obsidian';
+import { TFolder } from "obsidian";
+import { logMessage } from "../../../utils";
 
 interface FabricPromptManagerProps {
   plugin: FileOrganizer;
