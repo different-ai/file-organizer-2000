@@ -31,12 +31,11 @@ export async function createSubscriptionCheckout() {
 
   const headersList = headers();
   const origin = headersList.get("origin") || "";
-  
-  const checkoutUrl = await srm.products.Hobby.prices.monthly.createSubscriptionCheckoutUrl({
+
+  const checkoutUrl = await srm.products.HobbyMonthly.prices.monthly.createSubscriptionCheckoutUrl({
     userId,
     successUrl: `${origin}/dashboard/subscribers`,
     cancelUrl: `${origin}/dashboard`,
-    trialPeriodDays: 3,
     allowPromotionCodes: true,
   });
 
@@ -49,12 +48,11 @@ export async function createYearlySubscriptionCheckout() {
 
   const headersList = headers();
   const origin = headersList.get("origin") || "";
-  
-  const checkoutUrl = await srm.products.Hobby.prices.yearly.createSubscriptionCheckoutUrl({
+
+  const checkoutUrl = await srm.products.HobbyYearly.prices.yearly.createSubscriptionCheckoutUrl({
     userId,
     successUrl: `${origin}/dashboard/subscribers`,
     cancelUrl: `${origin}/dashboard`,
-    trialPeriodDays: 3,
     allowPromotionCodes: true,
   });
 

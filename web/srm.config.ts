@@ -60,7 +60,7 @@ export const config = {
       id: "subscription_yearly",
       prices: {
         yearly: {
-          // $150
+          // $99
           amount: 9900, // Adjust this to match your current price
           interval: "year",
           type: "recurring",
