@@ -43,7 +43,7 @@ dependencies:
     version: 18.2.13
   '@u22n/srm':
     specifier: github:un/srm
-    version: github.com/un/srm/d35b242a2f4413ac8e4ca9d4c9a22f473c708960(@types/node@20.8.5)(typescript@5.2.2)
+    version: github.com/un/srm/42c06d437084f9eae8c4cb99a0958ddcb16c8ce2(@types/node@20.8.5)(typescript@5.2.2)
   '@unkey/api':
     specifier: ^0.19.5
     version: 0.19.5
@@ -6191,9 +6191,9 @@ packages:
     resolution: {integrity: sha512-XBx9AXhXktjUqnepgTiE5flcKIYWi/rme0Eaj+5Y0lftuGBq+jyRu/md4WnuxqgP1ubdpNCsYEYPxrzVHD8d6g==}
     dev: false
 
-  github.com/un/srm/d35b242a2f4413ac8e4ca9d4c9a22f473c708960(@types/node@20.8.5)(typescript@5.2.2):
-    resolution: {tarball: https://codeload.github.com/un/srm/tar.gz/d35b242a2f4413ac8e4ca9d4c9a22f473c708960}
-    id: github.com/un/srm/d35b242a2f4413ac8e4ca9d4c9a22f473c708960
+  github.com/un/srm/42c06d437084f9eae8c4cb99a0958ddcb16c8ce2(@types/node@20.8.5)(typescript@5.2.2):
+    resolution: {tarball: https://codeload.github.com/un/srm/tar.gz/42c06d437084f9eae8c4cb99a0958ddcb16c8ce2}
+    id: github.com/un/srm/42c06d437084f9eae8c4cb99a0958ddcb16c8ce2
     name: '@u22n/srm'
     version: 1.0.0
     hasBin: true
