@@ -8,6 +8,7 @@
     "build": "pnpm run db:migrate && npx @u22n/srm deploy && pnpm next build",
     "start": "pnpm next start",
     "lint": "pnpm next lint",
+    "pricing:deploy": "pnpm srm deploy --env .env.local",
     "db:generate": "pnpm drizzle-kit generate",
     "db:migrate": "pnpm dotenv -c -- drizzle-kit migrate",
     "db:studio": "pnpm dotenv -c -- drizzle-kit studio",
