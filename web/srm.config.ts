@@ -1,4 +1,4 @@
-import { PreSRMConfig } from "@u22n/srm";
+import { PreSRMConfig } from "@u22n/srm/dist";
 
 const features = {
   support: "Support",

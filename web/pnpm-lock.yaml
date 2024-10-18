@@ -43,7 +43,7 @@ dependencies:
     version: 18.2.13
   '@u22n/srm':
     specifier: github:un/srm
-    version: github.com/un/srm/3145a81f594991e4045b8efe744d04d471db5c69(@types/node@20.8.5)(typescript@5.2.2)
+    version: github.com/un/srm/8469d4d57da93ffaebcc412352d383432f49641c(@types/node@20.8.5)(typescript@5.2.2)
   '@unkey/api':
     specifier: ^0.19.5
     version: 0.19.5
@@ -2160,7 +2160,7 @@ packages:
     resolution: {integrity: sha512-ueEepnujpqee2o5aIYnvHU6C0A42MNdsIDeqy5BydrkuC5R1ZuUFnm27EeFJGoEHJQgn3uleRvmTXaJgfXbt4g==}
     engines: {node: '>=0.4.0'}
     dependencies:
-      acorn: 8.12.1
+      acorn: 8.13.0
     dev: false
 
   /acorn@8.12.1:
@@ -5708,7 +5708,7 @@ packages:
       '@tsconfig/node14': 1.0.3
       '@tsconfig/node16': 1.0.4
       '@types/node': 20.8.5
-      acorn: 8.12.1
+      acorn: 8.13.0
       acorn-walk: 8.3.4
       arg: 4.1.3
       create-require: 1.1.1
@@ -6175,9 +6175,9 @@ packages:
     resolution: {integrity: sha512-XBx9AXhXktjUqnepgTiE5flcKIYWi/rme0Eaj+5Y0lftuGBq+jyRu/md4WnuxqgP1ubdpNCsYEYPxrzVHD8d6g==}
     dev: false
 
-  github.com/un/srm/3145a81f594991e4045b8efe744d04d471db5c69(@types/node@20.8.5)(typescript@5.2.2):
-    resolution: {tarball: https://codeload.github.com/un/srm/tar.gz/3145a81f594991e4045b8efe744d04d471db5c69}
-    id: github.com/un/srm/3145a81f594991e4045b8efe744d04d471db5c69
+  github.com/un/srm/8469d4d57da93ffaebcc412352d383432f49641c(@types/node@20.8.5)(typescript@5.2.2):
+    resolution: {tarball: https://codeload.github.com/un/srm/tar.gz/8469d4d57da93ffaebcc412352d383432f49641c}
+    id: github.com/un/srm/8469d4d57da93ffaebcc412352d383432f49641c
     name: '@u22n/srm'
     version: 1.0.0
     hasBin: true
