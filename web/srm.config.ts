@@ -35,9 +35,9 @@ const webhookEndpoint = `https://${targetUrl}/api/webhook`;
 export const config = {
   features: features,
   products: {
-    Hobby: {
-      name: "Subscription Plan",
-      id: "subscription",
+    HobbyMonthly: {
+      name: "Hobby Monthly Plan",
+      id: "hobby_monthly",
       prices: {
         monthly: {
           // $15
@@ -45,9 +45,23 @@ export const config = {
           interval: "month",
           type: "recurring",
         },
+      },
+      features: [
+        features.noExternalAI,
+        features.easySetup,
+        features.fileLimit,
+        features.audioTranscription,
+        features.support,
+        features.moneyBackGuarantee,
+      ],
+    },
+    HobbyYearly: {
+      name: "Hobby Yearly Plan",
+      id: "hobby_yearly",
+      prices: {
         yearly: {
           // $150
-          amount: 15000, // Adjust this to match your current price
+          amount: 9900, // Adjust this to match your current price
           interval: "year",
           type: "recurring",
         },
