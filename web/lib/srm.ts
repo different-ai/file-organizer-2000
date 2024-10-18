@@ -1,4 +1,4 @@
-import { createSRM } from "@u22n/srm";
+import { createSRM } from "@u22n/srm/dist";
 import { config } from "../srm.config";
 import Stripe from "stripe";
 
