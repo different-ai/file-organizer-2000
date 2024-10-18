@@ -37,7 +37,7 @@ export const config = {
   products: {
     HobbyMonthly: {
       name: "Hobby Monthly Plan",
-      id: "hobby_monthly",
+      id: "subscription_monthly",
       prices: {
         monthly: {
           // $15
@@ -57,7 +57,7 @@ export const config = {
     },
     HobbyYearly: {
       name: "Hobby Yearly Plan",
-      id: "hobby_yearly",
+      id: "subscription_yearly",
       prices: {
         yearly: {
           // $150
