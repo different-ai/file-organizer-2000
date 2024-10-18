@@ -55,8 +55,8 @@ export default function PlanSelectionPage() {
       <h1 className="text-5xl mb-6 font-bold text-center">Choose Your Plan</h1>
       <p className="text-xl mb-8 text-center">Select the perfect plan for your needs.</p>
       <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-        {renderPricingCard("Monthly", config.products.Hobby, "monthly")}
-        {renderPricingCard("Yearly", config.products.Hobby, "yearly")}
+      {renderPricingCard("Monthly", config.products.HobbyMonthly, "monthly")}
+      {renderPricingCard("Yearly", config.products.HobbyYearly, "yearly")}
         {renderPricingCard("Lifetime", config.products.Lifetime, "lifetime")}
       </div>
     </section>
