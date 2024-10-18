@@ -14,9 +14,9 @@ export default function PlanSelectionPage() {
   const handlePlanSelection = async (plan: string) => {
     if (plan === "Lifetime") {
       await createOneTimePaymentCheckout();
-    } else if (plan === "Monthly") {
+    } else if (plan === "HobbyMonthly") {
       await createSubscriptionCheckout();
-    } else if (plan === "Yearly") {
+    } else if (plan === "HobbyYearly") {
       await createYearlySubscriptionCheckout();
     }
   };
