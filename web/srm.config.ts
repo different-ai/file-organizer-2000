@@ -83,8 +83,8 @@ export const config = {
       id: "lifetime",
       prices: {
         lifetime: {
-          // $250
-          amount: 25000, // Adjust this to match your current price
+          // $199
+          amount: 19900, // Adjust this to match your current price
           interval: "one_time",
           type: "one_time",
         },
