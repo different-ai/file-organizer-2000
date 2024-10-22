@@ -48,7 +48,6 @@ function YouTubeHandler({
     try {
       const transcript = await getYouTubeTranscript(videoId);
       const title = await getYouTubeVideoTitle(videoId);
-      onYoutubeTranscript(transcript, title, videoId);
       handleAddResult(JSON.stringify({ transcript, title, videoId }));
       return { transcript, title, videoId };
     } catch (error) {
