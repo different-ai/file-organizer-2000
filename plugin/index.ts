@@ -154,17 +154,11 @@ export default class FileOrganizer extends Plugin {
         return;
       }
 
-      let instructions: any;
-      try {
-        instructions = await this.generateInstructions(originalFile);
-      } catch (error) {
-        new Notice(
-          `Error generating instructions for ${originalFile.basename}`,
-          3000
-        );
-        console.error(`Error in generateInstructions:`, error);
-        return;
-      }
+      const instructions = {
+        shouldClassify: this.settings.enableDocumentClassification,
+        shouldAppendAlias: this.settings.enableAliasGeneration,
+        shouldAppendSimilarTags: this.settings.useSimilarTags,
+      };
 
       let metadata: any;
       try {
@@ -196,20 +190,6 @@ export default class FileOrganizer extends Plugin {
       new Notice(`Unexpected error processing ${originalFile.basename}`, 3000);
       console.error(`Error in processFileV2:`, error);
     }
-  }
-
-  async generateInstructions(
-    file: TFile
-  ): Promise<FileMetadata["instructions"]> {
-    const shouldClassify = this.settings.enableDocumentClassification;
-    const shouldAppendAlias = this.settings.enableAliasGeneration;
-    const shouldAppendSimilarTags = this.settings.useSimilarTags;
-
-    return {
-      shouldClassify,
-      shouldAppendAlias,
-      shouldAppendSimilarTags,
-    };
   }
 
   async generateMetadata(
