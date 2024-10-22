@@ -526,7 +526,7 @@ export const ChatComponent: React.FC<ChatComponentProps> = ({
       const tags = await plugin.getAllVaultTags();
       setAllTags(tags);
 
-      const folders = plugin.getAllFolders();
+      const folders = plugin.getAllNonFo2kFolders();
       setAllFolders(folders);
     };
 

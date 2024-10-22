@@ -446,31 +446,31 @@ export default class FileOrganizer extends Plugin {
 
   async classifyAndFormat(file: TFile, content: string) {
     try {
-      const templates = await this.getTemplates();
-      const templateNames = templates.map(t => t.type);
+      const templateNames = await this.getTemplateNames();
 
       const classifiedType = await this.classifyContentV2(
         content,
         templateNames
       );
 
-      const selectedTemplate = templates.find(
-        t => t.type.toLowerCase() === classifiedType.toLowerCase()
-      );
-      console.log("selectedTemplate", selectedTemplate);
-
-      if (selectedTemplate) {
-        const formattedText = await this.formatContentV2(
-          content,
-          selectedTemplate.formattingInstruction
+      if (classifiedType) {
+        const formattingInstruction = await this.getTemplateInstructions(
+          classifiedType
         );
 
-        console.log("formattedText", formattedText);
-        return {
-          type: classifiedType,
-          formattingInstruction: selectedTemplate.formattingInstruction,
-          formattedText,
-        };
+        if (formattingInstruction) {
+          const formattedText = await this.formatContentV2(
+            content,
+            formattingInstruction
+          );
+
+          console.log("formattedText", formattedText);
+          return {
+            type: classifiedType,
+            formattingInstruction,
+            formattedText,
+          };
+        }
       }
 
       return null;
@@ -726,17 +726,6 @@ export default class FileOrganizer extends Plugin {
   async transcribeAudio(
     audioBuffer: ArrayBuffer,
     fileExtension: string,
-    {
-      usePro,
-      serverUrl,
-      fileOrganizerApiKey,
-      openAIApiKey,
-    }: {
-      usePro: boolean;
-      serverUrl: string;
-      fileOrganizerApiKey: string;
-      openAIApiKey: string;
-    }
   ): Promise<Response> {
     const formData = new FormData();
     const blob = new Blob([audioBuffer], { type: `audio/${fileExtension}` });
@@ -749,7 +738,7 @@ export default class FileOrganizer extends Plugin {
       method: "POST",
       body: formData,
       headers: {
-        Authorization: `Bearer ${fileOrganizerApiKey}`,
+        Authorization: `Bearer ${this.settings.API_KEY}`,
         // "Content-Type": "multipart/form-data",
       },
     });
@@ -769,12 +758,7 @@ export default class FileOrganizer extends Plugin {
     );
     try {
       const audioBuffer = await this.app.vault.readBinary(file);
-      const response = await this.transcribeAudio(audioBuffer, file.extension, {
-        usePro: this.settings.usePro,
-        serverUrl: this.getServerUrl(),
-        fileOrganizerApiKey: this.settings.API_KEY,
-        openAIApiKey: this.settings.openAIApiKey,
-      });
+      const response = await this.transcribeAudio(audioBuffer, file.extension);
 
       if (!response.body) {
         throw new Error("Response body is null");
@@ -953,7 +937,7 @@ export default class FileOrganizer extends Plugin {
     return allFilesFiltered;
   }
 
-  getAllFolders(): string[] {
+  getAllNonFo2kFolders(): string[] {
     const allFolders = getAllFolders(this.app);
 
     // if ignoreFolders includes * then return all folders
@@ -967,7 +951,8 @@ export default class FileOrganizer extends Plugin {
       .filter(folder => folder !== this.settings.defaultDestinationPath)
       .filter(folder => folder !== this.settings.attachmentsPath)
       .filter(folder => folder !== this.settings.backupFolderPath)
-      .filter(folder => folder !== this.settings.templatePaths);
+      .filter(folder => folder !== this.settings.templatePaths)
+      .filter(folder => folder !== this.settings.fabricPatternPath);
   }
 
   async getSimilarFiles(fileToCheck: TFile): Promise<string[]> {
@@ -1213,7 +1198,7 @@ export default class FileOrganizer extends Plugin {
   ): Promise<string> {
     let destinationFolder = "None";
 
-    const uniqueFolders = await this.getAllFolders();
+    const uniqueFolders = await this.getAllNonFo2kFolders();
     logMessage("uniqueFolders", uniqueFolders);
 
     logMessage("ignore folders", this.settings.ignoreFolders);
@@ -1509,51 +1494,18 @@ export default class FileOrganizer extends Plugin {
     return templateFiles.map(file => file.basename);
   }
 
-  async getTemplates(): Promise<
-    { type: string; formattingInstruction: string }[]
-  > {
-    const templateFolder = this.app.vault.getAbstractFileByPath(
-      this.settings.templatePaths
-    );
-
-    if (!templateFolder || !(templateFolder instanceof TFolder)) {
-      console.error("Template folder not found or is not a valid folder.");
-      return [];
-    }
-
-    const templateFiles = templateFolder.children.filter(
-      file => file instanceof TFile
-    ) as TFile[];
-
-    const templates = await Promise.all(
-      templateFiles.map(async file => ({
-        type: file.basename,
-        formattingInstruction: await this.app.vault.read(file),
-      }))
-    );
-
-    return templates;
-  }
-
   async getExistingFolders(
     content: string,
     filePath: string
   ): Promise<string[]> {
-    const uniqueFolders = await this.getAllFolders();
     if (this.settings.ignoreFolders.includes("*")) {
       return [this.settings.defaultDestinationPath];
     }
     const currentFolder =
       this.app.vault.getAbstractFileByPath(filePath)?.parent?.path || "";
-    const filteredFolders = uniqueFolders
+    const filteredFolders = this.getAllNonFo2kFolders()
       .filter(folder => folder !== currentFolder)
-      .filter(folder => folder !== filePath)
-      .filter(folder => folder !== this.settings.defaultDestinationPath)
-      .filter(folder => folder !== this.settings.attachmentsPath)
-      .filter(folder => folder !== this.settings.logFolderPath)
-      .filter(folder => folder !== this.settings.pathToWatch)
-      .filter(folder => folder !== this.settings.templatePaths)
-      .filter(folder => !folder.includes("_FileOrganizer2000"))
+
       // if  this.settings.ignoreFolders has one or more folder specified, filter them out including subfolders
       .filter(folder => {
         const hasIgnoreFolders =
@@ -1596,7 +1548,7 @@ export default class FileOrganizer extends Plugin {
     }
   }
   async getNewFolders(content: string, filePath: string): Promise<string[]> {
-    const uniqueFolders = await this.getAllFolders();
+    const uniqueFolders = await this.getAllNonFo2kFolders();
     if (this.settings.ignoreFolders.includes("*")) {
       return [this.settings.defaultDestinationPath];
     }
