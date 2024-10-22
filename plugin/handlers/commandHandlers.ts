@@ -4,10 +4,6 @@ import { ASSISTANT_VIEW_TYPE, AssistantViewWrapper } from "../views/organizer";
 import { AIChatView } from "../views/ai-chat/view";
 
 export function initializeChat(plugin: FileOrganizer) {
-  // if the view is already registered, don't register it again
-  if (plugin.app.workspace.getLeavesOfType("ai-chat-view").length > 0) {
-    return;
-  }
   plugin.registerView(
     "ai-chat-view",
     (leaf: WorkspaceLeaf) => new AIChatView(leaf, plugin)
@@ -27,10 +23,7 @@ export function initializeChat(plugin: FileOrganizer) {
 }
 
 export function initializeOrganizer(plugin: FileOrganizer) {
-  // if the view is already registered, don't register it again
-  if (plugin.app.workspace.getLeavesOfType(ASSISTANT_VIEW_TYPE).length > 0) {
-    return;
-  }
+
   plugin.registerView(
     ASSISTANT_VIEW_TYPE,
     (leaf: WorkspaceLeaf) => new AssistantViewWrapper(leaf, plugin)
