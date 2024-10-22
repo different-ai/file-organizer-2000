@@ -74,11 +74,6 @@ Adapt to various summarization or content-specific requests based on the user's 
                 message: "Invalid end date format",
               }),
           }),
-          execute: async ({ startDate, endDate }) => {
-            console.log(startDate, endDate, "startDate, endDate");
-            // Return the date range for client-side processing
-            return JSON.stringify({ startDate, endDate });
-          },
         },
         getSearchQuery: {
           description: "Extract queries to search for notes",
@@ -101,10 +96,7 @@ Adapt to various summarization or content-specific requests based on the user's 
               .number()
               .describe("The number of last modified files to retrieve"),
           }),
-          execute: async ({ count }) => {
-            // This will be handled client-side, so we just return the count
-            return count.toString();
-          },
+ 
         },
         ...(enableScreenpipe
           ? {

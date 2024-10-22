@@ -5,6 +5,7 @@ import {
   getYouTubeVideoTitle,
 } from "./youtube-transcript";
 import { App } from "obsidian";
+import { moment } from "obsidian";
 
 interface ToolInvocationHandlerProps {
   toolInvocation: any; // Replace 'any' with a more specific type if available
@@ -23,6 +24,8 @@ interface ToolInvocationHandlerProps {
       path: string;
     }[]
   ) => void;
+  onDateRangeResults: (results: any[]) => void;
+  onLastModifiedResults: (results: any[]) => void; // Add this
   app: App;
 }
 
@@ -165,6 +168,158 @@ function SearchHandler({
   );
 }
 
+// New DateRange Handler Component
+function DateRangeHandler({
+  toolInvocation,
+  handleAddResult,
+  onDateRangeResults,
+  app,
+}: {
+  toolInvocation: any;
+  handleAddResult: (result: string) => void;
+  onDateRangeResults: (results: any[]) => void;
+  app: App;
+}) {
+  const [results, setResults] = useState<any[]>([]);
+
+  const filterNotesByDateRange = async (startDate: string, endDate: string) => {
+    const files = app.vault.getMarkdownFiles();
+    const start = moment(startDate).startOf("day");
+    const end = moment(endDate).endOf("day");
+
+    const filteredFiles = files.filter(file => {
+      const fileDate = moment(file.stat.mtime);
+      const isWithinDateRange = fileDate.isBetween(start, end, null, "[]");
+
+      // Filter out system folders (you might want to adjust these based on your needs)
+      const isSystemFolder =
+        file.path.startsWith(".") ||
+        file.path.includes("templates/") ||
+        file.path.includes("backup/");
+
+      return isWithinDateRange && !isSystemFolder;
+    });
+
+    const fileContents = await Promise.all(
+      filteredFiles.map(async file => ({
+        title: file.basename,
+        content: await app.vault.read(file),
+        path: file.path,
+        reference: `Date range: ${startDate} to ${endDate}`,
+      }))
+    );
+
+    return fileContents;
+  };
+
+  const handleDateRangeSearch = async () => {
+    const { startDate, endDate } = toolInvocation.args;
+    try {
+      const searchResults = await filterNotesByDateRange(startDate, endDate);
+      setResults(searchResults);
+      onDateRangeResults(searchResults);
+      handleAddResult(JSON.stringify(searchResults));
+      return searchResults;
+    } catch (error) {
+      console.error("Error filtering notes by date:", error);
+      handleAddResult(JSON.stringify({ error: error.message }));
+      return { error: error.message };
+    }
+  };
+
+  if (!("result" in toolInvocation)) {
+    handleDateRangeSearch();
+    return (
+      <div className="text-sm text-[--text-muted]">
+        Filtering notes by date range...
+      </div>
+    );
+  }
+
+  if (results && results.length > 0) {
+    return (
+      <div className="text-sm text-[--text-muted]">
+        Found {results.length} notes within the specified date range
+      </div>
+    );
+  }
+
+  return (
+    <div className="text-sm text-[--text-muted]">
+      No files found within the specified date range
+    </div>
+  );
+}
+
+// New LastModified Handler Component
+function LastModifiedHandler({
+  toolInvocation,
+  handleAddResult,
+  onLastModifiedResults,
+  app,
+}: {
+  toolInvocation: any;
+  handleAddResult: (result: string) => void;
+  onLastModifiedResults: (results: any[]) => void;
+  app: App;
+}) {
+  const [results, setResults] = useState<any[]>([]);
+
+  const getLastModifiedFiles = async (count: number) => {
+    const files = app.vault.getMarkdownFiles();
+    const sortedFiles = files.sort((a, b) => b.stat.mtime - a.stat.mtime);
+    const lastModifiedFiles = sortedFiles.slice(0, count);
+
+    const fileContents = await Promise.all(
+      lastModifiedFiles.map(async file => ({
+        title: file.basename,
+        content: await app.vault.read(file),
+        path: file.path,
+      }))
+    );
+
+    return fileContents; // Make sure to stringify the result
+  };
+
+  const handleLastModifiedSearch = async () => {
+    const { count } = toolInvocation.args;
+    try {
+      const searchResults = await getLastModifiedFiles(count);
+      setResults(searchResults);
+      onLastModifiedResults(searchResults);
+      handleAddResult(JSON.stringify(searchResults));
+      return searchResults;
+    } catch (error) {
+      console.error("Error getting last modified files:", error);
+      handleAddResult(JSON.stringify({ error: error.message }));
+      return { error: error.message };
+    }
+  };
+
+  if (!("result" in toolInvocation)) {
+    handleLastModifiedSearch();
+    return (
+      <div className="text-sm text-[--text-muted]">
+        Fetching last modified files...
+      </div>
+    );
+  }
+
+  if (results && results.length > 0) {
+    return (
+      <div className="text-sm text-[--text-muted]">
+        Found {results.length} recently modified files
+      </div>
+    );
+  }
+
+  return (
+    <div className="text-sm text-[--text-muted]">
+      No recently modified files found
+    </div>
+  );
+}
+
 // Main ToolInvocationHandler component
 function ToolInvocationHandler({
   toolInvocation,
@@ -172,6 +327,8 @@ function ToolInvocationHandler({
   results,
   onYoutubeTranscript,
   onSearchResults,
+  onDateRangeResults,
+  onLastModifiedResults,
   app,
 }: ToolInvocationHandlerProps) {
   const toolCallId = toolInvocation.toolCallId;
@@ -228,11 +385,12 @@ function ToolInvocationHandler({
 
       case "getNotesForDateRange":
         return (
-          <div className="text-sm text-[--text-muted]">
-            {"result" in toolInvocation
-              ? `All notes modified within the following time period were added to the AI context: ${toolInvocation.result}`
-              : "Retrieving your notes for the specified time period..."}
-          </div>
+          <DateRangeHandler
+            toolInvocation={toolInvocation}
+            handleAddResult={handleAddResult}
+            onDateRangeResults={onDateRangeResults}
+            app={app}
+          />
         );
 
       case "askForConfirmation":
@@ -264,29 +422,14 @@ function ToolInvocationHandler({
         );
 
       case "getLastModifiedFiles":
-        if ("result" in toolInvocation) {
-          const count = toolInvocation.result;
-
-          if (count) {
-            return (
-              <div className="text-sm text-[--text-muted]">
-                You've modified {count} file{count > 1 ? "s" : ""} recently
-              </div>
-            );
-          }
-
-          return (
-            <div className="text-sm text-[--text-muted]">
-              Hmm, I couldn't determine your recent file activity
-            </div>
-          );
-        } else {
-          return (
-            <div className="text-sm text-[--text-muted]">
-              Checking your recent file activity...
-            </div>
-          );
-        }
+        return (
+          <LastModifiedHandler
+            toolInvocation={toolInvocation}
+            handleAddResult={handleAddResult}
+            onLastModifiedResults={onLastModifiedResults}
+            app={app}
+          />
+        );
 
       case "queryScreenpipe":
         return (
@@ -331,7 +474,7 @@ function ToolInvocationHandler({
 
   return (
     <motion.div
-      className="bg-[--background-secondary] rounded-lg p-3 my-2 shadow-md"
+      className="bg-white rounded-lg p-3 my-2 shadow-md"
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.3 }}

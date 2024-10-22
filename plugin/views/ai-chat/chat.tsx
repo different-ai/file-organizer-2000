@@ -30,6 +30,15 @@ interface ChatComponentProps {
   setHistory: (
     newHistory: { id: string; role: string; content: string }[]
   ) => void;
+  onDateRangeResults: (
+    results: {
+      title: string;
+      content: string;
+      reference: string;
+      path: string;
+    }[]
+  ) => void;
+  onLastModifiedResults: (results: { title: string; content: string; reference: string; path: string }[]) => void;
 }
 
 const filterNotesByDateRange = async (
@@ -96,6 +105,8 @@ export const ChatComponent: React.FC<ChatComponentProps> = ({
   inputRef,
   history,
   setHistory,
+  onDateRangeResults,
+  onLastModifiedResults,
 }) => {
   const plugin = usePlugin();
   const app = plugin.app;
@@ -214,86 +225,6 @@ export const ChatComponent: React.FC<ChatComponentProps> = ({
       setErrorMessage(null);
     },
 
-    async onToolCall({ toolCall }) {
-      logMessage(toolCall, "toolCall");
-      if (toolCall.toolName === "getNotesForDateRange") {
-        const args = toolCall.args as { startDate: string; endDate: string };
-        const { startDate, endDate } = args;
-        logMessage(startDate, endDate, "startDate, endDate");
-        const filteredNotes = await filterNotesByDateRange(
-          startDate,
-          endDate,
-          plugin
-        );
-          // Add filtered Markdown notes to selectedFiles
-        setSelectedFiles(prevFiles => {
-          const newFiles = filteredNotes
-            .map(note => ({
-              title: note.title,
-              content: note.content,
-              reference: `Date range: ${startDate} to ${endDate}`,
-              path: note.path,
-            }))
-            .filter(
-              file => !prevFiles.some(prevFile => prevFile.path === file.path)
-            );
-          return [...prevFiles, ...newFiles];
-        });
-
-        // Return a message about the fetched notes
-        return `Fetched ${filteredNotes.length} notes for the date range: ${startDate} to ${endDate}`;
-      } else if (toolCall.toolName === "modifyCurrentNote") {
-        const args = toolCall.args as { formattingInstruction: string };
-        const { formattingInstruction } = args;
-        const activeFile = plugin.app.workspace.getActiveFile();
-        if (activeFile) {
-          try {
-            const currentContent = await plugin.app.vault.read(activeFile);
-            await plugin.formatContent(
-              activeFile,
-              currentContent,
-              formattingInstruction
-            );
-            return `Successfully modified the current note "${activeFile.basename}" using the formatting instruction.`;
-          } catch (error) {
-            console.error("Error modifying note:", error);
-            return "Failed to modify the current note.";
-          }
-        } else {
-          return "No active file found.";
-        }
-      } else if (toolCall.toolName === "getLastModifiedFiles") {
-        const args = toolCall.args as { count: number };
-        const { count } = args;
-        const lastModifiedFiles = await getLastModifiedFiles(count);
-        logMessage(lastModifiedFiles, "lastModifiedFiles");
-
-        // Add last modified files to selectedFiles
-        setSelectedFiles(prevFiles => {
-          const newFiles = lastModifiedFiles
-            .map(file => ({
-              title: file.title,
-              content: file.content,
-              reference: `Last modified: ${file.title}`,
-              path: file.path,
-            }))
-            .filter(
-              file => !prevFiles.some(prevFile => prevFile.path === file.path)
-            );
-          return [...prevFiles, ...newFiles];
-        });
-        toolCall.args = {
-          count: lastModifiedFiles.length,
-          files: lastModifiedFiles,
-        };
-
-        return lastModifiedFiles.length.toString();
-      } else if (
-        ["summarizeMeeting", "getDailyInformation"].includes(toolCall.toolName)
-      ) {
-        return handleScreenpipeAction(toolCall);
-      }
-    },
   } as UseChatOptions);
 
   const formRef = useRef<HTMLFormElement>(null);
@@ -599,19 +530,60 @@ export const ChatComponent: React.FC<ChatComponentProps> = ({
     }
   };
 
-  const handleYouTubeTranscript = useCallback((transcript: string, title: string, videoId: string) => {
-    console.log(transcript, "this is the transcript");
-    setSelectedYouTubeVideos(prev => [
-      ...prev,
-      {
-        videoId,
-        title,
-        transcript,
-      },
-    ]);
-  }, []);
+  const handleYouTubeTranscript = useCallback(
+    (transcript: string, title: string, videoId: string) => {
+      console.log(transcript, "this is the transcript");
+      setSelectedYouTubeVideos(prev => [
+        ...prev,
+        {
+          videoId,
+          title,
+          transcript,
+        },
+      ]);
+    },
+    []
+  );
 
-  const handleSearchResults = useCallback((results: { title: string; content: string; reference: string; path: string }[]) => {
+  const handleSearchResults = useCallback(
+    (
+      results: {
+        title: string;
+        content: string;
+        reference: string;
+        path: string;
+      }[]
+    ) => {
+      setSelectedFiles(prevFiles => {
+        const newFiles = results.filter(
+          file => !prevFiles.some(prevFile => prevFile.path === file.path)
+        );
+        return [...prevFiles, ...newFiles];
+      });
+    },
+    []
+  );
+
+  const handleDateRangeResults = useCallback(
+    (
+      results: {
+        title: string;
+        content: string;
+        reference: string;
+        path: string;
+      }[]
+    ) => {
+      setSelectedFiles(prevFiles => {
+        const newFiles = results.filter(
+          file => !prevFiles.some(prevFile => prevFile.path === file.path)
+        );
+        return [...prevFiles, ...newFiles];
+      });
+    },
+    []
+  );
+
+  const handleLastModifiedResults = useCallback((results: { title: string; content: string; reference: string; path: string }[]) => {
     setSelectedFiles(prevFiles => {
       const newFiles = results.filter(
         file => !prevFiles.some(prevFile => prevFile.path === file.path)
@@ -626,9 +598,7 @@ export const ChatComponent: React.FC<ChatComponentProps> = ({
         <div className="flex flex-col min-h-min-content">
           {messages.map(message => (
             <React.Fragment key={message.id}>
-              <MessageRenderer
-                message={message}
-              />
+              <MessageRenderer message={message} />
               {message.toolInvocations?.map((toolInvocation: any) => (
                 <ToolInvocationHandler
                   key={toolInvocation.toolCallId}
@@ -637,6 +607,8 @@ export const ChatComponent: React.FC<ChatComponentProps> = ({
                   results={toolInvocation.results}
                   onYoutubeTranscript={handleYouTubeTranscript}
                   onSearchResults={handleSearchResults}
+                  onDateRangeResults={handleDateRangeResults}
+                  onLastModifiedResults={handleLastModifiedResults}
                   app={app}
                 />
               ))}
