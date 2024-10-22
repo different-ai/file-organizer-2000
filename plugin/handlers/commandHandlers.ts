@@ -1,7 +1,55 @@
-import { TFile } from "obsidian";
+import { TFile, WorkspaceLeaf } from "obsidian";
 import FileOrganizer from "../index";
+import { ASSISTANT_VIEW_TYPE, AssistantViewWrapper } from "../views/organizer";
+import { AIChatView } from "../views/ai-chat/view";
 
-export function registerCommandHandlers(plugin: FileOrganizer) {
+export function initializeChat(plugin: FileOrganizer) {
+  // if the view is already registered, don't register it again
+  if (plugin.app.workspace.getLeavesOfType("ai-chat-view").length > 0) {
+    return;
+  }
+  plugin.registerView(
+    "ai-chat-view",
+    (leaf: WorkspaceLeaf) => new AIChatView(leaf, plugin)
+  );
+
+  plugin.addRibbonIcon("bot", "Fo2k Chat", () => {
+    plugin.showAIChatView();
+  });
+
+  plugin.addCommand({
+    id: "show-ai-chat",
+    name: "Show AI Chat",
+    callback: async () => {
+      await plugin.showAIChatView();
+    },
+  });
+}
+
+export function initializeOrganizer(plugin: FileOrganizer) {
+  // if the view is already registered, don't register it again
+  if (plugin.app.workspace.getLeavesOfType(ASSISTANT_VIEW_TYPE).length > 0) {
+    return;
+  }
+  plugin.registerView(
+    ASSISTANT_VIEW_TYPE,
+    (leaf: WorkspaceLeaf) => new AssistantViewWrapper(leaf, plugin)
+  );
+
+  plugin.addRibbonIcon("sparkle", "Fo2k Assistant View", () => {
+    plugin.showAssistantSidebar();
+  });
+
+  plugin.addCommand({
+    id: "show-assistant",
+    name: "Show Assistant",
+    callback: async () => {
+      await plugin.showAssistantSidebar();
+    },
+  });
+}
+
+export function initializeFileOrganizationCommands(plugin: FileOrganizer) {
   plugin.addCommand({
     id: "append-existing-tags",
     name: "Append existing tags",
@@ -11,14 +59,6 @@ export function registerCommandHandlers(plugin: FileOrganizer) {
         const fileContent = await plugin.getTextFromFile(activeFile);
         await plugin.appendSimilarTags(fileContent, activeFile);
       }
-    },
-  });
-
-  plugin.addCommand({
-    id: "show-assistant",
-    name: "Show Assistant",
-    callback: async () => {
-      await plugin.showAssistantSidebar();
     },
   });
 

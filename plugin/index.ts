@@ -20,7 +20,11 @@ import Jimp from "jimp/es/index";
 import { FileOrganizerSettings, DEFAULT_SETTINGS } from "./settings";
 
 import { registerEventHandlers } from "./handlers/eventHandlers";
-import { registerCommandHandlers } from "./handlers/commandHandlers";
+import {
+  initializeChat,
+  initializeOrganizer,
+  initializeFileOrganizationCommands,
+} from "./handlers/commandHandlers";
 import {
   ensureFolderExists,
   checkAndCreateFolders,
@@ -389,7 +393,7 @@ export default class FileOrganizer extends Plugin {
       return [];
     }
 
-    logMessage("serverUrl tag", this.getServerUrl());
+    console.log("serverUrl tag", this.getServerUrl());
     const response = await makeApiRequest(() =>
       requestUrl({
         url: `${this.getServerUrl()}/api/tags`,
@@ -453,7 +457,7 @@ export default class FileOrganizer extends Plugin {
       const selectedTemplate = templates.find(
         t => t.type.toLowerCase() === classifiedType.toLowerCase()
       );
-      logMessage("selectedTemplate", selectedTemplate);
+      console.log("selectedTemplate", selectedTemplate);
 
       if (selectedTemplate) {
         const formattedText = await this.formatContentV2(
@@ -461,7 +465,7 @@ export default class FileOrganizer extends Plugin {
           selectedTemplate.formattingInstruction
         );
 
-        logMessage("formattedText", formattedText);
+        console.log("formattedText", formattedText);
         return {
           type: classifiedType,
           formattingInstruction: selectedTemplate.formattingInstruction,
@@ -851,7 +855,7 @@ export default class FileOrganizer extends Plugin {
   async showAssistantSidebar() {
     this.app.workspace.detachLeavesOfType(ASSISTANT_VIEW_TYPE);
 
-    await this.app.workspace.getRightLeaf(false).setViewState({
+    await this.app.workspace.getRightLeaf(false)?.setViewState({
       type: ASSISTANT_VIEW_TYPE,
       active: true,
     });
@@ -859,6 +863,13 @@ export default class FileOrganizer extends Plugin {
     this.app.workspace.revealLeaf(
       this.app.workspace.getLeavesOfType(ASSISTANT_VIEW_TYPE)[0]
     );
+  }
+  async showAIChatView() {
+    this.app.workspace.detachLeavesOfType("ai-chat-view");
+    this.app.workspace.getRightLeaf(false)?.setViewState({
+      type: "ai-chat-view",
+      active: true,
+    });
   }
 
   async getTextFromFile(file: TFile): Promise<string> {
@@ -1233,14 +1244,14 @@ export default class FileOrganizer extends Plugin {
     logMessage("filteredFolders", filteredFolders);
 
     const customInstructions = this.settings.enableCustomFolderInstructions
-    ? this.settings.customFolderInstructions
-    : undefined;
+      ? this.settings.customFolderInstructions
+      : undefined;
 
     const guessedFolder = await this.guessRelevantFolder(
       content,
       filePath,
       filteredFolders,
-      customInstructions,
+      customInstructions
     );
 
     if (guessedFolder === null || guessedFolder === "null") {
@@ -1261,7 +1272,7 @@ export default class FileOrganizer extends Plugin {
     content: string,
     filePath: string,
     folders: string[],
-    customInstructions?: string,
+    customInstructions?: string
   ): Promise<string | null> {
     const response = await makeApiRequest(() =>
       requestUrl({
@@ -1380,15 +1391,13 @@ export default class FileOrganizer extends Plugin {
   async onload() {
     await this.initializePlugin();
 
-    this.addRibbonIcon("sparkle", "Fo2k Assistant View", () => {
-      this.showAssistantSidebar();
-    });
-
     this.settings.fabricPatternPath = "_FileOrganizer2000/Fabric";
-    this.saveSettings();
+    await this.saveSettings();
 
-    // Register command handlers
-    registerCommandHandlers(this);
+    // Initialize different features
+    initializeChat(this);
+    initializeOrganizer(this);
+    initializeFileOrganizationCommands(this);
 
     this.app.workspace.onLayoutReady(() => registerEventHandlers(this));
     this.processBacklog();
@@ -1397,54 +1406,25 @@ export default class FileOrganizer extends Plugin {
     await this.saveData(this.settings);
   }
 
-  async initializeChat() {
-    // Only add the ribbon icon and register the view if it hasn't been done before
-    if (!this.app.workspace.getLeavesOfType("ai-chat-view").length) {
-      this.addRibbonIcon("bot", "Fo2k Chat", () => {
-        this.activateView();
-      });
-
-      this.registerView("ai-chat-view", leaf => new AIChatView(leaf, this));
-    }
-
-    // This command can be added regardless of whether the view is registered
-    this.addCommand({
-      id: "open-ai-chat",
-      name: "Fo2k Open AI Chat",
-      callback: () => {
-        this.activateView();
-      },
-    });
-  }
-
-  async activateView() {
-    const { workspace } = this.app;
-
-    let leaf: WorkspaceLeaf | null = null;
-    const leaves = workspace.getLeavesOfType("ai-chat-view");
-
-    if (leaves.length > 0) {
-      leaf = leaves[0];
-    } else {
-      leaf = workspace.getRightLeaf(false);
-      await leaf.setViewState({ type: "ai-chat-view", active: true });
-    }
-
-    if (leaf) {
-      workspace.revealLeaf(leaf);
-    }
-  }
-
   async initializePlugin() {
     await this.loadSettings();
     await this.checkAndCreateFolders();
     await this.checkAndCreateTemplates();
-    await this.initializeChat();
     this.addSettingTab(new FileOrganizerSettingTab(this.app, this));
     this.registerView(
       ASSISTANT_VIEW_TYPE,
       (leaf: WorkspaceLeaf) => new AssistantViewWrapper(leaf, this)
     );
+    this.registerView(
+      "ai-chat-view",
+      (leaf: WorkspaceLeaf) => new AIChatView(leaf, this)
+    );
+    this.addRibbonIcon("sparkle", "Fo2k Assistant View", () => {
+      this.showAssistantSidebar();
+    });
+    this.addRibbonIcon("bot", "Fo2k Chat", () => {
+      this.showAIChatView();
+    });
   }
 
   async appendTranscriptToActiveFile(
@@ -1492,6 +1472,41 @@ export default class FileOrganizer extends Plugin {
     const backupFile = await this.app.vault.copy(file, backupFilePath);
 
     return backupFile;
+  }
+
+  async getTemplateInstructions(templateName: string): Promise<string> {
+    const templateFolder = this.app.vault.getAbstractFileByPath(
+      this.settings.templatePaths
+    );
+    if (!templateFolder || !(templateFolder instanceof TFolder)) {
+      console.error("Template folder not found or is not a valid folder.");
+      return "";
+    }
+    // only look at files first
+    const templateFile = templateFolder.children.find(
+      file => file instanceof TFile && file.basename === templateName
+    );
+    if (!templateFile || !(templateFile instanceof TFile)) {
+      console.error("Template file not found or is not a valid file.");
+      return "";
+    }
+    return await this.app.vault.read(templateFile);
+  }
+  // create a getTemplatesV2 that returns a list of template names only
+  // and doesn't reuse getTemplates()
+  async getTemplateNames(): Promise<string[]> {
+    // get all file names in the template folder
+    const templateFolder = this.app.vault.getAbstractFileByPath(
+      this.settings.templatePaths
+    );
+    if (!templateFolder || !(templateFolder instanceof TFolder)) {
+      console.error("Template folder not found or is not a valid folder.");
+      return [];
+    }
+    const templateFiles = templateFolder.children.filter(
+      file => file instanceof TFile
+    ) as TFile[];
+    return templateFiles.map(file => file.basename);
   }
 
   async getTemplates(): Promise<
