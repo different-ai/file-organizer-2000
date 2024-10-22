@@ -90,15 +90,11 @@ Adapt to various summarization or content-specific requests based on the user's 
             return query;
           },
         },
-        getYouTubeTranscript: {
-          description: "Get the transcript of a YouTube video",
+        getYoutubeVideoId: {
+          description: "Get the YouTube video ID from a URL",
           parameters: z.object({
             videoId: z.string().describe("The YouTube video ID"),
           }),
-          execute: async ({ videoId }) => {
-            // This will be handled client-side, so we just return the videoId
-            return videoId;
-          },
         },
         getLastModifiedFiles: {
           description: "Get the last modified files in the vault",

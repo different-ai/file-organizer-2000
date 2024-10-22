@@ -2,7 +2,6 @@ import React from "react";
 import { Avatar } from "./avatar";
 import { AIMarkdown } from "./ai-message-renderer";
 import { UserMarkdown } from "./user-message-renderer";
-import ToolInvocationHandler from "./tool-invocation-handler";
 import { ToolInvocation } from "ai";
 
 interface MessageRendererProps {
@@ -12,14 +11,15 @@ interface MessageRendererProps {
     content: string;
     toolInvocations?: ToolInvocation[];
   };
-  addToolResult: (result: { toolCallId: string; result: any }) => void;
 }
 
 export const MessageRenderer: React.FC<MessageRendererProps> = ({
   message,
-  addToolResult,
 }) => {
   console.log(message, "this is the message");
+  if (message.toolInvocations) {
+    return null;
+  }
   return (
     <div
       className={`flex items-start mb-4 ${
@@ -35,14 +35,7 @@ export const MessageRenderer: React.FC<MessageRendererProps> = ({
         ) : (
           <AIMarkdown content={message.content} />
         )}
-        {message.toolInvocations?.map((toolInvocation: ToolInvocation) => (
-          <ToolInvocationHandler
-            key={toolInvocation.toolCallId}
-            toolInvocation={toolInvocation}
-            addToolResult={addToolResult}
-            results={toolInvocation.results}
-          />
-        ))}
+       
       </div>
     </div>
   );

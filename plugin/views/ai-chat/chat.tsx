@@ -21,6 +21,7 @@ import { logMessage } from "../../../utils";
 import { summarizeMeeting, getDailyInformation } from "./screenpipe-utils";
 import { SelectedItem } from "./selected-item";
 import { MessageRenderer } from "./message-renderer";
+import ToolInvocationHandler from "./tool-invocation-handler";
 
 interface ChatComponentProps {
   plugin: FileOrganizer;
@@ -233,7 +234,9 @@ export const ChatComponent: React.FC<ChatComponentProps> = ({
     handleSubmit,
     stop,
     addToolResult,
+    append
   } = useChat({
+    maxSteps: 2,
     api: `${plugin.getServerUrl()}/api/chat`,
     body: chatBody,
     headers: {
@@ -241,7 +244,6 @@ export const ChatComponent: React.FC<ChatComponentProps> = ({
       Authorization: `Bearer ${apiKey}`,
     },
     keepLastMessageOnError: true,
-    maxSteps: 1,
     onError: error => {
       console.error(error);
       setErrorMessage(
@@ -254,28 +256,7 @@ export const ChatComponent: React.FC<ChatComponentProps> = ({
 
     async onToolCall({ toolCall }) {
       logMessage(toolCall, "toolCall");
-      if (toolCall.toolName === "getYouTubeTranscript") {
-        const args = toolCall.args as { videoId: string };
-        const { videoId } = args;
-        try {
-          const transcript = await getYouTubeTranscript(videoId);
-          const title = await getYouTubeVideoTitle(videoId);
-          setSelectedYouTubeVideos(prev => [
-            ...prev,
-
-            { videoId, title, transcript },
-          ]);
-          logMessage(transcript, "transcript");
-          addToolResult({
-            toolCallId: toolCall.toolCallId,
-            result: { transcript, title, videoId },
-          });
-          return { transcript, title, videoId };
-        } catch (error) {
-          console.error("Error fetching YouTube transcript:", error);
-          return JSON.stringify({ error: error.message });
-        }
-      } else if (toolCall.toolName === "getNotesForDateRange") {
+      if (toolCall.toolName === "getNotesForDateRange") {
         const args = toolCall.args as { startDate: string; endDate: string };
         const { startDate, endDate } = args;
         logMessage(startDate, endDate, "startDate, endDate");
@@ -284,8 +265,7 @@ export const ChatComponent: React.FC<ChatComponentProps> = ({
           endDate,
           plugin
         );
-
-        // Add filtered Markdown notes to selectedFiles
+          // Add filtered Markdown notes to selectedFiles
         setSelectedFiles(prevFiles => {
           const newFiles = filteredNotes
             .map(note => ({
@@ -676,34 +656,47 @@ export const ChatComponent: React.FC<ChatComponentProps> = ({
     }
   };
 
+  const handleYouTubeTranscript = useCallback((transcript: string, title: string, videoId: string) => {
+    console.log(transcript, "this is the transcript");
+    setSelectedYouTubeVideos(prev => [
+      ...prev,
+      {
+        videoId,
+        title,
+        transcript,
+      },
+    ]);
+  }, []);
+
   return (
     <div className="flex flex-col h-full max-h-screen bg-[--background-primary]">
       <div className="flex-grow overflow-y-auto p-4">
         <div className="flex flex-col min-h-min-content">
-          {history.map(message => (
-            <MessageRenderer
-              key={message.id}
-              message={message}
-              addToolResult={addToolResult}
-            />
-          ))}
           {messages.map(message => (
-            <MessageRenderer
-              key={message.id}
-              message={message}
-              addToolResult={addToolResult}
-            />
+            <React.Fragment key={message.id}>
+              <MessageRenderer
+                message={message}
+              />
+              {message.toolInvocations?.map((toolInvocation: any) => (
+                <ToolInvocationHandler
+                  key={toolInvocation.toolCallId}
+                  toolInvocation={toolInvocation}
+                  addToolResult={addToolResult}
+                  results={toolInvocation.results}
+                  onYoutubeTranscript={handleYouTubeTranscript}
+                />
+              ))}
+            </React.Fragment>
           ))}
           <div ref={messagesEndRef} />
         </div>
       </div>
 
       <div className="border-t border-[--background-modifier-border] p-4">
-        
         <div className="flex items-center space-x-2 mb-4">
           <Button
             onClick={() => {
-              handleAddCurrentFile()
+              handleAddCurrentFile();
             }}
             className="bg-[--interactive-normal] hover:bg-[--interactive-hover] text-[--text-normal]"
           >

@@ -1,50 +1,15 @@
 import React from "react";
 import { motion } from "framer-motion";
-import styled from "@emotion/styled";
+import { getYouTubeTranscript, getYouTubeVideoTitle } from "./youtube-transcript";
 
 interface ToolInvocationHandlerProps {
   toolInvocation: any; // Replace 'any' with a more specific type if available
   addToolResult: (result: { toolCallId: string; result: string }) => void;
-  results // Add results prop to handle when no search results are found
+  results: any; // Add results prop to handle when no search results are found
+  onYoutubeTranscript: (transcript: string, title: string, videoId: string) => void;
 }
 
-const ToolInvocationWrapper = styled(motion.div)`
-  background-color: #f0f4f8;
-  border-radius: 8px;
-  padding: 12px 16px;
-  margin: 8px 0;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-`;
-
-const ToolTitle = styled.h4`
-  margin: 0 0 8px;
-  color: #2c3e50;
-  font-size: 14px;
-  font-weight: 600;
-`;
-
-const ToolContent = styled.div`
-  font-size: 14px;
-  color: #34495e;
-`;
-
-const StyledButton = styled.button`
-  margin-right: 8px;
-  padding: 6px 12px;
-  font-size: 12px;
-  background-color: #3498db;
-  color: white;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-  transition: background-color 0.2s ease;
-
-  &:hover {
-    background-color: #2980b9;
-  }
-`;
-
-function ToolInvocationHandler({ toolInvocation, addToolResult, results }: ToolInvocationHandlerProps) {
+function ToolInvocationHandler({ toolInvocation, addToolResult, results, onYoutubeTranscript, append }: ToolInvocationHandlerProps) {
   const toolCallId = toolInvocation.toolCallId;
   const handleAddResult = (result: string) => addToolResult({ toolCallId, result });
 
@@ -53,7 +18,7 @@ function ToolInvocationHandler({ toolInvocation, addToolResult, results }: ToolI
       case "getNotesForDateRange": return "Fetching Notes";
       case "searchNotes": return "Searching Notes";
       case "askForConfirmation": return "Confirmation Required";
-      case "getYouTubeTranscript": return "YouTube Transcript";
+      case "getYoutubeVideoId": return "YouTube Transcript";
       case "modifyCurrentNote": return "Note Modification";
       case "getLastModifiedFiles": return "Recent File Activity";
       case "queryScreenpipe": return "Querying Screenpipe Data";
@@ -64,73 +29,107 @@ function ToolInvocationHandler({ toolInvocation, addToolResult, results }: ToolI
     }
   };
 
+  const handleYouTubeTranscript = async () => {
+    const { videoId } = toolInvocation.args;
+    try {
+      const transcript = await getYouTubeTranscript(videoId);
+      const title = await getYouTubeVideoTitle(videoId);
+      console.log("transcript", transcript);
+      handleAddResult(JSON.stringify({ transcript, title, videoId }));
+      return { transcript, title, videoId };
+    } catch (error) {
+      console.error("Error fetching YouTube transcript:", error);
+      handleAddResult(JSON.stringify({ error: error.message }));
+      return { error: error.message };
+    }
+  };
+
   // TODO: Add a loading state for the tool invocation
   // show no files found if searchNotes and no results
   const renderContent = () => {
     if (toolInvocation.toolName === "searchNotes" && (!results || results.length === 0)) {
       return (
-        <ToolContent>
+        <div className="text-sm text-[--text-muted]">
           <p>No files matching that criteria were found</p>
-        </ToolContent>
+        </div>
       );
     }
 
     switch (toolInvocation.toolName) {
       case "getNotesForDateRange":
         return (
-          <ToolContent>
+          <div className="text-sm text-[--text-muted]">
             {"result" in toolInvocation
               ? `All notes modified within the following time period were added to the AI context: ${toolInvocation.result}`
               : "Retrieving your notes for the specified time period..."}
-          </ToolContent>
+          </div>
         );
 
       case "searchNotes":
         return (
-          <ToolContent>
+          <div className="text-sm text-[--text-muted]">
             {"result" in toolInvocation
               ? `Notes that containted ${toolInvocation.result} were added to the AI context`
               : "Scouring your notes for relevant information..."}
-          </ToolContent>
+          </div>
         );
 
       case "askForConfirmation":
         return (
-          <ToolContent>
+          <div className="text-sm text-[--text-muted]">
             <p>{toolInvocation.args.message}</p>
             {"result" in toolInvocation ? (
               <b>{toolInvocation.result}</b>
             ) : (
               <div>
-                <StyledButton onClick={() => handleAddResult("Yes")}>
+                <button className="bg-[--background-primary] text-white rounded-md px-2 py-1 hover:bg-[--background-secondary]">
                   Confirm
-                </StyledButton>
-                <StyledButton onClick={() => handleAddResult("No")}>
+                </button>
+                <button className="bg-[--background-primary] text-white rounded-md px-2 py-1 hover:bg-[--background-secondary]">
                   Cancel
-                </StyledButton>
+                </button>
               </div>
             )}
-          </ToolContent>
+          </div>
         );
 
-      case "getYouTubeTranscript":
+      case "getYoutubeVideoId":
+        if (!("result" in toolInvocation)) {
+          console.log("Starting YouTube transcript fetch...");
+          console.log("Tool invocation:", toolInvocation);
+          handleYouTubeTranscript()
+            .then((response) => {
+              console.log("YouTube transcript fetch response:", response);
+            })
+            .catch((error) => {
+              console.error("Error in handleYouTubeTranscript:", error);
+            });
+          return <div className="text-sm text-[--text-muted]">Fetching the video transcript...</div>;
+        }
+        console.log("YouTube transcript result received:", toolInvocation.result);
+        let result;
+        try {
+          result = toolInvocation.result;
+          console.log("Parsed result:", result);
+        } catch (error) {
+          console.error("Error parsing toolInvocation.result:", error);
+          return <div className="text-sm text-[--text-muted]">Error parsing the transcript result</div>;
+        }
         return (
-          <ToolContent>
-            {"result" in toolInvocation
-              ? toolInvocation.result.error
-                ? `Oops! Couldn't fetch the transcript: ${toolInvocation.result.error}`
-                : "YouTube transcript successfully retrieved"
-              : "Fetching the video transcript..."}
-          </ToolContent>
+          <div className="text-sm text-[--text-muted]">
+            {result.error
+              ? `Oops! Couldn't fetch the transcript: ${result.error}`
+              : "YouTube transcript successfully retrieved"}
+          </div>
         );
 
       case "modifyCurrentNote":
         return (
-          <ToolContent>
+          <div className="text-sm text-[--text-muted]">
             {"result" in toolInvocation
               ? `Changes applied: ${toolInvocation.result}`
               : "Applying changes to your note..."}
-          </ToolContent>
+          </div>
         );
 
       case "getLastModifiedFiles":
@@ -139,55 +138,55 @@ function ToolInvocationHandler({ toolInvocation, addToolResult, results }: ToolI
           
           if (count) {
             return (
-              <ToolContent>
+              <div className="text-sm text-[--text-muted]">
                 You've modified {count} file{count > 1 ? 's' : ''} recently
-              </ToolContent>
+              </div>
             );
           }
 
           return (
-            <ToolContent>
+            <div className="text-sm text-[--text-muted]">
               Hmm, I couldn't determine your recent file activity
-            </ToolContent>
+            </div>
           );
         } else {
-          return <ToolContent>Checking your recent file activity...</ToolContent>;
+          return <div className="text-sm text-[--text-muted]">Checking your recent file activity...</div>;
         }
 
       case "queryScreenpipe":
         return (
-          <ToolContent>
+          <div className="text-sm text-[--text-muted]">
             {"result" in toolInvocation
               ? "Screenpipe data successfully queried and added to context"
               : "Querying Screenpipe data..."}
-          </ToolContent>
+          </div>
         );
 
       case "analyzeProductivity":
         return (
-          <ToolContent>
+          <div className="text-sm text-[--text-muted]">
             {"result" in toolInvocation
               ? `Productivity analysis completed for the last ${toolInvocation.args.days} days`
               : `Analyzing productivity for the last ${toolInvocation.args.days} days...`}
-          </ToolContent>
+          </div>
         );
 
       case "summarizeMeeting":
         return (
-          <ToolContent>
+          <div className="text-sm text-[--text-muted]">
             {"result" in toolInvocation
               ? "Meeting summary generated"
               : "Summarizing meeting audio..."}
-          </ToolContent>
+          </div>
         );
 
       case "trackProjectTime":
         return (
-          <ToolContent>
+          <div className="text-sm text-[--text-muted]">
             {"result" in toolInvocation
               ? `Project time tracked for "${toolInvocation.args.projectKeyword}" over the last ${toolInvocation.args.days} days`
               : `Tracking time for project "${toolInvocation.args.projectKeyword}" over the last ${toolInvocation.args.days} days...`}
-          </ToolContent>
+          </div>
         );
 
       default:
@@ -196,14 +195,19 @@ function ToolInvocationHandler({ toolInvocation, addToolResult, results }: ToolI
   };
 
   return (
-    <ToolInvocationWrapper
+    <motion.div
+      className="bg-[--background-secondary] rounded-lg p-3 my-2 shadow-md"
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.3 }}
     >
-      <ToolTitle>{getToolTitle(toolInvocation.toolName)}</ToolTitle>
-      {renderContent()}
-    </ToolInvocationWrapper>
+      <h4 className="m-0 mb-2 text-[--text-normal] text-sm font-semibold">
+        {getToolTitle(toolInvocation.toolName)}
+      </h4>
+      <div className="text-sm text-[--text-muted]">
+        {renderContent()}
+      </div>
+    </motion.div>
   );
 }
 
