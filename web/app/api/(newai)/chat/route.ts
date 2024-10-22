@@ -11,7 +11,8 @@ export const maxDuration = 60;
 export async function POST(req: NextRequest) {
   try {
     const { userId } = await handleAuthorization(req);
-    const { messages, unifiedContext, enableScreenpipe, currentDatetime } = await req.json();
+    const { messages, unifiedContext, enableScreenpipe, currentDatetime } =
+      await req.json();
     console.log(enableScreenpipe, "enableScreenpipe");
     console.log(currentDatetime, "currentDatetime");
 
@@ -22,8 +23,7 @@ export async function POST(req: NextRequest) {
       .join("\n\n");
 
     const result = await streamText({
-      model: openai(process.env.MODEL_NAME || "gpt-4o-2024-08-06", {
-      }),
+      model: openai(process.env.MODEL_NAME || "gpt-4o-2024-08-06", {}),
       system: `You are a helpful assistant with access to various files, notes, YouTube video transcripts, and Screenpipe data. Your context includes:
 
 ${contextString}
@@ -34,7 +34,11 @@ Use this context to inform your responses. Key points:
 2. For other queries, use the context without explicitly mentioning files unless necessary.
 3. Understand that '#' in queries refers to tags in the system, which will be provided in the context.
 4. When asked to "format" or "summarize" without specific content, assume it refers to the entire current context.
-${enableScreenpipe ? '5. For Screenpipe-related queries, use the provided tools to fetch and analyze meeting summaries or daily information.' : ''}
+${
+  enableScreenpipe
+    ? "5. For Screenpipe-related queries, use the provided tools to fetch and analyze meeting summaries or daily information."
+    : ""
+}
 
 The current date and time is: ${currentDatetime}
 
@@ -60,13 +64,13 @@ Adapt to various summarization or content-specific requests based on the user's 
             startDate: z
               .string()
               .describe("Start date of the range (ISO format)")
-              .refine(date => isValid(parseISO(date)), {
+              .refine((date) => isValid(parseISO(date)), {
                 message: "Invalid start date format",
-            }),
+              }),
             endDate: z
               .string()
               .describe("End date of the range (ISO format)")
-              .refine(date => isValid(parseISO(date)), {
+              .refine((date) => isValid(parseISO(date)), {
                 message: "Invalid end date format",
               }),
           }),
@@ -76,19 +80,13 @@ Adapt to various summarization or content-specific requests based on the user's 
             return JSON.stringify({ startDate, endDate });
           },
         },
-        searchNotes: {
-          description:
-            "Search for notes containing specific keywords or phrases",
+        getSearchQuery: {
+          description: "Extract queries to search for notes",
           parameters: z.object({
             query: z
               .string()
               .describe("The search query to find relevant notes"),
           }),
-          execute: async ({ query }) => {
-            console.log("Searching notes for:", query);
-            // This will be handled client-side, so we just return the query
-            return query;
-          },
         },
         getYoutubeVideoId: {
           description: "Get the YouTube video ID from a URL",
@@ -99,35 +97,53 @@ Adapt to various summarization or content-specific requests based on the user's 
         getLastModifiedFiles: {
           description: "Get the last modified files in the vault",
           parameters: z.object({
-            count: z.number().describe("The number of last modified files to retrieve"),
+            count: z
+              .number()
+              .describe("The number of last modified files to retrieve"),
           }),
           execute: async ({ count }) => {
             // This will be handled client-side, so we just return the count
             return count.toString();
           },
         },
-        ...(enableScreenpipe ? {
-          summarizeMeeting: {
-            description: "Summarize a recent meeting using Screenpipe audio data",
-            parameters: z.object({
-              duration: z.number().describe("Duration of the meeting in minutes (default: 60)").default(60),
-            }),
-            execute: async ({ duration }) => {
-              // This will be handled client-side
-              return JSON.stringify({ duration });
-            },
-          },
-          getDailyInformation: {
-            description: "Get information about the user's day using Screenpipe data",
-            parameters: z.object({
-              date: z.string().describe("The date to analyze (ISO format, default: today)").optional(),
-            }),
-            execute: async ({ date }) => {
-              // This will be handled client-side
-              return JSON.stringify({ date: date || new Date().toISOString().split('T')[0] });
-            },
-          },
-        } : {}),
+        ...(enableScreenpipe
+          ? {
+              summarizeMeeting: {
+                description:
+                  "Summarize a recent meeting using Screenpipe audio data",
+                parameters: z.object({
+                  duration: z
+                    .number()
+                    .describe(
+                      "Duration of the meeting in minutes (default: 60)"
+                    )
+                    .default(60),
+                }),
+                execute: async ({ duration }) => {
+                  // This will be handled client-side
+                  return JSON.stringify({ duration });
+                },
+              },
+              getDailyInformation: {
+                description:
+                  "Get information about the user's day using Screenpipe data",
+                parameters: z.object({
+                  date: z
+                    .string()
+                    .describe(
+                      "The date to analyze (ISO format, default: today)"
+                    )
+                    .optional(),
+                }),
+                execute: async ({ date }) => {
+                  // This will be handled client-side
+                  return JSON.stringify({
+                    date: date || new Date().toISOString().split("T")[0],
+                  });
+                },
+              },
+            }
+          : {}),
       },
       onFinish: async ({ usage }) => {
         console.log("Token usage:", usage);

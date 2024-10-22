@@ -130,42 +130,6 @@ export const ChatComponent: React.FC<ChatComponentProps> = ({
     logMessage(selectedYouTubeVideos, "selectedYouTubeVideos");
   }, [selectedFiles, selectedTags, selectedFolders, selectedYouTubeVideos]);
 
-  const searchNotes = async (query: string) => {
-    const files = plugin.getAllUserMarkdownFiles();
-    const searchTerms = query.toLowerCase().split(/\s+/);
-
-    const searchResults = await Promise.all(
-      files.map(async file => {
-        const content = await plugin.app.vault.read(file);
-        const lowerContent = content.toLowerCase();
-
-        // Check if all search terms are present in the content
-        const allTermsPresent = searchTerms.every(term => {
-          const regex = new RegExp(`(^|\\W)${term}(\\W|$)`, "i");
-          return regex.test(lowerContent);
-        });
-
-        if (allTermsPresent) {
-          return {
-            title: file.basename,
-            content: content,
-            reference: `Search query: ${query}`,
-            path: file.path,
-          };
-        }
-        return null;
-      })
-    );
-    // Filter out null results
-    const filteredResults = searchResults.filter(result => result !== null);
-    //
-    if (filteredResults.length === 0) {
-      logMessage("No files returned");
-    }
-
-    return filteredResults;
-  };
-
   const getLastModifiedFiles = async (count: number) => {
     const files = plugin.getAllUserMarkdownFiles();
     const sortedFiles = files.sort((a, b) => b.stat.mtime - a.stat.mtime);
@@ -278,23 +242,6 @@ export const ChatComponent: React.FC<ChatComponentProps> = ({
 
         // Return a message about the fetched notes
         return `Fetched ${filteredNotes.length} notes for the date range: ${startDate} to ${endDate}`;
-      } else if (toolCall.toolName === "searchNotes") {
-        const args = toolCall.args as { query: string };
-        const { query } = args;
-        const searchResults = await searchNotes(query);
-
-        // Add search results to selectedFiles
-        setSelectedFiles(prevFiles => {
-          const newFiles = searchResults.filter(
-            file => !prevFiles.some(prevFile => prevFile.path === file.path)
-          );
-          return [...prevFiles, ...newFiles];
-        });
-
-        // Pass search results to the tool invocation handler
-        toolCall.results = searchResults;
-        logMessage(searchResults, "searchResults");
-        return JSON.stringify(searchResults);
       } else if (toolCall.toolName === "modifyCurrentNote") {
         const args = toolCall.args as { formattingInstruction: string };
         const { formattingInstruction } = args;
@@ -664,6 +611,15 @@ export const ChatComponent: React.FC<ChatComponentProps> = ({
     ]);
   }, []);
 
+  const handleSearchResults = useCallback((results: { title: string; content: string; reference: string; path: string }[]) => {
+    setSelectedFiles(prevFiles => {
+      const newFiles = results.filter(
+        file => !prevFiles.some(prevFile => prevFile.path === file.path)
+      );
+      return [...prevFiles, ...newFiles];
+    });
+  }, []);
+
   return (
     <div className="flex flex-col h-full max-h-screen bg-[--background-primary]">
       <div className="flex-grow overflow-y-auto p-4">
@@ -680,6 +636,8 @@ export const ChatComponent: React.FC<ChatComponentProps> = ({
                   addToolResult={addToolResult}
                   results={toolInvocation.results}
                   onYoutubeTranscript={handleYouTubeTranscript}
+                  onSearchResults={handleSearchResults}
+                  app={app}
                 />
               ))}
             </React.Fragment>

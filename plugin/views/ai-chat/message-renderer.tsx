@@ -20,11 +20,7 @@ export const MessageRenderer: React.FC<MessageRendererProps> = ({
     return null;
   }
   return (
-    <div
-      className={`flex items-start mb-4 ${
-        message.role === "assistant" ? "bg-[--background-secondary]" : ""
-      } rounded-lg p-2`}
-    >
+    <div className="flex items-start mb-4">
       <Avatar role={message.role as "user" | "assistant"} />
       <div className="ml-2 p-2 rounded-lg text-[--text-normal]">
         {message.role === "user" ? (
@@ -34,7 +30,6 @@ export const MessageRenderer: React.FC<MessageRendererProps> = ({
         ) : (
           <AIMarkdown content={message.content} />
         )}
-       
       </div>
     </div>
   );
