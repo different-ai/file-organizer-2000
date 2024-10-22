@@ -8,18 +8,11 @@ import React, {
 import { useChat, UseChatOptions } from "@ai-sdk/react";
 import { getEncoding } from "js-tiktoken";
 import { TFolder, TFile, moment, App } from "obsidian";
-import { motion } from "framer-motion";
-import { sanitizeTag } from "../../../utils";
 
 import FileOrganizer from "../..";
 import Tiptap from "./tiptap";
-import { ToolInvocation } from "ai";
 import { Button } from "./button";
-import { Avatar } from "./avatar";
-import { AIMarkdown } from "./ai-message-renderer";
-import { UserMarkdown } from "./user-message-renderer";
 import { usePlugin } from "./provider";
-import ToolInvocationHandler from "./tool-invocation-handler";
 import {
   getYouTubeTranscript,
   getYouTubeVideoTitle,
@@ -27,6 +20,7 @@ import {
 import { logMessage } from "../../../utils";
 import { summarizeMeeting, getDailyInformation } from "./screenpipe-utils";
 import { SelectedItem } from "./selected-item";
+import { MessageRenderer } from "./message-renderer";
 
 interface ChatComponentProps {
   plugin: FileOrganizer;
@@ -687,60 +681,29 @@ export const ChatComponent: React.FC<ChatComponentProps> = ({
       <div className="flex-grow overflow-y-auto p-4">
         <div className="flex flex-col min-h-min-content">
           {history.map(message => (
-            <div
+            <MessageRenderer
               key={message.id}
-              className={`flex items-start mb-4 ${
-                message.role === "assistant"
-                  ? "bg-[--background-secondary]"
-                  : ""
-              } rounded-lg p-2`}
-            >
-              <Avatar role={message.role as "user" | "assistant"} />
-              <div className="ml-2 p-2 rounded-lg text-[--text-normal]">
-                <AIMarkdown content={message.content} />
-              </div>
-            </div>
+              message={message}
+              addToolResult={addToolResult}
+            />
           ))}
           {messages.map(message => (
-            <div
+            <MessageRenderer
               key={message.id}
-              className={`flex items-start mb-4 ${
-                message.role === "assistant"
-                  ? "bg-[--background-secondary]"
-                  : ""
-              } rounded-lg p-2`}
-            >
-              <Avatar role={message.role as "user" | "assistant"} />
-              <div className="ml-2 p-2 rounded-lg text-[--text-normal]">
-                {message.role === "user" ? (
-                  <UserMarkdown content={message.content} />
-                ) : message.toolInvocations ? (
-                  <UserMarkdown content={message.content} />
-                ) : (
-                  <AIMarkdown content={message.content} />
-                )}
-                {message.toolInvocations?.map(
-                  (toolInvocation: ToolInvocation) => (
-                    <ToolInvocationHandler
-                      key={toolInvocation.toolCallId}
-                      toolInvocation={toolInvocation}
-                      addToolResult={addToolResult}
-                      results={toolInvocation.results}
-                    />
-                  )
-                )}
-              </div>
-            </div>
+              message={message}
+              addToolResult={addToolResult}
+            />
           ))}
           <div ref={messagesEndRef} />
         </div>
       </div>
 
       <div className="border-t border-[--background-modifier-border] p-4">
+        
         <div className="flex items-center space-x-2 mb-4">
           <Button
             onClick={() => {
-              /* Open context selection popover */
+              handleAddCurrentFile()
             }}
             className="bg-[--interactive-normal] hover:bg-[--interactive-hover] text-[--text-normal]"
           >
@@ -756,7 +719,7 @@ export const ChatComponent: React.FC<ChatComponentProps> = ({
                 clipRule="evenodd"
               />
             </svg>
-            Add Context{" "}
+            Add Current File
           </Button>
 
           <div className="flex-grow overflow-x-auto">

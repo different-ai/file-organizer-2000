@@ -1,0 +1,49 @@
+import React from "react";
+import { Avatar } from "./avatar";
+import { AIMarkdown } from "./ai-message-renderer";
+import { UserMarkdown } from "./user-message-renderer";
+import ToolInvocationHandler from "./tool-invocation-handler";
+import { ToolInvocation } from "ai";
+
+interface MessageRendererProps {
+  message: {
+    id: string;
+    role: string;
+    content: string;
+    toolInvocations?: ToolInvocation[];
+  };
+  addToolResult: (result: { toolCallId: string; result: any }) => void;
+}
+
+export const MessageRenderer: React.FC<MessageRendererProps> = ({
+  message,
+  addToolResult,
+}) => {
+  console.log(message, "this is the message");
+  return (
+    <div
+      className={`flex items-start mb-4 ${
+        message.role === "assistant" ? "bg-[--background-secondary]" : ""
+      } rounded-lg p-2`}
+    >
+      <Avatar role={message.role as "user" | "assistant"} />
+      <div className="ml-2 p-2 rounded-lg text-[--text-normal]">
+        {message.role === "user" ? (
+          <UserMarkdown content={message.content} />
+        ) : message.toolInvocations ? (
+          <UserMarkdown content={message.content} />
+        ) : (
+          <AIMarkdown content={message.content} />
+        )}
+        {message.toolInvocations?.map((toolInvocation: ToolInvocation) => (
+          <ToolInvocationHandler
+            key={toolInvocation.toolCallId}
+            toolInvocation={toolInvocation}
+            addToolResult={addToolResult}
+            results={toolInvocation.results}
+          />
+        ))}
+      </div>
+    </div>
+  );
+};
