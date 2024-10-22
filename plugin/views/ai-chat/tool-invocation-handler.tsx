@@ -35,6 +35,7 @@ function ToolInvocationHandler({ toolInvocation, addToolResult, results, onYoutu
       const transcript = await getYouTubeTranscript(videoId);
       const title = await getYouTubeVideoTitle(videoId);
       console.log("transcript", transcript);
+      onYoutubeTranscript(transcript, title, videoId);
       handleAddResult(JSON.stringify({ transcript, title, videoId }));
       return { transcript, title, videoId };
     } catch (error) {

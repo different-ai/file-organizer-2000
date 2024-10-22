@@ -13,10 +13,7 @@ import FileOrganizer from "../..";
 import Tiptap from "./tiptap";
 import { Button } from "./button";
 import { usePlugin } from "./provider";
-import {
-  getYouTubeTranscript,
-  getYouTubeVideoTitle,
-} from "./youtube-transcript";
+
 import { logMessage } from "../../../utils";
 import { summarizeMeeting, getDailyInformation } from "./screenpipe-utils";
 import { SelectedItem } from "./selected-item";
@@ -234,7 +231,6 @@ export const ChatComponent: React.FC<ChatComponentProps> = ({
     handleSubmit,
     stop,
     addToolResult,
-    append
   } = useChat({
     maxSteps: 2,
     api: `${plugin.getServerUrl()}/api/chat`,
