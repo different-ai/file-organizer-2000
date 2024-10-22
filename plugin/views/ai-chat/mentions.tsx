@@ -61,6 +61,7 @@ export const Mentions = forwardRef<
       }
       if (event.key === "Enter" || event.key === "Tab") {
         event.preventDefault();
+        event.stopPropagation();
         enterHandler();
         return true;
       }

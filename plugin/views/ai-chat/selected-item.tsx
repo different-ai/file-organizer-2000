@@ -15,7 +15,7 @@ export const SelectedItem = ({
   onClick,
 }: SelectedItemProps) => (
   <motion.div
-    className="bg-[--background-secondary] text-[--text-normal] rounded px-2 py-1 text-sm m-1 flex gap-1"
+    className="bg-[--background-secondary] text-[--text-normal] rounded px-2 py-1 text-sm m-1 flex gap-1 min-w-fit h-fit"
     initial={{ opacity: 0, scale: 0.8 }}
     animate={{ opacity: 1, scale: 1 }}
     exit={{ opacity: 0, scale: 0.8 }}
@@ -23,7 +23,7 @@ export const SelectedItem = ({
   >
     <span
       onClick={onClick}
-      className="cursor-pointer "
+      className="cursor-pointer"
     >
       {prefix}
       {item}
