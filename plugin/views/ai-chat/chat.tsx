@@ -8,6 +8,8 @@ import React, {
 import { useChat, UseChatOptions } from "@ai-sdk/react";
 import { getEncoding } from "js-tiktoken";
 import { TFolder, TFile, moment, App } from "obsidian";
+import { motion } from "framer-motion";
+import { sanitizeTag } from "../../../utils";
 
 import FileOrganizer from "../..";
 import Tiptap from "./tiptap";
@@ -105,15 +107,27 @@ const SelectedItem = ({
   prefix?: string;
   onClick: () => void;
 }) => (
-  <div key={item} className={`selected-file`}>
-    <button onClick={onClick} className="item-label">
+  <motion.div
+    className="bg-[--background-secondary] text-[--text-normal] rounded px-2 py-1 text-sm m-1 flex gap-1"
+    initial={{ opacity: 0, scale: 0.8 }}
+    animate={{ opacity: 1, scale: 1 }}
+    exit={{ opacity: 0, scale: 0.8 }}
+    transition={{ duration: 0.2 }}
+  >
+    <span
+      onClick={onClick}
+      className="cursor-pointer hover:text-[--text-on-accent]"
+    >
       {prefix}
-      {item}
-    </button>
-    <button onClick={onRemove} className="remove-button">
-      x
-    </button>
-  </div>
+      {sanitizeTag(item)}
+    </span>
+    <div
+      onClick={onRemove}
+      className="text-[--text-muted] hover:text-[--text-normal] cursor-pointer"
+    >
+      ×
+    </div>
+  </motion.div>
 );
 
 export const ChatComponent: React.FC<ChatComponentProps> = ({
@@ -692,22 +706,31 @@ export const ChatComponent: React.FC<ChatComponentProps> = ({
 
   const isContextOverLimit = contextSize > maxContextSize;
 
+  const handleActionButton = (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    if (isGenerating) {
+      handleCancelGeneration();
+    } else {
+      handleSendMessage(e);
+    }
+  };
+
   return (
-    <div className="chat-component">
-      <div className="chat-messages">
-        <div className="chat-messages-inner">
+    <div className="flex flex-col h-full max-h-screen bg-[--background-primary]">
+      <div className="flex-grow overflow-y-auto p-4">
+        <div className="flex flex-col min-h-min-content">
           {history.map(message => (
-            <div key={message.id} className={`message ${message.role}-message`}>
+            <div key={message.id} className={`flex items-start mb-4 ${message.role === 'assistant' ? 'bg-[--background-secondary]' : ''} rounded-lg p-2`}>
               <Avatar role={message.role as "user" | "assistant"} />
-              <div className="message-content">
+              <div className="ml-2 p-2 rounded-lg text-[--text-normal]">
                 <AIMarkdown content={message.content} />
               </div>
             </div>
           ))}
           {messages.map(message => (
-            <div key={message.id} className={`message `}>
+            <div key={message.id} className={`flex items-start mb-4 ${message.role === 'assistant' ? 'bg-[--background-secondary]' : ''} rounded-lg p-2`}>
               <Avatar role={message.role as "user" | "assistant"} />
-              <div className="message-content">
+              <div className="ml-2 p-2 rounded-lg text-[--text-normal]">
                 {message.role === "user" ? (
                   <UserMarkdown content={message.content} />
                 ) : message.toolInvocations ? (
@@ -721,7 +744,6 @@ export const ChatComponent: React.FC<ChatComponentProps> = ({
                       key={toolInvocation.toolCallId}
                       toolInvocation={toolInvocation}
                       addToolResult={addToolResult}
-                      // search results (files added to context)
                       results={toolInvocation.results}
                     />
                   )
@@ -733,35 +755,35 @@ export const ChatComponent: React.FC<ChatComponentProps> = ({
         </div>
       </div>
 
-      <div className="context-info">
+      <div className="p-2">
         {contextSize / maxContextSize > 0.75 && (
-          <p>
+          <p className="text-sm text-[--text-muted]">
             Context Size: {Math.round((contextSize / maxContextSize) * 100)}%
           </p>
         )}
         {isContextOverLimit && (
-          <p className="warning">Warning: Context size exceeds maximum!</p>
+          <p className="text-sm text-[--text-error]">Warning: Context size exceeds maximum!</p>
         )}
       </div>
 
       {errorMessage && (
-        <div className="error-message">
+        <div className="bg-[--background-modifier-error] border border-[--text-error] text-[--text-error] px-4 py-3 rounded relative mb-4">
           {errorMessage}
           <Button
             type="button"
             onClick={() => handleRetry(messages[messages.length - 1].content)}
-            className="retry-button"
+            className="ml-4 bg-[--interactive-accent] hover:bg-[--interactive-accent-hover] text-[--text-on-accent] font-bold py-2 px-4 rounded"
           >
             Retry
           </Button>
         </div>
       )}
 
-      <div className="chat-input-wrapper">
-        <div className="context-container">
-          <div className="selected-items-container">
-            <h6 className="selected-items-header">Context</h6>
-            <div className="selected-items">
+      <div className="mt-4 p-4">
+        <div className="bg-[--background-secondary] rounded-lg px-2 pt-1 pb-3 mb-2 ">
+          <div>
+            <h6 className="text-xs font-semibold text-[--text-normal] ">Context</h6>
+            <div className="flex flex-wrap">
               {fileName && includeCurrentFile && (
                 <SelectedItem
                   key="current-file"
@@ -833,11 +855,11 @@ export const ChatComponent: React.FC<ChatComponentProps> = ({
               )}
             </div>
 
-            <div className="context-actions">
+            <div className="mt-2">
               {fileName && !includeCurrentFile && (
                 <Button
                   onClick={handleAddCurrentFile}
-                  className="add-current-file-button"
+                  className="mr-2 bg-[--interactive-accent] hover:bg-[--interactive-accent-hover] text-[--text-on-accent] font-bold py-2 px-4 rounded"
                 >
                   Add Current File to Context
                 </Button>
@@ -848,7 +870,7 @@ export const ChatComponent: React.FC<ChatComponentProps> = ({
                 includeCurrentFile ||
                 selectedYouTubeVideos.length > 0 ||
                 screenpipeContext) && (
-                <Button onClick={handleClearAll} className="clear-all-button">
+                <Button onClick={handleClearAll} className="hover:bg-[--text-error-hover] text-[--text-on-accent] font-bold py-2 px-4 rounded">
                   Clear All Context
                 </Button>
               )}
@@ -858,10 +880,10 @@ export const ChatComponent: React.FC<ChatComponentProps> = ({
 
         <form
           ref={formRef}
-          onSubmit={handleSendMessage}
-          className="chat-input-form"
+          onSubmit={handleActionButton}
+          className="flex items-end"
         >
-          <div className="tiptap-wrapper" ref={inputRef}>
+          <div className="flex-grow max-h-40 overflow-y-auto" ref={inputRef}>
             <Tiptap
               value={input}
               onChange={handleTiptapChange}
@@ -878,45 +900,55 @@ export const ChatComponent: React.FC<ChatComponentProps> = ({
           </div>
           <Button
             type="submit"
-            className="send-button"
-            disabled={isGenerating || isContextOverLimit}
+            className={`h-full ml-2 font-bold py-2 px-4 rounded ${
+              isGenerating
+                ? "bg-[--text-warning] hover:bg-[--text-warning-hover]"
+                : "bg-[--interactive-accent] hover:bg-[--interactive-accent-hover]"
+            } text-[--text-on-accent]`}
+            disabled={isContextOverLimit}
           >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              viewBox="0 0 24 24"
-              fill="currentColor"
-              style={{ width: "20px", height: "20px" }}
-            >
-              <path d="M3.478 2.405a.75.75 0 00-.926.94l2.432 7.905H13.5a.75.75 0 010 1.5H4.984l-2.432 7.905a.75.75 0 00.926.94 60.519 60.519 0 0018.445-8.986.75.75 0 000-1.218A60.517 60.517 0 003.478 2.405z" />
-            </svg>
+            {isGenerating ? (
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                viewBox="0 0 24 24"
+                fill="currentColor"
+                className="w-5 h-5"
+              >
+                <path fillRule="evenodd" d="M4.5 7.5a3 3 0 013-3h9a3 3 0 013 3v9a3 3 0 01-3 3h-9a3 3 0 01-3-3v-9z" clipRule="evenodd" />
+              </svg>
+            ) : (
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                viewBox="0 0 24 24"
+                fill="currentColor"
+                className="w-5 h-5"
+              >
+                <path d="M3.478 2.405a.75.75 0 00-.926.94l2.432 7.905H13.5a.75.75 0 010 1.5H4.984l-2.432 7.905a.75.75 0 00.926.94 60.519 60.519 0 0018.445-8.986.75.75 0 000-1.218A60.517 60.517 0 003.478 2.405z" />
+              </svg>
+            )}
           </Button>
         </form>
-        <div className="current-file-tip">
-          <div className="tip-item-1">
-            <span className="tip-icon">Tip 1️⃣</span>
-            <span className="tip-text">
+        <div className="mt-2 text-sm text-[--text-muted] p-4">
+          <div className="mb-1">
+            <span className="font-bold">Tip 1️⃣</span>
+            <span className="ml-2">
               To add more files to the AI context, mention them in the chat
               using the format @filename
             </span>
           </div>
-          <div className="tip-item-2">
-            <span className="tip-icon">Tip 2️⃣</span>
-            <span className="tip-text">
+          <div>
+            <span className="font-bold">Tip 2️⃣</span>
+            <span className="ml-2">
               Or use prompts like "get notes from this week" or "get YouTube
               transcript", then follow up with your question (e.g. "summarize my
               notes/transcript") in a separate message
             </span>
           </div>
         </div>
-        {isGenerating && (
-          <Button onClick={handleCancelGeneration} className="cancel-button">
-            Cancel Generation
-          </Button>
-        )}
       </div>
 
       {isContextOverLimit && (
-        <div className="context-warning">
+        <div className="mt-2 p-2 bg-[--background-modifier-error] border border-[--text-error] text-[--text-error] rounded">
           Context size exceeds maximum. Please remove some context to continue.
         </div>
       )}
