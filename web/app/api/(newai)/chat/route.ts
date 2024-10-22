@@ -43,7 +43,8 @@ ${
 The current date and time is: ${currentDatetime}
 
 Use these reference formats:
-- Obsidian-style: [[Filename]], [[Filename#Header]], [[Filename#^unique-identifier]]
+- Obsidian-style: [[File/Path]], [[Filename#Header]], [[Filename#^unique-identifier]]
+- When you mention a file always reference it by path and output like this [[File/Path]]
 - YouTube videos: [YouTube: Video Title]
 - General references: [^1^]
 - Quotes: "quoted text"[^2^]
