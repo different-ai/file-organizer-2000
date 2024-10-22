@@ -473,7 +473,6 @@ export default class FileOrganizer extends Plugin {
       return [];
     }
 
-    console.log("serverUrl tag", this.getServerUrl());
     const response = await makeApiRequest(() =>
       requestUrl({
         url: `${this.getServerUrl()}/api/tags`,

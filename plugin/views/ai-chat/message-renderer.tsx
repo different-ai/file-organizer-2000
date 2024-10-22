@@ -16,7 +16,6 @@ interface MessageRendererProps {
 export const MessageRenderer: React.FC<MessageRendererProps> = ({
   message,
 }) => {
-  console.log(message, "this is the message");
   if (message.toolInvocations) {
     return null;
   }
