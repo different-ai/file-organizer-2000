@@ -7,14 +7,14 @@ import {
   TFile,
   TAbstractFile,
   moment,
-  WorkspaceLeaf,
   normalizePath,
   loadPdfJs,
   requestUrl,
 } from "obsidian";
 import { logMessage, formatToSafeName, sanitizeTag } from "../utils";
 import { FileOrganizerSettingTab } from "./views/settings/view";
-import { ASSISTANT_VIEW_TYPE } from "./views/organizer";
+import { ORGANIZER_VIEW_TYPE } from "./views/organizer";
+import { CHAT_VIEW_TYPE } from "./views/ai-chat/view";
 import Jimp from "jimp/es/index";
 
 import { FileOrganizerSettings, DEFAULT_SETTINGS } from "./settings";
@@ -917,23 +917,37 @@ export default class FileOrganizer extends Plugin {
   }
 
   async showAssistantSidebar() {
-    this.app.workspace.detachLeavesOfType(ASSISTANT_VIEW_TYPE);
+    this.app.workspace.detachLeavesOfType(ORGANIZER_VIEW_TYPE);
 
     await this.app.workspace.getRightLeaf(false)?.setViewState({
-      type: ASSISTANT_VIEW_TYPE,
+      type: ORGANIZER_VIEW_TYPE,
       active: true,
     });
 
     this.app.workspace.revealLeaf(
-      this.app.workspace.getLeavesOfType(ASSISTANT_VIEW_TYPE)[0]
+      this.app.workspace.getLeavesOfType(ORGANIZER_VIEW_TYPE)[0]
     );
   }
   async showAIChatView() {
-    this.app.workspace.detachLeavesOfType("ai-chat-view");
-    this.app.workspace.getRightLeaf(false)?.setViewState({
-      type: "ai-chat-view",
+    // Detach any existing leaves of the AI Chat View type to ensure a fresh instance
+    this.app.workspace.detachLeavesOfType(CHAT_VIEW_TYPE);
+
+    // Create or get a new leaf on the right sidebar
+    const leaf = this.app.workspace.getRightLeaf(false);
+    if (!leaf) {
+      console.error("Failed to obtain a workspace leaf for AI Chat View.");
+      new Notice("Unable to open AI Chat View.", 3000);
+      return;
+    }
+
+    // Set the view state to the AI Chat View
+    await leaf.setViewState({
+      type: CHAT_VIEW_TYPE,
       active: true,
     });
+
+    // Reveal the leaf to focus it
+    this.app.workspace.revealLeaf(leaf);
   }
 
   async getTextFromFile(file: TFile): Promise<string> {

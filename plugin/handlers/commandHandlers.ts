@@ -1,11 +1,11 @@
-import { TFile, WorkspaceLeaf } from "obsidian";
+import { WorkspaceLeaf } from "obsidian";
 import FileOrganizer from "../index";
-import { ASSISTANT_VIEW_TYPE, AssistantViewWrapper } from "../views/organizer";
-import { AIChatView } from "../views/ai-chat/view";
+import { ORGANIZER_VIEW_TYPE, AssistantViewWrapper } from "../views/organizer";
+import { AIChatView, CHAT_VIEW_TYPE } from "../views/ai-chat/view";
 
 export function initializeChat(plugin: FileOrganizer) {
   plugin.registerView(
-    "ai-chat-view",
+    CHAT_VIEW_TYPE,
     (leaf: WorkspaceLeaf) => new AIChatView(leaf, plugin)
   );
 
@@ -25,7 +25,7 @@ export function initializeChat(plugin: FileOrganizer) {
 export function initializeOrganizer(plugin: FileOrganizer) {
 
   plugin.registerView(
-    ASSISTANT_VIEW_TYPE,
+    ORGANIZER_VIEW_TYPE,
     (leaf: WorkspaceLeaf) => new AssistantViewWrapper(leaf, plugin)
   );
 

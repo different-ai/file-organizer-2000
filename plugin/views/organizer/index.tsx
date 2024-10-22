@@ -6,7 +6,7 @@ import { AssistantView } from "./view";
 import FileOrganizer from "../..";
 
 
-export const ASSISTANT_VIEW_TYPE = "fo2k.assistant.sidebar2";
+export const ORGANIZER_VIEW_TYPE = "fo2k.assistant.sidebar2";
 
 export class AssistantViewWrapper extends ItemView {
   root: Root | null = null;
@@ -18,7 +18,7 @@ export class AssistantViewWrapper extends ItemView {
   }
 
   getViewType(): string {
-    return ASSISTANT_VIEW_TYPE;
+    return ORGANIZER_VIEW_TYPE;
   }
 
   getDisplayText(): string {

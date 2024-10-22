@@ -5,6 +5,8 @@ import FileOrganizer from '../..';
 import AIChatSidebar from './container';
 import { AppContext } from './provider';
 
+export const CHAT_VIEW_TYPE = "fo2k.ai.chat";
+
 export class AIChatView extends ItemView {
   private root: Root;
   private plugin: FileOrganizer;
@@ -15,7 +17,7 @@ export class AIChatView extends ItemView {
   }
 
   getViewType(): string {
-    return 'ai-chat-view';
+    return CHAT_VIEW_TYPE;
   }
 
   getDisplayText(): string {
