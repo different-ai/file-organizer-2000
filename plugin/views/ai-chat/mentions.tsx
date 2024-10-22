@@ -3,27 +3,40 @@ import React, {
   useEffect,
   useImperativeHandle,
   useState,
-} from 'react';
+} from "react";
 
-export default forwardRef((props: any, ref) => {
+interface MentionItem {
+  id?: string;
+  title: string;
+  content?: string;
+  type?: string;
+  label?: string;
+  path?: string;
+  icon?: string; // New property for item icons
+}
+
+interface MentionsProps {
+  items: MentionItem[];
+  command: (item: MentionItem) => void;
+}
+
+export const Mentions = forwardRef<
+  { onKeyDown: (args: { event: KeyboardEvent }) => boolean },
+  MentionsProps
+>((props, ref) => {
   const [selectedIndex, setSelectedIndex] = useState(0);
 
   const selectItem = (index: number) => {
     const item = props.items[index];
     if (item) {
-      props.command({ 
-        id: item.id || item.title, 
-        title: item.title, 
-        content: item.content,
-        type: item.type,
-        label: item.label || item.title,
-        path: item.path // Add path to the command
-      });
+      props.command(item);
     }
   };
 
   const upHandler = () => {
-    setSelectedIndex((selectedIndex + props.items.length - 1) % props.items.length);
+    setSelectedIndex(
+      (selectedIndex + props.items.length - 1) % props.items.length
+    );
   };
 
   const downHandler = () => {
@@ -38,42 +51,57 @@ export default forwardRef((props: any, ref) => {
 
   useImperativeHandle(ref, () => ({
     onKeyDown: ({ event }: { event: KeyboardEvent }) => {
-      if (event.key === 'ArrowUp') {
+      if (event.key === "ArrowUp") {
         upHandler();
         return true;
       }
-
-      if (event.key === 'ArrowDown') {
+      if (event.key === "ArrowDown") {
         downHandler();
         return true;
       }
-
-      if (event.key === 'Enter' || event.key === 'Tab') {
-        event.preventDefault(); // Prevent default tab behavior
+      if (event.key === "Enter" || event.key === "Tab") {
+        event.preventDefault();
         enterHandler();
-        event.stopPropagation();
         return true;
       }
-
       return false;
     },
   }));
 
   return (
-    <div className="fo2k-dropdown-menu ">
+    <div className="">
       {props.items.length ? (
-        props.items.map((item: any, index: number) => (
-          <button
-            className={`item ${index === selectedIndex ? 'is-selected' : ''}`}
-            key={index}
-            onClick={() => selectItem(index)}
-          >
-            {item.title}
-          </button>
-        ))
+        <ul className="py-1 list-none">
+          {props.items.map((item, index) => (
+            <li key={item.path || item.title} className="list-none">
+              <button
+                className={`w-full text-left px-4 py-2 flex items-center space-x-2 ${
+                  index === selectedIndex
+                    ? "bg-[--background-modifier-active-hover] text-[--text-accent]"
+                    : "text-[--text-normal] hover:bg-[--background-modifier-hover]"
+                }`}
+                onClick={() => selectItem(index)}
+              >
+                {item.icon && (
+                  <span className="text-[--text-muted]">{item.icon}</span>
+                )}
+                <span className="flex-grow truncate">{item.title}</span>
+                {item.type && (
+                  <span className="text-xs text-[--text-muted] bg-[--background-secondary] px-1.5 py-0.5 rounded-full">
+                    {item.type}
+                  </span>
+                )}
+              </button>
+            </li>
+          ))}
+        </ul>
       ) : (
-        <div className="item">No result</div>
+        <div className="px-4 py-2 text-sm text-[--text-muted]">
+          No results found
+        </div>
       )}
     </div>
   );
 });
+
+export default Mentions;

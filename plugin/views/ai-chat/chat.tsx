@@ -26,6 +26,7 @@ import {
 } from "./youtube-transcript";
 import { logMessage } from "../../../utils";
 import { summarizeMeeting, getDailyInformation } from "./screenpipe-utils";
+import { SelectedItem } from "./selected-item";
 
 interface ChatComponentProps {
   plugin: FileOrganizer;
@@ -95,40 +96,6 @@ const filterNotesByDateRange = async (
 
   return fileContents;
 };
-
-const SelectedItem = ({
-  item,
-  onRemove,
-  prefix = "",
-  onClick,
-}: {
-  item: string;
-  onRemove: () => void;
-  prefix?: string;
-  onClick: () => void;
-}) => (
-  <motion.div
-    className="bg-[--background-secondary] text-[--text-normal] rounded px-2 py-1 text-sm m-1 flex gap-1"
-    initial={{ opacity: 0, scale: 0.8 }}
-    animate={{ opacity: 1, scale: 1 }}
-    exit={{ opacity: 0, scale: 0.8 }}
-    transition={{ duration: 0.2 }}
-  >
-    <span
-      onClick={onClick}
-      className="cursor-pointer hover:text-[--text-on-accent]"
-    >
-      {prefix}
-      {sanitizeTag(item)}
-    </span>
-    <div
-      onClick={onRemove}
-      className="text-[--text-muted] hover:text-[--text-normal] cursor-pointer"
-    >
-      ×
-    </div>
-  </motion.div>
-);
 
 export const ChatComponent: React.FC<ChatComponentProps> = ({
   fileContent,
@@ -720,7 +687,14 @@ export const ChatComponent: React.FC<ChatComponentProps> = ({
       <div className="flex-grow overflow-y-auto p-4">
         <div className="flex flex-col min-h-min-content">
           {history.map(message => (
-            <div key={message.id} className={`flex items-start mb-4 ${message.role === 'assistant' ? 'bg-[--background-secondary]' : ''} rounded-lg p-2`}>
+            <div
+              key={message.id}
+              className={`flex items-start mb-4 ${
+                message.role === "assistant"
+                  ? "bg-[--background-secondary]"
+                  : ""
+              } rounded-lg p-2`}
+            >
               <Avatar role={message.role as "user" | "assistant"} />
               <div className="ml-2 p-2 rounded-lg text-[--text-normal]">
                 <AIMarkdown content={message.content} />
@@ -728,7 +702,14 @@ export const ChatComponent: React.FC<ChatComponentProps> = ({
             </div>
           ))}
           {messages.map(message => (
-            <div key={message.id} className={`flex items-start mb-4 ${message.role === 'assistant' ? 'bg-[--background-secondary]' : ''} rounded-lg p-2`}>
+            <div
+              key={message.id}
+              className={`flex items-start mb-4 ${
+                message.role === "assistant"
+                  ? "bg-[--background-secondary]"
+                  : ""
+              } rounded-lg p-2`}
+            >
               <Avatar role={message.role as "user" | "assistant"} />
               <div className="ml-2 p-2 rounded-lg text-[--text-normal]">
                 {message.role === "user" ? (
@@ -755,35 +736,31 @@ export const ChatComponent: React.FC<ChatComponentProps> = ({
         </div>
       </div>
 
-      <div className="p-2">
-        {contextSize / maxContextSize > 0.75 && (
-          <p className="text-sm text-[--text-muted]">
-            Context Size: {Math.round((contextSize / maxContextSize) * 100)}%
-          </p>
-        )}
-        {isContextOverLimit && (
-          <p className="text-sm text-[--text-error]">Warning: Context size exceeds maximum!</p>
-        )}
-      </div>
-
-      {errorMessage && (
-        <div className="bg-[--background-modifier-error] border border-[--text-error] text-[--text-error] px-4 py-3 rounded relative mb-4">
-          {errorMessage}
+      <div className="border-t border-[--background-modifier-border] p-4">
+        <div className="flex items-center space-x-2 mb-4">
           <Button
-            type="button"
-            onClick={() => handleRetry(messages[messages.length - 1].content)}
-            className="ml-4 bg-[--interactive-accent] hover:bg-[--interactive-accent-hover] text-[--text-on-accent] font-bold py-2 px-4 rounded"
+            onClick={() => {
+              /* Open context selection popover */
+            }}
+            className="bg-[--interactive-normal] hover:bg-[--interactive-hover] text-[--text-normal]"
           >
-            Retry
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              viewBox="0 0 24 24"
+              fill="currentColor"
+              className="w-4 h-4 mr-2"
+            >
+              <path
+                fillRule="evenodd"
+                d="M12 3.75a.75.75 0 01.75.75v6.75h6.75a.75.75 0 010 1.5h-6.75v6.75a.75.75 0 01-1.5 0v-6.75H4.5a.75.75 0 010-1.5h6.75V4.5a.75.75 0 01.75-.75z"
+                clipRule="evenodd"
+              />
+            </svg>
+            Add Context{" "}
           </Button>
-        </div>
-      )}
 
-      <div className="mt-4 p-4">
-        <div className="bg-[--background-secondary] rounded-lg px-2 pt-1 pb-3 mb-2 ">
-          <div>
-            <h6 className="text-xs font-semibold text-[--text-normal] ">Context</h6>
-            <div className="flex flex-wrap">
+          <div className="flex-grow overflow-x-auto">
+            <div className="flex space-x-2">
               {fileName && includeCurrentFile && (
                 <SelectedItem
                   key="current-file"
@@ -799,7 +776,7 @@ export const ChatComponent: React.FC<ChatComponentProps> = ({
                   item={file.title}
                   onClick={() => handleOpenFile(file.title)}
                   onRemove={() => handleRemoveFile(file.path)}
-                  prefix=" "
+                  prefix="📄 "
                 />
               ))}
               {selectedFolders.map((folder, index) => (
@@ -847,35 +824,32 @@ export const ChatComponent: React.FC<ChatComponentProps> = ({
                   key="screenpipe-context"
                   item="Screenpipe Data"
                   onClick={() => {
-                    /* You can add an action here if needed */
+                    /* Handle Screenpipe data click */
                   }}
                   onRemove={() => setScreenpipeContext(null)}
                   prefix="📊 "
                 />
               )}
             </div>
-
-            <div className="mt-2">
-              {fileName && !includeCurrentFile && (
-                <Button
-                  onClick={handleAddCurrentFile}
-                  className="mr-2 bg-[--interactive-accent] hover:bg-[--interactive-accent-hover] text-[--text-on-accent] font-bold py-2 px-4 rounded"
-                >
-                  Add Current File to Context
-                </Button>
-              )}
-              {(selectedFiles.length > 0 ||
-                selectedFolders.length > 0 ||
-                selectedTags.length > 0 ||
-                includeCurrentFile ||
-                selectedYouTubeVideos.length > 0 ||
-                screenpipeContext) && (
-                <Button onClick={handleClearAll} className="hover:bg-[--text-error-hover] text-[--text-on-accent] font-bold py-2 px-4 rounded">
-                  Clear All Context
-                </Button>
-              )}
-            </div>
           </div>
+
+          <Button
+            onClick={handleClearAll}
+            className="bg-[--interactive-normal] hover:bg-[--interactive-hover] text-[--text-normal]"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              viewBox="0 0 24 24"
+              fill="currentColor"
+              className="w-4 h-4"
+            >
+              <path
+                fillRule="evenodd"
+                d="M16.5 4.478v.227a48.816 48.816 0 013.878.512.75.75 0 11-.256 1.478l-.209-.035-1.005 13.07a3 3 0 01-2.991 2.77H8.084a3 3 0 01-2.991-2.77L4.087 6.66l-.209.035a.75.75 0 01-.256-1.478A48.567 48.567 0 017.5 4.705v-.227c0-1.564 1.213-2.9 2.816-2.951a52.662 52.662 0 013.369 0c1.603.051 2.815 1.387 2.815 2.951zm-6.136-1.452a51.196 51.196 0 013.273 0C14.39 3.05 15 3.684 15 4.478v.113a49.488 49.488 0 00-6 0v-.113c0-.794.609-1.428 1.364-1.452zm-.355 5.945a.75.75 0 10-1.5.058l.347 9a.75.75 0 101.499-.058l-.346-9zm5.48.058a.75.75 0 10-1.498-.058l-.347 9a.75.75 0 001.5.058l.345-9z"
+                clipRule="evenodd"
+              />
+            </svg>
+          </Button>
         </div>
 
         <form
@@ -914,7 +888,11 @@ export const ChatComponent: React.FC<ChatComponentProps> = ({
                 fill="currentColor"
                 className="w-5 h-5"
               >
-                <path fillRule="evenodd" d="M4.5 7.5a3 3 0 013-3h9a3 3 0 013 3v9a3 3 0 01-3 3h-9a3 3 0 01-3-3v-9z" clipRule="evenodd" />
+                <path
+                  fillRule="evenodd"
+                  d="M4.5 7.5a3 3 0 013-3h9a3 3 0 013 3v9a3 3 0 01-3 3h-9a3 3 0 01-3-3v-9z"
+                  clipRule="evenodd"
+                />
               </svg>
             ) : (
               <svg
@@ -928,23 +906,6 @@ export const ChatComponent: React.FC<ChatComponentProps> = ({
             )}
           </Button>
         </form>
-        <div className="mt-2 text-sm text-[--text-muted] p-4">
-          <div className="mb-1">
-            <span className="font-bold">Tip 1️⃣</span>
-            <span className="ml-2">
-              To add more files to the AI context, mention them in the chat
-              using the format @filename
-            </span>
-          </div>
-          <div>
-            <span className="font-bold">Tip 2️⃣</span>
-            <span className="ml-2">
-              Or use prompts like "get notes from this week" or "get YouTube
-              transcript", then follow up with your question (e.g. "summarize my
-              notes/transcript") in a separate message
-            </span>
-          </div>
-        </div>
       </div>
 
       {isContextOverLimit && (
