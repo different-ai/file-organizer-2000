@@ -7,7 +7,8 @@ import React, {
 } from "react";
 import { useChat, UseChatOptions } from "@ai-sdk/react";
 import { getEncoding } from "js-tiktoken";
-import { TFolder, TFile, moment, App } from "obsidian";
+import { TFolder, TFile, moment, App, debounce } from "obsidian";
+
 
 import FileOrganizer from "../..";
 import Tiptap from "./tiptap";
@@ -15,7 +16,6 @@ import { Button } from "./button";
 import { usePlugin } from "./provider";
 
 import { logMessage } from "../../../utils";
-import { summarizeMeeting, getDailyInformation } from "./screenpipe-utils";
 import { SelectedItem } from "./selected-item";
 import { MessageRenderer } from "./message-renderer";
 import ToolInvocationHandler from "./tool-invocation-handler";
@@ -133,6 +133,7 @@ export const ChatComponent: React.FC<ChatComponentProps> = ({
 
   logMessage(unifiedContext, "unifiedContext");
 
+
   // Log all the selected stuff
   useEffect(() => {
     // logMessage(selectedFiles, "selectedFiles");
@@ -140,53 +141,6 @@ export const ChatComponent: React.FC<ChatComponentProps> = ({
     logMessage(selectedFolders, "selectedFolders");
     logMessage(selectedYouTubeVideos, "selectedYouTubeVideos");
   }, [selectedFiles, selectedTags, selectedFolders, selectedYouTubeVideos]);
-
-  const getLastModifiedFiles = async (count: number) => {
-    const files = plugin.getAllUserMarkdownFiles();
-    const sortedFiles = files.sort((a, b) => b.stat.mtime - a.stat.mtime);
-    const lastModifiedFiles = sortedFiles.slice(0, count);
-
-    const fileContents = await Promise.all(
-      lastModifiedFiles.map(async file => ({
-        title: file.basename,
-        content: await plugin.app.vault.read(file),
-        path: file.path,
-      }))
-    );
-
-    return fileContents; // Make sure to stringify the result
-  };
-
-  const handleScreenpipeAction = async (toolCall: any) => {
-    if (!plugin.settings.enableScreenpipe) {
-      return "Screenpipe integration is not enabled. Please enable it in the plugin settings.";
-    }
-
-    switch (toolCall.toolName) {
-      case "summarizeMeeting":
-        const { duration } = toolCall.args as { duration: number };
-        try {
-          const result = await summarizeMeeting(duration);
-          setScreenpipeContext(result);
-          return JSON.stringify(result);
-        } catch (error) {
-          console.error("Error summarizing meeting:", error);
-          return JSON.stringify({ error: error.message });
-        }
-      case "getDailyInformation":
-        const { date } = toolCall.args as { date?: string };
-        try {
-          const result = await getDailyInformation(date);
-          setScreenpipeContext(result);
-          return JSON.stringify(result);
-        } catch (error) {
-          console.error("Error getting daily information:", error);
-          return JSON.stringify({ error: error.message });
-        }
-      default:
-        return "Unknown Screenpipe action";
-    }
-  };
 
   // Create a memoized body object that updates when its dependencies change
   const chatBody = useMemo(
@@ -207,6 +161,7 @@ export const ChatComponent: React.FC<ChatComponentProps> = ({
     stop,
     addToolResult,
   } = useChat({
+    
     maxSteps: 2,
     api: `${plugin.getServerUrl()}/api/chat`,
     body: chatBody,
@@ -371,6 +326,34 @@ export const ChatComponent: React.FC<ChatComponentProps> = ({
   const handleAddCurrentFile = () => {
     setIncludeCurrentFile(true);
   };
+  useEffect(() => {
+    // Create a debounced version of the file change handler
+    const debouncedFileChange = debounce(async (file: TFile) => {
+      const content = await app.vault.read(file);
+      setUnifiedContext(prev => {
+        const filtered = prev.filter(item => item.path !== file.path);
+        return [...filtered, {
+          title: file.basename,
+          content: content,
+          path: file.path,
+          reference: `Current File: ${file.basename}`,
+        }];
+      });
+    }, 1000); // 1 second delay
+
+    // Set up the event listener
+    const onActiveFileChange = (file: TFile) => {
+      debouncedFileChange(file);
+    };
+
+    app.vault.on("modify", onActiveFileChange);
+
+    // Cleanup
+    return () => {
+      app.vault.off("modify", onActiveFileChange);
+      debouncedFileChange.cancel();
+    };
+  }, [fileName, app.vault]);
 
   useEffect(() => {
     const updateUnifiedContext = async () => {
