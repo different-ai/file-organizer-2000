@@ -3,23 +3,12 @@ import { NextResponse, NextRequest } from "next/server";
 import { incrementAndLogTokenUsage } from "@/lib/incrementAndLogTokenUsage";
 import { handleAuthorization } from "@/lib/handleAuthorization";
 import { z } from "zod";
+import { openai } from "@ai-sdk/openai";
 import { parseISO, isValid } from "date-fns";
 
-import { ollama } from "ollama-ai-provider";
-import { getModel } from "@/lib/models";
-
 export const maxDuration = 60;
-const USE_LLAMA_FOR_CHAT = process.env.USE_LLAMA_FOR_CHAT === "true";
-const MODEL_NAME = USE_LLAMA_FOR_CHAT
-  ? process.env.OLLAMA_MODEL
-  : process.env.MODEL_NAME;
 
 export async function POST(req: NextRequest) {
-  const useLLama = USE_LLAMA_FOR_CHAT;
-  console.log("Chat:");
-  console.log("Using llama for chat:", useLLama);
-  console.log("Using model for chat:", MODEL_NAME);
-  const model = useLLama ? ollama(MODEL_NAME) : getModel(MODEL_NAME);
   try {
     const { userId } = await handleAuthorization(req);
     const { messages, unifiedContext, enableScreenpipe, currentDatetime } =
@@ -34,7 +23,7 @@ export async function POST(req: NextRequest) {
       .join("\n\n");
 
     const result = await streamText({
-      model,
+      model: openai(process.env.MODEL_NAME || "gpt-4o-2024-08-06", {}),
       system: `You are a helpful assistant with access to various files, notes, YouTube video transcripts, and Screenpipe data. Your context includes:
 
 ${contextString}
@@ -65,96 +54,90 @@ Always use these formats when referencing context items. Use numbered references
 Recognize and handle requests like:
 - "Summarize the meeting I had just now": Use the summarizeMeeting tool
 - "Summarize my day": Use the getDailyInformation tool
-Adapt to various summarization or content-specific requests based on the user's input and available context.
-
-only use tools if the user asks for them.
-
-`,
+Adapt to various summarization or content-specific requests based on the user's input and available context.`,
       messages: convertToCoreMessages(messages),
-      // Only include tools if not using Llama
-      tools: useLLama
-        ? undefined
-        : {
-            getNotesForDateRange: {
-              description: `If user asks for notes related to a date, get notes within a specified date range. Today is ${
-                new Date().toISOString().split("T")[0]
-              }`,
-              parameters: z.object({
-                startDate: z
-                  .string()
-                  .describe("Start date of the range (ISO format)")
-                  .refine((date) => isValid(parseISO(date)), {
-                    message: "Invalid start date format",
-                  }),
-                endDate: z
-                  .string()
-                  .describe("End date of the range (ISO format)")
-                  .refine((date) => isValid(parseISO(date)), {
-                    message: "Invalid end date format",
-                  }),
+      tools: {
+        getNotesForDateRange: {
+          description: `If user asks for notes related to a date, get notes within a specified date range. Today is ${
+            new Date().toISOString().split("T")[0]
+          }`,
+          parameters: z.object({
+            startDate: z
+              .string()
+              .describe("Start date of the range (ISO format)")
+              .refine((date) => isValid(parseISO(date)), {
+                message: "Invalid start date format",
               }),
-            },
-            getSearchQuery: {
-              description: "Extract queries to search for notes",
-              parameters: z.object({
-                query: z
-                  .string()
-                  .describe("The search query to find relevant notes"),
+            endDate: z
+              .string()
+              .describe("End date of the range (ISO format)")
+              .refine((date) => isValid(parseISO(date)), {
+                message: "Invalid end date format",
               }),
-            },
-            getYoutubeVideoId: {
-              description: "Get the YouTube video ID from a URL",
-              parameters: z.object({
-                videoId: z.string().describe("The YouTube video ID"),
-              }),
-            },
-            getLastModifiedFiles: {
-              description: "Get the last modified files in the vault",
-              parameters: z.object({
-                count: z
-                  .number()
-                  .describe("The number of last modified files to retrieve"),
-              }),
-            },
-            ...(enableScreenpipe
-              ? {
-                  summarizeMeeting: {
-                    description:
-                      "Summarize a recent meeting using Screenpipe audio data",
-                    parameters: z.object({
-                      duration: z
-                        .number()
-                        .describe(
-                          "Duration of the meeting in minutes (default: 60)"
-                        )
-                        .default(60),
-                    }),
-                    execute: async ({ duration }) => {
-                      // This will be handled client-side
-                      return JSON.stringify({ duration });
-                    },
-                  },
-                  getDailyInformation: {
-                    description:
-                      "Get information about the user's day using Screenpipe data",
-                    parameters: z.object({
-                      date: z
-                        .string()
-                        .describe(
-                          "The date to analyze (ISO format, default: today)"
-                        )
-                        .optional(),
-                    }),
-                    execute: async ({ date }) => {
-                      // This will be handled client-side
-                      return JSON.stringify({
-                        date: date || new Date().toISOString().split("T")[0],
-                      });
-                    },
-                  },
-                }
-              : {}),
-          },
+          }),
+        },
+        getSearchQuery: {
+          description: "Extract queries to search for notes",
+          parameters: z.object({
+            query: z
+              .string()
+              .describe("The search query to find relevant notes"),
+          }),
+        },
+        getYoutubeVideoId: {
+          description: "Get the YouTube video ID from a URL",
+          parameters: z.object({
+            videoId: z.string().describe("The YouTube video ID"),
+          }),
+        },
+        getLastModifiedFiles: {
+          description: "Get the last modified files in the vault",
+          parameters: z.object({
+            count: z
+              .number()
+              .describe("The number of last modified files to retrieve"),
+          }),
+ 
+        },
+        ...(enableScreenpipe
+          ? {
+              summarizeMeeting: {
+                description:
+                  "Summarize a recent meeting using Screenpipe audio data",
+                parameters: z.object({
+                  duration: z
+                    .number()
+                    .describe(
+                      "Duration of the meeting in minutes (default: 60)"
+                    )
+                    .default(60),
+                }),
+                execute: async ({ duration }) => {
+                  // This will be handled client-side
+                  return JSON.stringify({ duration });
+                },
+              },
+              getDailyInformation: {
+                description:
+                  "Get information about the user's day using Screenpipe data",
+                parameters: z.object({
+                  date: z
+                    .string()
+                    .describe(
+                      "The date to analyze (ISO format, default: today)"
+                    )
+                    .optional(),
+                }),
+                execute: async ({ date }) => {
+                  // This will be handled client-side
+                  return JSON.stringify({
+                    date: date || new Date().toISOString().split("T")[0],
+                  });
+                },
+              },
+            }
+          : {}),
+      },
       onFinish: async ({ usage }) => {
         console.log("Token usage:", usage);
         await incrementAndLogTokenUsage(userId, usage.totalTokens);
@@ -182,4 +165,19 @@ only use tools if the user asks for them.
       { status: error.status || 500 }
     );
   }
+}
+
+// Add OPTIONS method to handle preflight requests
+export async function OPTIONS() {
+  const response = new NextResponse(null, { status: 200 });
+  response.headers.set("Access-Control-Allow-Origin", "*");
+  response.headers.set(
+    "Access-Control-Allow-Methods",
+    "GET, POST, PUT, DELETE, OPTIONS"
+  );
+  response.headers.set(
+    "Access-Control-Allow-Headers",
+    "Content-Type, Authorization"
+  );
+  return response;
 }
