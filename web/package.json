@@ -16,7 +16,7 @@
   },
   "dependencies": {
     "@ai-sdk/anthropic": "^0.0.9",
-    "@ai-sdk/openai": "^0.0.44",
+    "@ai-sdk/openai": "^0.0.68",
     "@clerk/nextjs": "^5.7.5",
     "@radix-ui/react-label": "^2.1.0",
     "@radix-ui/react-select": "^2.1.2",
@@ -30,7 +30,7 @@
     "@u22n/srm": "github:un/srm",
     "@unkey/api": "^0.19.5",
     "@vercel/postgres": "^0.8.0",
-    "ai": "^3.4.18",
+    "ai": "^3.4.17",
     "autoprefixer": "10.4.16",
     "class-variance-authority": "^0.7.0",
     "clsx": "^2.1.1",

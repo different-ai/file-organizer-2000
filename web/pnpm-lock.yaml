@@ -9,8 +9,8 @@ dependencies:
     specifier: ^0.0.9
     version: 0.0.9(zod@3.23.8)
   '@ai-sdk/openai':
-    specifier: ^0.0.44
-    version: 0.0.44(zod@3.23.8)
+    specifier: ^0.0.68
+    version: 0.0.68(zod@3.23.8)
   '@clerk/nextjs':
     specifier: ^5.7.5
     version: 5.7.5(next@14.2.16)(react-dom@18.2.0)(react@18.2.0)
@@ -51,8 +51,8 @@ dependencies:
     specifier: ^0.8.0
     version: 0.8.0
   ai:
-    specifier: ^3.4.18
-    version: 3.4.18(openai@4.68.2)(react@18.2.0)(svelte@5.0.5)(vue@3.5.12)(zod@3.23.8)
+    specifier: ^3.4.17
+    version: 3.4.17(openai@4.68.2)(react@18.2.0)(svelte@5.0.5)(vue@3.5.12)(zod@3.23.8)
   autoprefixer:
     specifier: 10.4.16
     version: 10.4.16(postcss@8.4.31)
@@ -166,14 +166,14 @@ packages:
       zod: 3.23.8
     dev: false
 
-  /@ai-sdk/openai@0.0.44(zod@3.23.8):
-    resolution: {integrity: sha512-fIUypicSnuWIOdoRG+dgzAnZDWQrhzqyUvQaLC8hQB6UDAUXkn8sIPdsqKEV35vs3mNXDz/KZ4EEeLxSVGrzMg==}
+  /@ai-sdk/openai@0.0.68(zod@3.23.8):
+    resolution: {integrity: sha512-WSzB7qpBTrnYvFbnBBmIsw1G8GM04JRMr+I7B5T7msgZfleG4cTvVrn9A1HeHHw9TmbKiaCKJrEZH4V0lb7jNQ==}
     engines: {node: '>=18'}
     peerDependencies:
       zod: ^3.0.0
     dependencies:
-      '@ai-sdk/provider': 0.0.17
-      '@ai-sdk/provider-utils': 1.0.9(zod@3.23.8)
+      '@ai-sdk/provider': 0.0.24
+      '@ai-sdk/provider-utils': 1.0.20(zod@3.23.8)
       zod: 3.23.8
     dev: false
 
@@ -207,29 +207,6 @@ packages:
       nanoid: 3.3.6
       secure-json-parse: 2.7.0
       zod: 3.23.8
-    dev: false
-
-  /@ai-sdk/provider-utils@1.0.9(zod@3.23.8):
-    resolution: {integrity: sha512-yfdanjUiCJbtGoRGXrcrmXn0pTyDfRIeY6ozDG96D66f2wupZaZvAgKptUa3zDYXtUCQQvcNJ+tipBBfQD/UYA==}
-    engines: {node: '>=18'}
-    peerDependencies:
-      zod: ^3.0.0
-    peerDependenciesMeta:
-      zod:
-        optional: true
-    dependencies:
-      '@ai-sdk/provider': 0.0.17
-      eventsource-parser: 1.1.2
-      nanoid: 3.3.6
-      secure-json-parse: 2.7.0
-      zod: 3.23.8
-    dev: false
-
-  /@ai-sdk/provider@0.0.17:
-    resolution: {integrity: sha512-f9j+P5yYRkqKFHxvWae5FI0j6nqROPCoPnMkpc2hc2vC7vKjqzrxBJucD8rpSaUjqiBnY/QuRJ0QeV717Uz5tg==}
-    engines: {node: '>=18'}
-    dependencies:
-      json-schema: 0.4.0
     dev: false
 
   /@ai-sdk/provider@0.0.24:
@@ -2166,8 +2143,8 @@ packages:
       humanize-ms: 1.2.1
     dev: false
 
-  /ai@3.4.18(openai@4.68.2)(react@18.2.0)(svelte@5.0.5)(vue@3.5.12)(zod@3.23.8):
-    resolution: {integrity: sha512-dc6rSBDgaRMX4VgTBsUZwEN5tBWMpJd+MJxB05E2cL4ft9mOmQEZNS6yeu4Ci5rUDj4ZhnmvANHrP7td8Ko9Og==}
+  /ai@3.4.17(openai@4.68.2)(react@18.2.0)(svelte@5.0.5)(vue@3.5.12)(zod@3.23.8):
+    resolution: {integrity: sha512-QZc+NgNlzPT34ZTHaCGGXVJ+stbMLj98hwq+vJaIzD1lns6HlDatrmlFjJsYYf8FtnfqGV7yPNu8DrH8a274vA==}
     engines: {node: '>=18'}
     peerDependencies:
       openai: ^4.42.0
