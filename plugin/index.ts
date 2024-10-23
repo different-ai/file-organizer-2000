@@ -959,8 +959,15 @@ export default class FileOrganizer extends Plugin {
       }
       case validImageExtensions.includes(file.extension):
         return await this.generateImageAnnotation(file);
-      case validAudioExtensions.includes(file.extension):
-        return await this.generateTranscriptFromAudio(file);
+      case validAudioExtensions.includes(file.extension): {
+        // Change this part to consume the iterator
+        const transcriptIterator = await this.generateTranscriptFromAudio(file);
+        let transcriptText = "";
+        for await (const chunk of transcriptIterator) {
+          transcriptText += chunk;
+        }
+        return transcriptText;
+      }
       default:
         throw new Error(`Unsupported file type: ${file.extension}`);
     }
