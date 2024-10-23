@@ -9,7 +9,6 @@ import { useChat, UseChatOptions } from "@ai-sdk/react";
 import { getEncoding } from "js-tiktoken";
 import { TFolder, TFile, moment, App, debounce } from "obsidian";
 
-
 import FileOrganizer from "../..";
 import Tiptap from "./tiptap";
 import { Button } from "./button";
@@ -19,6 +18,8 @@ import { logMessage } from "../../../utils";
 import { SelectedItem } from "./selected-item";
 import { MessageRenderer } from "./message-renderer";
 import ToolInvocationHandler from "./tool-invocation-handler";
+import { YouTubeHandler } from "./components/youtube-handler";
+import { ToolInvocation } from "ai";
 
 interface ChatComponentProps {
   plugin: FileOrganizer;
@@ -38,7 +39,14 @@ interface ChatComponentProps {
       path: string;
     }[]
   ) => void;
-  onLastModifiedResults: (results: { title: string; content: string; reference: string; path: string }[]) => void;
+  onLastModifiedResults: (
+    results: {
+      title: string;
+      content: string;
+      reference: string;
+      path: string;
+    }[]
+  ) => void;
 }
 
 const filterNotesByDateRange = async (
@@ -133,7 +141,6 @@ export const ChatComponent: React.FC<ChatComponentProps> = ({
 
   logMessage(unifiedContext, "unifiedContext");
 
-
   // Log all the selected stuff
   useEffect(() => {
     // logMessage(selectedFiles, "selectedFiles");
@@ -161,7 +168,6 @@ export const ChatComponent: React.FC<ChatComponentProps> = ({
     stop,
     addToolResult,
   } = useChat({
-    
     maxSteps: 2,
     api: `${plugin.getServerUrl()}/api/chat`,
     body: chatBody,
@@ -179,7 +185,6 @@ export const ChatComponent: React.FC<ChatComponentProps> = ({
     onFinish: () => {
       setErrorMessage(null);
     },
-
   } as UseChatOptions);
 
   const formRef = useRef<HTMLFormElement>(null);
@@ -332,12 +337,15 @@ export const ChatComponent: React.FC<ChatComponentProps> = ({
       const content = await app.vault.read(file);
       setUnifiedContext(prev => {
         const filtered = prev.filter(item => item.path !== file.path);
-        return [...filtered, {
-          title: file.basename,
-          content: content,
-          path: file.path,
-          reference: `Current File: ${file.basename}`,
-        }];
+        return [
+          ...filtered,
+          {
+            title: file.basename,
+            content: content,
+            path: file.path,
+            reference: `Current File: ${file.basename}`,
+          },
+        ];
       });
     }, 1000); // 1 second delay
 
@@ -566,14 +574,24 @@ export const ChatComponent: React.FC<ChatComponentProps> = ({
     []
   );
 
-  const handleLastModifiedResults = useCallback((results: { title: string; content: string; reference: string; path: string }[]) => {
-    setSelectedFiles(prevFiles => {
-      const newFiles = results.filter(
-        file => !prevFiles.some(prevFile => prevFile.path === file.path)
-      );
-      return [...prevFiles, ...newFiles];
-    });
-  }, []);
+  const handleLastModifiedResults = useCallback(
+    (
+      results: {
+        title: string;
+        content: string;
+        reference: string;
+        path: string;
+      }[]
+    ) => {
+      setSelectedFiles(prevFiles => {
+        const newFiles = results.filter(
+          file => !prevFiles.some(prevFile => prevFile.path === file.path)
+        );
+        return [...prevFiles, ...newFiles];
+      });
+    },
+    []
+  );
 
   return (
     <div className="flex flex-col h-full max-h-screen bg-[--background-primary]">
@@ -582,19 +600,23 @@ export const ChatComponent: React.FC<ChatComponentProps> = ({
           {messages.map(message => (
             <React.Fragment key={message.id}>
               <MessageRenderer message={message} />
-              {message.toolInvocations?.map((toolInvocation: any) => (
-                <ToolInvocationHandler
-                  key={toolInvocation.toolCallId}
-                  toolInvocation={toolInvocation}
-                  addToolResult={addToolResult}
-                  results={toolInvocation.results}
-                  onYoutubeTranscript={handleYouTubeTranscript}
-                  onSearchResults={handleSearchResults}
-                  onDateRangeResults={handleDateRangeResults}
-                  onLastModifiedResults={handleLastModifiedResults}
-                  app={app}
-                />
-              ))}
+              {message.toolInvocations?.map(
+                (toolInvocation: ToolInvocation) => {
+                  return (
+                    <ToolInvocationHandler
+                      key={toolInvocation.toolCallId}
+                      toolInvocation={toolInvocation}
+                      addToolResult={addToolResult}
+                      results={toolInvocation.state}
+                      onYoutubeTranscript={handleYouTubeTranscript}
+                      onSearchResults={handleSearchResults}
+                      onDateRangeResults={handleDateRangeResults}
+                      onLastModifiedResults={handleLastModifiedResults}
+                      app={app}
+                    />
+                  );
+                }
+              )}
             </React.Fragment>
           ))}
           <div ref={messagesEndRef} />

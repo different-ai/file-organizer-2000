@@ -99,6 +99,8 @@ function SearchHandler({
   app: App;
 }) {
   const [results, setResults] = useState<any[]>([]);
+  const hasFetchedRef = React.useRef(false);
+
   const searchNotes = async (query: string) => {
     const files = app.vault.getMarkdownFiles();
     const searchTerms = query.toLowerCase().split(/\s+/);
@@ -128,23 +130,27 @@ function SearchHandler({
     return searchResults.filter(result => result !== null);
   };
 
-  const handleSearchNotes = async () => {
-    const { query } = toolInvocation.args;
-    try {
-      const searchResults = await searchNotes(query);
-      setResults(searchResults);
-      onSearchResults(searchResults);
-      handleAddResult(JSON.stringify(searchResults));
-      return searchResults;
-    } catch (error) {
-      console.error("Error searching notes:", error);
-      handleAddResult(JSON.stringify({ error: error.message }));
-      return { error: error.message };
-    }
-  };
+  React.useEffect(() => {
+    const handleSearchNotes = async () => {
+      if (!hasFetchedRef.current && !("result" in toolInvocation)) {
+        hasFetchedRef.current = true;
+        const { query } = toolInvocation.args;
+        try {
+          const searchResults = await searchNotes(query);
+          setResults(searchResults);
+          onSearchResults(searchResults);
+          handleAddResult(JSON.stringify(searchResults));
+        } catch (error) {
+          console.error("Error searching notes:", error);
+          handleAddResult(JSON.stringify({ error: error.message }));
+        }
+      }
+    };
+
+    handleSearchNotes();
+  }, [toolInvocation, handleAddResult, onSearchResults, app]);
 
   if (!("result" in toolInvocation)) {
-    handleSearchNotes();
     return (
       <div className="text-sm text-[--text-muted]">
         Searching through your notes...
@@ -180,6 +186,7 @@ function DateRangeHandler({
   app: App;
 }) {
   const [results, setResults] = useState<any[]>([]);
+  const hasFetchedRef = React.useRef(false);
 
   const filterNotesByDateRange = async (startDate: string, endDate: string) => {
     const files = app.vault.getMarkdownFiles();
@@ -211,23 +218,27 @@ function DateRangeHandler({
     return fileContents;
   };
 
-  const handleDateRangeSearch = async () => {
-    const { startDate, endDate } = toolInvocation.args;
-    try {
-      const searchResults = await filterNotesByDateRange(startDate, endDate);
-      setResults(searchResults);
-      onDateRangeResults(searchResults);
-      handleAddResult(JSON.stringify(searchResults));
-      return searchResults;
-    } catch (error) {
-      console.error("Error filtering notes by date:", error);
-      handleAddResult(JSON.stringify({ error: error.message }));
-      return { error: error.message };
-    }
-  };
+  React.useEffect(() => {
+    const handleDateRangeSearch = async () => {
+      if (!hasFetchedRef.current && !("result" in toolInvocation)) {
+        hasFetchedRef.current = true;
+        const { startDate, endDate } = toolInvocation.args;
+        try {
+          const searchResults = await filterNotesByDateRange(startDate, endDate);
+          setResults(searchResults);
+          onDateRangeResults(searchResults);
+          handleAddResult(JSON.stringify(searchResults));
+        } catch (error) {
+          console.error("Error filtering notes by date:", error);
+          handleAddResult(JSON.stringify({ error: error.message }));
+        }
+      }
+    };
+
+    handleDateRangeSearch();
+  }, [toolInvocation, handleAddResult, onDateRangeResults, app]);
 
   if (!("result" in toolInvocation)) {
-    handleDateRangeSearch();
     return (
       <div className="text-sm text-[--text-muted]">
         Filtering notes by date range...
@@ -263,6 +274,7 @@ function LastModifiedHandler({
   app: App;
 }) {
   const [results, setResults] = useState<any[]>([]);
+  const hasFetchedRef = React.useRef(false);
 
   const getLastModifiedFiles = async (count: number) => {
     const files = app.vault.getMarkdownFiles();
@@ -280,23 +292,27 @@ function LastModifiedHandler({
     return fileContents; // Make sure to stringify the result
   };
 
-  const handleLastModifiedSearch = async () => {
-    const { count } = toolInvocation.args;
-    try {
-      const searchResults = await getLastModifiedFiles(count);
-      setResults(searchResults);
-      onLastModifiedResults(searchResults);
-      handleAddResult(JSON.stringify(searchResults));
-      return searchResults;
-    } catch (error) {
-      console.error("Error getting last modified files:", error);
-      handleAddResult(JSON.stringify({ error: error.message }));
-      return { error: error.message };
-    }
-  };
+  React.useEffect(() => {
+    const handleLastModifiedSearch = async () => {
+      if (!hasFetchedRef.current && !("result" in toolInvocation)) {
+        hasFetchedRef.current = true;
+        const { count } = toolInvocation.args;
+        try {
+          const searchResults = await getLastModifiedFiles(count);
+          setResults(searchResults);
+          onLastModifiedResults(searchResults);
+          handleAddResult(JSON.stringify(searchResults));
+        } catch (error) {
+          console.error("Error getting last modified files:", error);
+          handleAddResult(JSON.stringify({ error: error.message }));
+        }
+      }
+    };
+
+    handleLastModifiedSearch();
+  }, [toolInvocation, handleAddResult, onLastModifiedResults, app]);
 
   if (!("result" in toolInvocation)) {
-    handleLastModifiedSearch();
     return (
       <div className="text-sm text-[--text-muted]">
         Fetching last modified files...
