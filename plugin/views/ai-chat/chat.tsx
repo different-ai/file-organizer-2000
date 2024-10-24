@@ -6,7 +6,6 @@ import React, {
   useMemo,
 } from "react";
 import { useChat, UseChatOptions } from "@ai-sdk/react";
-import { getEncoding } from "js-tiktoken";
 import { TFolder, TFile, moment, App, debounce } from "obsidian";
 
 import FileOrganizer from "../..";
@@ -18,8 +17,12 @@ import { logMessage } from "../../../utils";
 import { SelectedItem } from "./selected-item";
 import { MessageRenderer } from "./message-renderer";
 import ToolInvocationHandler from "./tool-invocation-handler";
-import { YouTubeHandler } from "./components/youtube-handler";
-import { ToolInvocation } from "ai";
+import { convertToCoreMessages, streamText, ToolInvocation } from "ai";
+import { ollama } from "ollama-ai-provider";
+import { getChatSystemPrompt } from "../../../web/lib/prompts/chat-prompt";
+import { ContextLimitIndicator } from "./context-limit-indicator";
+import { ModelSelector } from "./model-selector";
+import { ModelType } from "./types";
 
 interface ChatComponentProps {
   plugin: FileOrganizer;
@@ -135,8 +138,6 @@ export const ChatComponent: React.FC<ChatComponentProps> = ({
   const [selectedYouTubeVideos, setSelectedYouTubeVideos] = useState<
     { videoId: string; title: string; transcript: string }[]
   >([]);
-  const [contextSize, setContextSize] = useState(0);
-  const [maxContextSize, setMaxContextSize] = useState(80 * 1000); // Default to GPT-3.5-turbo
   const [screenpipeContext, setScreenpipeContext] = useState<any>(null);
 
   logMessage(unifiedContext, "unifiedContext");
@@ -174,6 +175,45 @@ export const ChatComponent: React.FC<ChatComponentProps> = ({
     headers: {
       "Content-Type": "application/json",
       Authorization: `Bearer ${apiKey}`,
+    },
+    fetch: async (url, options) => {
+      logMessage(plugin.settings.showLocalLLMInChat, "showLocalLLMInChat");
+      logMessage(selectedModel, "selectedModel");
+      // local llm disabled or using gpt-4o
+      if (!plugin.settings.showLocalLLMInChat) {
+        // return normal server fetch
+        return fetch(url, options);
+      }
+      if (selectedModel === "gpt-4o") {
+        return fetch(url, options);
+      }
+
+      if (selectedModel === "llama3.2") {
+        const { messages, unifiedContext } = JSON.parse(options.body as string);
+
+        const contextString = unifiedContext
+          .map(file => {
+            // this should be better formatted Start with path, title, reference, content
+            return `Path: ${file.path}\nTitle: ${file.title}\nReference: ${file.reference}\nContent:\n${file.content}`;
+          })
+          .join("\n\n-------\n\n");
+        console.log(contextString, "contextString");
+
+        const result = await streamText({
+          model: ollama("llama3.2"),
+          system: getChatSystemPrompt(
+            contextString,
+            plugin.settings.enableScreenpipe,
+            moment().format("YYYY-MM-DDTHH:mm:ssZ")
+          ),
+          messages: convertToCoreMessages(messages),
+        });
+
+        return result.toDataStreamResponse();
+      }
+
+      // Default fetch behavior for remote API
+      return fetch(url, options);
     },
     keepLastMessageOnError: true,
     onError: error => {
@@ -495,22 +535,7 @@ export const ChatComponent: React.FC<ChatComponentProps> = ({
     );
   };
 
-  useEffect(() => {
-    const calculateContextSize = () => {
-      const encoding = getEncoding("o200k_base");
-
-      let totalTokens = 0;
-      unifiedContext.forEach(item => {
-        totalTokens += encoding.encode(item.content).length;
-      });
-
-      setContextSize(totalTokens);
-    };
-
-    calculateContextSize();
-  }, [unifiedContext]);
-
-  const isContextOverLimit = contextSize > maxContextSize;
+  const [maxContextSize] = useState(80 * 1000); // Keep this one
 
   const handleActionButton = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -592,6 +617,9 @@ export const ChatComponent: React.FC<ChatComponentProps> = ({
     },
     []
   );
+
+  // Update state to default to gpt-4
+  const [selectedModel, setSelectedModel] = useState<ModelType>("gpt-4o");
 
   return (
     <div className="flex flex-col h-full max-h-screen bg-[--background-primary]">
@@ -744,7 +772,7 @@ export const ChatComponent: React.FC<ChatComponentProps> = ({
           onSubmit={handleActionButton}
           className="flex items-end"
         >
-          <div className="flex-grow max-h-40 overflow-y-auto" ref={inputRef}>
+          <div className="flex-grow overflow-y-auto" ref={inputRef}>
             <Tiptap
               value={input}
               onChange={handleTiptapChange}
@@ -763,10 +791,9 @@ export const ChatComponent: React.FC<ChatComponentProps> = ({
             type="submit"
             className={`h-full ml-2 font-bold py-2 px-4 rounded ${
               isGenerating
-                ? "bg-[--text-warning] hover:bg-[--text-warning-hover]"
-                : "bg-[--interactive-accent] hover:bg-[--interactive-accent-hover]"
-            } text-[--text-on-accent]`}
-            disabled={isContextOverLimit}
+                ? "bg-[--background-modifier-form-field] text-[--text-muted] cursor-not-allowed"
+                : "bg-[--interactive-accent] hover:bg-[--interactive-accent-hover] text-[--text-on-accent]"
+            }`}
           >
             {isGenerating ? (
               <svg
@@ -793,13 +820,18 @@ export const ChatComponent: React.FC<ChatComponentProps> = ({
             )}
           </Button>
         </form>
-      </div>
 
-      {isContextOverLimit && (
-        <div className="mt-2 p-2 bg-[--background-modifier-error] border border-[--text-error] text-[--text-error] rounded">
-          Context size exceeds maximum. Please remove some context to continue.
+        <div className="flex items-center justify-between">
+          <ContextLimitIndicator
+            unifiedContext={unifiedContext}
+            maxContextSize={maxContextSize}
+          />
+            <ModelSelector
+              selectedModel={selectedModel}
+              onModelSelect={setSelectedModel}
+            />
         </div>
-      )}
+      </div>
     </div>
   );
 };

@@ -28,15 +28,10 @@ export class FileOrganizerSettings {
   useFolderEmbeddings = false;
   useVaultTitles = true;
   enableFileRenaming = true;
-  userModels: {
-    [key: string]: {
-      url: string;
-      apiKey: string;
-      provider: "openai" | "ollama" | "anthropic";
-    };
-  } = {};
+  showLocalLLMInChat = false;
   enableCustomFolderInstructions = false;
   customFolderInstructions = "";
+  selectedModel: "gpt-4o" | "llama3.2" = "gpt-4o";
 }
 
 export const DEFAULT_SETTINGS = new FileOrganizerSettings();
