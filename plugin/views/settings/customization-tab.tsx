@@ -23,6 +23,7 @@ export const CustomizationTab: React.FC<CustomizationTabProps> = ({ plugin }) =>
   const [enableCustomFolderInstructions, setEnableCustomFolderInstructions] = useState(plugin.settings.enableCustomFolderInstructions);
   const [customFolderInstructions, setCustomFolderInstructions] = useState(plugin.settings.customFolderInstructions);
   const [enableDocumentClassification, setEnableDocumentClassification] = useState(plugin.settings.enableDocumentClassification);
+  const [useLocalChat, setUseLocalChat] = useState(plugin.settings.useLocalChat);
 
   const handleToggleChange = async (value: boolean, setter: React.Dispatch<React.SetStateAction<boolean>>, settingKey: keyof typeof plugin.settings) => {
     setter(value);
@@ -169,6 +170,13 @@ export const CustomizationTab: React.FC<CustomizationTabProps> = ({ plugin }) =>
         description="Use Fabric-like prompt structure for document formatting."
         value={enableFabric}
         onChange={(value) => handleToggleChange(value, setEnableFabric, 'enableFabric')}
+      />
+
+      <ToggleSetting
+        name="Use Local Chat"
+        description="Toggle to use local chat instead of server-based chat"
+        value={useLocalChat}
+        onChange={(value) => handleToggleChange(value, setUseLocalChat, 'useLocalChat')}
       />
 
       {enableFabric && (

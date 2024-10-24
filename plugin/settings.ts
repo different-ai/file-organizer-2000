@@ -28,6 +28,7 @@ export class FileOrganizerSettings {
   useFolderEmbeddings = false;
   useVaultTitles = true;
   enableFileRenaming = true;
+  useLocalChat = false;
   userModels: {
     [key: string]: {
       url: string;

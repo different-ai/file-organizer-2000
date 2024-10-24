@@ -18,8 +18,9 @@ import { logMessage } from "../../../utils";
 import { SelectedItem } from "./selected-item";
 import { MessageRenderer } from "./message-renderer";
 import ToolInvocationHandler from "./tool-invocation-handler";
-import { YouTubeHandler } from "./components/youtube-handler";
-import { ToolInvocation } from "ai";
+import { convertToCoreMessages, streamText, ToolInvocation } from "ai";
+import { ollama } from "ollama-ai-provider";
+import { getChatSystemPrompt } from "../../../web/lib/prompts/chat-prompt";
 
 interface ChatComponentProps {
   plugin: FileOrganizer;
@@ -174,6 +175,45 @@ export const ChatComponent: React.FC<ChatComponentProps> = ({
     headers: {
       "Content-Type": "application/json",
       Authorization: `Bearer ${apiKey}`,
+    },
+    fetch: async (url, options) => {
+      // Check if we should use local chat (either by setting or no internet)
+      const checkInternetConnection = async () => {
+        try {
+          await fetch("https://8.8.8.8", { mode: "no-cors" });
+          return true;
+        } catch (e) {
+          return false;
+        }
+      };
+
+      const useLocal =
+        plugin.settings.useLocalChat || !(await checkInternetConnection());
+
+      if (useLocal) {
+        const { messages, unifiedContext } = JSON.parse(options.body as string);
+
+        const contextString = unifiedContext
+          .map(file => {
+            return `File: ${file.title}\n\nContent:\n${file.content}\nPath: ${file.path} Reference: ${file.reference}`;
+          })
+          .join("\n\n");
+
+        const result = await streamText({
+          model: ollama("llama3.2"),
+          system: getChatSystemPrompt(
+            contextString,
+            plugin.settings.enableScreenpipe,
+            moment().format("YYYY-MM-DDTHH:mm:ssZ")
+          ),
+          messages: convertToCoreMessages(messages),
+        });
+
+        return result.toDataStreamResponse();
+      }
+
+      // Default fetch behavior for remote API
+      return fetch(url, options);
     },
     keepLastMessageOnError: true,
     onError: error => {
