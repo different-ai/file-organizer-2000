@@ -23,7 +23,7 @@ export const CustomizationTab: React.FC<CustomizationTabProps> = ({ plugin }) =>
   const [enableCustomFolderInstructions, setEnableCustomFolderInstructions] = useState(plugin.settings.enableCustomFolderInstructions);
   const [customFolderInstructions, setCustomFolderInstructions] = useState(plugin.settings.customFolderInstructions);
   const [enableDocumentClassification, setEnableDocumentClassification] = useState(plugin.settings.enableDocumentClassification);
-  const [useLocalChat, setUseLocalChat] = useState(plugin.settings.useLocalChat);
+  const [useLocalChat, setUseLocalChat] = useState(plugin.settings.showLocalLLMInChat);
 
   const handleToggleChange = async (value: boolean, setter: React.Dispatch<React.SetStateAction<boolean>>, settingKey: keyof typeof plugin.settings) => {
     setter(value);

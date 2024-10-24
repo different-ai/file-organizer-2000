@@ -28,14 +28,7 @@ export class FileOrganizerSettings {
   useFolderEmbeddings = false;
   useVaultTitles = true;
   enableFileRenaming = true;
-  useLocalChat = false;
-  userModels: {
-    [key: string]: {
-      url: string;
-      apiKey: string;
-      provider: "openai" | "ollama" | "anthropic";
-    };
-  } = {};
+  showLocalLLMInChat = false;
   enableCustomFolderInstructions = false;
   customFolderInstructions = "";
 }

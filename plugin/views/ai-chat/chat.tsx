@@ -832,7 +832,7 @@ export const ChatComponent: React.FC<ChatComponentProps> = ({
         </div>
       )}
 
-      {plugin.settings.useLocalChat && (
+      {plugin.settings.showLocalLLMInChat && (
         <div className="border-t border-[--background-modifier-border] p-2 relative">
           <div className="flex items-center justify-end space-x-2">
             <span className="text-[--text-muted] text-sm">Model:</span>
