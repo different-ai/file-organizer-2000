@@ -31,6 +31,7 @@ export class FileOrganizerSettings {
   showLocalLLMInChat = false;
   enableCustomFolderInstructions = false;
   customFolderInstructions = "";
+  selectedModel: "gpt-4o" | "llama3.2" = "gpt-4o";
 }
 
 export const DEFAULT_SETTINGS = new FileOrganizerSettings();

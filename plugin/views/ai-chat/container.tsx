@@ -55,17 +55,17 @@ const AIChatSidebar: React.FC<AIChatSidebarProps> = ({ plugin, apiKey }) => {
 
   return (
     <Card className="flex flex-col h-full max-h-screen bg-[--ai-chat-background] text-[--ai-chat-text]">
-      <div className="flex justify-end p-2">
+      <div className="flex justify-end">
         <Button
           onClick={startNewConversation}
-          className="p-2 rounded-full bg-[--interactive-accent] text-[--text-on-accent] hover:bg-[--interactive-accent-hover] transition-colors duration-200"
+          className="h-6 w-6 p-1 rounded-full bg-[--interactive-accent] text-[--text-on-accent] hover:bg-[--interactive-accent-hover] transition-colors duration-200"
           aria-label="New Conversation"
         >
           <svg
             xmlns="http://www.w3.org/2000/svg"
             viewBox="0 0 24 24"
             fill="currentColor"
-            className="w-5 h-5"
+            className="w-4 h-4"
           >
             <path
               d="M12 5v14M5 12h14"

@@ -49,7 +49,7 @@
     "lucide-react": "^0.441.0",
     "moment": "^2.29.4",
     "node-fetch": "^3.3.2",
-    "ollama-ai-provider": "^0.7.0",
+    "ollama-ai-provider": "^0.15.2",
     "openai": "^4.19.0",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",

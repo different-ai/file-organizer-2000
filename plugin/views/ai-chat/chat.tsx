@@ -6,7 +6,6 @@ import React, {
   useMemo,
 } from "react";
 import { useChat, UseChatOptions } from "@ai-sdk/react";
-import { getEncoding } from "js-tiktoken";
 import { TFolder, TFile, moment, App, debounce } from "obsidian";
 
 import FileOrganizer from "../..";
@@ -21,6 +20,9 @@ import ToolInvocationHandler from "./tool-invocation-handler";
 import { convertToCoreMessages, streamText, ToolInvocation } from "ai";
 import { ollama } from "ollama-ai-provider";
 import { getChatSystemPrompt } from "../../../web/lib/prompts/chat-prompt";
+import { ContextLimitIndicator } from "./context-limit-indicator";
+import { ModelSelector } from "./model-selector";
+import { ModelType } from "./types";
 
 interface ChatComponentProps {
   plugin: FileOrganizer;
@@ -136,8 +138,6 @@ export const ChatComponent: React.FC<ChatComponentProps> = ({
   const [selectedYouTubeVideos, setSelectedYouTubeVideos] = useState<
     { videoId: string; title: string; transcript: string }[]
   >([]);
-  const [contextSize, setContextSize] = useState(0);
-  const [maxContextSize, setMaxContextSize] = useState(80 * 1000); // Default to GPT-3.5-turbo
   const [screenpipeContext, setScreenpipeContext] = useState<any>(null);
 
   logMessage(unifiedContext, "unifiedContext");
@@ -177,14 +177,27 @@ export const ChatComponent: React.FC<ChatComponentProps> = ({
       Authorization: `Bearer ${apiKey}`,
     },
     fetch: async (url, options) => {
+      logMessage(plugin.settings.showLocalLLMInChat, "showLocalLLMInChat");
+      logMessage(selectedModel, "selectedModel");
+      // local llm disabled or using gpt-4o
+      if (!plugin.settings.showLocalLLMInChat) {
+        // return normal server fetch
+        return fetch(url, options);
+      }
+      if (selectedModel === "gpt-4o") {
+        return fetch(url, options);
+      }
+
       if (selectedModel === "llama3.2") {
         const { messages, unifiedContext } = JSON.parse(options.body as string);
 
         const contextString = unifiedContext
           .map(file => {
-            return `File: ${file.title}\n\nContent:\n${file.content}\nPath: ${file.path} Reference: ${file.reference}`;
+            // this should be better formatted Start with path, title, reference, content
+            return `Path: ${file.path}\nTitle: ${file.title}\nReference: ${file.reference}\nContent:\n${file.content}`;
           })
-          .join("\n\n");
+          .join("\n\n-------\n\n");
+        console.log(contextString, "contextString");
 
         const result = await streamText({
           model: ollama("llama3.2"),
@@ -522,22 +535,7 @@ export const ChatComponent: React.FC<ChatComponentProps> = ({
     );
   };
 
-  useEffect(() => {
-    const calculateContextSize = () => {
-      const encoding = getEncoding("o200k_base");
-
-      let totalTokens = 0;
-      unifiedContext.forEach(item => {
-        totalTokens += encoding.encode(item.content).length;
-      });
-
-      setContextSize(totalTokens);
-    };
-
-    calculateContextSize();
-  }, [unifiedContext]);
-
-  const isContextOverLimit = contextSize > maxContextSize;
+  const [maxContextSize] = useState(80 * 1000); // Keep this one
 
   const handleActionButton = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -621,8 +619,7 @@ export const ChatComponent: React.FC<ChatComponentProps> = ({
   );
 
   // Update state to default to gpt-4
-  const [selectedModel, setSelectedModel] = useState<string>("gpt-4");
-  const [isModelSelectorOpen, setIsModelSelectorOpen] = useState(false);
+  const [selectedModel, setSelectedModel] = useState<ModelType>("gpt-4o");
 
   return (
     <div className="flex flex-col h-full max-h-screen bg-[--background-primary]">
@@ -775,7 +772,7 @@ export const ChatComponent: React.FC<ChatComponentProps> = ({
           onSubmit={handleActionButton}
           className="flex items-end"
         >
-          <div className="flex-grow max-h-40 overflow-y-auto" ref={inputRef}>
+          <div className="flex-grow overflow-y-auto" ref={inputRef}>
             <Tiptap
               value={input}
               onChange={handleTiptapChange}
@@ -794,10 +791,9 @@ export const ChatComponent: React.FC<ChatComponentProps> = ({
             type="submit"
             className={`h-full ml-2 font-bold py-2 px-4 rounded ${
               isGenerating
-                ? "bg-[--text-warning] hover:bg-[--text-warning-hover]"
-                : "bg-[--interactive-accent] hover:bg-[--interactive-accent-hover]"
-            } text-[--text-on-accent]`}
-            disabled={isContextOverLimit}
+                ? "bg-[--background-modifier-form-field] text-[--text-muted] cursor-not-allowed"
+                : "bg-[--interactive-accent] hover:bg-[--interactive-accent-hover] text-[--text-on-accent]"
+            }`}
           >
             {isGenerating ? (
               <svg
@@ -824,66 +820,20 @@ export const ChatComponent: React.FC<ChatComponentProps> = ({
             )}
           </Button>
         </form>
+
+        <div className="flex items-center justify-between">
+          <ContextLimitIndicator
+            unifiedContext={unifiedContext}
+            maxContextSize={maxContextSize}
+          />
+          {plugin.settings.showLocalLLMInChat && (
+            <ModelSelector
+              selectedModel={selectedModel}
+              onModelSelect={setSelectedModel}
+            />
+          )}
+        </div>
       </div>
-
-      {isContextOverLimit && (
-        <div className="mt-2 p-2 bg-[--background-modifier-error] border border-[--text-error] text-[--text-error] rounded">
-          Context size exceeds maximum. Please remove some context to continue.
-        </div>
-      )}
-
-      {plugin.settings.showLocalLLMInChat && (
-        <div className="border-t border-[--background-modifier-border] p-2 relative">
-          <div className="flex items-center justify-end space-x-2">
-            <span className="text-[--text-muted] text-sm">Model:</span>
-            <button
-              onClick={() => setIsModelSelectorOpen(!isModelSelectorOpen)}
-              className="flex items-center space-x-1 text-[--text-muted] hover:text-[--text-normal] text-sm bg-[--background-primary-alt] hover:bg-[--background-modifier-hover] px-2 py-1 rounded"
-            >
-              <span>{selectedModel === "gpt-4o" ? "gpt-4o" : "llama 3.2"}</span>
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                viewBox="0 0 20 20"
-                fill="currentColor"
-                className={`w-4 h-4 transition-transform ${
-                  isModelSelectorOpen ? "rotate-180" : ""
-                }`}
-              >
-                <path
-                  fillRule="evenodd"
-                  d="M5.23 7.21a.75.75 0 011.06.02L10 11.168l3.71-3.938a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z"
-                  clipRule="evenodd"
-                />
-              </svg>
-            </button>
-
-            {isModelSelectorOpen && (
-              <div className="absolute bottom-full right-0 mb-1 bg-[--background-primary] border border-[--background-modifier-border] rounded shadow-lg">
-                <div className="py-1">
-                  <button
-                    onClick={() => {
-                      setSelectedModel("gpt-4o");
-                      setIsModelSelectorOpen(false);
-                    }}
-                    className="block w-full text-left px-4 py-2 text-sm text-[--text-normal] hover:bg-[--background-modifier-hover]"
-                  >
-                    gpt-4o
-                  </button>
-                  <button
-                    onClick={() => {
-                      setSelectedModel("llama3.2");
-                      setIsModelSelectorOpen(false);
-                    }}
-                    className="block w-full text-left px-4 py-2 text-sm text-[--text-normal] hover:bg-[--background-modifier-hover]"
-                  >
-                    llama 3.2
-                  </button>
-                </div>
-              </div>
-            )}
-          </div>
-        </div>
-      )}
     </div>
   );
 };
