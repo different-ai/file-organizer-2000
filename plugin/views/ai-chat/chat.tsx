@@ -826,12 +826,10 @@ export const ChatComponent: React.FC<ChatComponentProps> = ({
             unifiedContext={unifiedContext}
             maxContextSize={maxContextSize}
           />
-          {plugin.settings.showLocalLLMInChat && (
             <ModelSelector
               selectedModel={selectedModel}
               onModelSelect={setSelectedModel}
             />
-          )}
         </div>
       </div>
     </div>

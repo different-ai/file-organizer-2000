@@ -1,12 +1,10 @@
 import React from 'react';
 import { ModelType } from './types';
-import FileOrganizer from '../../index';
 import { usePlugin } from './provider';
 
 interface ModelSelectorProps {
   selectedModel: ModelType;
   onModelSelect: (model: ModelType) => void;
-  plugin: FileOrganizer;
 }
 
 export const ModelSelector: React.FC<ModelSelectorProps> = ({
@@ -26,43 +24,44 @@ export const ModelSelector: React.FC<ModelSelectorProps> = ({
   return (
     <div className="border-t border-[--background-modifier-border] p-2 relative">
       <div className="flex items-center justify-end space-x-2">
-        <span className="text-[--text-muted] text-sm">Model:</span>
-        <button
-          onClick={() => setIsModelSelectorOpen(!isModelSelectorOpen)}
-          className="flex items-center space-x-1 text-[--text-muted] hover:text-[--text-normal] text-sm bg-[--background-primary-alt] hover:bg-[--background-modifier-hover] px-2 py-1 rounded"
+        <div
+          onClick={() => plugin.settings.showLocalLLMInChat && setIsModelSelectorOpen(!isModelSelectorOpen)}
+          className={`flex items-center space-x-1 text-[--text-muted] hover:text-[--text-normal] text-sm bg-[--background-primary-alt] ${plugin.settings.showLocalLLMInChat ? 'hover:bg-[--background-modifier-hover] cursor-pointer' : ''} px-2 py-1 rounded`}
         >
           <span>{selectedModel === "gpt-4o" ? "gpt-4o" : "llama 3.2"}</span>
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            viewBox="0 0 20 20"
-            fill="currentColor"
-            className={`w-4 h-4 transition-transform ${
-              isModelSelectorOpen ? "rotate-180" : ""
-            }`}
-          >
-            <path
-              fillRule="evenodd"
-              d="M5.23 7.21a.75.75 0 011.06.02L10 11.168l3.71-3.938a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z"
-              clipRule="evenodd"
-            />
-          </svg>
-        </button>
+          {plugin.settings.showLocalLLMInChat && (
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              viewBox="0 0 20 20"
+              fill="currentColor"
+              className={`w-4 h-4 transition-transform ${
+                isModelSelectorOpen ? "rotate-180" : ""
+              }`}
+            >
+              <path
+                fillRule="evenodd"
+                d="M5.23 7.21a.75.75 0 011.06.02L10 11.168l3.71-3.938a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z"
+                clipRule="evenodd"
+              />
+            </svg>
+          )}
+        </div>
 
-        {isModelSelectorOpen && (
+        {isModelSelectorOpen && plugin.settings.showLocalLLMInChat && (
           <div className="absolute bottom-full right-0 mb-1 bg-[--background-primary] border border-[--background-modifier-border] rounded shadow-lg">
             <div className="py-1">
-              <button
+              <div
                 onClick={() => handleModelSelect("gpt-4o")}
-                className="block w-full text-left px-4 py-2 text-sm text-[--text-normal] hover:bg-[--background-modifier-hover]"
+                className="cursor-pointer block w-full text-left px-4 py-2 text-sm text-[--text-normal] hover:bg-[--background-modifier-hover]"
               >
                 gpt-4o
-              </button>
-              <button
+              </div>
+              <div
                 onClick={() => handleModelSelect("llama3.2")}
-                className="block w-full text-left px-4 py-2 text-sm text-[--text-normal] hover:bg-[--background-modifier-hover]"
+                className="cursor-pointer block w-full text-left px-4 py-2 text-sm text-[--text-normal] hover:bg-[--background-modifier-hover]"
               >
                 llama 3.2
-              </button>
+              </div>
             </div>
           </div>
         )}
