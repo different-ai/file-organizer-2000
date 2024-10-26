@@ -82,6 +82,13 @@ Give instructions for the AI to format and modify your files.
 
 See video: https://www.youtube.com/watch?v=rommuUXRgUw&t=17s
 
+### D. Misc
+
+To use llama 3.2 with the ai chat, install Ollama + llama 3.2 and check this setting in the plugin:
+
+<img width="751" alt="Screenshot 2024-10-26 at 7 34 18 PM" src="https://github.com/user-attachments/assets/95add737-9cd5-4cb4-a360-ff5fc95ebfa7">
+
+
 ## Setup
 
 Choose between the setups below:
