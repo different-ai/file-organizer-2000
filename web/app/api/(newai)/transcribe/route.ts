@@ -1,32 +1,80 @@
 import fs from "fs";
-import OpenAI from "openai";
 import { tmpdir } from "os";
 import { join } from "path";
 import { promises as fsPromises } from "fs";
 import { NextResponse } from "next/server";
+import { createOpenAI } from "@ai-sdk/openai";
+import { streamText } from "ai";
+import { z } from "zod";
 
-export const maxDuration = 60; // This function can run for a maximum of 5 seconds
+export const maxDuration = 60;
 
 export async function POST(request: Request) {
-  console.log("transcribe");
-  const { audio, extension } = await request.json();
-  console.log({ audio, extension });
-  const base64Data = audio.split(";base64,").pop();
-  console.log({ extension });
-  const tempFilePath = join(tmpdir(), `upload_${Date.now()}.${extension}`);
-  await fsPromises.writeFile(tempFilePath, base64Data, {
-    encoding: "base64",
-  });
+  try {
+    const { audio, extension } = await request.json();
+    const base64Data = audio.split(";base64,").pop();
+    
+    // Create temporary file for audio
+    const tempFilePath = join(tmpdir(), `upload_${Date.now()}.${extension}`);
+    await fsPromises.writeFile(tempFilePath, base64Data, {
+      encoding: "base64",
+    });
 
-  const apiKey = process.env.OPENAI_API_KEY;
-  const openai = new OpenAI({ apiKey });
+    const apiKey = process.env.OPENAI_API_KEY;
+    const openai = createOpenAI({ apiKey });
 
-  const transcription = await openai.audio.transcriptions.create({
-    file: fs.createReadStream(tempFilePath),
-    model: "whisper-1",
-  });
+    // Stream the text generation using gpt-4o-audio-preview
+    const { textStream } = await streamText({
+      model: openai("gpt-4o-audio-preview"),
+      tools: {
+        "get-todo-list": {
+          description: "Get the todo list",
+          parameters: z.object({
+            todoList: z.array(z.string()),
+          }),
+          execute: async ({ todoList }) => {
+            console.log("Todo list:", todoList);
+          },
+        },
+        "add-todo": {
+          description: "Add a todo to the list",
+          parameters: z.object({
+            todo: z.string(),
+          }),
+          execute: async ({ todo }) => {
+            console.log("Adding todo:", todo);
+          },
+        },
+      },
+      messages: [
+        {
+          role: "user",
+          content: [
+            {
+              type: "file",
+              mimeType: "audio/wav",
+              data: base64Data,
+            },
+          ],
+        },
+      ],
+    });
 
-  await fsPromises.unlink(tempFilePath);
+    // Collect the full text from the stream
+    let fullText = "";
+    for await (const chunk of textStream) {
+      fullText += chunk;
+    }
 
-  return NextResponse.json({ text: transcription.text });
+    // Clean up temporary file
+    await fsPromises.unlink(tempFilePath);
+
+    return NextResponse.json({ text: fullText });
+  } catch (error) {
+    console.error("Transcription error:", error);
+    return NextResponse.json(
+      { error: "Failed to process audio" },
+      { status: 500 }
+    );
+  }
 }
