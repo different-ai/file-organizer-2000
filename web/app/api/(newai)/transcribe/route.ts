@@ -13,7 +13,7 @@ export async function POST(request: Request) {
   try {
     const { audio, extension } = await request.json();
     const base64Data = audio.split(";base64,").pop();
-    
+
     // Create temporary file for audio
     const tempFilePath = join(tmpdir(), `upload_${Date.now()}.${extension}`);
     await fsPromises.writeFile(tempFilePath, base64Data, {
@@ -47,6 +47,11 @@ export async function POST(request: Request) {
         },
       },
       messages: [
+        // {
+        //   role: "system",
+        //   content:
+        //     "You are a helpful assistant that transcribes audio. Always transcribe 1:1 what the user says",
+        // },
         {
           role: "user",
           content: [
