@@ -737,7 +737,7 @@ export const ChatComponent: React.FC<ChatComponentProps> = ({
               currentFileContent={fileContent}
             />
           </div>
-          <AudioRecorder onTranscriptionComplete={handleTranscriptionComplete} />
+          {/* <AudioRecorder onTranscriptionComplete={handleTranscriptionComplete} /> */}
           <Button
             type="submit"
             className={`h-full ml-2 font-bold py-2 px-4 rounded ${
