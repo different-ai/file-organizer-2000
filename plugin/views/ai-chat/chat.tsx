@@ -23,6 +23,7 @@ import { getChatSystemPrompt } from "../../../web/lib/prompts/chat-prompt";
 import { ContextLimitIndicator } from "./context-limit-indicator";
 import { ModelSelector } from "./model-selector";
 import { ModelType } from "./types";
+import { AudioRecorder } from "./audio-recorder";
 
 interface ChatComponentProps {
   plugin: FileOrganizer;
@@ -51,63 +52,6 @@ interface ChatComponentProps {
     }[]
   ) => void;
 }
-
-const filterNotesByDateRange = async (
-  startDate: string,
-  endDate: string,
-  plugin: FileOrganizer
-) => {
-  logMessage(startDate, endDate, "startDate, endDate");
-  const files = plugin.getAllUserMarkdownFiles();
-  logMessage(files.length, "total files");
-
-  const start = moment(startDate).startOf("day");
-  const end = moment(endDate).endOf("day");
-
-  const filteredFiles = files.filter(file => {
-    // Get the file's modification date
-    const fileDate = moment(file.stat.mtime);
-
-    // Check if the file's date is within the specified range
-    const isWithinDateRange = fileDate.isBetween(start, end, null, "[]");
-
-    // Check if the file is in the logs folder
-    const isInLogsFolder = file.path.startsWith(plugin.settings.logFolderPath);
-    const isInTemplatesFolder = file.path.startsWith(
-      plugin.settings.templatePaths
-    );
-    const isInBackupsFolder = file.path.startsWith(
-      plugin.settings.backupFolderPath
-    );
-
-    logMessage(
-      `File: ${file.basename}, ` +
-        `Date: ${fileDate.format("YYYY-MM-DD")}, ` +
-        `In Date Range: ${isWithinDateRange}, ` +
-        `Not in Logs Folder: ${!isInLogsFolder}`
-    );
-
-    // Include the file if it's within the date range  + not in the logs folder + not in the templates folder + not in the backups folder
-    return (
-      isWithinDateRange &&
-      !isInLogsFolder &&
-      !isInTemplatesFolder &&
-      !isInBackupsFolder
-    );
-  });
-
-  logMessage(filteredFiles.length, "filteredFiles");
-
-  const fileContents = await Promise.all(
-    filteredFiles.map(async file => ({
-      title: file.basename,
-      content: await app.vault.read(file),
-      path: file.path,
-    }))
-  );
-
-  return fileContents;
-};
 
 export const ChatComponent: React.FC<ChatComponentProps> = ({
   fileContent,
@@ -621,6 +565,12 @@ export const ChatComponent: React.FC<ChatComponentProps> = ({
   // Update state to default to gpt-4
   const [selectedModel, setSelectedModel] = useState<ModelType>("gpt-4o");
 
+  const handleTranscriptionComplete = (text: string) => {
+    handleInputChange({
+      target: { value: text },
+    } as React.ChangeEvent<HTMLInputElement>);
+  };
+
   return (
     <div className="flex flex-col h-full max-h-screen bg-[--background-primary]">
       <div className="flex-grow overflow-y-auto p-4">
@@ -787,6 +737,7 @@ export const ChatComponent: React.FC<ChatComponentProps> = ({
               currentFileContent={fileContent}
             />
           </div>
+          <AudioRecorder onTranscriptionComplete={handleTranscriptionComplete} />
           <Button
             type="submit"
             className={`h-full ml-2 font-bold py-2 px-4 rounded ${
