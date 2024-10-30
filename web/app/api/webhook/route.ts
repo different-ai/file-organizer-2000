@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import Stripe from "stripe";
 import { createOrUpdateUserSubscriptionStatus, handleFailedPayment } from "@/drizzle/schema";
 import { clerkClient } from "@clerk/nextjs/server";
+import { getPriceKey, getProductKey } from "./utils";
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY as string, {
   apiVersion: "2022-11-15",
@@ -22,6 +23,8 @@ export async function POST(req: NextRequest) {
       stripeSignature,
       webhookSecret
     );
+    getPriceKey(event);
+    getProductKey(event);
   } catch (error) {
     console.error(`Webhook Error: ${error.message}`);
     if (error instanceof Error)
