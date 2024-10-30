@@ -10,11 +10,7 @@
 
 ### Models
 
-- `MODEL_RELATIONSHIPS`: The model to use for determining file relationships. Defaults to `"gpt-4o"` if not set.
-- `MODEL_TAGGING`: The model to use for file tagging. Defaults to `"gpt-4o"` if not set.
-- `MODEL_FOLDERS`: The model to use for determining appropriate folders for files. Defaults to `"gpt-4o"` if not set. 
 - `MODEL_NAME`: The model to use for generating file names. Defaults to `"gpt-4o"` if not set.
-- `MODEL_TEXT`: The model to use for text formatting. Defaults to `"gpt-4o"` if not set.
 
 ### API Keys
 This is necessary when deploying with vercel, but not required if you run it locally.
