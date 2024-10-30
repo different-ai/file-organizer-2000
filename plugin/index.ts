@@ -898,7 +898,7 @@ export default class FileOrganizer extends Plugin {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
 
-      const { documentType } = await response.json;
+      const { documentType } = await response.json();
       return documentType;
     } catch (error) {
       console.error("Error in classifyContentV2:", error);
