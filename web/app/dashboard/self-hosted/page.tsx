@@ -2,8 +2,8 @@ import { Button } from "@/components/ui/button";
 import { ArrowDownIcon } from "@/components/ui/icons";
 
 export default async function NoUserManagementPage() {
-  const deploymentUrl = process.env.VERCEL_URL
-    ? `https://${process.env.VERCEL_URL}`
+  const deploymentUrl = process.env.VERCEL_PROJECT_PRODUCTION_URL
+    ? `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}`
     : "http://localhost:3000";
 
   return (
