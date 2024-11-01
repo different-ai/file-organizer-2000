@@ -1,111 +1,73 @@
 import { NextRequest, NextResponse } from "next/server";
-import Stripe from "stripe";
-import { createOrUpdateUserSubscriptionStatus, handleFailedPayment } from "@/drizzle/schema";
-import { clerkClient } from "@clerk/nextjs/server";
-import { getPriceKey, getProductKey } from "./utils";
+import { handleCheckoutComplete, handleSubscriptionCanceled } from '@/lib/webhook/handlers';
+import { verifyStripeWebhook } from "@/lib/webhook/verify";
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY as string, {
-  apiVersion: "2022-11-15",
-});
-const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET as string;
 
 export async function POST(req: NextRequest) {
-  console.log("hitting webhook");
-  if (req === null)
-    throw new Error(`Missing userId or request`, { cause: { req } });
-  const stripeSignature = req.headers.get("stripe-signature");
-  if (stripeSignature === null) throw new Error("stripeSignature is null");
-
-  let event;
   try {
-    event = stripe.webhooks.constructEvent(
-      await req.text(),
-      stripeSignature,
-      webhookSecret
-    );
-    getPriceKey(event);
-    getProductKey(event);
+    // Verify webhook signature and get event
+    const event = await verifyStripeWebhook(req);
+    
+    // Handle different event types
+    let result;
+    switch (event.type) {
+      case "checkout.session.completed":
+        result = await handleCheckoutComplete(event);
+        break;
+      case "customer.subscription.deleted":
+        result = await handleSubscriptionCanceled(event);
+        break;
+      // Add more handlers as needed
+      default:
+        return NextResponse.json({ 
+          status: 200, 
+          message: `Unhandled event type: ${event.type}` 
+        });
+    }
+
+    if (!result.success) {
+      console.error(result.error);
+      return NextResponse.json({ error: result.message }, { status: 400 });
+    }
+
+    return NextResponse.json({ status: 200, message: result.message });
   } catch (error) {
-    console.error(`Webhook Error: ${error.message}`);
-    if (error instanceof Error)
-      return NextResponse.json(
-        {
-          error: error.message,
-        },
-        {
-          status: 400,
-        }
-      );
+    console.error('Webhook error:', error);
+    return NextResponse.json(
+      { error: error.message },
+      { status: 400 }
+    );
   }
-  if (event === undefined) throw new Error(`event is undefined`);
-  switch (event.type) {
-    case "checkout.session.completed": {
-      const session = event.data.object;
-      console.log(`Payment successful for session ID: ${session.id}`);
-      console.log(`User ID: ${session.metadata?.userId}`);
-      console.log(session.status);
-      console.log(session.payment_status);
-      console.log('session.mode', session.mode);
-      try {
-        console.log(
-          "updating clerk metadata for user",
-          session.metadata?.userId
-        );
-        await clerkClient.users.updateUserMetadata(
-          event.data.object.metadata?.userId as string,
-          {
-            publicMetadata: {
-              stripe: {
-                // stripe customer id
-                customerId: session.customer,
-                status: session.status,
-                payment: session.payment_status,
-              },
-            },
-          }
-        );
-      } catch (error) {
-        console.error(`Error updating user metadata: ${error}`);
-      }
+}
+import fs from "fs";
+import OpenAI from "openai";
+import { tmpdir } from "os";
+import { join } from "path";
+import { promises as fsPromises } from "fs";
+import { NextResponse } from "next/server";
 
-      const billingCycle = session.mode === 'subscription' ? 'monthly' : 'lifetime';
+export const maxDuration = 60; // This function can run for a maximum of 5 seconds
 
-      await createOrUpdateUserSubscriptionStatus(
-        session.metadata?.userId,
-        session.status,
-        session.payment_status,
-        billingCycle
-      );
-      console.log("User subscription status updated");
-      break;
-    }
-    case "customer.subscription.deleted": {
-      const subscription = event.data.object;
-      const userId = subscription.metadata?.userId;
-      if (userId) {
-        await handleFailedPayment(userId, "canceled", "canceled");
-        console.log(`Subscription canceled for user ${userId}`);
-      } else {
-        console.error('Could not find user id');
-      }
-      break;
-    }
-    case "invoice.payment_failed": {
-      const invoice = event.data.object;
-      const userId = invoice.subscription_details?.metadata?.userId;
-      console.log('invoice', invoice);
+export async function POST(request: Request) {
+  console.log("transcribe");
+  const { audio, extension } = await request.json();
+  console.log({ audio, extension });
+  const base64Data = audio.split(";base64,").pop();
+  console.log({ extension });
+  const tempFilePath = join(tmpdir(), `upload_${Date.now()}.${extension}`);
+  await fsPromises.writeFile(tempFilePath, base64Data, {
+    encoding: "base64",
+  });
 
-      if (userId) {
-        await handleFailedPayment(userId, "incomplete", "failed");
-        console.log(`Payment failed for user ${userId}`);
-      } else {
-        console.error('Could not find user id');
-      }
-      break;
-    }
-    default:
-      console.warn(`Unhandled event type: ${event.type}`);
-  }
+  const apiKey = process.env.OPENAI_API_KEY;
+  const openai = new OpenAI({ apiKey });
 
-  return NextResponse.json({ status: 200, message: "success" });
+  const transcription = await openai.audio.transcriptions.create({
+    file: fs.createReadStream(tempFilePath),
+    model: "whisper-1",
+  });
+
+  await fsPromises.unlink(tempFilePath);
+
+  return NextResponse.json({ text: transcription.text });
 }

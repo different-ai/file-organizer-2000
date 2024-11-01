@@ -9,6 +9,7 @@ import {
 } from "drizzle-orm/pg-core";
 import { eq, sql } from "drizzle-orm";
 import { sql as psql } from "@vercel/postgres";
+import { CustomerData } from "@/lib/webhook/types";
 
 // Use this object to send drizzle queries to your DB
 export const db = drizzle(psql);
@@ -30,6 +31,9 @@ export const UserUsageTable = pgTable(
       .notNull()
       .default("inactive"),
     paymentStatus: text("paymentStatus").notNull().default("unpaid"),
+    lastPayment: timestamp("lastPayment"),
+    currentProduct: text("currentProduct"),
+    currentPlan: text("currentPlan"),
   },
   (userUsage) => {
     return {
@@ -273,4 +277,30 @@ export async function handleFailedPayment(
     console.error("Error updating or creating failed payment status for User ID:", userId);
     console.error(error);
   }
+}
+
+export async function updateUserSubscriptionData(data: CustomerData): Promise<void> {
+  await db
+    .insert(UserUsageTable)
+    .values({
+      userId: data.userId,
+      subscriptionStatus: data.status,
+      paymentStatus: data.paymentStatus,
+      billingCycle: data.billingCycle,
+      lastPayment: new Date(),
+      currentProduct: data.product,
+      currentPlan: data.plan,
+      // ... other default fields
+    })
+    .onConflictDoUpdate({
+      target: [UserUsageTable.userId],
+      set: {
+        subscriptionStatus: data.status,
+        paymentStatus: data.paymentStatus,
+        billingCycle: data.billingCycle,
+        lastPayment: new Date(),
+        currentProduct: data.product,
+        currentPlan: data.plan,
+      },
+    });
 }
