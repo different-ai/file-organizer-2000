@@ -1,154 +1,178 @@
 import React, { useRef, useState, useEffect } from "react";
 import { Button } from "./button";
 import { usePlugin } from "./provider";
+import { Loader2, MicIcon, StopCircle } from "lucide-react";
 
 interface AudioRecorderProps {
   onTranscriptionComplete: (text: string) => void;
+  debug?: boolean;
 }
 
 export const AudioRecorder: React.FC<AudioRecorderProps> = ({
   onTranscriptionComplete,
+  debug = false,
 }) => {
   const plugin = usePlugin();
   const [isRecording, setIsRecording] = useState(false);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const audioChunks = useRef<Blob[]>([]);
+  const [audioUrl, setAudioUrl] = useState<string | null>(null);
+  const [recordings, setRecordings] = useState<
+    Array<{ url: string; timestamp: string }>
+  >([]);
+  const [isProcessing, setIsProcessing] = useState(false);
 
-  // Convert WebM to WAV
-  const convertWebMToWAV = async (webmBlob: Blob): Promise<Blob> => {
-    const audioContext = new AudioContext();
-    const arrayBuffer = await webmBlob.arrayBuffer();
-    const audioBuffer = await audioContext.decodeAudioData(arrayBuffer);
+  const startRecording = async (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
 
-    const offlineContext = new OfflineAudioContext(
-      audioBuffer.numberOfChannels,
-      audioBuffer.length,
-      audioBuffer.sampleRate
-    );
-
-    const source = offlineContext.createBufferSource();
-    source.buffer = audioBuffer;
-    source.connect(offlineContext.destination);
-    source.start();
-
-    const renderedBuffer = await offlineContext.startRendering();
-
-    // Convert to WAV format
-    const wavBlob = await new Promise<Blob>(resolve => {
-      const length =
-        renderedBuffer.length * renderedBuffer.numberOfChannels * 2;
-      const view = new DataView(new ArrayBuffer(44 + length));
-
-      // Write WAV header
-      writeUTFBytes(view, 0, "RIFF");
-      view.setUint32(4, 36 + length, true);
-      writeUTFBytes(view, 8, "WAVE");
-      writeUTFBytes(view, 12, "fmt ");
-      view.setUint32(16, 16, true);
-      view.setUint16(20, 1, true);
-      view.setUint16(22, renderedBuffer.numberOfChannels, true);
-      view.setUint32(24, renderedBuffer.sampleRate, true);
-      view.setUint32(28, renderedBuffer.sampleRate * 4, true);
-      view.setUint16(32, 4, true);
-      view.setUint16(34, 16, true);
-      writeUTFBytes(view, 36, "data");
-      view.setUint32(40, length, true);
-
-      // Write audio data
-      const data = new Float32Array(renderedBuffer.length);
-      renderedBuffer.copyFromChannel(data, 0);
-      let offset = 44;
-      for (let i = 0; i < data.length; i++) {
-        const sample = Math.max(-1, Math.min(1, data[i]));
-        view.setInt16(
-          offset,
-          sample < 0 ? sample * 0x8000 : sample * 0x7fff,
-          true
-        );
-        offset += 2;
-      }
-
-      resolve(new Blob([view], { type: "audio/wav" }));
-    });
-
-    return wavBlob;
-  };
-
-  const writeUTFBytes = (view: DataView, offset: number, string: string) => {
-    for (let i = 0; i < string.length; i++) {
-      view.setUint8(offset + i, string.charCodeAt(i));
-    }
-  };
-
-  const startRecording = async () => {
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-      const mediaRecorder = new MediaRecorder(stream);
+      // Set specific options for better audio quality
+      const mediaRecorder = new MediaRecorder(stream, {
+        mimeType: "audio/webm;codecs=opus",
+        audioBitsPerSecond: 128000,
+      });
       mediaRecorderRef.current = mediaRecorder;
 
       audioChunks.current = [];
+      // Collect data more frequently (every 250ms)
       mediaRecorder.ondataavailable = event => {
-        audioChunks.current.push(event.data);
+        if (event.data.size > 0) {
+          audioChunks.current.push(event.data);
+        }
       };
 
-      mediaRecorder.start();
+      // Start recording with timeslice to get data frequently
+      mediaRecorder.start(250);
       setIsRecording(true);
     } catch (error) {
       console.error("Error accessing microphone:", error);
     }
   };
 
-  const stopRecording = async () => {
-    if (mediaRecorderRef.current) {
+  const stopRecording = async (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+
+    if (!mediaRecorderRef.current) return;
+
+    try {
       mediaRecorderRef.current.stop();
       setIsRecording(false);
+      setIsProcessing(true);
 
-      await new Promise<void>(resolve => {
+      await new Promise<void>((resolve, reject) => {
         mediaRecorderRef.current!.onstop = async () => {
           try {
+            if (audioChunks.current.length === 0) {
+              throw new Error("No audio data recorded");
+            }
+
             const webmBlob = new Blob(audioChunks.current, {
               type: "audio/webm",
             });
-            const wavBlob = await convertWebMToWAV(webmBlob);
 
-            // Convert to base64
-            const reader = new FileReader();
-            reader.readAsDataURL(wavBlob);
-            reader.onloadend = async () => {
-              const base64Audio = reader.result as string;
-
-              // Send to server for transcription
-              const response = await fetch(
-                `${plugin.getServerUrl()}/api/transcribe`,
+            if (debug) {
+              const url = URL.createObjectURL(webmBlob);
+              setAudioUrl(url);
+              setRecordings(prev => [
+                ...prev,
                 {
-                  method: "POST",
-                  headers: { "Content-Type": "application/json" },
-                  body: JSON.stringify({
-                    audio: base64Audio,
-                    extension: "wav",
-                  }),
-                }
-              );
+                  url,
+                  timestamp: new Date().toLocaleTimeString(),
+                },
+              ]);
+            }
 
-              const data = await response.json();
-              onTranscriptionComplete(data.text);
-            };
+            // Send WebM directly
+            const base64Audio = await new Promise<string>(resolve => {
+              const reader = new FileReader();
+              reader.onloadend = () => resolve(reader.result as string);
+              reader.readAsDataURL(webmBlob);
+            });
+
+            const response = await fetch(
+              `${plugin.getServerUrl()}/api/transcribe`,
+              {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                  audio: base64Audio,
+                  extension: "webm",
+                }),
+              }
+            );
+
+            if (!response.ok) {
+              const error = await response.json();
+              throw new Error(error.error || "Transcription failed");
+            }
+
+            const data = await response.json();
+            onTranscriptionComplete(data.text);
+            resolve();
           } catch (error) {
             console.error("Error processing audio:", error);
+            reject(error);
+          } finally {
+            setIsProcessing(false);
           }
-          resolve();
         };
       });
+    } catch (error) {
+      console.error("Recording error:", error);
+      setIsProcessing(false);
     }
   };
 
+  // Cleanup audio URL on unmount
+  useEffect(() => {
+    return () => {
+      recordings.forEach(recording => {
+        URL.revokeObjectURL(recording.url);
+      });
+    };
+  }, [recordings]);
+
   return (
-    <Button
-      onClick={isRecording ? stopRecording : startRecording}
-      className={`ml-2 ${isRecording ? "bg-[--text-error]" : ""}`}
-      title={isRecording ? "Stop Recording" : "Start Recording"}
-    >
-      {isRecording ? "Stop Recording" : "Start Recording"}
-    </Button>
+    <div className="flex flex-col gap-4">
+      <button
+        onClick={isRecording ? stopRecording : startRecording}
+        className={`${isRecording ? "bg-[--text-error]" : ""} ${
+          isProcessing ? "opacity-50 cursor-wait" : ""
+        }bg-transparent shadow-none opacity-50 hover:opacity-100 hover:shadow-none cursor-pointer`}
+        title={
+          isProcessing
+            ? "Processing audio..."
+            : isRecording
+            ? "Stop Recording"
+            : "Start Recording"
+        }
+        disabled={isProcessing}
+      >
+        {isProcessing ? (
+          <span className="animate-spin"><Loader2 /></span>
+        ) : isRecording ? (
+          <StopCircle />
+        ) : (
+          <MicIcon />
+        )}
+      </button>
+
+      {debug && recordings.length > 0 && (
+        <div className="flex flex-col gap-2 p-2 rounded bg-[--background-secondary]">
+          <h3 className="text-[--text-muted] text-sm">Recording History</h3>
+          {recordings.map((recording, index) => (
+            <div key={recording.timestamp} className="flex items-center gap-2">
+              <span className="text-xs text-[--text-muted]">
+                {recording.timestamp}
+              </span>
+              <audio controls src={recording.url} className="h-8" />
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
   );
 };

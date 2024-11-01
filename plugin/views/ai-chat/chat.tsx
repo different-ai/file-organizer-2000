@@ -722,7 +722,7 @@ export const ChatComponent: React.FC<ChatComponentProps> = ({
           onSubmit={handleActionButton}
           className="flex items-end"
         >
-          <div className="flex-grow overflow-y-auto" ref={inputRef}>
+          <div className="flex-grow overflow-y-auto relative" ref={inputRef}>
             <Tiptap
               value={input}
               onChange={handleTiptapChange}
@@ -736,8 +736,13 @@ export const ChatComponent: React.FC<ChatComponentProps> = ({
               currentFileName={fileName || ""}
               currentFileContent={fileContent}
             />
+
+            <div className="absolute bottom-0 right-0 h-full flex items-center">
+              <AudioRecorder
+                onTranscriptionComplete={handleTranscriptionComplete}
+              />
+            </div>
           </div>
-          {/* <AudioRecorder onTranscriptionComplete={handleTranscriptionComplete} /> */}
           <Button
             type="submit"
             className={`h-full ml-2 font-bold py-2 px-4 rounded ${
@@ -750,23 +755,31 @@ export const ChatComponent: React.FC<ChatComponentProps> = ({
               <svg
                 xmlns="http://www.w3.org/2000/svg"
                 viewBox="0 0 24 24"
-                fill="currentColor"
+                fill="none"
+                stroke="currentColor"
                 className="w-5 h-5"
               >
                 <path
-                  fillRule="evenodd"
-                  d="M4.5 7.5a3 3 0 013-3h9a3 3 0 013 3v9a3 3 0 01-3 3h-9a3 3 0 01-3-3v-9z"
-                  clipRule="evenodd"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M6 18L18 6M6 6l12 12"
                 />
               </svg>
             ) : (
               <svg
                 xmlns="http://www.w3.org/2000/svg"
                 viewBox="0 0 24 24"
-                fill="currentColor"
+                fill="none"
+                stroke="currentColor"
                 className="w-5 h-5"
               >
-                <path d="M3.478 2.405a.75.75 0 00-.926.94l2.432 7.905H13.5a.75.75 0 010 1.5H4.984l-2.432 7.905a.75.75 0 00.926.94 60.519 60.519 0 0018.445-8.986.75.75 0 000-1.218A60.517 60.517 0 003.478 2.405z" />
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M14 5l7 7m0 0l-7 7m7-7H3"
+                />
               </svg>
             )}
           </Button>
@@ -777,10 +790,10 @@ export const ChatComponent: React.FC<ChatComponentProps> = ({
             unifiedContext={unifiedContext}
             maxContextSize={maxContextSize}
           />
-            <ModelSelector
-              selectedModel={selectedModel}
-              onModelSelect={setSelectedModel}
-            />
+          <ModelSelector
+            selectedModel={selectedModel}
+            onModelSelect={setSelectedModel}
+          />
         </div>
       </div>
     </div>
