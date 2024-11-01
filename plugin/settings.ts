@@ -8,6 +8,7 @@ export class FileOrganizerSettings {
   logFolderPath = "_FileOrganizer2000/Logs";
   backupFolderPath = "_FileOrganizer2000/Backups";
   templatePaths = "_FileOrganizer2000/Templates";
+  fabricPaths = "_FileOrganizer2000/Fabric";
   useSimilarTags = true;
   renameInstructions = "Create a concise, descriptive name for the document based on its key content. Prioritize clarity and searchability, using specific terms that will make the document easy to find later. Avoid generic words and focus on unique, identifying elements.";
   usePro = true;
@@ -24,7 +25,6 @@ export class FileOrganizerSettings {
   selfHostingURL = "http://localhost:3000";
   enableScreenpipe = false;
   enableFabric = false;
-  fabricPatternPath = "_FileOrganizer2000/Fabric";
   useFolderEmbeddings = false;
   useVaultTitles = true;
   enableFileRenaming = true;
