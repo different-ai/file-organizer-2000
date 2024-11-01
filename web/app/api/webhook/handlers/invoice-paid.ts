@@ -38,8 +38,9 @@ export async function handleInvoicePaid(
   const invoice = event.data.object as Stripe.Invoice;
   const priceKey = await getSrmPriceKey(invoice);
   const productKey = await getSrmProductKey(invoice);
+  const userId = invoice.subscription_details?.metadata?.userId;
   const customerData: CustomerData = {
-    userId: invoice.metadata?.userId,
+    userId,
     customerId: invoice.customer.toString(),
     status: invoice.status,
     billingCycle: priceKey as "monthly" | "lifetime" | "yearly",
