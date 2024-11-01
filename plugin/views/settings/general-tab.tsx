@@ -92,7 +92,7 @@ export const GeneralTab: React.FC<GeneralTabProps> = ({ plugin }) => {
             rel="noopener noreferrer"
             className="text-[--text-accent] hover:text-[--text-accent-hover]"
           >
-            Need help? Come ask me on Discord.
+            Need help? Ask me on Discord.
           </a>
         </p>
       </div>
