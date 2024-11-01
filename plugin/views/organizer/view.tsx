@@ -33,7 +33,10 @@ export const AssistantView: React.FC<AssistantViewProps> = ({
   const [noteContent, setNoteContent] = React.useState<string>("");
   const [refreshKey, setRefreshKey] = React.useState<number>(0);
   const [error, setError] = React.useState<string | null>(null);
-  const isMediaFile = React.useMemo(() => checkIfIsMediaFile(activeFile), [activeFile]);
+  const isMediaFile = React.useMemo(
+    () => checkIfIsMediaFile(activeFile),
+    [activeFile]
+  );
 
   const updateActiveFile = React.useCallback(async () => {
     logMessage("updating active file");
@@ -131,10 +134,12 @@ export const AssistantView: React.FC<AssistantViewProps> = ({
   return (
     <div className="tw-p-4 fo2k ">
       <div className="flex gap-3 items-center">
-      <RefreshButton onRefresh={refreshContext} />
-      <div className="tw-mb-4">
-        <div className="tw-text-lg tw-text-accent tw-mb-4">{activeFile.basename}</div>
-      </div>
+        <RefreshButton onRefresh={refreshContext} />
+        <div className="tw-mb-4">
+          <div className="tw-text-lg tw-text-accent tw-mb-4">
+            {activeFile.basename}
+          </div>
+        </div>
       </div>
 
       {renderSection(
@@ -147,7 +152,7 @@ export const AssistantView: React.FC<AssistantViewProps> = ({
         "Error loading classification"
       )}
 
-      <SectionHeader text="Tags" icon="🏷️" />
+      <SectionHeader text="Tags" icon="🏷️ " />
       {renderSection(
         <SimilarTags
           plugin={plugin}
@@ -158,7 +163,7 @@ export const AssistantView: React.FC<AssistantViewProps> = ({
         "Error loading tags"
       )}
 
-      <SectionHeader text="Titles" icon="💡" />
+      <SectionHeader text="Titles" icon="💡 " />
       {renderSection(
         <RenameSuggestion
           plugin={plugin}
@@ -169,7 +174,7 @@ export const AssistantView: React.FC<AssistantViewProps> = ({
         "Error loading title suggestions"
       )}
 
-      <SectionHeader text="Folders" icon="📁" />
+      <SectionHeader text="Folders" icon="📁 " />
       {renderSection(
         <SimilarFolderBox
           plugin={plugin}
@@ -182,7 +187,7 @@ export const AssistantView: React.FC<AssistantViewProps> = ({
 
       {plugin.settings.enableSimilarFiles && (
         <>
-          <SectionHeader text="Similar files" icon="📄" />
+          <SectionHeader text="Similar files" icon="📄 " />
           {renderSection(
             <SimilarFilesBox plugin={plugin} file={activeFile} />,
             "Error loading similar files"
@@ -192,7 +197,7 @@ export const AssistantView: React.FC<AssistantViewProps> = ({
 
       {plugin.settings.enableAtomicNotes && (
         <>
-          <SectionHeader text="Atomic notes" icon="✂️" />
+          <SectionHeader text="Atomic notes" icon="✂️ " />
           {renderSection(
             <DocumentChunks plugin={plugin} activeFile={activeFile} />,
             "Error loading atomic notes"
@@ -202,7 +207,7 @@ export const AssistantView: React.FC<AssistantViewProps> = ({
 
       {hasAudioEmbed(noteContent) && (
         <>
-          <SectionHeader text="Audio Transcription" icon="🎙️" />
+          <SectionHeader text="Audio Transcription" icon="🎙️ " />
           {renderSection(
             <TranscriptionButton
               plugin={plugin}
