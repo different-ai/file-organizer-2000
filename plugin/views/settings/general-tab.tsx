@@ -62,19 +62,6 @@ export const GeneralTab: React.FC<GeneralTabProps> = ({ plugin }) => {
         >
           Get License
         </button>
-
-        <a
-          href="https://discord.gg/UWH53WqFuE"
-          className="flex items-center justify-center rounded bg-[--background-modifier-border] hover:bg-[--background-modifier-border-hover] text-[--text-normal]"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <img
-            src="https://img.shields.io/discord/1231880202259533865?label=Discord&logo=discord&logoColor=white&color=5865F2&style=flat"
-            alt="Join Discord"
-            className="h-6"
-          />
-        </a>
       </div>
 
       <div className="youtube-embed">
@@ -97,6 +84,16 @@ export const GeneralTab: React.FC<GeneralTabProps> = ({ plugin }) => {
             consider supporting us
           </a>{" "}
           to help improve and maintain the project. 🙏
+        </p>
+        <p className="text-[--text-muted]">
+          <a
+            href="https://discord.gg/UWH53WqFuE"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-[--text-accent] hover:text-[--text-accent-hover]"
+          >
+            Need help? Come ask me on Discord.
+          </a>
         </p>
       </div>
     </div>
