@@ -82,14 +82,19 @@ export const CustomizationTab: React.FC<CustomizationTabProps> = ({ plugin }) =>
       />
 
       <h3 className="text-lg font-semibold mt-6 mb-2">Experimental features</h3>
-
+{/* 
       <ToggleSetting
         name="Enable Fabric-like Formatting"
         description="Use Fabric-like prompt structure for document formatting."
         value={enableFabric}
         onChange={(value) => handleToggleChange(value, setEnableFabric, 'enableFabric')}
+      /> */}
+      <ToggleSetting
+        name="Use Local Chat"
+        description="Toggle to use local chat instead of server-based chat"
+        value={showLocalChatModel}
+        onChange={(value) => handleToggleChange(value, setShowLocalChatModels, 'showLocalLLMInChat')}
       />
-
       <ToggleSetting
         name="Use Folder Embeddings"
         description="Enable the use of folder embeddings for improving folder suggestions."
@@ -172,12 +177,7 @@ export const CustomizationTab: React.FC<CustomizationTabProps> = ({ plugin }) =>
         onChange={(value) => handleToggleChange(value, setEnableFabric, 'enableFabric')}
       />
 
-      <ToggleSetting
-        name="Use Local Chat"
-        description="Toggle to use local chat instead of server-based chat"
-        value={showLocalChatModel}
-        onChange={(value) => handleToggleChange(value, setShowLocalChatModels, 'showLocalLLMInChat')}
-      />
+
 
       {enableFabric && (
         <FabricPromptManager plugin={plugin} />
