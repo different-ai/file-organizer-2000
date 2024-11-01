@@ -2,12 +2,14 @@ import { NextRequest, NextResponse } from "next/server";
 import { handleCheckoutComplete } from "./handlers/checkout-complete";
 import { handleSubscriptionCanceled } from "./handlers/subscription-canceled";
 import { handleInvoicePaid } from "./handlers/invoice-paid";
+import { handlePaymentIntentSucceeded } from "./handlers/payment-intent-succeeded";
 import { verifyStripeWebhook } from "./verify";
 
 const HANDLERS = {
   "checkout.session.completed": handleCheckoutComplete,
   "customer.subscription.deleted": handleSubscriptionCanceled,
   "invoice.paid": handleInvoicePaid,
+  "payment_intent.succeeded": handlePaymentIntentSucceeded,
 } as const;
 
 export async function POST(req: NextRequest) {
