@@ -4,9 +4,6 @@ import { eq } from "drizzle-orm";
 import { updateUserSubscriptionData } from "../utils";
 import Stripe from "stripe";
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY as string, {
-  apiVersion: "2022-11-15",
-});
 
 async function resetUserUsageAndSetLastPayment(userId: string) {
   await db
@@ -37,8 +34,12 @@ export async function handlePaymentIntentSucceeded(
     status: paymentIntent.status,
     billingCycle: "lifetime", // Payment intents are typically for one-time payments
     paymentStatus: paymentIntent.status,
-    product: "default",
-    plan: "default",
+    // this is the name of the product
+    // should be a key of srm.products
+    product: "Lifetime",
+    // use key of srm.products.Lifetime
+    plan: "lifetime",
+
     lastPayment: new Date(),
   };
 
