@@ -1,7 +1,7 @@
 import { WebhookEvent, WebhookHandlerResponse, CustomerData } from '../types';
 import { updateClerkMetadata } from '@/lib/services/clerk';
-import { updateUserSubscriptionData } from '@/drizzle/schema';
 import Stripe from "stripe";
+import { updateUserSubscriptionData } from '../utils';
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
   apiVersion: "2022-11-15"

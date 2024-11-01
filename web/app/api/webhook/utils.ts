@@ -1,7 +1,9 @@
 import { db, UserUsageTable } from "@/drizzle/schema";
 import { CustomerData } from "./types";
 import Stripe from "stripe";
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!);
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
+  apiVersion: "2022-11-15",
+});
 
 const getStripeProduct = async (product: Stripe.Product) => {
   // fetch stripe product with metadata
