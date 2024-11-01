@@ -2,8 +2,8 @@ import { NextRequest, NextResponse } from "next/server";
 import {
   handleCheckoutComplete,
   handleSubscriptionCanceled,
-} from "@/lib/webhook/handlers";
-import { verifyStripeWebhook } from "@/lib/webhook/verify";
+} from "./handlers";
+import { verifyStripeWebhook } from "./verify";
 
 export async function POST(req: NextRequest) {
   try {

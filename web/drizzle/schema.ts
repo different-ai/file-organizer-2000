@@ -9,7 +9,7 @@ import {
 } from "drizzle-orm/pg-core";
 import { eq, sql } from "drizzle-orm";
 import { sql as psql } from "@vercel/postgres";
-import { CustomerData } from "@/lib/webhook/types";
+import { CustomerData } from "@/app/api/webhook/types";
 
 // Use this object to send drizzle queries to your DB
 export const db = drizzle(psql);
