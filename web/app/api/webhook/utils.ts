@@ -19,9 +19,6 @@ export async function updateUserSubscriptionData(
       lastPayment: new Date(),
       currentProduct: data.product,
       currentPlan: data.plan,
-      apiUsage: 0,
-      maxUsage: 0,
-      tokenUsage: 0,
     })
     .onConflictDoUpdate({
       target: [UserUsageTable.userId],
