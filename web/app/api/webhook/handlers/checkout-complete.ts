@@ -1,11 +1,8 @@
 import { WebhookEvent, WebhookHandlerResponse, CustomerData } from '../types';
 import { updateClerkMetadata } from '@/lib/services/clerk';
-import Stripe from "stripe";
 import { updateUserSubscriptionData } from '../utils';
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-  apiVersion: "2022-11-15"
-});
+
 export async function handleCheckoutComplete(event: WebhookEvent): Promise<WebhookHandlerResponse> {
   const session = event.data.object;
   
