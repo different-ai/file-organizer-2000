@@ -204,7 +204,7 @@ const ToggleSetting: React.FC<ToggleSettingProps> = ({ name, description, value,
         type="checkbox"
         checked={value}
         onChange={(e) => onChange(e.target.checked)}
-        className="form-checkbox h-5 w-5 text-[--interactive-accent]"
+        className="form-checkbox text-[--interactive-accent]"
       />
     </div>
   </div>
