@@ -9,7 +9,6 @@ import {
 } from "drizzle-orm/pg-core";
 import { eq, sql } from "drizzle-orm";
 import { sql as psql } from "@vercel/postgres";
-import { CustomerData } from "@/app/api/webhook/types";
 
 // Use this object to send drizzle queries to your DB
 export const db = drizzle(psql);
@@ -19,8 +18,6 @@ export const UserUsageTable = pgTable(
   {
     id: serial("id").primaryKey(),
     userId: text("userId").notNull().unique(),
-    apiUsage: integer("apiUsage").notNull(),
-    maxUsage: integer("maxUsage").notNull(),
     createdAt: timestamp("createdAt").defaultNow().notNull(),
     billingCycle: text("billingCycle").notNull(),
     tokenUsage: integer("tokenUsage").notNull().default(0),
