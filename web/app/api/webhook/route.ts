@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import {
   handleCheckoutComplete,
+  handleInvoicePaid,
   handleSubscriptionCanceled,
 } from "./handlers";
 import { verifyStripeWebhook } from "./verify";
@@ -18,6 +19,9 @@ export async function POST(req: NextRequest) {
         break;
       case "customer.subscription.deleted":
         result = await handleSubscriptionCanceled(event);
+        break;
+      case "invoice.paid":
+        result = await handleInvoicePaid(event);
         break;
       // Add more handlers as needed
       default:

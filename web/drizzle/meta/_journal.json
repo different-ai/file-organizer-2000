@@ -36,6 +36,13 @@
       "when": 1722072057598,
       "tag": "0004_cool_sunspot",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1730469296662,
+      "tag": "0005_stiff_madripoor",
+      "breakpoints": true
     }
   ]
 }

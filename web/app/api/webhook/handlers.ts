@@ -1,5 +1,5 @@
 import { updateClerkMetadata } from '@/lib/services/clerk';
-import { updateUserSubscriptionData } from '@/drizzle/schema';
+import { db, updateUserSubscriptionData, UserUsageTable } from '@/drizzle/schema';
 import { WebhookEvent, CustomerData, WebhookHandlerResponse } from './types';
 import { 
   getCheckoutSessionProduct, 
@@ -7,6 +7,7 @@ import {
   getSubscriptionProduct,
   getSubscriptionPrice 
 } from '@/app/api/webhook/utils';
+import { eq } from 'drizzle-orm';
 
 export async function handleCheckoutComplete(event: WebhookEvent): Promise<WebhookHandlerResponse> {
   const session = event.data.object;
@@ -77,3 +78,18 @@ export async function handleSubscriptionCanceled(event: WebhookEvent): Promise<W
     };
   }
 } 
+const resetUserUsage = async (userId: string) => {
+  await db.update(UserUsageTable).set({
+    tokenUsage: 0,
+  }).where(eq(UserUsageTable.userId, userId));
+}
+
+export async function handleInvoicePaid(event: WebhookEvent): Promise<WebhookHandlerResponse> {
+  const invoice = event.data.object;
+  resetUserUsage(invoice.metadata?.userId);
+  console.log(invoice);
+  return {
+    success: true,
+    message: 'Invoice paid',
+  };
+}

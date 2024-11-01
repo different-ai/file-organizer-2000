@@ -290,7 +290,9 @@ export async function updateUserSubscriptionData(data: CustomerData): Promise<vo
       lastPayment: new Date(),
       currentProduct: data.product,
       currentPlan: data.plan,
-      // ... other default fields
+      apiUsage: 0,
+      maxUsage: 0,
+      tokenUsage: 0,
     })
     .onConflictDoUpdate({
       target: [UserUsageTable.userId],

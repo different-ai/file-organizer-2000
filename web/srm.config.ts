@@ -105,6 +105,7 @@ export const config = {
       "checkout.session.completed",
       "customer.subscription.deleted",
       "invoice.payment_failed",
+      "invoice.paid",
     ],
   },
 } satisfies PreSRMConfig;
