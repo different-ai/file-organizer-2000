@@ -102,10 +102,12 @@ export const config = {
   webhooks: {
     endpoint: webhookEndpoint,
     events: [
-      "checkout.session.completed",
+      "customer.subscription.created",
       "customer.subscription.deleted",
+      "checkout.session.completed",
       "invoice.payment_failed",
       "invoice.paid",
+      "payment_intent.succeeded",
     ],
   },
 } satisfies PreSRMConfig;

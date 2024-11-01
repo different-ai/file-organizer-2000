@@ -1,35 +1,28 @@
 import { NextRequest, NextResponse } from "next/server";
-import {
-  handleCheckoutComplete,
-  handleInvoicePaid,
-  handleSubscriptionCanceled,
-} from "./handlers";
+import { handleCheckoutComplete } from "./handlers/checkout-complete";
+import { handleSubscriptionCanceled } from "./handlers/subscription-canceled";
+import { handleInvoicePaid } from "./handlers/invoice-paid";
 import { verifyStripeWebhook } from "./verify";
+
+const HANDLERS = {
+  "checkout.session.completed": handleCheckoutComplete,
+  "customer.subscription.deleted": handleSubscriptionCanceled,
+  "invoice.paid": handleInvoicePaid,
+} as const;
 
 export async function POST(req: NextRequest) {
   try {
-    // Verify webhook signature and get event
     const event = await verifyStripeWebhook(req);
+    const handler = HANDLERS[event.type as keyof typeof HANDLERS];
 
-    // Handle different event types
-    let result;
-    switch (event.type) {
-      case "checkout.session.completed":
-        result = await handleCheckoutComplete(event);
-        break;
-      case "customer.subscription.deleted":
-        result = await handleSubscriptionCanceled(event);
-        break;
-      case "invoice.paid":
-        result = await handleInvoicePaid(event);
-        break;
-      // Add more handlers as needed
-      default:
-        return NextResponse.json({
-          status: 200,
-          message: `Unhandled event type: ${event.type}`,
-        });
+    if (!handler) {
+      return NextResponse.json({
+        status: 200,
+        message: `Unhandled event type: ${event.type}`,
+      });
     }
+
+    const result = await handler(event);
 
     if (!result.success) {
       console.error(result.error);

@@ -278,31 +278,3 @@ export async function handleFailedPayment(
     console.error(error);
   }
 }
-
-export async function updateUserSubscriptionData(data: CustomerData): Promise<void> {
-  await db
-    .insert(UserUsageTable)
-    .values({
-      userId: data.userId,
-      subscriptionStatus: data.status,
-      paymentStatus: data.paymentStatus,
-      billingCycle: data.billingCycle,
-      lastPayment: new Date(),
-      currentProduct: data.product,
-      currentPlan: data.plan,
-      apiUsage: 0,
-      maxUsage: 0,
-      tokenUsage: 0,
-    })
-    .onConflictDoUpdate({
-      target: [UserUsageTable.userId],
-      set: {
-        subscriptionStatus: data.status,
-        paymentStatus: data.paymentStatus,
-        billingCycle: data.billingCycle,
-        lastPayment: new Date(),
-        currentProduct: data.product,
-        currentPlan: data.plan,
-      },
-    });
-}
