@@ -16,6 +16,7 @@ export async function checkAndCreateFolders(
   await ensureFolderExists(app, settings.attachmentsPath);
   await ensureFolderExists(app, settings.logFolderPath);
   await ensureFolderExists(app, settings.templatePaths);
+  await ensureFolderExists(app, settings.fabricPaths);
   await ensureFolderExists(app, settings.stagingFolder);
   await ensureFolderExists(app, settings.backupFolderPath);
 }

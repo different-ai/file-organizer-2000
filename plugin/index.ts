@@ -864,7 +864,7 @@ export default class FileOrganizer extends Plugin {
 
   getClassificationsForFabric(): string[] {
     const patternFolder = this.app.vault.getAbstractFileByPath(
-      "_FileOrganizer2000/patterns"
+      this.settings.fabricPaths
     );
     if (!patternFolder || !(patternFolder instanceof TFolder)) {
       console.error("Pattern folder not found or is not a valid folder.");

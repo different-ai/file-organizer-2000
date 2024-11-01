@@ -14,12 +14,10 @@ export const FabricPromptManager: React.FC<FabricPromptManagerProps> = ({ plugin
 
   useEffect(() => {
     checkExistingPrompts();
-    plugin.settings.fabricPatternPath = "_FileOrganizer2000/Fabric/";
-    plugin.saveSettings();
   }, []);
 
   const checkExistingPrompts = async () => {
-    const patternsPath = plugin.settings.fabricPatternPath;
+    const patternsPath = plugin.settings.fabricPaths;
     await plugin.ensureFolderExists(patternsPath);
     const patternFolder = plugin.app.vault.getAbstractFileByPath(patternsPath);
     
@@ -46,7 +44,7 @@ export const FabricPromptManager: React.FC<FabricPromptManagerProps> = ({ plugin
 
     try {
       const latestSha = await getLatestCommitSha();
-      const localShaPath = `${plugin.settings.fabricPatternPath}/.last_commit_sha`;
+      const localShaPath = `${plugin.settings.fabricPaths}/.last_commit_sha`;
       let localSha = '';
 
       if (await plugin.app.vault.adapter.exists(localShaPath)) {
@@ -54,7 +52,7 @@ export const FabricPromptManager: React.FC<FabricPromptManagerProps> = ({ plugin
       }
 
       if (localSha !== latestSha) {
-        const patternsPath = plugin.settings.fabricPatternPath;
+        const patternsPath = plugin.settings.fabricPaths;
         await plugin.app.vault.adapter.rmdir(patternsPath, true);
         await plugin.ensureFolderExists(patternsPath);
 

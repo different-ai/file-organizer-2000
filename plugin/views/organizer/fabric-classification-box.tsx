@@ -35,8 +35,8 @@ export const FabricClassificationBox: React.FC<
 
   const fabricDropdownRef = React.useRef<HTMLDivElement>(null);
   const patternsPath = React.useMemo(
-    () => `${plugin.settings.fabricPatternPath.replace(/\/$/, "")}/patterns`,
-    [plugin.settings.fabricPatternPath]
+    () => `${plugin.settings.fabricPaths}/patterns`,
+    [plugin.settings.fabricPaths]
   );
 
   /**

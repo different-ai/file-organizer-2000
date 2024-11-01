@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import FileOrganizer from '../../index';
 import { cleanPath } from '../../../utils';
-import { normalizePath, Vault } from 'obsidian';
+import { normalizePath } from 'obsidian';
 
 interface FileConfigTabProps {
   plugin: FileOrganizer;
@@ -15,6 +15,7 @@ export const FileConfigTab: React.FC<FileConfigTabProps> = ({ plugin }) => {
   const [ignoreFolders, setIgnoreFolders] = useState(plugin.settings.ignoreFolders.join(','));
   const [backupFolderPath, setBackupFolderPath] = useState(plugin.settings.backupFolderPath);
   const [templatePaths, setTemplatePaths] = useState(plugin.settings.templatePaths);
+  const [fabricPaths, setFabricPaths] = useState(plugin.settings.fabricPaths);
 
   const [warnings, setWarnings] = useState<Record<string, string>>({});
   const [pathExistence, setPathExistence] = useState<Record<string, boolean>>({});
@@ -70,7 +71,8 @@ export const FileConfigTab: React.FC<FileConfigTabProps> = ({ plugin }) => {
         logFolderPath,
         defaultDestinationPath,
         backupFolderPath,
-        templatePaths
+        templatePaths,
+        fabricPaths
       ];
 
       const existenceResults = await Promise.all(
@@ -81,7 +83,7 @@ export const FileConfigTab: React.FC<FileConfigTabProps> = ({ plugin }) => {
     };
 
     checkPaths();
-  }, [pathToWatch, attachmentsPath, logFolderPath, defaultDestinationPath, backupFolderPath, templatePaths]);
+  }, [pathToWatch, attachmentsPath, logFolderPath, defaultDestinationPath, backupFolderPath, templatePaths, fabricPaths]);
 
   useEffect(() => {
     const newWarnings: Record<string, string> = {};
@@ -98,6 +100,7 @@ export const FileConfigTab: React.FC<FileConfigTabProps> = ({ plugin }) => {
     checkPath(defaultDestinationPath, 'defaultDestinationPath');
     checkPath(backupFolderPath, 'backupFolderPath');
     checkPath(templatePaths, 'templatePaths');
+    checkPath(fabricPaths, 'fabricPaths');
 
     // Special check for ignoreFolders
     if (ignoreFolders !== "*") {
@@ -108,7 +111,7 @@ export const FileConfigTab: React.FC<FileConfigTabProps> = ({ plugin }) => {
     }
 
     setWarnings(newWarnings);
-  }, [pathToWatch, attachmentsPath, logFolderPath, defaultDestinationPath, ignoreFolders, backupFolderPath, templatePaths]);
+  }, [pathToWatch, attachmentsPath, logFolderPath, defaultDestinationPath, ignoreFolders, backupFolderPath, templatePaths, fabricPaths]);
 
   const renderSettingItem = (
     name: string,
@@ -203,6 +206,13 @@ export const FileConfigTab: React.FC<FileConfigTabProps> = ({ plugin }) => {
         templatePaths,
         (e) => handleSettingChange(e.target.value, setTemplatePaths, 'templatePaths'),
         'templatePaths'
+      )}
+      {renderSettingItem(
+        "Fabric patterns folder",
+        "Choose a folder for fabric patterns.",
+        fabricPaths,
+        (e) => handleSettingChange(e.target.value, setFabricPaths, 'fabricPaths'),
+        'fabricPaths'
       )}
     </div>
   );
