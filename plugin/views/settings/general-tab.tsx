@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
-import { Notice } from 'obsidian';
-import FileOrganizer from '../../index';
+import React, { useState } from "react";
+import { Notice } from "obsidian";
+import FileOrganizer from "../../index";
 
 interface GeneralTabProps {
   plugin: FileOrganizer;
@@ -18,9 +18,9 @@ export const GeneralTab: React.FC<GeneralTabProps> = ({ plugin }) => {
   const handleActivate = async () => {
     const isValid = await plugin.isLicenseKeyValid(licenseKey);
     if (isValid) {
-      new Notice('License key activated successfully!', 5000);
+      new Notice("License key activated successfully!", 5000);
     } else {
-      new Notice('Invalid license key. Please try again.');
+      new Notice("Invalid license key. Please try again.");
     }
   };
 
@@ -39,7 +39,7 @@ export const GeneralTab: React.FC<GeneralTabProps> = ({ plugin }) => {
               type="text"
               placeholder="Enter your File Organizer License Key"
               value={licenseKey}
-              onChange={(e) => handleLicenseKeyChange(e.target.value)}
+              onChange={e => handleLicenseKeyChange(e.target.value)}
             />
             <button onClick={handleActivate}>Activate</button>
           </div>
@@ -50,12 +50,32 @@ export const GeneralTab: React.FC<GeneralTabProps> = ({ plugin }) => {
         <p className="license-status activated">License Status: Activated</p>
       )}
 
-      <button
-        className="file-organizer-login-button"
-        onClick={() => window.open('https://fileorganizer2000.com/?utm_source=obsidian&utm_medium=in-app&utm_campaign=get-license', '_blank')}
-      >
-        Get License
-      </button>
+      <div className="flex items-center gap-2 mb-4">
+        <button
+          className="file-organizer-login-button"
+          onClick={() =>
+            window.open(
+              "https://fileorganizer2000.com/?utm_source=obsidian&utm_medium=in-app&utm_campaign=get-license",
+              "_blank"
+            )
+          }
+        >
+          Get License
+        </button>
+
+        <a
+          href="https://discord.gg/UWH53WqFuE"
+          className="flex items-center justify-center rounded bg-[--background-modifier-border] hover:bg-[--background-modifier-border-hover] text-[--text-normal]"
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          <img
+            src="https://img.shields.io/discord/1231880202259533865?label=Discord&logo=discord&logoColor=white&color=5865F2&style=flat"
+            alt="Join Discord"
+            className="h-6"
+          />
+        </a>
+      </div>
 
       <div className="youtube-embed">
         <iframe
@@ -67,10 +87,15 @@ export const GeneralTab: React.FC<GeneralTabProps> = ({ plugin }) => {
           allowFullScreen
         ></iframe>
         <p className="file-organizer-support-text">
-          File Organizer 2000 is an open-source initiative developed by two brothers. If you find it valuable, please{' '}
-          <a href="https://fileorganizer2000.com/?utm_source=obsidian&utm_medium=in-app&utm_campaign=support-us" target="_blank" rel="noopener noreferrer">
+          File Organizer 2000 is an open-source initiative developed by two
+          brothers. If you find it valuable, please{" "}
+          <a
+            href="https://fileorganizer2000.com/?utm_source=obsidian&utm_medium=in-app&utm_campaign=support-us"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
             consider supporting us
-          </a>{' '}
+          </a>{" "}
           to help improve and maintain the project. 🙏
         </p>
       </div>
