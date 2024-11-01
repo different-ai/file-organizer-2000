@@ -41,9 +41,18 @@ export async function handleCheckoutComplete(event: WebhookEvent): Promise<Webho
   }
 }
 
+const deleteUserSubscriptionData = async (userId: string) => {
+  await db.update(UserUsageTable).set({
+    subscriptionStatus: 'canceled',
+    paymentStatus: 'canceled',
+  }).where(eq(UserUsageTable.userId, userId));
+}
+
 export async function handleSubscriptionCanceled(event: WebhookEvent): Promise<WebhookHandlerResponse> {
   const subscription = event.data.object;
   const userId = subscription.metadata?.userId;
+  await deleteUserSubscriptionData(userId);
+
 
   if (!userId) {
     return {
@@ -78,15 +87,16 @@ export async function handleSubscriptionCanceled(event: WebhookEvent): Promise<W
     };
   }
 } 
-const resetUserUsage = async (userId: string) => {
+const resetUserUsageAndSetLastPayment = async (userId: string) => {
   await db.update(UserUsageTable).set({
     tokenUsage: 0,
+    lastPayment: new Date(),
   }).where(eq(UserUsageTable.userId, userId));
 }
 
 export async function handleInvoicePaid(event: WebhookEvent): Promise<WebhookHandlerResponse> {
   const invoice = event.data.object;
-  resetUserUsage(invoice.metadata?.userId);
+  await resetUserUsageAndSetLastPayment(invoice.metadata?.userId);
   console.log(invoice);
   return {
     success: true,

@@ -3,6 +3,7 @@ import Stripe from "stripe";
 export function getCheckoutSessionProduct(
   session: Stripe.Checkout.Session
 ): string | null {
+  console.log('session', { session });
   const lineItems = session.line_items?.data?.[0];
   // @ts-ignore
   return lineItems?.price?.product?.metadata?.srm_product_key || null;
