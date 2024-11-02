@@ -291,7 +291,7 @@ export default class FileOrganizer extends Plugin {
 
     const attachmentFile = await this.moveToAttachmentFolder(file, newName);
     // append the original file to the container
-    await this.app.vault.append(containerFile, `![[${attachmentFile.path}]]`);
+    await this.app.vault.append(containerFile, `\n\n![[${attachmentFile.path}]]`);
 
     await this.log(
       logFilePath,
