@@ -18,8 +18,6 @@ export const UserUsageTable = pgTable(
   {
     id: serial("id").primaryKey(),
     userId: text("userId").notNull().unique(),
-    apiUsage: integer("apiUsage").notNull(),
-    maxUsage: integer("maxUsage").notNull(),
     createdAt: timestamp("createdAt").defaultNow().notNull(),
     billingCycle: text("billingCycle").notNull(),
     tokenUsage: integer("tokenUsage").notNull().default(0),
@@ -30,6 +28,9 @@ export const UserUsageTable = pgTable(
       .notNull()
       .default("inactive"),
     paymentStatus: text("paymentStatus").notNull().default("unpaid"),
+    lastPayment: timestamp("lastPayment"),
+    currentProduct: text("currentProduct"),
+    currentPlan: text("currentPlan"),
   },
   (userUsage) => {
     return {
@@ -48,8 +49,6 @@ export async function createOrUpdateUserUsage(
     .insert(UserUsageTable)
     .values({
       userId,
-      apiUsage: 0,
-      maxUsage: 0,
       billingCycle,
     })
     .onConflictDoUpdate({
@@ -62,17 +61,11 @@ export async function createOrUpdateUserUsage(
   // Record created or updated, exit the retry loop
 }
 
+// delete me
 export async function incrementApiUsage(userId: string): Promise<void> {
   console.log("Incrementing API Usage for User ID:", userId);
 
   try {
-    await db
-      .update(UserUsageTable)
-      .set({
-        apiUsage: sql`${UserUsageTable.apiUsage} + 1`,
-      })
-      .where(eq(UserUsageTable.userId, userId));
-
     console.log("Incremented API Usage for User ID:", userId);
   } catch (error) {
     console.error("Error incrementing API Usage for User ID:", userId);
@@ -82,29 +75,13 @@ export async function incrementApiUsage(userId: string): Promise<void> {
   // Increment successful, exit the retry loop
 }
 
+// delete me
 export const checkApiUsage = async (userId: string) => {
   console.log("Checking API Usage for User ID:", userId);
   try {
-    const userUsage = await db
-      .select()
-      .from(UserUsageTable)
-      .where(eq(UserUsageTable.userId, userId))
-      .limit(1)
-      .execute();
 
-    console.log("User Usage Results for User ID:", userId, userUsage);
-
-    if (userUsage[0].apiUsage >= userUsage[0].maxUsage) {
-      console.log("User has exceeded their API usage limit");
-
-      return {
-        remaining: 0,
-        usageError: false,
-      };
-    }
-    console.log("User has not exceeded their API usage limit");
     return {
-      remaining: userUsage[0].maxUsage - userUsage[0].apiUsage,
+      remaining: 1000 - 0,
 
       usageError: false,
     };
@@ -194,12 +171,10 @@ export const checkUserSubscriptionStatus = async (userId: string) => {
     if (!userUsage[0]) {
       return false;
     }
-    if (userUsage[0].subscriptionStatus === "active") {
+    if (userUsage[0].paymentStatus === "paid" || userUsage[0].paymentStatus === "succeeded") {
       return true;
     }
-    if (userUsage[0].subscriptionStatus === "complete") {
-      return true;
-    }
+
     return false;
   } catch (error) {
     console.error("Error checking subscription status for User ID:", userId);
@@ -220,8 +195,6 @@ export async function createOrUpdateUserSubscriptionStatus(
         userId,
         subscriptionStatus,
         paymentStatus,
-        apiUsage: 0, // default values for other fields
-        maxUsage: 0,
         billingCycle,
         tokenUsage: 0,
         createdAt: new Date(),
@@ -235,9 +208,14 @@ export async function createOrUpdateUserSubscriptionStatus(
         },
       });
 
-    console.log(`Updated or created subscription status for User ID: ${userId}`);
+    console.log(
+      `Updated or created subscription status for User ID: ${userId}`
+    );
   } catch (error) {
-    console.error("Error updating or creating subscription status for User ID:", userId);
+    console.error(
+      "Error updating or creating subscription status for User ID:",
+      userId
+    );
     console.error(error);
   }
 }
@@ -255,8 +233,6 @@ export async function handleFailedPayment(
         subscriptionStatus,
         paymentStatus,
         billingCycle: "",
-        apiUsage: 0, // default values for other fields
-        maxUsage: 0,
         tokenUsage: 0,
         createdAt: new Date(),
       })
@@ -268,9 +244,14 @@ export async function handleFailedPayment(
         },
       });
 
-    console.log(`Updated or created failed payment status for User ID: ${userId}`);
+    console.log(
+      `Updated or created failed payment status for User ID: ${userId}`
+    );
   } catch (error) {
-    console.error("Error updating or creating failed payment status for User ID:", userId);
+    console.error(
+      "Error updating or creating failed payment status for User ID:",
+      userId
+    );
     console.error(error);
   }
 }
