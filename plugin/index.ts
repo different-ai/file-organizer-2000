@@ -283,7 +283,7 @@ export default class FileOrganizer extends Plugin {
     logFilePath: string,
     formattedText: string
   ): Promise<void> {
-    const containerFile = await this.createMediaContainer(content);
+    const containerFile = await this.createMediaContainer(formattedText);
     await this.log(
       logFilePath,
       `8a. Created markdown container: [[${containerFile.path}]]`
