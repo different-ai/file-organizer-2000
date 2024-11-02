@@ -69,6 +69,11 @@ const isValidExtension = (extension: string) => {
   return true;
 };
 // determine sever url
+interface ProcessingResult {
+  text: string;
+  classification?: string;
+  formattedText: string;
+}
 
 export interface FileMetadata {
   instructions: {
@@ -140,138 +145,232 @@ export default class FileOrganizer extends Plugin {
     const logFilePath = `${this.settings.logFolderPath}/${formattedDate}-fo2k.md`;
 
     try {
-      // Initialize log file
-      await this.ensureLogFileExists(logFilePath);
-      await this.log(
-        logFilePath,
-        `\n\n## Processing Start: ${processedFileName}\n`
-      );
+      // Step 1-3: Initialize and validate
+      await this.initializeProcessing(logFilePath, processedFileName);
 
-      new Notice(`Processing ${processedFileName}`, 3000);
-      await this.log(logFilePath, `Started processing ${processedFileName}`);
-
-      // Validate file extension
-      if (
-        !originalFile.extension ||
-        !isValidExtension(originalFile.extension)
-      ) {
+      if (!this.validateFile(originalFile)) {
         await this.log(
           logFilePath,
           `2. Unsupported file type. Skipping ${processedFileName}`
         );
-        new Notice("Unsupported file type. Skipping.", 3000);
         return;
       }
 
-      // Ensure necessary folders exist
-      await this.checkAndCreateFolders();
-
-      // Step 1: Read file content
-      let text: string;
-      try {
-        text = await this.getTextFromFile(originalFile);
-        await this.log(
-          logFilePath,
-          `1. Read content from ${processedFileName}`
-        );
-      } catch (error) {
-        await this.log(
-          logFilePath,
-          `2. Error reading file ${processedFileName}: ${error.message}`
-        );
-        new Notice(`Error reading file ${processedFileName}`, 3000);
-        console.error(`Error in getTextFromFile:`, error);
-        return;
-      }
-
-      // Step 2: Classify and format content
-      let formattedText = text;
-      if (this.settings.enableDocumentClassification) {
-        const { classification, formattedText: newFormattedText } =
-          await this.classifyAndFormatContent(originalFile, text);
-        formattedText = newFormattedText;
-        await this.log(
-          logFilePath,
-          `3. Classified as ${classification || "unclassified"}`
-        );
-      }
-
-      // Step 3: Determine new folder
-      const newPath = await this.getAIClassifiedFolder(
-        formattedText,
-        originalFile.path
+      // Step 4-5: Process content
+      const processingResult = await this.processContent(
+        originalFile,
+        logFilePath
       );
-      await this.log(logFilePath, `4. Determined new folder: ${newPath}`);
+      if (!processingResult) return;
 
-      // Step 4: Generate new file name
-      const newName = await this.generateNameFromContent(
+      const { text, classification, formattedText } = processingResult;
+
+      // Step 6-7: Determine paths
+      const { newPath, newName } = await this.determineDestination(
+        formattedText || text,
+        originalFile,
         text,
-        originalFile.basename
+        logFilePath
       );
-      await this.log(logFilePath, `5. Generated new name: ${newName}`);
+      logMessage(`newPath: ${newPath}, newName: ${newName}, formattedText: ${formattedText}`);
 
-      // Step 5: Handle media files
+      // Step 8: Process based on file type
       if (this.shouldCreateMarkdownContainer(originalFile)) {
-        // Create markdown container
-        const containerFile = await this.app.vault.create(
-          `${this.settings.defaultDestinationPath}/${Date.now()}.md`,
-          `${text}\n\n---\n![[${originalFile.name}]]`
-        );
-        await this.log(
+        await this.processMediaFile(
+          originalFile,
+          text,
+          newName,
+          newPath,
           logFilePath,
-          // create markdown container for extension type
-          `6. Created markdown container: [[${containerFile.path}]] for extension ${originalFile.extension}`
+          formattedText
         );
-
-        // Move original file to new location
-        const file = await this.moveToAttachmentFolder(originalFile, newName);
-        await this.log(logFilePath, `7. Moved attachment to: [[${file.path}]]`);
-
-        await this.moveFile(containerFile, newName, newPath);
-
-        // Move original file to attachments folder
-        await this.log(
-          logFilePath,
-          `8. Moved container to: ${newPath}/${newName}`
-        );
-
-        // Process the markdown container file
-        if (this.settings.useSimilarTags) {
-          await this.generateAndAppendSimilarTags(containerFile, text, newName);
-          await this.log(logFilePath, `9. Added similar tags.`);
-        }
-
-        if (this.settings.enableAliasGeneration) {
-          await this.generateAndAppendAliases(containerFile, newName, text);
-          await this.log(logFilePath, `10. Added aliases.`);
-        }
       } else {
-        // For non-media files, process the original file
-        if (this.settings.useSimilarTags) {
-          await this.generateAndAppendSimilarTags(originalFile, text, newName);
-          await this.log(logFilePath, `6. Added similar tags.`);
-        }
-
-        if (this.settings.enableAliasGeneration) {
-          await this.generateAndAppendAliases(originalFile, newName, text);
-          await this.log(logFilePath, `7. Added aliases.`);
-        }
-
-        // Move the file to the new folder
-        await this.moveFile(originalFile, newName, newPath);
-        await this.log(logFilePath, `8. Renamed and moved to: [[${newName}]]`);
+        await this.processNonMediaFile(
+          originalFile,
+          text,
+          newName,
+          newPath,
+          classification || "",
+          logFilePath,
+          formattedText
+        );
       }
 
-      await this.log(logFilePath, `10. Completed processing.`);
-      new Notice(`Processed ${processedFileName}`, 3000);
+      // Step 9: Complete
+      await this.completeProcessing(logFilePath, processedFileName);
+    } catch (error) {
+      await this.handleProcessingError(error, logFilePath, processedFileName);
+    }
+  }
+
+  private async initializeProcessing(
+    logFilePath: string,
+    fileName: string
+  ): Promise<void> {
+    await this.ensureLogFileExists(logFilePath);
+    await this.log(logFilePath, `\n\n## Processing Start: ${fileName}\n`);
+    new Notice(`Processing ${fileName}`, 3000);
+    await this.log(logFilePath, `1. Started processing ${fileName}`);
+    await this.checkAndCreateFolders();
+    await this.log(logFilePath, `3. Verified necessary folders exist`);
+  }
+
+  private validateFile(file: TFile): boolean {
+    if (!file.extension || !isValidExtension(file.extension)) {
+      new Notice("Unsupported file type. Skipping.", 3000);
+      return false;
+    }
+    return true;
+  }
+
+
+  private async processContent(
+    file: TFile,
+    logFilePath: string
+  ): Promise<ProcessingResult | null> {
+    try {
+      const text = await this.getTextFromFile(file);
+      await this.log(logFilePath, `4. Read content from ${file.basename}`);
+
+      let classification = "unclassified";
+      let formattedText = text;
+
+      if (this.settings.enableDocumentClassification) {
+        const templateNames = await this.getTemplateNames();
+        classification = await this.classifyContentV2(text, templateNames);
+        const instructions = await this.getTemplateInstructions(classification);
+        formattedText = await this.formatContentV2(text, instructions);
+        console.log("classification", classification);
+        await this.log(logFilePath, `5. Classified as ${classification}`);
+      }
+
+      return { text, classification, formattedText };
     } catch (error) {
       await this.log(
         logFilePath,
-        `Error processing ${processedFileName}: ${error.message}`
+        `Error reading file ${file.basename}: ${error.message}`
       );
-      new Notice(`Unexpected error processing ${processedFileName}`, 3000);
-      console.error(`Error in processFileV2:`, error);
+      new Notice(`Error reading file ${file.basename}`, 3000);
+      console.error("Error in getTextFromFile:", error);
+      return null;
     }
+  }
+
+  private async determineDestination(
+    content: string,
+    file: TFile,
+    originalText: string,
+    logFilePath: string
+  ) {
+    const newPath = await this.getAIClassifiedFolder(content, file.path);
+    await this.log(logFilePath, `6. Determined new folder: ${newPath}`);
+
+    const newName = await this.generateNameFromContent(
+      originalText,
+      file.basename
+    );
+    await this.log(logFilePath, `7. Generated new name: ${newName}`);
+
+    return { newPath, newName };
+  }
+
+  private async processMediaFile(
+    file: TFile,
+    content: string,
+    newName: string,
+    newPath: string,
+    logFilePath: string,
+    formattedText: string
+  ): Promise<void> {
+    const containerFile = await this.createMediaContainer(file, formattedText);
+    await this.log(
+      logFilePath,
+      `8a. Created markdown container: [[${containerFile.path}]]`
+    );
+
+    const attachmentFile = await this.moveToAttachmentFolder(file, newName);
+    await this.log(
+      logFilePath,
+      `8b. Moved attachment to: [[${attachmentFile.path}]]`
+    );
+
+    await this.moveFile(containerFile, newName, newPath);
+    await this.log(
+      logFilePath,
+      `8c. Moved container to: [[${newPath}/${newName}]]`
+    );
+
+    await this.addMetadata(containerFile, content, newName);
+  }
+
+  private async processNonMediaFile(
+    file: TFile,
+    content: string,
+    newName: string,
+    newPath: string,
+    classification: string,
+    logFilePath: string,
+    formattedText: string
+  ): Promise<void> {
+    if (classification && classification !== "unclassified") {
+     await this.app.vault.modify(file, formattedText);
+      await this.log(
+        logFilePath,
+        `8f. Formatted content according to classification`
+      );
+    }
+
+    await this.addMetadata(file, content, newName);
+    await this.moveFile(file, newName, newPath);
+    await this.log(
+      logFilePath,
+      `8h. Renamed and moved file to: [[${newPath}/${newName}]]`
+    );
+  }
+
+  private async addMetadata(
+    file: TFile,
+    content: string,
+    newName: string
+  ): Promise<void> {
+    if (this.settings.useSimilarTags) {
+      await this.generateAndAppendSimilarTags(file, content, newName);
+    }
+    // if (this.settings.enableAliasGeneration) {
+    //   await this.generateAndAppendAliases(file, newName, content);
+    // }
+  }
+
+  private async createMediaContainer(
+    file: TFile,
+    content: string
+  ): Promise<TFile> {
+    const containerContent = `${content}\n\n---\n![[${file.name}]]`;
+    const containerFilePath = `${
+      this.settings.defaultDestinationPath
+    }/${Date.now()}.md`;
+    return await this.app.vault.create(containerFilePath, containerContent);
+  }
+
+  private async completeProcessing(
+    logFilePath: string,
+    fileName: string
+  ): Promise<void> {
+    await this.log(logFilePath, `9. Completed processing of ${fileName}`);
+    new Notice(`Processed ${fileName}`, 3000);
+  }
+
+  private async handleProcessingError(
+    error: Error,
+    logFilePath: string,
+    fileName: string
+  ): Promise<void> {
+    await this.log(
+      logFilePath,
+      `Error processing ${fileName}: ${error.message}`
+    );
+    new Notice(`Unexpected error processing ${fileName}`, 3000);
+    console.error("Error in processFileV2:", error);
   }
 
   /**
@@ -309,21 +408,6 @@ export default class FileOrganizer extends Plugin {
       `${file.parent?.path}/${newName}.${file.extension}`
     );
     return newName;
-  }
-
-  async classifyAndFormatContent(
-    file: TFile,
-    content: string
-  ): Promise<{ classification?: string; formattedText: string }> {
-    const result = await this.classifyAndFormat(file, content);
-    if (result) {
-      await this.app.vault.modify(file, result.formattedText);
-      return {
-        classification: result.type,
-        formattedText: result.formattedText,
-      };
-    }
-    return { formattedText: content };
   }
 
   async determineAndMoveToNewFolder(
@@ -372,56 +456,6 @@ export default class FileOrganizer extends Plugin {
       `![[${originalFile.name}]]`
     );
     await this.moveToAttachmentFolder(originalFile, originalFile.basename);
-  }
-
-  async generateMetadata(
-    file: TFile,
-    instructions: FileMetadata["instructions"],
-    textToFeedAi: string,
-    oldPath?: string
-  ): Promise<FileMetadata> {
-    const documentName = await this.generateNameFromContent(
-      textToFeedAi,
-      file.basename
-    );
-
-    const classificationResult = instructions.shouldClassify
-      ? await this.classifyAndFormat(file, textToFeedAi)
-      : null;
-
-    const classification = classificationResult?.type;
-    const aiFormattedText = classificationResult?.formattedText || "";
-
-    // Determine the folder path based on formatted content (if available) or original content
-    const newPath = await this.getAIClassifiedFolder(
-      classification && aiFormattedText ? aiFormattedText : textToFeedAi,
-      file.path
-    );
-
-    const aliases = instructions.shouldAppendAlias
-      ? await this.generateAliasses(documentName, textToFeedAi)
-      : [];
-
-    const similarTags = instructions.shouldAppendSimilarTags
-      ? await this.getSimilarTags(textToFeedAi, documentName)
-      : [];
-
-    return {
-      instructions,
-      classification,
-      originalText: textToFeedAi,
-      originalPath: oldPath,
-      originalName: file.basename,
-      aiFormattedText,
-      shouldCreateMarkdownContainer:
-        validMediaExtensions.includes(file.extension) ||
-        file.extension === "pdf",
-      markAsProcessed: true,
-      newName: documentName,
-      newPath,
-      aliases,
-      similarTags,
-    };
   }
 
   async identifyConceptsAndFetchChunks(content: string) {
@@ -526,46 +560,6 @@ export default class FileOrganizer extends Plugin {
       console.error("Error formatting content:", error);
       new Notice("An error occurred while formatting the content.", 6000);
       return "";
-    }
-  }
-
-  async classifyAndFormat(file: TFile, content: string) {
-    try {
-      const templateNames = await this.getTemplateNames();
-
-      const classifiedType = await this.classifyContentV2(
-        content,
-        templateNames
-      );
-
-      if (classifiedType) {
-        const formattingInstruction = await this.getTemplateInstructions(
-          classifiedType
-        );
-
-        if (formattingInstruction) {
-          const formattedText = await this.formatContentV2(
-            content,
-            formattingInstruction
-          );
-
-          console.log("formattedText", formattedText);
-          return {
-            type: classifiedType,
-            formattingInstruction,
-            formattedText,
-          };
-        }
-      }
-
-      return null;
-    } catch (error) {
-      console.error("Error in classifyAndFormatDocumentV2:", error);
-      new Notice(
-        "An error occurred while classifying and formatting the document.",
-        6000
-      );
-      return null;
     }
   }
 
