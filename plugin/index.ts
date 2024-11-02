@@ -426,19 +426,23 @@ export default class FileOrganizer extends Plugin {
 
   async identifyConceptsAndFetchChunks(content: string) {
     try {
-      const response = await makeApiRequest(() =>
-        requestUrl({
-          url: `${this.getServerUrl()}/api/concepts-and-chunks`,
+      const response = await fetch(
+        `${this.getServerUrl()}/api/concepts-and-chunks`,
+        {
           method: "POST",
-          contentType: "application/json",
-          body: JSON.stringify({ content }),
-          throw: false,
           headers: {
+            "Content-Type": "application/json",
             Authorization: `Bearer ${this.settings.API_KEY}`,
           },
-        })
+          body: JSON.stringify({ content }),
+        }
       );
-      const { concepts } = await response.json;
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const { concepts } = await response.json();
       return concepts;
     } catch (error) {
       console.error("Error in identifyConceptsAndFetchChunks:", error);
