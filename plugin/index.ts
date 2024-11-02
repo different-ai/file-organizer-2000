@@ -223,14 +223,13 @@ export default class FileOrganizer extends Plugin {
         );
 
         // Move original file to new location
-        await this.moveFile(originalFile, originalFile.basename, newPath);
+        await this.moveToAttachmentFolder(originalFile, newName);
         await this.log(
           logFilePath,
           `7. Moved original to: ${newPath}/${originalFile.basename}`
         );
 
         // Move original file to attachments folder
-        await this.moveToAttachmentFolder(originalFile, newName);
         await this.log(logFilePath, `8. Moved to attachments: ${newName}`);
 
         // Process the markdown container file
@@ -1449,7 +1448,6 @@ export default class FileOrganizer extends Plugin {
   async onload() {
     await this.initializePlugin();
 
-    this.settings.fabricPatternPath = "_FileOrganizer2000/Fabric";
     await this.saveSettings();
 
     // Initialize different features
