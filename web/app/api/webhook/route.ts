@@ -4,12 +4,14 @@ import { handleSubscriptionCanceled } from "./handlers/subscription-canceled";
 import { handleInvoicePaid } from "./handlers/invoice-paid";
 import { handlePaymentIntentSucceeded } from "./handlers/payment-intent-succeeded";
 import { verifyStripeWebhook } from "./verify";
+import { handleSubscriptionUpdated } from "./handlers/subscription-updated";
 
 const HANDLERS = {
   "checkout.session.completed": handleCheckoutComplete,
   "customer.subscription.deleted": handleSubscriptionCanceled,
   "invoice.paid": handleInvoicePaid,
   "payment_intent.succeeded": handlePaymentIntentSucceeded,
+  "customer.subscription.updated": handleSubscriptionUpdated,
 } as const;
 
 export async function POST(req: NextRequest) {
