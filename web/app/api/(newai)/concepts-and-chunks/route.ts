@@ -2,7 +2,7 @@ import { NextResponse, NextRequest } from "next/server";
 import { getModel } from "@/lib/models";
 import { incrementAndLogTokenUsage } from "@/lib/incrementAndLogTokenUsage";
 import { handleAuthorization } from "@/lib/handleAuthorization";
-import { generateObject } from "ai";
+import { generateObject, LanguageModel } from "ai";
 import { z } from "zod";
 
 export const maxDuration = 120;
