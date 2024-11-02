@@ -812,7 +812,8 @@ export default class FileOrganizer extends Plugin {
     formData.append("fileExtension", fileExtension);
     // const newServerUrl = "http://localhost:3001/transcribe";
     const newServerUrl =
-      "https://file-organizer-2000-x.onrender.com/transcribe";
+      "https://file-organizer-2000-audio-transcription.onrender.com/transcribe";
+
     const response = await fetch(newServerUrl, {
       method: "POST",
       body: formData,
