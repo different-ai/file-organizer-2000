@@ -172,7 +172,9 @@ export default class FileOrganizer extends Plugin {
         text,
         logFilePath
       );
-      logMessage(`newPath: ${newPath}, newName: ${newName}, formattedText: ${formattedText}`);
+      logMessage(
+        `newPath: ${newPath}, newName: ${newName}, formattedText: ${formattedText}`
+      );
 
       // Step 8: Process based on file type
       if (this.shouldCreateMarkdownContainer(originalFile)) {
@@ -222,7 +224,6 @@ export default class FileOrganizer extends Plugin {
     }
     return true;
   }
-
 
   private async processContent(
     file: TFile,
@@ -282,13 +283,16 @@ export default class FileOrganizer extends Plugin {
     logFilePath: string,
     formattedText: string
   ): Promise<void> {
-    const containerFile = await this.createMediaContainer(file, formattedText);
+    const containerFile = await this.createMediaContainer(content);
     await this.log(
       logFilePath,
       `8a. Created markdown container: [[${containerFile.path}]]`
     );
 
     const attachmentFile = await this.moveToAttachmentFolder(file, newName);
+    // append the original file to the container
+    await this.app.vault.append(containerFile, `![[${attachmentFile.path}]]`);
+
     await this.log(
       logFilePath,
       `8b. Moved attachment to: [[${attachmentFile.path}]]`
@@ -313,7 +317,7 @@ export default class FileOrganizer extends Plugin {
     formattedText: string
   ): Promise<void> {
     if (classification && classification !== "unclassified") {
-     await this.app.vault.modify(file, formattedText);
+      await this.app.vault.modify(file, formattedText);
       await this.log(
         logFilePath,
         `8f. Formatted content according to classification`
@@ -341,11 +345,8 @@ export default class FileOrganizer extends Plugin {
     // }
   }
 
-  private async createMediaContainer(
-    file: TFile,
-    content: string
-  ): Promise<TFile> {
-    const containerContent = `${content}\n\n---\n![[${file.name}]]`;
+  private async createMediaContainer(content: string): Promise<TFile> {
+    const containerContent = `${content}`;
     const containerFilePath = `${
       this.settings.defaultDestinationPath
     }/${Date.now()}.md`;
@@ -445,17 +446,6 @@ export default class FileOrganizer extends Plugin {
     return (
       validMediaExtensions.includes(file.extension) || file.extension === "pdf"
     );
-  }
-
-  async createMarkdownContainerForMedia(
-    originalFile: TFile,
-    newPath: string
-  ): Promise<void> {
-    const containerFile = await this.app.vault.create(
-      `${newPath}/${originalFile.basename}.md`,
-      `![[${originalFile.name}]]`
-    );
-    await this.moveToAttachmentFolder(originalFile, originalFile.basename);
   }
 
   async identifyConceptsAndFetchChunks(content: string) {
@@ -1118,7 +1108,13 @@ export default class FileOrganizer extends Plugin {
 
   async moveToAttachmentFolder(file: TFile, newFileName: string) {
     const destinationFolder = this.settings.attachmentsPath;
-    return await this.moveFile(file, newFileName, destinationFolder);
+    // current time and date
+    const formattedDate = moment().format("YYYY-MM-DD-HH-mm-ss");
+    return await this.moveFile(
+      file,
+      `${formattedDate}-${newFileName}`,
+      destinationFolder
+    );
   }
 
   async generateNameFromContent(
