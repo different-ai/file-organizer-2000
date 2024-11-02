@@ -171,7 +171,7 @@ export const checkUserSubscriptionStatus = async (userId: string) => {
     if (!userUsage[0]) {
       return false;
     }
-    if (userUsage[0].paymentStatus === "paid") {
+    if (userUsage[0].paymentStatus === "paid" || userUsage[0].paymentStatus === "succeeded") {
       return true;
     }
 
