@@ -5,7 +5,7 @@ import { updateUserSubscriptionData } from '../utils';
 
 export async function handleCheckoutComplete(event: WebhookEvent): Promise<WebhookHandlerResponse> {
   const session = event.data.object;
-  
+
   const customerData: CustomerData = {
     userId: session.metadata?.userId,
     customerId: session.customer,
@@ -19,7 +19,6 @@ export async function handleCheckoutComplete(event: WebhookEvent): Promise<Webho
   };
 
   try {
-    await updateUserSubscriptionData(customerData);
     await updateClerkMetadata(customerData);
 
     return {
