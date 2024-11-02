@@ -219,18 +219,21 @@ export default class FileOrganizer extends Plugin {
         );
         await this.log(
           logFilePath,
-          `6. Created markdown container: [[${containerFile.path}]]`
+          // create markdown container for extension type
+          `6. Created markdown container: [[${containerFile.path}]] for extension ${originalFile.extension}`
         );
 
         // Move original file to new location
-        await this.moveToAttachmentFolder(originalFile, newName);
-        await this.log(
-          logFilePath,
-          `7. Moved original to: ${newPath}/${originalFile.basename}`
-        );
+        const file = await this.moveToAttachmentFolder(originalFile, newName);
+        await this.log(logFilePath, `7. Moved attachment to: [[${file.path}]]`);
+
+        await this.moveFile(containerFile, newName, newPath);
 
         // Move original file to attachments folder
-        await this.log(logFilePath, `8. Moved to attachments: ${newName}`);
+        await this.log(
+          logFilePath,
+          `8. Moved container to: ${newPath}/${newName}`
+        );
 
         // Process the markdown container file
         if (this.settings.useSimilarTags) {
@@ -1052,7 +1055,7 @@ export default class FileOrganizer extends Plugin {
       .filter(folder => folder !== this.settings.attachmentsPath)
       .filter(folder => folder !== this.settings.backupFolderPath)
       .filter(folder => folder !== this.settings.templatePaths)
-      .filter(folder => folder !== this.settings.fabricPatternPath);
+      .filter(folder => folder !== this.settings.fabricPaths);
   }
 
   async getSimilarFiles(fileToCheck: TFile): Promise<string[]> {
