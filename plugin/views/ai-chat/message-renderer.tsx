@@ -1,4 +1,5 @@
 import React from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import { Avatar } from "./avatar";
 import { AIMarkdown } from "./ai-message-renderer";
 import { UserMarkdown } from "./user-message-renderer";
@@ -19,18 +20,22 @@ export const MessageRenderer: React.FC<MessageRendererProps> = ({
   if (message.toolInvocations) {
     return null;
   }
+  
   return (
-    <div className="flex items-start mb-4">
+    <motion.div 
+      className="flex items-start mb-4"
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.3 }}
+    >
       <Avatar role={message.role as "user" | "assistant"} />
-      <div className="ml-2 p-2 rounded-lg text-[--text-normal]">
+      <motion.div className="ml-2 p-2 rounded-lg text-[--text-normal]">
         {message.role === "user" ? (
-          <UserMarkdown content={message.content} />
-        ) : message.toolInvocations ? (
           <UserMarkdown content={message.content} />
         ) : (
           <AIMarkdown content={message.content} />
         )}
-      </div>
-    </div>
+      </motion.div>
+    </motion.div>
   );
 };

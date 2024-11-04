@@ -116,6 +116,7 @@ export const ChatComponent: React.FC<ChatComponentProps> = ({
     maxSteps: 2,
     api: `${plugin.getServerUrl()}/api/chat`,
     body: chatBody,
+    experimental_throttle: 100,
     headers: {
       "Content-Type": "application/json",
       Authorization: `Bearer ${apiKey}`,
@@ -158,6 +159,9 @@ export const ChatComponent: React.FC<ChatComponentProps> = ({
 
       // Default fetch behavior for remote API
       return fetch(url, options);
+    },
+    onToolCall({ toolCall  }) {
+      console.log("toolCall", toolCall);
     },
     keepLastMessageOnError: true,
     onError: error => {

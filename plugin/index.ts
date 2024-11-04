@@ -241,7 +241,7 @@ export default class FileOrganizer extends Plugin {
         classification = await this.classifyContentV2(text, templateNames);
         const instructions = await this.getTemplateInstructions(classification);
         formattedText = await this.formatContentV2(text, instructions);
-        console.log("classification", classification);
+        logMessage(`formattedText: ${formattedText}`);
         await this.log(logFilePath, `5. Classified as ${classification}`);
       }
 

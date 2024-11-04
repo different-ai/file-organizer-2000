@@ -43,22 +43,29 @@ function YouTubeHandler({
     videoId: string
   ) => void;
 }) {
-  const handleYouTubeTranscript = async () => {
-    const { videoId } = toolInvocation.args;
-    try {
-      const transcript = await getYouTubeTranscript(videoId);
-      const title = await getYouTubeVideoTitle(videoId);
-      handleAddResult(JSON.stringify({ transcript, title, videoId }));
-      return { transcript, title, videoId };
-    } catch (error) {
-      console.error("Error fetching YouTube transcript:", error);
-      handleAddResult(JSON.stringify({ error: error.message }));
-      return { error: error.message };
-    }
-  };
+  const hasFetchedRef = React.useRef(false);
+
+  React.useEffect(() => {
+    const handleYouTubeTranscript = async () => {
+      if (!hasFetchedRef.current && !("result" in toolInvocation)) {
+        hasFetchedRef.current = true;
+        const { videoId } = toolInvocation.args;
+        try {
+          const transcript = await getYouTubeTranscript(videoId);
+          const title = await getYouTubeVideoTitle(videoId);
+          onYoutubeTranscript(transcript, title, videoId);
+          handleAddResult(JSON.stringify({ transcript, title, videoId }));
+        } catch (error) {
+          console.error("Error fetching YouTube transcript:", error);
+          handleAddResult(JSON.stringify({ error: error.message }));
+        }
+      }
+    };
+
+    handleYouTubeTranscript();
+  }, [toolInvocation, handleAddResult, onYoutubeTranscript]);
 
   if (!("result" in toolInvocation)) {
-    handleYouTubeTranscript();
     return (
       <div className="text-sm text-[--text-muted]">
         Fetching the video transcript...
@@ -68,7 +75,7 @@ function YouTubeHandler({
 
   let result;
   try {
-    result = toolInvocation.result;
+    result = JSON.parse(toolInvocation.result);
   } catch (error) {
     return (
       <div className="text-sm text-[--text-muted]">
