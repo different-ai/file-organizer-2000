@@ -30,6 +30,7 @@ export async function trackLoopsEvent({
         userId,
         firstName,
         lastName,
+        userGroup: "StripeCustomers",
         ...data,
       }),
     });
