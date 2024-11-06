@@ -3,6 +3,7 @@ import { db, UserUsageTable } from "@/drizzle/schema";
 import { eq } from "drizzle-orm";
 import { updateUserSubscriptionData } from "../utils";
 import Stripe from "stripe";
+import { trackLoopsEvent } from '@/lib/services/loops';
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY as string, {
   apiVersion: "2022-11-15",
@@ -49,11 +50,32 @@ export async function handleInvoicePaid(
     plan: priceKey,
     lastPayment: new Date(),
   };
-  await updateUserSubscriptionData(customerData);
-  await resetUserUsageAndSetLastPayment(invoice.metadata?.userId);
 
-  return {
-    success: true,
-    message: "Invoice paid",
-  };
+  try {
+    await updateUserSubscriptionData(customerData);
+    await resetUserUsageAndSetLastPayment(invoice.metadata?.userId);
+
+    // Add Loops tracking
+    await trackLoopsEvent({
+      email: invoice.customer_email || '',
+      userId: customerData.userId,
+      eventName: 'invoice_paid',
+      data: {
+        amount: invoice.amount_paid,
+        product: customerData.product,
+        plan: customerData.plan,
+      },
+    });
+
+    return {
+      success: true,
+      message: "Invoice paid",
+    };
+  } catch (error) {
+    return {
+      success: false,
+      message: "Failed to process invoice",
+      error,
+    };
+  }
 }

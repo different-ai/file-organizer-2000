@@ -2,6 +2,7 @@ import { WebhookEvent, WebhookHandlerResponse, CustomerData } from '../types';
 import { updateClerkMetadata } from '@/lib/services/clerk';
 import { updateUserSubscriptionData } from '../utils';
 import Stripe from 'stripe';
+import { trackLoopsEvent } from '@/lib/services/loops';
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY as string, {
   apiVersion: '2022-11-15',
@@ -51,6 +52,22 @@ export async function handleSubscriptionUpdated(event: WebhookEvent): Promise<We
   try {
     await updateUserSubscriptionData(customerData);
     await updateClerkMetadata(customerData);
+
+    // Get customer email from Stripe
+    const customer = await stripe.customers.retrieve(subscription.customer as string) as Stripe.Customer;
+    
+    // Add Loops tracking
+    await trackLoopsEvent({
+      email: typeof customer === 'string' ? '' : customer.email || '',
+      userId: customerData.userId,
+      eventName: 'subscription_updated',
+      data: {
+        product: customerData.product,
+        plan: customerData.plan,
+        billingCycle: customerData.billingCycle,
+        status: subscription.status,
+      },
+    });
 
     return {
       success: true,
