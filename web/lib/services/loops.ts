@@ -18,7 +18,7 @@ export async function trackLoopsEvent({
   data = {}
 }: LoopsEvent) {
   try {
-    const response = await fetch('https://api.loops.so/v1/events/track', {
+    const response = await fetch('https://app.loops.so/v1/events/send', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
