@@ -1,226 +1,290 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import FileOrganizer from '../../index';
 import { FabricPromptManager } from './fabric-prompt-manager';
-import { useEffect } from 'react';
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import { Textarea } from "@/components/ui/textarea"
+import { Switch } from "@/components/ui/switch"
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 
 interface CustomizationTabProps {
   plugin: FileOrganizer;
 }
 
 export const CustomizationTab: React.FC<CustomizationTabProps> = ({ plugin }) => {
-  const [useLogs, setUseLogs] = useState(plugin.settings.useLogs);
-  const [enableFileRenaming, setEnableFileRenaming] = useState(plugin.settings.enableFileRenaming);
-  const [renameInstructions, setRenameInstructions] = useState(plugin.settings.renameInstructions);
-  const [useSimilarTags, setUseSimilarTags] = useState(plugin.settings.useSimilarTags);
-  const [useSimilarTagsInFrontmatter, setUseSimilarTagsInFrontmatter] = useState(plugin.settings.useSimilarTagsInFrontmatter);
-  const [processedTag, setProcessedTag] = useState(plugin.settings.processedTag);
-  const [enableFabric, setEnableFabric] = useState(plugin.settings.enableFabric);
-  const [enableAliasGeneration, setEnableAliasGeneration] = useState(plugin.settings.enableAliasGeneration);
-  const [enableSimilarFiles, setEnableSimilarFiles] = useState(plugin.settings.enableSimilarFiles);
-  const [enableAtomicNotes, setEnableAtomicNotes] = useState(plugin.settings.enableAtomicNotes);
-  const [enableScreenpipe, setEnableScreenpipe] = useState(plugin.settings.enableScreenpipe);
-  const [useVaultTitles, setUseVaultTitles] = useState(plugin.settings.useVaultTitles);
-  const [enableCustomFolderInstructions, setEnableCustomFolderInstructions] = useState(plugin.settings.enableCustomFolderInstructions);
-  const [customFolderInstructions, setCustomFolderInstructions] = useState(plugin.settings.customFolderInstructions);
-  const [enableDocumentClassification, setEnableDocumentClassification] = useState(plugin.settings.enableDocumentClassification);
-  const [showLocalChatModel, setShowLocalChatModels] = useState(plugin.settings.showLocalLLMInChat);
+  const [settings, setSettings] = useState({
+    useLogs: plugin.settings.useLogs,
+    enableFileRenaming: plugin.settings.enableFileRenaming,
+    renameInstructions: plugin.settings.renameInstructions,
+    useSimilarTags: plugin.settings.useSimilarTags,
+    useSimilarTagsInFrontmatter: plugin.settings.useSimilarTagsInFrontmatter,
+    processedTag: plugin.settings.processedTag,
+    enableFabric: plugin.settings.enableFabric,
+    enableAliasGeneration: plugin.settings.enableAliasGeneration,
+    enableSimilarFiles: plugin.settings.enableSimilarFiles,
+    enableAtomicNotes: plugin.settings.enableAtomicNotes,
+    enableScreenpipe: plugin.settings.enableScreenpipe,
+    useVaultTitles: plugin.settings.useVaultTitles,
+    enableCustomFolderInstructions: plugin.settings.enableCustomFolderInstructions,
+    customFolderInstructions: plugin.settings.customFolderInstructions,
+    enableDocumentClassification: plugin.settings.enableDocumentClassification,
+    showLocalChatModel: plugin.settings.showLocalLLMInChat,
+  });
 
-  // force set user embeddings to false
   useEffect(() => {
     plugin.settings.useFolderEmbeddings = false;
     plugin.saveSettings();
   }, [plugin.settings]);
 
-  const handleToggleChange = async (value: boolean, setter: React.Dispatch<React.SetStateAction<boolean>>, settingKey: keyof typeof plugin.settings) => {
-    setter(value);
-    (plugin.settings[settingKey] as boolean) = value;
-    await plugin.saveSettings();
-  };
-
-  const handleTextChange = async (value: string, setter: React.Dispatch<React.SetStateAction<string>>, settingKey: keyof typeof plugin.settings) => {
-    setter(value);
-    (plugin.settings[settingKey] as string) = value;
+  const updateSetting = async (key: keyof typeof settings, value: any) => {
+    setSettings(prev => ({ ...prev, [key]: value }));
+    (plugin.settings[key] as any) = value;
     await plugin.saveSettings();
   };
 
   return (
-    <div className="p-4 space-y-4">
-      <ToggleSetting
-        name="FileOrganizer logs"
-        description="Allows you to keep track of the changes made by file Organizer."
-        value={useLogs}
-        onChange={(value) => handleToggleChange(value, setUseLogs, 'useLogs')}
-      />
+    <div className="container mx-auto p-4 space-y-6">
+      <div>
+        <CardHeader>
+          <CardTitle>AI Assistant Configuration</CardTitle>
+          <CardDescription>Customize your Obsidian AI assistant settings</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <Tabs defaultValue="file-management">
+            <TabsList className="grid w-full grid-cols-4">
+              <TabsTrigger value="file-management">File Management</TabsTrigger>
+              <TabsTrigger value="ai-features">AI Features</TabsTrigger>
+              <TabsTrigger value="integrations">Integrations</TabsTrigger>
+              <TabsTrigger value="advanced">Advanced</TabsTrigger>
+            </TabsList>
 
-      <ToggleSetting
-        name="File Renaming"
-        description="Enable file renaming when a file goes through the inbox."
-        value={enableFileRenaming}
-        onChange={(value) => handleToggleChange(value, setEnableFileRenaming, 'enableFileRenaming')}
-      />
+            <TabsContent value="file-management">
+              <Accordion type="multiple" defaultValue={["file-organization", "tagging"]}>
+                <AccordionItem value="file-organization">
+                  <AccordionTrigger>File Organization</AccordionTrigger>
+                  <AccordionContent className="space-y-4">
+                    <SettingItem
+                      title="File Renaming"
+                      description="Enable file renaming when a file goes through the inbox"
+                      value={settings.enableFileRenaming}
+                      onChange={(checked) => updateSetting('enableFileRenaming', checked)}
+                    />
 
-      <TextAreaSetting
-        name="Rename Instructions"
-        description="Provide instructions for renaming the document based on its content."
-        value={renameInstructions}
-        onChange={(value) => handleTextChange(value, setRenameInstructions, 'renameInstructions')}
-      />
+                    <div className="space-y-2">
+                      <Label>Rename Instructions</Label>
+                      <Textarea
+                        value={settings.renameInstructions}
+                        onChange={(e) => updateSetting('renameInstructions', e.target.value)}
+                        placeholder="Provide instructions for renaming documents..."
+                        className="min-h-[100px]"
+                      />
+                    </div>
 
-      <ToggleSetting
-        name="Similar tags"
-        description="Append similar tags to processed files."
-        value={useSimilarTags}
-        onChange={(value) => handleToggleChange(value, setUseSimilarTags, 'useSimilarTags')}
-      />
+                    <SettingItem
+                      title="Custom Folder Logic"
+                      description="Use custom instructions for folder placement"
+                      value={settings.enableCustomFolderInstructions}
+                      onChange={(checked) => updateSetting('enableCustomFolderInstructions', checked)}
+                    />
 
-      <ToggleSetting
-        name="Add similar tags in frontmatter"
-        description="Use frontmatter to add similar tags to processed files."
-        value={useSimilarTagsInFrontmatter}
-        onChange={(value) => handleToggleChange(value, setUseSimilarTagsInFrontmatter, 'useSimilarTagsInFrontmatter')}
-      />
+                    <div className="space-y-2">
+                      <Label>Custom Folder Instructions</Label>
+                      <Textarea
+                        value={settings.customFolderInstructions}
+                        onChange={(e) => updateSetting('customFolderInstructions', e.target.value)}
+                        placeholder="Provide custom instructions for folder placement..."
+                        className="min-h-[100px]"
+                        disabled={!settings.enableCustomFolderInstructions}
+                      />
+                    </div>
+                  </AccordionContent>
+                </AccordionItem>
 
-      <ToggleSetting
-        name="Processed File Tag"
-        description="Specify the tag to be added to processed files."
-        value={processedTag}
-        onChange={(value) => handleToggleChange(value, setProcessedTag, 'processedTag')}
-      />
+                <AccordionItem value="tagging">
+                  <AccordionTrigger>Tagging System</AccordionTrigger>
+                  <AccordionContent className="space-y-4">
+                    <SettingItem
+                      title="Similar Tags"
+                      description="Append similar tags to processed files"
+                      value={settings.useSimilarTags}
+                      onChange={(checked) => updateSetting('useSimilarTags', checked)}
+                    />
 
-      <h3 className="text-lg font-semibold mt-6 mb-2">Experimental features</h3>
+                    <SettingItem
+                      title="Frontmatter Tags"
+                      description="Add similar tags in frontmatter"
+                      value={settings.useSimilarTagsInFrontmatter}
+                      onChange={(checked) => updateSetting('useSimilarTagsInFrontmatter', checked)}
+                    />
 
-      <ToggleSetting
-        name="Use Local Chat"
-        description="Toggle to use local chat instead of server-based chat"
-        value={showLocalChatModel}
-        onChange={(value) => handleToggleChange(value, setShowLocalChatModels, 'showLocalLLMInChat')}
-      />
-      <ToggleSetting
-        name="Alias Generation"
-        description="Enable the generation of aliases in the assistant sidebar."
-        value={enableAliasGeneration}
-        onChange={(value) => handleToggleChange(value, setEnableAliasGeneration, 'enableAliasGeneration')}
-      />
+                    <div className="space-y-2">
+                      <Label>Processed File Tag</Label>
+                      <Input
+                        value={settings.processedTag}
+                        onChange={(e) => updateSetting('processedTag', e.target.value)}
+                        placeholder="Enter tag for processed files..."
+                      />
+                    </div>
+                  </AccordionContent>
+                </AccordionItem>
+              </Accordion>
+            </TabsContent>
 
-      <ToggleSetting
-        name="Similar Files"
-        description="Enable the display of similar files in the assistant sidebar."
-        value={enableSimilarFiles}
-        onChange={(value) => handleToggleChange(value, setEnableSimilarFiles, 'enableSimilarFiles')}
-      />
+            <TabsContent value="ai-features">
+              <Accordion type="multiple" defaultValue={["core-features", "document-processing"]}>
+                <AccordionItem value="core-features">
+                  <AccordionTrigger>Core AI Features</AccordionTrigger>
+                  <AccordionContent className="space-y-4">
+                    <SettingItem
+                      title="Alias Generation"
+                      description="Enable the generation of aliases in the assistant sidebar"
+                      value={settings.enableAliasGeneration}
+                      onChange={(checked) => updateSetting('enableAliasGeneration', checked)}
+                    />
 
-      <ToggleSetting
-        name="Atomic Notes"
-        description="Enable the generation of atomic notes in the assistant sidebar."
-        value={enableAtomicNotes}
-        onChange={(value) => handleToggleChange(value, setEnableAtomicNotes, 'enableAtomicNotes')}
-      />
+                    <SettingItem
+                      title="Similar Files"
+                      description="Enable the display of similar files in the assistant sidebar"
+                      value={settings.enableSimilarFiles}
+                      onChange={(checked) => updateSetting('enableSimilarFiles', checked)}
+                    />
 
-      <ToggleSetting
-        name="Screenpipe Integration"
-        description="Enable Screenpipe integration for productivity analysis and meeting summaries."
-        value={enableScreenpipe}
-        onChange={(value) => handleToggleChange(value, setEnableScreenpipe, 'enableScreenpipe')}
-      />
+                    <SettingItem
+                      title="Atomic Notes"
+                      description="Enable the generation of atomic notes in the assistant sidebar"
+                      value={settings.enableAtomicNotes}
+                      onChange={(checked) => updateSetting('enableAtomicNotes', checked)}
+                    />
+                  </AccordionContent>
+                </AccordionItem>
 
-      <ToggleSetting
-        name="Personalized Titles"
-        description="Use random titles from your vault to improve AI-generated titles. This feature feeds 20 random vault titles to the AI for better context."
-        value={useVaultTitles}
-        onChange={(value) => handleToggleChange(value, setUseVaultTitles, 'useVaultTitles')}
-      />
+                <AccordionItem value="document-processing">
+                  <AccordionTrigger>Document Processing</AccordionTrigger>
+                  <AccordionContent className="space-y-4">
+                    <SettingItem
+                      title="Document Auto-Formatting"
+                      description="Automatically format documents processed through the inbox"
+                      value={settings.enableDocumentClassification}
+                      onChange={(checked) => updateSetting('enableDocumentClassification', checked)}
+                    />
 
-      <ToggleSetting
-        name="Enable Custom Logic for Folder Determination"
-        description="Use instructions below to determine folder placement for notes processed through the inbox."
-        value={enableCustomFolderInstructions}
-        onChange={(value) => handleToggleChange(value, setEnableCustomFolderInstructions, 'enableCustomFolderInstructions')}
-      />
+                    <SettingItem
+                      title="Personalized Titles"
+                      description="Use random titles from your vault to improve AI-generated titles"
+                      value={settings.useVaultTitles}
+                      onChange={(checked) => updateSetting('useVaultTitles', checked)}
+                    />
+                  </AccordionContent>
+                </AccordionItem>
+              </Accordion>
+            </TabsContent>
 
-      <TextAreaSetting
-        name="Custom Folder Determination Instructions"
-        description="Provide custom instructions for determining which folders to place your notes in."
-        value={customFolderInstructions}
-        onChange={(value) => handleTextChange(value, setCustomFolderInstructions, 'customFolderInstructions')}
-        disabled={!enableCustomFolderInstructions}
-      />
+            <TabsContent value="integrations">
+              <Accordion type="multiple" defaultValue={["external-tools", "fabric"]}>
+                <AccordionItem value="external-tools">
+                  <AccordionTrigger>External Integrations</AccordionTrigger>
+                  <AccordionContent className="space-y-4">
+                    <SettingItem
+                      title="Screenpipe Integration"
+                      description="Enable Screenpipe integration for productivity analysis"
+                      value={settings.enableScreenpipe}
+                      onChange={(checked) => updateSetting('enableScreenpipe', checked)}
+                    />
+                  </AccordionContent>
+                </AccordionItem>
 
-      <h3 className="text-lg font-semibold mt-6 mb-2">Custom Formatting</h3>
+                <AccordionItem value="fabric">
+                  <AccordionTrigger>Fabric Integration</AccordionTrigger>
+                  <AccordionContent className="space-y-4">
+                    <SettingItem
+                      title="Fabric-like Formatting"
+                      description="Use Fabric-like prompt structure for document formatting"
+                      value={settings.enableFabric}
+                      onChange={(checked) => updateSetting('enableFabric', checked)}
+                    />
 
-      <ToggleSetting
-        name="Document Auto-Formatting"
-        description="Automatically format documents processed through the inbox when content matches a category of your AI templates."
-        value={enableDocumentClassification}
-        onChange={(value) => handleToggleChange(value, setEnableDocumentClassification, 'enableDocumentClassification')}
-      />
+                    <div className="mt-4">
+                      <button
+                        onClick={() => {/* Add your prompt manager toggle logic here */}}
+                        className={`w-full px-4 py-2 text-sm font-medium rounded-md 
+                          ${settings.enableFabric 
+                            ? 'bg-[--interactive-accent] text-[--text-on-accent] hover:bg-[--interactive-accent-hover]' 
+                            : 'bg-[--background-modifier-border] text-[--text-muted] cursor-not-allowed'}`}
+                        disabled={!settings.enableFabric}
+                      >
+                        Open Fabric Prompt Manager
+                      </button>
+                    </div>
 
-      <div className="setting-item">
-        <div className="setting-item-info">
-          <div className="setting-item-name">Document Type Configuration</div>
-          <div className="setting-item-description">
-            To specify the document type for AI formatting, please add a file inside the template folder of File Organizer. Each file should be named according to the document type it represents (e.g., 'workout'). The content of each file should be the prompt that will be applied to the formatting. Additionally, you can access and manage these document types directly through the AI sidebar in the application.
-          </div>
-        </div>
+                    {settings.enableFabric && (
+                      <div className="mt-4">
+                        <FabricPromptManager plugin={plugin} />
+                      </div>
+                    )}
+                  </AccordionContent>
+                </AccordionItem>
+              </Accordion>
+            </TabsContent>
+
+            <TabsContent value="advanced">
+              <Accordion type="multiple" defaultValue={["logging"]}>
+                <AccordionItem value="logging">
+                  <AccordionTrigger>System Settings</AccordionTrigger>
+                  <AccordionContent className="space-y-4">
+                    <SettingItem
+                      title="FileOrganizer Logs"
+                      description="Keep track of changes made by File Organizer"
+                      value={settings.useLogs}
+                      onChange={(checked) => updateSetting('useLogs', checked)}
+                    />
+
+                    <SettingItem
+                      title="Local Chat Model"
+                      description="Use local chat instead of server-based chat"
+                      value={settings.showLocalChatModel}
+                      onChange={(checked) => updateSetting('showLocalChatModel', checked)}
+                    />
+                  </AccordionContent>
+                </AccordionItem>
+              </Accordion>
+            </TabsContent>
+          </Tabs>
+        </CardContent>
       </div>
-
-      <ToggleSetting
-        name="Enable Fabric-like Formatting"
-        description="Use Fabric-like prompt structure for document formatting."
-        value={enableFabric}
-        onChange={(value) => handleToggleChange(value, setEnableFabric, 'enableFabric')}
-      />
-
-
-
-      {enableFabric && (
-        <FabricPromptManager plugin={plugin} />
-      )}
     </div>
   );
 };
 
-interface ToggleSettingProps {
-  name: string;
+interface SettingItemProps {
+  title: string;
   description: string;
   value: boolean;
-  onChange: (value: boolean) => void;
+  onChange: (checked: boolean) => void;
 }
 
-const ToggleSetting: React.FC<ToggleSettingProps> = ({ name, description, value, onChange }) => (
-  <div className="flex items-center justify-between py-2">
-    <div>
-      <div className="font-medium text-[--text-normal]">{name}</div>
-      <div className="text-sm text-[--text-muted]">{description}</div>
+const SettingItem: React.FC<SettingItemProps> = ({
+  title,
+  description,
+  value,
+  onChange
+}) => (
+  <div className="flex items-center justify-between">
+    <div className="space-y-0.5">
+      <Label className="text-base">{title}</Label>
+      <p className="text-sm text-[--text-muted]">{description}</p>
     </div>
-    <div>
-      <input
-        type="checkbox"
-        checked={value}
-        onChange={(e) => onChange(e.target.checked)}
-        className="form-checkbox text-[--interactive-accent]"
-      />
-    </div>
-  </div>
-);
-
-interface TextAreaSettingProps {
-  name: string;
-  description: string;
-  value: string;
-  onChange: (value: string) => void;
-  disabled?: boolean;
-}
-
-const TextAreaSetting: React.FC<TextAreaSettingProps> = ({ name, description, value, onChange, disabled }) => (
-  <div className="py-2">
-    <div className="font-medium text-[--text-normal]">{name}</div>
-    <div className="text-sm text-[--text-muted] mb-1">{description}</div>
-    <textarea
-      value={value}
-      onChange={(e) => onChange(e.target.value)}
-      disabled={disabled}
-      className="w-full px-3 py-2 text-[--text-normal] bg-[--background-primary] border border-[--background-modifier-border] rounded-lg focus:outline-none focus:border-[--interactive-accent] disabled:bg-[--background-secondary]"
-      rows={4}
+    <Switch
+      checked={value}
+      onCheckedChange={onChange}
     />
   </div>
 );
+
+export default CustomizationTab;
