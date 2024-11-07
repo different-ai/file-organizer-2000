@@ -43,17 +43,7 @@ export function initializeOrganizer(plugin: FileOrganizer) {
 }
 
 export function initializeFileOrganizationCommands(plugin: FileOrganizer) {
-  plugin.addCommand({
-    id: "append-existing-tags",
-    name: "Append existing tags",
-    callback: async () => {
-      const activeFile = plugin.app.workspace.getActiveFile();
-      if (activeFile) {
-        const fileContent = await plugin.getTextFromFile(activeFile);
-        await plugin.appendSimilarTags(fileContent, activeFile);
-      }
-    },
-  });
+
 
   plugin.addCommand({
     id: "add-to-inbox",

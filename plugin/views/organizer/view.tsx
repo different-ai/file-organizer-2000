@@ -37,7 +37,14 @@ export const AssistantView: React.FC<AssistantViewProps> = ({
     () => checkIfIsMediaFile(activeFile),
     [activeFile]
   );
-
+  const isInIgnoredPatterns = React.useMemo(
+    // check if tis is part of an ignored folder
+    () =>
+      plugin
+        .getAllIgnoredFolders()
+        .some(folder => activeFile?.path.startsWith(folder)),
+    [activeFile, plugin.getAllIgnoredFolders]
+  );
   const updateActiveFile = React.useCallback(async () => {
     logMessage("updating active file");
     // Check if the Assistant view is visible before processing
@@ -111,8 +118,11 @@ export const AssistantView: React.FC<AssistantViewProps> = ({
   }
 
   if (!activeFile) {
+    return <EmptyState message="Open a file " />;
+  }
+  if (isInIgnoredPatterns) {
     return (
-      <EmptyState message="Open a file outside the File Organizer 2000 folder to see AI suggestions" />
+      <EmptyState message="This file is part of an ignored folder and will not be processed." />
     );
   }
 

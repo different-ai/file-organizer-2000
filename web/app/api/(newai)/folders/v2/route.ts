@@ -15,7 +15,7 @@ export async function POST(request: NextRequest) {
       model,
       schema: z.object({
         suggestedFolders: z.array(z.object({
-          score: z.number(),
+          score: z.number().min(0).max(100),
           isNewFolder: z.boolean(),
           folder: z.string(),
           reason: z.string(),

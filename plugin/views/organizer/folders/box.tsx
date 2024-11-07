@@ -1,9 +1,9 @@
 import * as React from "react";
 import { TFile, Notice } from "obsidian";
 import FileOrganizer from "../../../index";
-import { useFolderSuggestions } from "./hooks";
 import { motion, AnimatePresence } from "framer-motion";
 import { SkeletonLoader } from "../components/skeleton-loader";
+import { FolderSuggestion } from "../../../index";
 
 interface SimilarFolderBoxProps {
   plugin: FileOrganizer;
@@ -12,19 +12,41 @@ interface SimilarFolderBoxProps {
   refreshKey: number;
 }
 
+
 export const SimilarFolderBox: React.FC<SimilarFolderBoxProps> = ({
   plugin,
   file,
   content,
   refreshKey,
 }) => {
-  const { existingFolders, newFolders, loading, error } =
-    useFolderSuggestions({
-      plugin,
-      file,
-      content,
-      refreshKey,
-    });
+  const [suggestions, setSuggestions] = React.useState<FolderSuggestion[]>([]);
+  const [loading, setLoading] = React.useState<boolean>(false);
+  const [error, setError] = React.useState<Error | null>(null);
+
+  React.useEffect(() => {
+    const suggestFolders = async () => {
+      if (!file) return;
+      setSuggestions([]);
+      setLoading(true);
+      setError(null);
+
+      try {
+        const folderSuggestions = await plugin.guessRelevantFolders(content, file.path);
+        setSuggestions(folderSuggestions);
+      } catch (err) {
+        console.error("Error fetching folders:", err);
+        setError(err as Error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    suggestFolders();
+  }, [content, refreshKey, file, plugin]);
+
+  // Derive existing and new folders from suggestions
+  const existingFolders = suggestions.filter(s => !s.isNewFolder);
+  const newFolders = suggestions.filter(s => s.isNewFolder);
 
   const handleFolderClick = async (folder: string) => {
     if (file) {
@@ -72,26 +94,28 @@ export const SimilarFolderBox: React.FC<SimilarFolderBoxProps> = ({
             <motion.button
               key={`existing-${index}`}
               className="px-3 py-1 bg-[--background-secondary] text-[--text-normal] rounded-md hover:bg-[--interactive-accent] hover:text-white transition-colors duration-200"
-              onClick={() => handleFolderClick(folder)}
+              onClick={() => handleFolderClick(folder.folder)}
               initial={{ opacity: 0, scale: 0.8 }}
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.8 }}
               transition={{ duration: 0.2 }}
+              title={`Reason: ${folder.reason}`}
             >
-              {folder}
+              {folder.folder}
             </motion.button>
           ))}
           {newFolders.map((folder, index) => (
             <motion.button
               key={`new-${index}`}
               className="px-3 py-1 bg-transparent border border-dashed border-[--text-muted] text-[--text-muted] rounded-md hover:bg-[--interactive-accent] hover:text-white hover:border-transparent transition-colors duration-200"
-              onClick={() => handleFolderClick(folder)}
+              onClick={() => handleFolderClick(folder.folder)}
               initial={{ opacity: 0, scale: 0.8 }}
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.8 }}
               transition={{ duration: 0.2 }}
+              title={`Reason: ${folder.reason}`}
             >
-              {folder}
+              {folder.folder}
             </motion.button>
           ))}
         </AnimatePresence>

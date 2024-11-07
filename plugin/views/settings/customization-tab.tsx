@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import FileOrganizer from '../../index';
 import { FabricPromptManager } from './fabric-prompt-manager';
+import { useEffect } from 'react';
 
 interface CustomizationTabProps {
   plugin: FileOrganizer;
@@ -14,7 +15,6 @@ export const CustomizationTab: React.FC<CustomizationTabProps> = ({ plugin }) =>
   const [useSimilarTagsInFrontmatter, setUseSimilarTagsInFrontmatter] = useState(plugin.settings.useSimilarTagsInFrontmatter);
   const [processedTag, setProcessedTag] = useState(plugin.settings.processedTag);
   const [enableFabric, setEnableFabric] = useState(plugin.settings.enableFabric);
-  const [useFolderEmbeddings, setUseFolderEmbeddings] = useState(plugin.settings.useFolderEmbeddings);
   const [enableAliasGeneration, setEnableAliasGeneration] = useState(plugin.settings.enableAliasGeneration);
   const [enableSimilarFiles, setEnableSimilarFiles] = useState(plugin.settings.enableSimilarFiles);
   const [enableAtomicNotes, setEnableAtomicNotes] = useState(plugin.settings.enableAtomicNotes);
@@ -24,6 +24,12 @@ export const CustomizationTab: React.FC<CustomizationTabProps> = ({ plugin }) =>
   const [customFolderInstructions, setCustomFolderInstructions] = useState(plugin.settings.customFolderInstructions);
   const [enableDocumentClassification, setEnableDocumentClassification] = useState(plugin.settings.enableDocumentClassification);
   const [showLocalChatModel, setShowLocalChatModels] = useState(plugin.settings.showLocalLLMInChat);
+
+  // force set user embeddings to false
+  useEffect(() => {
+    plugin.settings.useFolderEmbeddings = false;
+    plugin.saveSettings();
+  }, [plugin.settings]);
 
   const handleToggleChange = async (value: boolean, setter: React.Dispatch<React.SetStateAction<boolean>>, settingKey: keyof typeof plugin.settings) => {
     setter(value);
@@ -89,13 +95,6 @@ export const CustomizationTab: React.FC<CustomizationTabProps> = ({ plugin }) =>
         value={showLocalChatModel}
         onChange={(value) => handleToggleChange(value, setShowLocalChatModels, 'showLocalLLMInChat')}
       />
-      <ToggleSetting
-        name="Use Folder Embeddings"
-        description="Enable the use of folder embeddings for improving folder suggestions."
-        value={useFolderEmbeddings}
-        onChange={(value) => handleToggleChange(value, setUseFolderEmbeddings, 'useFolderEmbeddings')}
-      />
-
       <ToggleSetting
         name="Alias Generation"
         description="Enable the generation of aliases in the assistant sidebar."

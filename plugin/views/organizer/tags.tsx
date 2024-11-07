@@ -1,7 +1,6 @@
 import * as React from "react";
-import { TFile, requestUrl } from "obsidian";
+import { TFile } from "obsidian";
 import FileOrganizer from "../../index";
-import { makeApiRequest } from "../../apiUtils";
 import { sanitizeTag } from "../../../utils";
 import { SkeletonLoader } from "./components/skeleton-loader";
 import { motion, AnimatePresence } from "framer-motion";
@@ -11,7 +10,9 @@ const BaseTag: React.FC<{
   tag: string;
   onClick: (tag: string) => void;
   className?: string;
-}> = ({ tag, onClick, className }) => (
+  score?: number;
+  reason?: string;
+}> = ({ tag, onClick, className, score, reason }) => (
   <motion.span
     className={`inline-block rounded px-2 py-1 text-sm cursor-pointer transition-colors duration-200 ${className}`}
     onClick={() => onClick(tag)}
@@ -19,13 +20,19 @@ const BaseTag: React.FC<{
     animate={{ opacity: 1, scale: 1 }}
     exit={{ opacity: 0, scale: 0.8 }}
     transition={{ duration: 0.2 }}
+    title={`Score: ${score}, Reason: ${reason}`}
   >
     {sanitizeTag(tag)}
   </motion.span>
 );
 
 // Existing Tag Component
-const ExistingTag: React.FC<{ tag: string; onClick: (tag: string) => void }> = (props) => (
+const ExistingTag: React.FC<{
+  tag: string;
+  onClick: (tag: string) => void;
+  score: number;
+  reason: string;
+}> = props => (
   <BaseTag
     {...props}
     className="bg-[--background-secondary] text-[--text-normal] hover:text-[--text-on-accent] hover:bg-[--interactive-accent] hover:font-medium"
@@ -33,7 +40,12 @@ const ExistingTag: React.FC<{ tag: string; onClick: (tag: string) => void }> = (
 );
 
 // New Tag Component
-const NewTag: React.FC<{ tag: string; onClick: (tag: string) => void }> = (props) => (
+const NewTag: React.FC<{
+  tag: string;
+  onClick: (tag: string) => void;
+  score: number;
+  reason: string;
+}> = props => (
   <BaseTag
     {...props}
     className="bg-transparent border border-dashed border-[--text-muted] text-[--text-muted] hover:text-[--text-on-accent] hover:bg-[--interactive-accent] hover:font-medium"
@@ -53,51 +65,14 @@ export const SimilarTags: React.FC<SimilarTagsProps> = ({
   content,
   refreshKey,
 }) => {
-  const [existingTags, setExistingTags] = React.useState<string[]>([]);
-  const [newTags, setNewTags] = React.useState<string[]>([]);
+  const [existingTags, setExistingTags] = React.useState<
+    { tag: string; score: number; reason: string }[]
+  >([]);
+  const [newTags, setNewTags] = React.useState<
+    { tag: string; score: number; reason: string }[]
+  >([]);
   const [loading, setLoading] = React.useState(true);
   const [initialLoadComplete, setInitialLoadComplete] = React.useState(false);
-
-  const getExistingTags = async (
-    content: string,
-    fileName: string,
-    vaultTags: string[]
-  ): Promise<string[]> => {
-    const response = await makeApiRequest(() =>
-      requestUrl({
-        url: `${plugin.getServerUrl()}/api/tags/existing`,
-        method: "POST",
-        contentType: "application/json",
-        body: JSON.stringify({ content, fileName, vaultTags }),
-        throw: false,
-        headers: {
-          Authorization: `Bearer ${plugin.settings.API_KEY}`,
-        },
-      })
-    );
-    const { generatedTags } = await response.json;
-    return generatedTags;
-  };
-
-  const getNewTags = async (
-    content: string,
-    fileName: string
-  ): Promise<string[]> => {
-    const response = await makeApiRequest(() =>
-      requestUrl({
-        url: `${plugin.getServerUrl()}/api/tags/new`,
-        method: "POST",
-        contentType: "application/json",
-        body: JSON.stringify({ content, fileName }),
-        throw: false,
-        headers: {
-          Authorization: `Bearer ${plugin.settings.API_KEY}`,
-        },
-      })
-    );
-    const { generatedTags } = await response.json;
-    return generatedTags;
-  };
 
   React.useEffect(() => {
     const fetchTags = async () => {
@@ -108,11 +83,18 @@ export const SimilarTags: React.FC<SimilarTagsProps> = ({
 
       try {
         const vaultTags = await plugin.getAllVaultTags();
+        const suggestedTags = await plugin.guessRelevantTags(
+          content,
+          file.basename,
+          vaultTags
+        );
 
-        const [existingTagsResult, newTagsResult] = await Promise.all([
-          getExistingTags(content, file.basename, vaultTags),
-          getNewTags(content, file.basename),
-        ]);
+        const existingTagsResult = suggestedTags
+          .filter(tag => !tag.isNew)
+          .map(tag => ({ tag: tag.tag, score: tag.score, reason: tag.reason }));
+        const newTagsResult = suggestedTags
+          .filter(tag => tag.isNew)
+          .map(tag => ({ tag: tag.tag, score: tag.score, reason: tag.reason }));
 
         setExistingTags(existingTagsResult || []);
         setNewTags(newTagsResult || []);
@@ -132,17 +114,13 @@ export const SimilarTags: React.FC<SimilarTagsProps> = ({
 
   const renderContent = () => {
     if (loading) {
-      return (
-        <SkeletonLoader
-          count={4}
-          width="60px"
-          height="24px"
-          className="p-2"
-          rows={1}
-        />
-      );
+      return <SkeletonLoader count={4} width="60px" height="24px" rows={1} />;
     }
-    if (initialLoadComplete && existingTags.length === 0 && newTags.length === 0) {
+    if (
+      initialLoadComplete &&
+      existingTags.length === 0 &&
+      newTags.length === 0
+    ) {
       return <div className="text-[--text-muted] p-2">No tags found</div>;
     }
 
@@ -157,15 +135,19 @@ export const SimilarTags: React.FC<SimilarTagsProps> = ({
           {existingTags.map((tag, index) => (
             <ExistingTag
               key={`existing-${index}`}
-              tag={tag}
+              tag={tag.tag}
               onClick={handleTagClick}
+              score={tag.score}
+              reason={tag.reason}
             />
           ))}
           {newTags.map((tag, index) => (
             <NewTag
               key={`new-${index}`}
-              tag={tag}
+              tag={tag.tag}
               onClick={handleTagClick}
+              score={tag.score}
+              reason={tag.reason}
             />
           ))}
         </AnimatePresence>

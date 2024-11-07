@@ -32,6 +32,7 @@ export class FileOrganizerSettings {
   enableCustomFolderInstructions = false;
   customFolderInstructions = "";
   selectedModel: "gpt-4o" | "llama3.2" = "gpt-4o";
+  tagScoreThreshold = 70;
 }
 
 export const DEFAULT_SETTINGS = new FileOrganizerSettings();

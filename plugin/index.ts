@@ -61,7 +61,7 @@ const validExtensions = [
   "pdf",
 ];
 
-interface FolderSuggestion {
+export interface FolderSuggestion {
   isNewFolder: boolean;
   score: number;
   folder: string;
@@ -446,9 +446,19 @@ export default class FileOrganizer extends Plugin {
     content: string,
     newName: string
   ): Promise<void> {
-    const similarTags = await this.getSimilarTags(content, newName);
-    for (const tag of similarTags) {
-      await this.appendTag(file, tag);
+    const existingTags = await this.getAllVaultTags();
+    const similarTags = await this.guessRelevantTags(
+      content,
+      file.path,
+      existingTags
+    );
+    // filter only tasks above a certain score
+    const filteredTags = similarTags.filter(
+      tag => tag.score > this.settings.tagScoreThreshold
+    );
+
+    for (const tag of filteredTags) {
+      await this.appendTag(file, tag.tag);
     }
   }
 
@@ -1037,6 +1047,18 @@ export default class FileOrganizer extends Plugin {
 
     return allFilesFiltered;
   }
+  getAllIgnoredFolders(): string[] {
+    const ignoredFolders = [
+      ...this.settings.ignoreFolders,
+      this.settings.defaultDestinationPath,
+      this.settings.attachmentsPath,
+      this.settings.backupFolderPath,
+      this.settings.templatePaths,
+      this.settings.fabricPaths,
+    ];
+    logMessage("ignoredFolders", ignoredFolders);
+    return ignoredFolders;
+  }
 
   getAllNonFo2kFolders(): string[] {
     const allFolders = getAllFolders(this.app);
@@ -1046,15 +1068,17 @@ export default class FileOrganizer extends Plugin {
       return [];
     }
 
-    return allFolders
-      // filter anything below fo2k
-      .filter(folder => !folder.includes("_FileOrganizer2000"))
-      .filter(folder => !this.settings.ignoreFolders.includes(folder))
-      .filter(folder => folder !== this.settings.defaultDestinationPath)
-      .filter(folder => folder !== this.settings.attachmentsPath)
-      .filter(folder => folder !== this.settings.backupFolderPath)
-      .filter(folder => folder !== this.settings.templatePaths)
-      .filter(folder => folder !== this.settings.fabricPaths);
+    return (
+      allFolders
+        // filter anything below fo2k
+        .filter(folder => !folder.includes("_FileOrganizer2000"))
+        .filter(folder => !this.settings.ignoreFolders.includes(folder))
+        .filter(folder => folder !== this.settings.defaultDestinationPath)
+        .filter(folder => folder !== this.settings.attachmentsPath)
+        .filter(folder => folder !== this.settings.backupFolderPath)
+        .filter(folder => folder !== this.settings.templatePaths)
+        .filter(folder => folder !== this.settings.fabricPaths)
+    );
   }
 
   async getSimilarFiles(fileToCheck: TFile): Promise<string[]> {
@@ -1314,17 +1338,40 @@ export default class FileOrganizer extends Plugin {
       return this.settings.defaultDestinationPath;
     }
 
-    const guessedFolders = await this.guessRelevantFolders(
-      content,
-      filePath,
-    );
-    destinationFolder = guessedFolders[0].folder || this.settings.defaultDestinationPath;
+    const guessedFolders = await this.guessRelevantFolders(content, filePath);
+    destinationFolder =
+      guessedFolders[0].folder || this.settings.defaultDestinationPath;
     return destinationFolder;
+  }
+  async guessRelevantTags(
+    content: string,
+    filePath: string,
+    existingTags: string[] // Add this parameter to match the expected request body
+  ): Promise<{ score: number; tag: string; reason: string; isNew: boolean }[]> {
+    const response = await fetch(`${this.getServerUrl()}/api/tags/v2`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${this.settings.API_KEY}`,
+      },
+      body: JSON.stringify({
+        content,
+        fileName: filePath,
+        existingTags, // Include existingTags in the request body
+      }),
+    });
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    const { tags: suggestedTags } = await response.json(); // Ensure the response structure matches
+    return suggestedTags;
   }
 
   async guessRelevantFolders(
     content: string,
-    filePath: string,
+    filePath: string
   ): Promise<FolderSuggestion[]> {
     const customInstructions = this.settings.enableCustomFolderInstructions
       ? this.settings.customFolderInstructions
@@ -1388,22 +1435,7 @@ export default class FileOrganizer extends Plugin {
     }
     await this.app.vault.append(file, `\n${formattedTag}`);
   }
-
-  async appendSimilarTags(content: string, file: TFile) {
-    // Get similar tags
-    const similarTags = await this.getSimilarTags(content, file.basename);
-
-    if (similarTags.length === 0) {
-      new Notice(`No similar tags found`, 3000);
-      return;
-    }
-    similarTags.forEach(async tag => {
-      await this.appendTag(file, tag);
-    });
-
-    new Notice(`Added similar tags to ${file.basename}`, 3000);
-    return;
-  }
+  d;
 
   validateAPIKey() {
     if (!this.settings.usePro) {
