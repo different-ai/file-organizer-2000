@@ -590,6 +590,50 @@ export default class FileOrganizer extends Plugin {
     }
     return await this.app.vault.read(templateFile);
   }
+  async formatContentInSplitView({
+    file,
+    formattingInstruction,
+    content,
+  }: {
+    file: TFile;
+    formattingInstruction: string;
+    content: string;
+  }): Promise<void> {
+    try {
+      new Notice("Formatting content in split view...", 3000);
+
+      // Create a new file for the formatted content
+      const newFileName = `${file.basename}-formatted-${Date.now()}.md`;
+      const newFilePath = `${file.parent?.path}/${newFileName}`;
+      const newFile = await this.app.vault.create(newFilePath, "");
+
+      // Open the new file in a split view
+      const leaf = this.app.workspace.splitActiveLeaf();
+      await leaf.openFile(newFile);
+
+      let formattedContent = "";
+      const updateCallback = async (partialContent: string) => {
+        formattedContent = partialContent;
+        await this.app.vault.modify(newFile, formattedContent);
+      };
+
+      await this.formatStream(
+        content,
+        formattingInstruction,
+        this.getServerUrl(),
+        this.settings.API_KEY,
+        updateCallback
+      );
+
+      new Notice("Content formatted in split view successfully", 3000);
+    } catch (error) {
+      console.error("Error formatting content in split view:", error);
+      new Notice(
+        "An error occurred while formatting the content in split view.",
+        6000
+      );
+    }
+  }
 
   async formatContent({
     file,

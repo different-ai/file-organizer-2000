@@ -8,6 +8,7 @@ interface FabricClassificationBoxProps {
   file: TFile | null;
   content: string;
   refreshKey: number;
+  onFormat: (patternName: string) => void;
 }
 
 type FabricPattern = {
@@ -16,7 +17,7 @@ type FabricPattern = {
 
 export const FabricClassificationBox: React.FC<
   FabricClassificationBoxProps
-> = ({ plugin, file, content, refreshKey }) => {
+> = ({ plugin, file, content, refreshKey, onFormat }) => {
   const [fabricPatterns, setFabricPatterns] = React.useState<FabricPattern[]>(
     []
   );
@@ -32,7 +33,6 @@ export const FabricClassificationBox: React.FC<
   const [classifiedPattern, setClassifiedPattern] = React.useState<
     string | null
   >(null);
-  const [backupFile, setBackupFile] = React.useState<string | null>(null);
 
   const fabricDropdownRef = React.useRef<HTMLDivElement>(null);
   const patternsPath = React.useMemo(
@@ -319,9 +319,7 @@ export const FabricClassificationBox: React.FC<
               : "bg-[--interactive-accent] text-white hover:bg-[--interactive-accent-hover]"
           }`}
           disabled={!selectedFabricPattern || isFormatting}
-          onClick={() =>
-            selectedFabricPattern && handleApplyFabric(selectedFabricPattern)
-          }
+          onClick={handleApplyFabricClick}
         >
           {isFormatting ? "Applying..." : "Apply"}
         </button>
@@ -329,52 +327,15 @@ export const FabricClassificationBox: React.FC<
     );
   };
 
-  const extractBackupFile = React.useCallback((content: string) => {
-    const match = content.match(/\[\[(.+?)\s*\|\s*Link to original file\]\]/);
-    if (match) {
-      setBackupFile(match[1]);
-    } else {
-      setBackupFile(null);
-    }
-  }, []);
-
-  React.useEffect(() => {
-    if (content) {
-      extractBackupFile(content);
-    }
-  }, [content, extractBackupFile]);
-
-  const handleRevert = async () => {
-    if (!file || !backupFile) return;
-
-    try {
-      const backupTFile = plugin.app.vault.getAbstractFileByPath(backupFile) as TFile;
-      if (!backupTFile) {
-        throw new Error("Backup file not found");
-      }
-
-      const backupContent = await plugin.app.vault.read(backupTFile);
-      await plugin.app.vault.modify(file, backupContent);
-      new Notice("Successfully reverted to backup version", 3000);
-    } catch (error) {
-      console.error("Error reverting to backup:", error);
-      setErrorMessage(`Failed to revert: ${(error as Error).message}`);
+  const handleApplyFabricClick = () => {
+    if (selectedFabricPattern) {
+      onFormat(selectedFabricPattern.name);
     }
   };
 
   return (
-    <div className="bg-[--background-primary-alt] text-[--text-normal] p-4 rounded-lg shadow-md">
-      <div className="flex justify-between items-center pb-2">
-        <div className="font-semibold">Fabric</div>
-        {backupFile && (
-          <button
-            onClick={handleRevert}
-            className="px-3 py-1 text-sm rounded-md bg-[--background-modifier-error] text-[--text-on-accent] hover:opacity-90 transition-opacity"
-          >
-            Revert
-          </button>
-        )}
-      </div>
+    <div className="">
+      <div className="font-semibold pb-2">Fabric</div>
       {renderFabricContent()}
       {errorMessage && (
         <div className="mt-2 text-[--text-error] p-2 rounded-md bg-[--background-modifier-error]">
