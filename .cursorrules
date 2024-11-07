@@ -50,3 +50,182 @@ here's the list of variables you can use:
     --interactive-accent-hover: var(--color-accent-2);
 
 
+
+
+	•	Access to shadcn/ui components library.
+	•	Prioritize: Ease of Use > Aesthetics > Performance.
+	•	Use Tailwind CSS for utility-first styling.
+
+Recommended Libraries and Tools:
+
+	1.	State Management:
+	•	React Context API for simple state needs.
+	•	Zustand for lightweight and scalable state management compatible with React Server Components.
+	2.	Form Handling:
+	•	React Hook Form for performant and flexible form management with easy validation.
+	3.	Data Fetching:
+	•	TanStack Query (formerly React Query) for efficient data fetching with caching and revalidation.
+	4.	Authentication:
+	•	Implement authentication using Clerk.
+	5.	Animations:
+	•	Framer Motion for smooth animations and transitions.
+	6.	Icons:
+	•	Use Lucide React for a collection of beautiful open-source icons.
+
+AI Integration with Vercel AI SDK:
+
+	•	Utilize the Vercel AI SDK, a TypeScript toolkit for building AI-powered applications with frameworks like React and Next.js.
+	•	Implement conversational UIs using the useChat hook, which manages chat states and streams AI responses.
+
+Using Tools with useChat and streamText:
+
+	•	Types of Tools:
+	•	Automatically executed server-side tools.
+	•	Automatically executed client-side tools.
+	•	User-interactive tools requiring confirmation dialogs.
+	•	Workflow:
+	1.	User inputs a message in the chat UI.
+	2.	Message is sent to the API route.
+	3.	Language model generates tool calls via streamText.
+	4.	Tool calls are forwarded to the client.
+	5.	Server-side tools execute and return results to the client.
+	6.	Client-side tools auto-execute using the onToolCall callback.
+	7.	Interactive tools display in the UI, results managed via toolInvocations.
+	8.	After interactions, use addToolResult to include the result in the chat.
+	9.	If tool calls exist in the last message and all results are available, the client resends messages to the server for further processing.
+	•	Note: Set maxSteps to a value greater than 1 in useChat options to enable multiple iterations (default is disabled for compatibility).
+
+Example Implementation:
+
+	•	API Route (app/api/chat/route.ts):
+
+import { openai } from '@ai-sdk/openai';
+import { streamText } from 'ai';
+import { z } from 'zod';
+
+// Allow streaming responses up to 30 seconds
+export const maxDuration = 30;
+
+export async function POST(req: Request) {
+  const { messages } = await req.json();
+
+  const result = await streamText({
+    model: openai('gpt-4o'),
+    messages,
+    tools: {
+      // Server-side tool with execute function:
+      getWeatherInformation: {
+        description: 'Show the weather in a given city to the user.',
+        parameters: z.object({ city: z.string() }),
+        execute: async ({ city }: { city: string }) => {
+          const weatherOptions = ['sunny', 'cloudy', 'rainy', 'snowy', 'windy'];
+          return `${city} is currently ${weatherOptions[Math.floor(Math.random() * weatherOptions.length)]}.`;
+        },
+      },
+      // Client-side tool initiating user interaction:
+      askForConfirmation: {
+        description: 'Ask the user for confirmation.',
+        parameters: z.object({
+          message: z.string().describe('The message to ask for confirmation.'),
+        }),
+      },
+      // Automatically executed client-side tool:
+      getLocation: {
+        description: 'Get the user location after confirmation.',
+        parameters: z.object({}),
+      },
+    },
+  });
+
+  return result.toDataStreamResponse();
+}
+
+
+	•	Client-Side Page (app/page.tsx):
+
+'use client';
+
+import { ToolInvocation } from 'ai';
+import { Message, useChat } from 'ai/react';
+
+export default function Chat() {
+  const {
+    messages,
+    input,
+    handleInputChange,
+    handleSubmit,
+    addToolResult,
+  } = useChat({
+    maxSteps: 5,
+
+    // Handle automatically executed client-side tools:
+    async onToolCall({ toolCall }) {
+      if (toolCall.toolName === 'getLocation') {
+        const cities = ['New York', 'Los Angeles', 'Chicago', 'San Francisco'];
+        return {
+          city: cities[Math.floor(Math.random() * cities.length)],
+        };
+      }
+    },
+  });
+
+  return (
+    <>
+      {messages?.map((m: Message) => (
+        <div key={m.id}>
+          <strong>{m.role}:</strong> {m.content}
+          {m.toolInvocations?.map((toolInvocation: ToolInvocation) => {
+            const toolCallId = toolInvocation.toolCallId;
+            const addResult = (result: string) =>
+              addToolResult({ toolCallId, result });
+
+            // Render confirmation tool (client-side with user interaction)
+            if (toolInvocation.toolName === 'askForConfirmation') {
+              return (
+                <div key={toolCallId}>
+                  {toolInvocation.args.message}
+                  <div>
+                    {'result' in toolInvocation ? (
+                      <b>{toolInvocation.result}</b>
+                    ) : (
+                      <>
+                        <button onClick={() => addResult('Yes')}>Yes</button>
+                        <button onClick={() => addResult('No')}>No</button>
+                      </>
+                    )}
+                  </div>
+                </div>
+              );
+            }
+
+            // Display results of other tools
+            return 'result' in toolInvocation ? (
+              <div key={toolCallId}>
+                <em>Tool ({toolInvocation.toolName}):</em> {toolInvocation.result}
+              </div>
+            ) : (
+              <div key={toolCallId}>
+                <em>Executing {toolInvocation.toolName}...</em>
+              </div>
+            );
+          })}
+          <br />
+        </div>
+      ))}
+
+      <form onSubmit={handleSubmit}>
+        <input value={input} onChange={handleInputChange} placeholder="Type your message..." />
+      </form>
+    </>
+  );
+}
+
+
+
+Additional Notes:
+
+	•	Ensure all tool invocations are properly managed to maintain a seamless user experience.
+	•	Regularly update dependencies and libraries to their latest versions for improved performance and security.
+	•	Test the chatbot thoroughly to handle edge cases and unexpected user inputs.
+
+This revised prompt organizes the information more clearly, making it easier to understand and follow. It highlights key project guidelines, structures, and code examples, providing a comprehensive overview for anyone involved in the development process.
