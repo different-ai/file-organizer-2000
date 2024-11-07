@@ -1,8 +1,8 @@
 ### PARA Method 
 
-_Notes: feel free to edit extensively to fit your system. can be much shorter or more concise. Most likely you'll need to make some adjustments.
-_
-_Instructions to copy start below_
+Notes: feel free to edit extensively to fit your system. can be much shorter or more concise. Most likely you'll need to make some adjustments.
+
+Instructions to copy start below
 -- 
 
 use PARA method from Tiago Forte for Folder determination
