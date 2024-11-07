@@ -12,7 +12,6 @@ interface SimilarFolderBoxProps {
   refreshKey: number;
 }
 
-
 export const SimilarFolderBox: React.FC<SimilarFolderBoxProps> = ({
   plugin,
   file,
@@ -31,7 +30,10 @@ export const SimilarFolderBox: React.FC<SimilarFolderBoxProps> = ({
       setError(null);
 
       try {
-        const folderSuggestions = await plugin.guessRelevantFolders(content, file.path);
+        const folderSuggestions = await plugin.guessRelevantFolders(
+          content,
+          file.path
+        );
         setSuggestions(folderSuggestions);
       } catch (err) {
         console.error("Error fetching folders:", err);
@@ -69,9 +71,7 @@ export const SimilarFolderBox: React.FC<SimilarFolderBoxProps> = ({
       return (
         <div className="text-[--text-error] p-2 rounded-md bg-[--background-modifier-error]">
           <p>Error: {error.message}</p>
-          <button 
-            className="mt-2 px-3 py-1 bg-[--interactive-accent] text-white rounded-md hover:bg-[--interactive-accent-hover]"
-          >
+          <button className="mt-2 px-3 py-1 bg-[--interactive-accent] text-white rounded-md hover:bg-[--interactive-accent-hover]">
             Retry
           </button>
         </div>
@@ -79,7 +79,9 @@ export const SimilarFolderBox: React.FC<SimilarFolderBoxProps> = ({
     }
 
     if (existingFolders.length === 0 && newFolders.length === 0) {
-      return <div className="text-[--text-muted] p-2">No suitable folders found</div>;
+      return (
+        <div className="text-[--text-muted] p-2">No suitable folders found</div>
+      );
     }
 
     return (
@@ -99,7 +101,8 @@ export const SimilarFolderBox: React.FC<SimilarFolderBoxProps> = ({
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.8 }}
               transition={{ duration: 0.2 }}
-              title={`Reason: ${folder.reason}`}
+              //  add score as well
+              title={`Score of ${folder.score} because ${folder.reason} `}
             >
               {folder.folder}
             </motion.button>
@@ -113,7 +116,7 @@ export const SimilarFolderBox: React.FC<SimilarFolderBoxProps> = ({
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.8 }}
               transition={{ duration: 0.2 }}
-              title={`Reason: ${folder.reason}`}
+              title={`Score of ${folder.score} because ${folder.reason}`}
             >
               {folder.folder}
             </motion.button>

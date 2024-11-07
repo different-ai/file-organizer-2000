@@ -1,8 +1,7 @@
 import * as React from "react";
 import { TFile } from "obsidian";
-import FileOrganizer from "../../index";
-import { logMessage } from "../../../utils";
-import { DEFAULT_SETTINGS } from "../../settings";
+import FileOrganizer from "../../../index";
+import { logMessage } from "../../../../utils";
 
 interface ClassificationBoxProps {
   plugin: FileOrganizer;

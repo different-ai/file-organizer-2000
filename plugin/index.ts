@@ -590,7 +590,7 @@ export default class FileOrganizer extends Plugin {
     }
     return await this.app.vault.read(templateFile);
   }
-  async formatContentInSplitView({
+  async streamFormatInSplitView({
     file,
     formattingInstruction,
     content,
@@ -635,7 +635,7 @@ export default class FileOrganizer extends Plugin {
     }
   }
 
-  async formatContent({
+  async streamFormatInCurrentNote({
     file,
     formattingInstruction,
     content,

@@ -11,14 +11,7 @@ export const EmptyState: React.FC<EmptyStateProps> = ({ message, showRefresh = f
     <div className="flex flex-col items-center justify-center p-6 bg-background-primary-alt rounded-lg ">
       <div className="text-6xl mb-4 text-accent">📝</div>
       <p className="text-lg text-text-muted mb-4">{message}</p>
-      {showRefresh && onRefresh && (
-        <button
-          className="px-4 py-2 bg-interactive-accent text-white rounded hover:bg-interactive-accent-hover transition"
-          onClick={onRefresh}
-        >
-          Refresh
-        </button>
-      )}
+      
     </div>
   );
 };

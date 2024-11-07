@@ -9,7 +9,7 @@ import { DocumentChunks } from "./chunks";
 import { RenameSuggestion } from "./titles/box";
 import { SimilarFolderBox } from "./folders/box";
 import { RefreshButton } from "./components/refresh-button";
-import { ClassificationContainer } from "./classification";
+import { ClassificationContainer } from "./ai-format/templates";
 import { TranscriptionButton } from "./transcript";
 import { SimilarFilesBox } from "./files";
 import { EmptyState } from "./components/empty-state";

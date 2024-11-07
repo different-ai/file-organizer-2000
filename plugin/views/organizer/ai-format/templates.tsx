@@ -1,9 +1,9 @@
 import * as React from "react";
 import { TFile, Notice } from "obsidian";
-import FileOrganizer from "../../index";
-import { ClassificationBox } from "./ai-format/user-templates";
-import { FabricClassificationBox } from "./fabric-classification-box";
-import { DEFAULT_SETTINGS } from "../../settings";
+import FileOrganizer from "../../../index";
+import { ClassificationBox } from "./user-templates";
+import { FabricClassificationBox } from "./fabric-templates";
+import { DEFAULT_SETTINGS } from "../../../settings";
 
 interface ClassificationBoxProps {
   plugin: FileOrganizer;
@@ -37,11 +37,19 @@ export const ClassificationContainer: React.FC<ClassificationBoxProps> = ({
         templateName
       );
 
-      await plugin.streamFormatInSplitView({
-        file: file,
-        content: fileContent,
-        formattingInstruction: formattingInstruction,
-      });
+      if (formatBehavior === "override") {
+        await plugin.streamFormatInCurrentNote({
+          file: file,
+          content: fileContent,
+          formattingInstruction: formattingInstruction,
+        });
+      } else {
+        await plugin.streamFormatInSplitView({
+          file: file,
+          content: fileContent,
+          formattingInstruction: formattingInstruction,
+        });
+      }
 
       console.log("Content formatted successfully");
     } catch (error) {
@@ -94,18 +102,8 @@ export const ClassificationContainer: React.FC<ClassificationBoxProps> = ({
 
   return (
     <div>
-      <div className="font-semibold">AI Templates</div>
+      <div className="font-semibold my-3">🗳️ AI Templates</div>
       <div className="bg-[--background-primary-alt] text-[--text-normal] p-4 rounded-lg space-y-4 shadow-lg">
-        <div className="flex justify-between items-center">
-          {backupFile && (
-            <button
-              onClick={handleRevert}
-              className="px-3 py-1 text-sm rounded-md bg-[--background-modifier-error] text-[--text-on-accent] hover:opacity-90 transition-opacity"
-            >
-              Revert
-            </button>
-          )}
-        </div>
         <div className="flex items-center space-x-2">
           <label htmlFor="formatBehavior" className="font-medium">
             Format Behavior:
@@ -116,9 +114,19 @@ export const ClassificationContainer: React.FC<ClassificationBoxProps> = ({
             onChange={handleFormatBehaviorChange}
             className="px-2 py-1 rounded-md border border-[--background-modifier-border]"
           >
-            <option value="override">Override</option>
+            <option value="override">Replace</option>
             <option value="newFile">New File</option>
           </select>
+          <div className="flex justify-between items-center">
+            {backupFile && (
+              <button
+                onClick={handleRevert}
+                className="px-3 py-1 text-sm rounded-md bg-[--background-modifier-error] text-[--text-on-accent] hover:opacity-90 transition-opacity"
+              >
+                Revert
+              </button>
+            )}
+          </div>
         </div>
         <ClassificationBox
           plugin={plugin}
