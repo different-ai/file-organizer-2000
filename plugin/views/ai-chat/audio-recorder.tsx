@@ -96,7 +96,7 @@ export const AudioRecorder: React.FC<AudioRecorderProps> = ({
               `${plugin.getServerUrl()}/api/transcribe`,
               {
                 method: "POST",
-                headers: { "Content-Type": "application/json" },
+                headers: { "Content-Type": "application/json", "Authorization": `Bearer ${plugin.settings.API_KEY}` },
                 body: JSON.stringify({
                   audio: base64Audio,
                   extension: "webm",
