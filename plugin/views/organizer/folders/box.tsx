@@ -18,7 +18,7 @@ export const SimilarFolderBox: React.FC<SimilarFolderBoxProps> = ({
   content,
   refreshKey,
 }) => {
-  const { existingFolders, newFolders, loading, error, refetch } =
+  const { existingFolders, newFolders, loading, error } =
     useFolderSuggestions({
       plugin,
       file,
@@ -40,7 +40,7 @@ export const SimilarFolderBox: React.FC<SimilarFolderBoxProps> = ({
 
   const renderContent = () => {
     if (loading) {
-      return <SkeletonLoader count={4} width="100px" height="30px" className="p-2" rows={1} />;
+      return <SkeletonLoader count={4} width="100px" height="30px" rows={1} />;
     }
 
     if (error) {
@@ -48,7 +48,6 @@ export const SimilarFolderBox: React.FC<SimilarFolderBoxProps> = ({
         <div className="text-[--text-error] p-2 rounded-md bg-[--background-modifier-error]">
           <p>Error: {error.message}</p>
           <button 
-            onClick={refetch}
             className="mt-2 px-3 py-1 bg-[--interactive-accent] text-white rounded-md hover:bg-[--interactive-accent-hover]"
           >
             Retry

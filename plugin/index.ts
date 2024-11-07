@@ -61,6 +61,13 @@ const validExtensions = [
   "pdf",
 ];
 
+interface FolderSuggestion {
+  isNewFolder: boolean;
+  score: number;
+  folder: string;
+  reason: string;
+}
+
 const isValidExtension = (extension: string) => {
   if (!validExtensions.includes(extension)) {
     new Notice("Sorry, FileOrganizer does not support this file type.");
@@ -291,7 +298,10 @@ export default class FileOrganizer extends Plugin {
 
     const attachmentFile = await this.moveToAttachmentFolder(file, newName);
     // append the original file to the container
-    await this.app.vault.append(containerFile, `\n\n![[${attachmentFile.path}]]`);
+    await this.app.vault.append(
+      containerFile,
+      `\n\n![[${attachmentFile.path}]]`
+    );
 
     await this.log(
       logFilePath,
@@ -1037,8 +1047,9 @@ export default class FileOrganizer extends Plugin {
     }
 
     return allFolders
+      // filter anything below fo2k
+      .filter(folder => !folder.includes("_FileOrganizer2000"))
       .filter(folder => !this.settings.ignoreFolders.includes(folder))
-      .filter(folder => folder !== this.settings.pathToWatch)
       .filter(folder => folder !== this.settings.defaultDestinationPath)
       .filter(folder => folder !== this.settings.attachmentsPath)
       .filter(folder => folder !== this.settings.backupFolderPath)
@@ -1295,86 +1306,51 @@ export default class FileOrganizer extends Plugin {
   ): Promise<string> {
     let destinationFolder = "None";
 
-    const uniqueFolders = await this.getAllNonFo2kFolders();
-    logMessage("uniqueFolders", uniqueFolders);
-
     logMessage("ignore folders", this.settings.ignoreFolders);
 
+    // todo: replace with boolean along the lines of
+    // disable inbox folder categorization
     if (this.settings.ignoreFolders.includes("*")) {
       return this.settings.defaultDestinationPath;
     }
 
-    const filteredFolders = uniqueFolders
-      .filter(folder => folder !== filePath)
-      .filter(folder => folder !== this.settings.defaultDestinationPath)
-      .filter(folder => folder !== this.settings.attachmentsPath)
-      .filter(folder => folder !== this.settings.logFolderPath)
-      .filter(folder => folder !== this.settings.pathToWatch)
-      .filter(folder => folder !== this.settings.templatePaths)
-      .filter(folder => !folder.includes("_FileOrganizer2000"))
-      .filter(folder => {
-        const hasIgnoreFolders =
-          this.settings.ignoreFolders.length > 0 &&
-          this.settings.ignoreFolders[0] !== "";
-        if (!hasIgnoreFolders) return true;
-        const isFolderIgnored = this.settings.ignoreFolders.some(ignoreFolder =>
-          folder.startsWith(ignoreFolder)
-        );
-        return !isFolderIgnored;
-      })
-      .filter(folder => folder !== "/");
-    logMessage("filteredFolders", filteredFolders);
+    const guessedFolders = await this.guessRelevantFolders(
+      content,
+      filePath,
+    );
+    destinationFolder = guessedFolders[0].folder || this.settings.defaultDestinationPath;
+    return destinationFolder;
+  }
 
+  async guessRelevantFolders(
+    content: string,
+    filePath: string,
+  ): Promise<FolderSuggestion[]> {
     const customInstructions = this.settings.enableCustomFolderInstructions
       ? this.settings.customFolderInstructions
       : undefined;
 
-    const guessedFolder = await this.guessRelevantFolder(
-      content,
-      filePath,
-      filteredFolders,
-      customInstructions
-    );
-
-    if (guessedFolder === null || guessedFolder === "null") {
-      logMessage("no good folder, creating a new one instead");
-      const newFolderName = await this.createNewFolder(
+    const folders = this.getAllNonFo2kFolders();
+    const response = await fetch(`${this.getServerUrl()}/api/folders/v2`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${this.settings.API_KEY}`,
+      },
+      body: JSON.stringify({
         content,
-        filePath,
-        filteredFolders
-      );
-      destinationFolder = newFolderName;
-    } else {
-      destinationFolder = guessedFolder;
-    }
-    return destinationFolder;
-  }
+        fileName: filePath,
+        folders,
+        customInstructions,
+      }),
+    });
 
-  async guessRelevantFolder(
-    content: string,
-    filePath: string,
-    folders: string[],
-    customInstructions?: string
-  ): Promise<string | null> {
-    const response = await makeApiRequest(() =>
-      requestUrl({
-        url: `${this.getServerUrl()}/api/folders`,
-        method: "POST",
-        contentType: "application/json",
-        body: JSON.stringify({
-          content,
-          fileName: filePath,
-          folders,
-          customInstructions,
-        }),
-        throw: false,
-        headers: {
-          Authorization: `Bearer ${this.settings.API_KEY}`,
-        },
-      })
-    );
-    const { folder: guessedFolder } = await response.json;
-    return guessedFolder;
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    const { folders: suggestedFolders } = await response.json();
+    return suggestedFolders;
   }
 
   async createNewFolder(
