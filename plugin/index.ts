@@ -1101,7 +1101,8 @@ export default class FileOrganizer extends Plugin {
       this.settings.fabricPaths,
     ];
     logMessage("ignoredFolders", ignoredFolders);
-    return ignoredFolders;
+    // remove empty strings
+    return ignoredFolders.filter(folder => folder !== "");
   }
 
   getAllNonFo2kFolders(): string[] {
