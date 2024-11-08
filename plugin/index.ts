@@ -1654,5 +1654,56 @@ export default class FileOrganizer extends Plugin {
       return [this.settings.defaultDestinationPath];
     }
   }
- 
+  async getNewFolders(content: string, filePath: string): Promise<string[]> {
+    const uniqueFolders = await this.getAllNonFo2kFolders();
+    if (this.settings.ignoreFolders.includes("*")) {
+      return [this.settings.defaultDestinationPath];
+    }
+    const currentFolder =
+      this.app.vault.getAbstractFileByPath(filePath)?.parent?.path || "";
+    const filteredFolders = uniqueFolders
+      .filter(folder => folder !== currentFolder)
+      .filter(folder => folder !== filePath)
+      .filter(folder => folder !== this.settings.defaultDestinationPath)
+      .filter(folder => folder !== this.settings.attachmentsPath)
+      .filter(folder => folder !== this.settings.logFolderPath)
+      .filter(folder => folder !== this.settings.pathToWatch)
+      .filter(folder => folder !== this.settings.templatePaths)
+      .filter(folder => !folder.includes("_FileOrganizer2000"))
+      // if  this.settings.ignoreFolders has one or more folder specified, filter them out including subfolders
+      .filter(folder => {
+        const hasIgnoreFolders =
+          this.settings.ignoreFolders.length > 0 &&
+          this.settings.ignoreFolders[0] !== "";
+        if (!hasIgnoreFolders) return true;
+        const isFolderIgnored = this.settings.ignoreFolders.some(ignoreFolder =>
+          folder.startsWith(ignoreFolder)
+        );
+        return !isFolderIgnored;
+      })
+      .filter(folder => folder !== "/");
+    try {
+      const response = await makeApiRequest(() =>
+        requestUrl({
+          url: `${this.getServerUrl()}/api/folders/new`,
+          method: "POST",
+          contentType: "application/json",
+          body: JSON.stringify({
+            content,
+            fileName: filePath,
+            folders: filteredFolders,
+          }),
+          throw: false,
+          headers: {
+            Authorization: `Bearer ${this.settings.API_KEY}`,
+          },
+        })
+      );
+      const { folders: guessedFolders } = await response.json;
+      return guessedFolders;
+    } catch (error) {
+      console.error("Error in getNewFolders:", error);
+      return [this.settings.defaultDestinationPath];
+    }
+  }
 }
