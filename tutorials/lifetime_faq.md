@@ -34,7 +34,7 @@ To set up your instance for auto-updates, you can follow these instructions:
 
 https://www.loom.com/share/528ff69dedf64b43a57492bcba2ca6c2
 
-name: Sync /web Directory from Upstream Repository
+```name: Sync /web Directory from Upstream Repository
 
 on:
   schedule:
@@ -94,5 +94,5 @@ jobs:
         run: |
           git add .
           git commit -m "Update repository with latest /web content from upstream"
-          git push origin main
+          git push origin main```
 
