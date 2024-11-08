@@ -22,11 +22,11 @@ export default function OnboardingPage() {
   const handlePlanSelection = (planKey: string) => {
     switch (planKey) {
       case "Monthly":
-        return createSubscriptionCheckout(planKey);
+        return createSubscriptionCheckout();
       case "Yearly":
-        return createYearlySubscriptionCheckout(planKey);
+        return createYearlySubscriptionCheckout();
       case "Lifetime":
-        return createOneTimePaymentCheckout(planKey);
+        return createOneTimePaymentCheckout();
     }
   };
 
@@ -172,11 +172,14 @@ export default function OnboardingPage() {
       </main>
 
       <footer className="bg-gray-100 dark:bg-gray-900 py-8 mt-16">
-        <div className="container mx-auto px-4 text-center">
-          {/* add discord link  */}
-          <a href="https://discord.gg/udQnCRFyus" target="_blank">
+        <div className="container mx-auto px-4 text-center ">
+          <a href="https://discord.gg/udQnCRFyus" target="_blank" className="">
             <Button variant="outline">Join our discord</Button>
           </a>
+          <p className="mt-4 text-sm text-muted-foreground">
+            &copy; {new Date().getFullYear()} Different AI Inc. All rights
+            reserved.
+          </p>
         </div>
       </footer>
     </div>
