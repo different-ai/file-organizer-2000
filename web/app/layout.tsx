@@ -31,7 +31,7 @@ export default function RootLayout({
             <header className="p-4 border-b border-stone-300">
               <nav className="max-w-9xl mx-auto flex items-center space-x-6 justify-between w-full">
                 <div className=" sm:block">
-                  <Link href="/dashboard">
+                  <Link href="/">
                     <Logo />
                   </Link>
                 </div>

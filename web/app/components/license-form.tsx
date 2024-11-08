@@ -93,9 +93,6 @@ const LicenseForm = () => {
         </>
       ) : (
         <div className="text-center">
-          <h1 className="text-gray-800 text-5xl font-extrabold dark:text-gray-500">
-            Become a Pro user
-          </h1>
           <div className="mt-6">
             <CheckoutButton />
           </div>
