@@ -20,8 +20,23 @@ export default function PlanSelectionPage() {
     handlePlanSelection: (plan: string) => void
   ) => {
     const price = product.prices[priceKey];
+    const isYearlyPlan = planKey === "Yearly";
+
     return (
-      <Card key={planKey} className="border border-stone-300 p-6 flex flex-col">
+      <Card 
+        key={planKey} 
+        className={`border relative p-6 flex flex-col ${
+          isYearlyPlan ? "border-purple-400 shadow-lg" : "border-stone-300"
+        }`}
+      >
+        {isYearlyPlan && (
+          <div className="absolute -top-3 left-0 right-0 flex justify-center">
+            <span className="bg-purple-100 text-purple-800 text-sm font-medium px-3 py-1 rounded-full">
+              Try free for 3 days
+            </span>
+          </div>
+        )}
+        
         <h2 className="text-2xl mb-2 font-semibold">{planKey} Plan</h2>
         <p className="text-4xl font-bold mb-4">
           ${price.amount / 100}
@@ -39,10 +54,16 @@ export default function PlanSelectionPage() {
         </ul>
         <Button
           onClick={() => handlePlanSelection(planKey)}
-          className="bg-stone-800 text-stone-100 px-4 py-2 w-full hover:bg-stone-700 transition-colors"
+          className={`px-4 py-2 w-full transition-colors ${
+            isYearlyPlan 
+              ? "bg-purple-600 hover:bg-purple-700 text-white"
+              : "bg-stone-800 text-stone-100 hover:bg-stone-700"
+          }`}
         >
           {planKey === "Lifetime"
             ? "Get Lifetime Access"
+            : isYearlyPlan
+            ? "Start 3-day Free Trial"
             : `Choose ${planKey} Plan`}
         </Button>
       </Card>

@@ -22,8 +22,9 @@ export default function CheckoutButton() {
   }
 
   return (
-    <Button onClick={handleCheckout} disabled={loading} className="border ">
-      {loading ? "Processing..." : "Start Free Trial"}
+    // width: max-content;
+    <Button onClick={handleCheckout} disabled={loading} className="border w-max">
+      {loading ? "Processing..." : "Get Started"}
     </Button>
   );
 }

@@ -10,9 +10,9 @@ export default async function UserManagement() {
 
   return (
     <div className=" top-4 right-4 flex items-center gap-4 max-w-6xl mx-auto ">
-      <div className="hidden sm:block">{!isPaid && <CheckoutButton />}</div>
-      <a href="https://discord.gg/udQnCRFyus" target="_blank">
-        <Button className="border whitespace-nowrap">Join our discord</Button>
+      <div className="sm:block">{!isPaid && <CheckoutButton />}</div>
+      <a className="hidden sm:block" href="https://discord.gg/udQnCRFyus" target="_blank">
+        <Button variant="outline" className="border whitespace-nowrap">Join our discord</Button>
       </a>
       {isPaid && (
         <a href={process.env.NEXT_PUBLIC_STRIPE_CUSTOMER_PORTAL_URL}>

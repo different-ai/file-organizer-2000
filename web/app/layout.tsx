@@ -29,11 +29,13 @@ export default function RootLayout({
           <body className="bg-stone-100">
             <PostHogPageView />
             <header className="p-4 border-b border-stone-300">
-              <nav className="max-w-6xl mx-auto flex items-center space-x-6 justify-between w-full">
-                <Link href="/">
-                  <Logo />
-                </Link>
-                <UserManagement />
+              <nav className="max-w-9xl mx-auto flex items-center space-x-6 justify-between w-full">
+                <div className=" sm:block">
+                  <Link href="/dashboard">
+                    <Logo />
+                  </Link>
+                </div>
+                  <UserManagement />
               </nav>
             </header>
             <main className="min-h-screen bg-stone-100 text-stone-900 font-sans">

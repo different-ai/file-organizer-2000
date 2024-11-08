@@ -2,19 +2,7 @@ import { Button } from "@/components/ui/button";
 import { UserButton } from "@clerk/nextjs";
 import { LicenseForm } from "@/app/components/license-form";
 
-function UserManagement() {
-  return (
-    <div className="absolute top-4 right-4 flex items-center gap-4">
-      <a href="https://discord.gg/udQnCRFyus" target="_blank">
-        <Button className="border whitespace-nowrap">Join our discord</Button>
-      </a>
-      <a href={process.env.NEXT_PUBLIC_STRIPE_CUSTOMER_PORTAL_URL}>
-        <Button variant="secondary">Subscription</Button>
-      </a>
-      <UserButton />
-    </div>
-  );
-}
+
 
 export default async function LifetimeAccessPage() {
   if (process.env.ENABLE_USER_MANAGEMENT !== "true") {
