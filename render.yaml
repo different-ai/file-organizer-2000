@@ -1,6 +1,5 @@
 services:
 - type: web
-  plan: free
   name: File Organizer 2000
   runtime: node
   rootDir: ./web  
