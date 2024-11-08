@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Notice } from "obsidian";
 import FileOrganizer from "../../index";
 
@@ -6,8 +6,43 @@ interface GeneralTabProps {
   plugin: FileOrganizer;
 }
 
+interface UsageData {
+  tokenUsage: number;
+  maxTokenUsage: number;
+  subscriptionStatus: string;
+  currentPlan: string;
+}
+
 export const GeneralTab: React.FC<GeneralTabProps> = ({ plugin }) => {
   const [licenseKey, setLicenseKey] = useState(plugin.settings.API_KEY);
+  const [usageData, setUsageData] = useState<UsageData | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetchUsageData();
+  }, []);
+
+  const fetchUsageData = async () => {
+    try {
+      const response = await fetch(`${plugin.getServerUrl()}/api/usage`, {
+        headers: {
+          Authorization: `Bearer ${plugin.settings.API_KEY}`,
+        },
+      });
+      
+      if (!response.ok) throw new Error('Failed to fetch usage data');
+      
+      const data = await response.json();
+      setUsageData(data);
+    } catch (error) {
+      console.error('Error fetching usage data:', error);
+      new Notice('Failed to fetch usage data');
+    } finally {
+      setLoading(false);
+    }
+  };
+  // log usage data
+  console.log(usageData, 'usage');
 
   const handleLicenseKeyChange = async (value: string) => {
     setLicenseKey(value);
@@ -22,6 +57,10 @@ export const GeneralTab: React.FC<GeneralTabProps> = ({ plugin }) => {
     } else {
       new Notice("Invalid license key. Please try again.");
     }
+  };
+
+  const formatNumber = (num: number) => {
+    return new Intl.NumberFormat().format(num);
   };
 
   return (
@@ -96,6 +135,38 @@ export const GeneralTab: React.FC<GeneralTabProps> = ({ plugin }) => {
           </a>
         </p>
       </div>
+
+      {usageData && (
+        <div className="setting-item">
+          <div className="setting-item-info">
+            <div className="setting-item-name">Token Usage</div>
+            <div className="setting-item-description">
+              Your current token usage and limits
+            </div>
+          </div>
+          <div className="setting-item-control">
+            <div className="token-usage-stats">
+              <div className="usage-bar">
+                <div 
+                  className="usage-progress"
+                  style={{
+                    width: `${(usageData.tokenUsage / usageData.maxTokenUsage) * 100}%`,
+                    backgroundColor: 'var(--interactive-accent)',
+                    height: '8px',
+                    borderRadius: '4px'
+                  }}
+                />
+              </div>
+              <div className="usage-numbers">
+                {formatNumber(usageData.tokenUsage)} / {formatNumber(usageData.maxTokenUsage)} tokens
+              </div>
+              <div className="usage-plan">
+                Current Plan: {usageData.currentPlan || 'Free'}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

@@ -13,7 +13,9 @@ import { ClassificationContainer } from "./ai-format/templates";
 import { TranscriptionButton } from "./transcript";
 import { SimilarFilesBox } from "./files";
 import { EmptyState } from "./components/empty-state";
+import { ErrorBox } from "./components/error-box";
 import { logMessage } from "../../../utils";
+import { LicenseValidator } from "./components/license-validator";
 
 interface AssistantViewProps {
   plugin: FileOrganizer;
@@ -33,18 +35,21 @@ export const AssistantView: React.FC<AssistantViewProps> = ({
   const [noteContent, setNoteContent] = React.useState<string>("");
   const [refreshKey, setRefreshKey] = React.useState<number>(0);
   const [error, setError] = React.useState<string | null>(null);
+  const [isLicenseValid, setIsLicenseValid] = React.useState(false);
+
   const isMediaFile = React.useMemo(
     () => checkIfIsMediaFile(activeFile),
     [activeFile]
   );
+
   const isInIgnoredPatterns = React.useMemo(
-    // check if tis is part of an ignored folder
     () =>
       plugin
         .getAllIgnoredFolders()
         .some(folder => activeFile?.path.startsWith(folder)),
     [activeFile, plugin.getAllIgnoredFolders]
   );
+
   const updateActiveFile = React.useCallback(async () => {
     logMessage("updating active file");
     // Check if the Assistant view is visible before processing
@@ -106,6 +111,18 @@ export const AssistantView: React.FC<AssistantViewProps> = ({
     },
     []
   );
+
+
+
+  if (!isLicenseValid) {
+    return (
+      <LicenseValidator
+        apiKey={plugin.settings.API_KEY}
+        onValidationComplete={() => setIsLicenseValid(true)}
+        plugin={plugin}
+      />
+    );
+  }
 
   if (error) {
     return (

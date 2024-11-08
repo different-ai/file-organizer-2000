@@ -21,46 +21,97 @@ export const SimilarFolderBox: React.FC<SimilarFolderBoxProps> = ({
   const [suggestions, setSuggestions] = React.useState<FolderSuggestion[]>([]);
   const [loading, setLoading] = React.useState<boolean>(false);
   const [error, setError] = React.useState<Error | null>(null);
+  const [retryCount, setRetryCount] = React.useState(0);
+
+  const suggestFolders = React.useCallback(async () => {
+    if (!file) return;
+    setSuggestions([]);
+    setLoading(true);
+    setError(null);
+
+    try {
+      const folderSuggestions = await plugin.guessRelevantFolders(
+        content,
+        file.path
+      );
+      setSuggestions(folderSuggestions);
+    } catch (err) {
+      console.error("Error fetching folders:", err);
+      const errorMessage = typeof err === 'object' && err !== null
+        ? (err.error?.message || err.error || err.message || "Unknown error")
+        : String(err);
+        
+      setError(new Error(errorMessage));
+    } finally {
+      setLoading(false);
+    }
+  }, [content, file, plugin]);
 
   React.useEffect(() => {
-    const suggestFolders = async () => {
-      if (!file) return;
-      setSuggestions([]);
-      setLoading(true);
-      setError(null);
-
-      try {
-        const folderSuggestions = await plugin.guessRelevantFolders(
-          content,
-          file.path
-        );
-        setSuggestions(folderSuggestions);
-      } catch (err) {
-        console.error("Error fetching folders:", err);
-        setError(err as Error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
     suggestFolders();
-  }, [content, refreshKey, file, plugin]);
+  }, [suggestFolders, refreshKey]);
+
+  const handleRetry = () => {
+    setRetryCount(prev => prev + 1);
+    suggestFolders();
+  };
+
+  const handleFolderClick = async (folder: string) => {
+    if (!file) return;
+    
+    setLoading(true);
+    try {
+      await plugin.moveFile(file, file.basename, folder);
+      new Notice(`Moved ${file.basename} to ${folder}`);
+    } catch (error) {
+      console.error("Error moving file:", error);
+      const errorMessage = error instanceof Error ? error.message : "Unknown error occurred";
+      new Notice(`Failed to move ${file.basename} to ${folder}: ${errorMessage}`);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   // Derive existing and new folders from suggestions
   const existingFolders = suggestions.filter(s => !s.isNewFolder);
   const newFolders = suggestions.filter(s => s.isNewFolder);
 
-  const handleFolderClick = async (folder: string) => {
-    if (file) {
-      try {
-        await plugin.moveFile(file, file.basename, folder);
-        new Notice(`Moved ${file.basename} to ${folder}`);
-      } catch (error) {
-        console.error("Error moving file:", error);
-        new Notice(`Failed to move ${file.basename} to ${folder}`);
-      }
-    }
-  };
+  const renderError = () => (
+    <motion.div 
+      initial={{ opacity: 0, y: -10 }}
+      animate={{ opacity: 1, y: 0 }}
+      className="space-y-3 rounded-md  border-opacity-20"
+    >
+      <div className="flex items-start justify-between">
+        <div>
+          <div className="text-[--text-error] font-medium mb-1">
+            Error: Failed to fetch
+          </div>
+          <p className="text-sm text-[--text-muted]">
+            {error?.message || "An unexpected error occurred"}
+          </p>
+        </div>
+      </div>
+      
+      <div className="flex items-center gap-3 text-sm">
+        <div className="flex gap-2">
+          <button 
+            onClick={handleRetry}
+            disabled={loading}
+            className="px-3 py-1.5 bg-[--interactive-accent] text-[--text-on-accent] rounded hover:bg-[--interactive-accent-hover] disabled:opacity-50 transition-colors duration-200"
+          >
+            {loading ? "Retrying..." : "Retry"}
+          </button>
+          <button 
+            onClick={() => setError(null)}
+            className="px-3 py-1.5 border border-[--background-modifier-border] rounded hover:bg-[--background-modifier-hover] transition-colors duration-200"
+          >
+            Dismiss
+          </button>
+        </div>
+      </div>
+    </motion.div>
+  );
 
   const renderContent = () => {
     if (loading) {
@@ -68,14 +119,7 @@ export const SimilarFolderBox: React.FC<SimilarFolderBoxProps> = ({
     }
 
     if (error) {
-      return (
-        <div className="text-[--text-error] p-2 rounded-md bg-[--background-modifier-error]">
-          <p>Error: {error.message}</p>
-          <button className="mt-2 px-3 py-1 bg-[--interactive-accent] text-white rounded-md hover:bg-[--interactive-accent-hover]">
-            Retry
-          </button>
-        </div>
-      );
+      return renderError();
     }
 
     if (existingFolders.length === 0 && newFolders.length === 0) {
