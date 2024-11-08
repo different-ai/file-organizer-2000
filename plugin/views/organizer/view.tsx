@@ -1,5 +1,5 @@
 import * as React from "react";
-import { TFile, WorkspaceLeaf } from "obsidian";
+import { TFile, WorkspaceLeaf, Notice } from "obsidian";
 import FileOrganizer, { validMediaExtensions } from "../../index";
 import { debounce } from "lodash";
 
@@ -13,7 +13,6 @@ import { ClassificationContainer } from "./ai-format/templates";
 import { TranscriptionButton } from "./transcript";
 import { SimilarFilesBox } from "./files";
 import { EmptyState } from "./components/empty-state";
-import { ErrorBox } from "./components/error-box";
 import { logMessage } from "../../../utils";
 import { LicenseValidator } from "./components/license-validator";
 
@@ -112,7 +111,17 @@ export const AssistantView: React.FC<AssistantViewProps> = ({
     []
   );
 
-
+  const handleDelete = React.useCallback(async () => {
+    if (!activeFile) return;
+    
+    try {
+      await plugin.app.vault.delete(activeFile);
+      new Notice("File deleted successfully");
+    } catch (err) {
+      console.error("Error deleting file:", err);
+      setError("Failed to delete file");
+    }
+  }, [activeFile, plugin.app.vault]);
 
   if (!isLicenseValid) {
     return (
@@ -154,6 +163,8 @@ export const AssistantView: React.FC<AssistantViewProps> = ({
         message="This file is empty. Add some content and click refresh to see AI suggestions."
         showRefresh={true}
         onRefresh={refreshContext}
+        showDelete={true}
+        onDelete={handleDelete}
       />
     );
   }

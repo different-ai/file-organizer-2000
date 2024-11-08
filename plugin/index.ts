@@ -100,6 +100,11 @@ export interface FileMetadata {
   aliases: string[];
   similarTags: string[];
 }
+interface TitleSuggestion {
+  score: number;
+  title: string;
+  reason: string;
+}
 
 export default class FileOrganizer extends Plugin {
   settings: FileOrganizerSettings;
@@ -1705,5 +1710,31 @@ export default class FileOrganizer extends Plugin {
       console.error("Error in getNewFolders:", error);
       return [this.settings.defaultDestinationPath];
     }
+  }
+
+  async guessTitles(content: string, filePath: string): Promise<TitleSuggestion[]> {
+    const customInstructions = this.settings.enableFileRenaming
+      ? this.settings.renameInstructions
+      : undefined;
+
+    const response = await fetch(`${this.getServerUrl()}/api/title/v2`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${this.settings.API_KEY}`,
+      },
+      body: JSON.stringify({
+        content,
+        fileName: filePath,
+        customInstructions,
+      }),
+    });
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    const { titles } = await response.json();
+    return titles;
   }
 }

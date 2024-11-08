@@ -34,7 +34,16 @@ export const SimilarFolderBox: React.FC<SimilarFolderBoxProps> = ({
         content,
         file.path
       );
-      setSuggestions(folderSuggestions);
+      
+      // Get all valid folders
+      const validFolders = plugin.getAllNonFo2kFolders();
+      
+      // Filter suggestions to only include existing folders or new folders
+      const filteredSuggestions = folderSuggestions.filter(suggestion => 
+        suggestion.isNewFolder || validFolders.includes(suggestion.folder)
+      );
+
+      setSuggestions(filteredSuggestions);
     } catch (err) {
       console.error("Error fetching folders:", err);
       const errorMessage = typeof err === 'object' && err !== null

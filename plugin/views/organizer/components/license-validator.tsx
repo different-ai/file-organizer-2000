@@ -51,9 +51,7 @@ export const LicenseValidator: React.FC<LicenseValidatorProps> = ({
     validateLicense();
   }, [validateLicense]);
 
-  if (isValidating) {
-    return <EmptyState message="Validating license key..." />;
-  }
+
 
   if (licenseError) {
     return (
