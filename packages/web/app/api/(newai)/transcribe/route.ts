@@ -1,11 +1,11 @@
-import fs from "fs";
-import OpenAI from "openai";
-import { tmpdir } from "os";
-import { join } from "path";
-import { promises as fsPromises } from "fs";
+import fs from "node:fs";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
+import { promises as fsPromises } from "node:fs";
 import { NextResponse } from "next/server";
+import OpenAI from "openai";
 
-export const maxDuration = 60; // This function can run for a maximum of 5 seconds
+export const maxDuration = 60;
 
 export async function POST(request: Request) {
   try {
@@ -23,7 +23,10 @@ export async function POST(request: Request) {
     const tempFilePath = join(tmpdir(), `upload_${Date.now()}.${extension}`);
     await fsPromises.writeFile(tempFilePath, base64Data, { encoding: "base64" });
 
-    const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+    const openai = new OpenAI({ 
+      apiKey: process.env.OPENAI_API_KEY,
+      baseURL: process.env.OPENAI_API_BASE || "https://api.openai.com/v1"
+    });
     
     const transcription = await openai.audio.transcriptions.create({
       file: fs.createReadStream(tempFilePath),
