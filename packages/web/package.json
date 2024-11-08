@@ -19,6 +19,8 @@
   "dependencies": {
     "@ai-sdk/amazon-bedrock": "^1.0.6",
     "@ai-sdk/anthropic": "^1.0.6",
+    "@ai-sdk/deepseek": "^0.1.0",
+    "@ai-sdk/groq": "^1.1.0",
     "@ai-sdk/openai": "^1.0.6",
     "@browserbasehq/stagehand": "^1.5.0",
     "@clerk/nextjs": "^6.9.6",
