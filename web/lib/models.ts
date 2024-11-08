@@ -17,5 +17,5 @@ export const getModel = (name: string) => {
   }
   console.log(`Using model ${name}`);
 
-  return models['claude-3-5-sonnet-20241022'];
+  return models[name];
 };
