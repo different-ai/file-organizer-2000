@@ -57,59 +57,56 @@ export const RenameSuggestion: React.FC<RenameSuggestionProps> = ({
 
   const handleTitleApply = async (title: string) => {
     if (!file?.parent) return;
-    
+
     setLoading(true);
     try {
       await plugin.moveFile(file, title, file.parent.path);
       new Notice(`Renamed to ${title}`);
     } catch (error) {
       console.error("Error renaming file:", error);
-      const errorMessage = error instanceof Error ? error.message : "Unknown error";
+      const errorMessage =
+        error instanceof Error ? error.message : "Unknown error";
       new Notice(`Failed to rename: ${errorMessage}`);
     } finally {
       setLoading(false);
     }
   };
 
-  if (loading) return <SkeletonLoader count={3} rows={4} width="70%" />;
-  if (error) return <ErrorDisplay message={error.message} onRetry={suggestTitles} />;
-  if (!suggestions.length) return <div>No title suggestions available</div>;
-
   return (
     <div className="bg-[--background-primary-alt] text-[--text-normal] p-4 rounded-lg shadow-md">
-      <motion.div
-        className="flex flex-wrap gap-2"
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ duration: 0.3 }}
-      >
-        <AnimatePresence>
-          {suggestions.map((suggestion, index) => (
-            <motion.button
-              key={index}
-              className="px-3 py-1 bg-[--background-secondary] text-[--text-normal] rounded-md hover:bg-[--interactive-accent] hover:text-white transition-colors duration-200"
-              onClick={() => handleTitleApply(suggestion.title)}
-              initial={{ opacity: 0, scale: 0.8 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.8 }}
-              transition={{ duration: 0.2 }}
-              title={`Score of ${suggestion.score} because ${suggestion.reason}`}
-            >
-              {suggestion.title}
-            </motion.button>
-          ))}
-        </AnimatePresence>
-      </motion.div>
+      {loading ? (
+        <SkeletonLoader count={3} rows={4} width="70%" />
+      ) : error ? (
+        <ErrorDisplay message={error.message} onRetry={suggestTitles} />
+      ) : !suggestions.length ? (
+        <div>No title suggestions available</div>
+      ) : (
+        <motion.div
+          className="flex flex-wrap gap-2"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.3 }}
+        >
+          <AnimatePresence>
+            {suggestions.map((suggestion, index) => (
+              <motion.button
+                key={index}
+                className="px-3 py-1 bg-[--background-secondary] text-[--text-normal] rounded-md hover:bg-[--interactive-accent] hover:text-white transition-colors duration-200"
+                onClick={() => handleTitleApply(suggestion.title)}
+                initial={{ opacity: 0, scale: 0.8 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.8 }}
+                transition={{ duration: 0.2 }}
+                title={`Score of ${suggestion.score} because ${suggestion.reason}`}
+              >
+                {suggestion.title}
+              </motion.button>
+            ))}
+          </AnimatePresence>
+        </motion.div>
+      )}
     </div>
   );
-};
-
-const containerVariants = {
-  hidden: { opacity: 0 },
-  visible: {
-    opacity: 1,
-    transition: { staggerChildren: 0.1 },
-  },
 };
 
 const ErrorDisplay: React.FC<{ message: string; onRetry: () => void }> = ({
