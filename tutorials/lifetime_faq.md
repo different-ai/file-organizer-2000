@@ -26,3 +26,73 @@ If it includes "self-hosted" or "dashboard", you are also using the wrong url
 
 - See youtube video: https://www.youtube.com/watch?v=yVZn-cGOMzE
 - Currently only works with any openAI compatible model
+
+
+### How to set up auto updates with vercel? 
+
+To set up your instance for auto-updates, you can follow these instructions: 
+
+https://www.loom.com/share/528ff69dedf64b43a57492bcba2ca6c2
+
+name: Sync /web Directory from Upstream Repository
+
+on:
+  schedule:
+    - cron: '0 0 * * *'  # Runs daily at midnight UTC
+  workflow_dispatch:  # Allows manual triggering
+
+permissions:
+  contents: write
+
+jobs:
+  sync_web_directory:
+    runs-on: ubuntu-latest
+
+    steps:
+      # Step 1: Checkout your repository
+      - name: Checkout Your Repository
+        uses: actions/checkout@v3
+        with:
+          ref: main
+          fetch-depth: 0
+          token: ${{ secrets.PAT3 }}  # Use PAT with appropriate permissions
+
+      # Step 2: Configure Git (Set author identity globally)
+      - name: Configure Git
+        run: |
+          git config --global user.name "GitHub Actions"
+          git config --global user.email "actions@github.com"
+
+      # Step 3: Remove Existing Files Except .git and .github
+      - name: Remove Existing Files
+        run: |
+          find . -mindepth 1 -maxdepth 1 \
+          ! -name '.git' \
+          ! -name '.github' \
+          -exec rm -rf {} +
+
+      # Step 4: Checkout /web Directory from Upstream
+      - name: Checkout /web Directory from Upstream
+        uses: actions/checkout@v3
+        with:
+          repository: different-ai/file-organizer-2000
+          ref: master
+          path: upstream_repo
+          # Uses default GITHUB_TOKEN for read access
+
+      # Step 5: Copy /web Contents to Root
+      - name: Copy /web Contents to Root
+        run: |
+          cp -r upstream_repo/web/* .
+
+      # Step 6: Remove upstream_repo Directory
+      - name: Remove Upstream Repo Directory
+        run: rm -rf upstream_repo
+
+      # Step 7: Commit and Push Changes
+      - name: Commit and Push Changes
+        run: |
+          git add .
+          git commit -m "Update repository with latest /web content from upstream"
+          git push origin main
+
