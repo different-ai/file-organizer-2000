@@ -16,5 +16,6 @@ export const getModel = (name: string) => {
     return models["gpt-4o-2024-08-06"];
   }
   console.log(`Using model ${name}`);
-  return models[name];
+
+  return models['claude-3-5-sonnet-20241022'];
 };
