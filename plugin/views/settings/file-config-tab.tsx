@@ -56,9 +56,6 @@ export const FileConfigTab: React.FC<FileConfigTabProps> = ({ plugin }) => {
 
     return (
       <div className="mb-8 p-4 bg-[--background-secondary] rounded-lg shadow-sm">
-        <div className="mb-6">
-          <h3 className="text-lg font-medium text-[--text-normal] mb-1">Vault Structure</h3>
-        </div>
 
         <div className="grid grid-cols-3 gap-4 mb-6">
           <button
@@ -276,7 +273,6 @@ export const FileConfigTab: React.FC<FileConfigTabProps> = ({ plugin }) => {
   return (
     <div className="file-config-settings">
       <div className="mb-8">
-        <h2 className="text-xl font-medium text-[--text-normal] mb-2">File Organization Settings</h2>
         <p className="text-[--text-muted] mb-4">
           Configure which folders File Organizer can manage and monitor. This helps you:
         </p>
@@ -295,7 +291,7 @@ export const FileConfigTab: React.FC<FileConfigTabProps> = ({ plugin }) => {
 
       <FolderList key={Object.values(plugin.settings).join(',')} />
       
-      <div className="mt-6 border-t border-[--background-modifier-border] pt-6">
+      <div className="border-t border-[--background-modifier-border] ">
         <h3 className="mb-4 text-lg font-medium text-[--text-normal]">Path Configuration</h3>
         {renderSettingItem(
           "Inbox folder",

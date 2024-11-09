@@ -8,6 +8,7 @@ interface AdvancedTabProps {
 export const AdvancedTab: React.FC<AdvancedTabProps> = ({ plugin }) => {
   const [enableSelfHosting, setEnableSelfHosting] = useState(plugin.settings.enableSelfHosting);
   const [selfHostingURL, setSelfHostingURL] = useState(plugin.settings.selfHostingURL);
+  const [useLogs, setUseLogs] = useState(plugin.settings.useLogs);
 
   const handleToggleChange = async (value: boolean) => {
     setEnableSelfHosting(value);
@@ -22,7 +23,18 @@ export const AdvancedTab: React.FC<AdvancedTabProps> = ({ plugin }) => {
   };
 
   return (
-    <div className="advanced-settings">
+    <div className="p-4 space-y-4">
+      <ToggleSetting
+        name="FileOrganizer logs"
+        description="Allows you to keep track of the changes made by file Organizer."
+        value={useLogs}
+        onChange={(value) => {
+          setUseLogs(value);
+          plugin.settings.useLogs = value;
+          plugin.saveSettings();
+        }}
+      />
+
       <div className="setting-item">
         <div className="setting-item-info">
           <div className="setting-item-name">Enable Self-Hosting</div>
@@ -57,3 +69,27 @@ export const AdvancedTab: React.FC<AdvancedTabProps> = ({ plugin }) => {
     </div>
   );
 };
+
+interface ToggleSettingProps {
+  name: string;
+  description: string;
+  value: boolean;
+  onChange: (value: boolean) => void;
+}
+
+const ToggleSetting: React.FC<ToggleSettingProps> = ({ name, description, value, onChange }) => (
+  <div className="flex items-center justify-between py-2">
+    <div>
+      <div className="font-medium text-[--text-normal]">{name}</div>
+      <div className="text-sm text-[--text-muted]">{description}</div>
+    </div>
+    <div>
+      <input
+        type="checkbox"
+        checked={value}
+        onChange={(e) => onChange(e.target.checked)}
+        className="form-checkbox text-[--interactive-accent]"
+      />
+    </div>
+  </div>
+);

@@ -1,23 +1,35 @@
 import { NextResponse, NextRequest } from "next/server";
-import { generateText } from "ai"; // Assuming generateText is the method from the AI SDK
+import { convertToCoreMessages, generateText } from "ai";
 import { getModel } from "@/lib/models";
-import { generateMessages } from "./prompt";
 import { handleAuthorization } from "@/lib/handleAuthorization";
 import { incrementAndLogTokenUsage } from "@/lib/incrementAndLogTokenUsage";
 
-export const maxDuration = 60; // This function can run for a maximum of 5 seconds
+export const maxDuration = 60;
 
 export async function POST(request: NextRequest) {
   try {
     const payload = await request.json();
     const { userId } = await handleAuthorization(request);
-
     const model = getModel(process.env.VISION_MODEL_NAME);
-    const messages = generateMessages(model, payload.image);
-    // Using the AI SDK's generateText method
+
+    const defaultInstruction = "Extract text from image. If there's a drawing, describe it.";
+    const responseInstruction = "Respond with only the extracted text or description.";
+    
+    const promptText = payload.instructions?.trim() 
+      ? `${defaultInstruction} ${payload.instructions} ${responseInstruction}`
+      : `${defaultInstruction} ${responseInstruction}`;
+    console.log("promptText", promptText);
+
+
     const response = await generateText({
       model,
-      messages,
+      messages: [{
+        role: "user",
+        content: [
+          { type: "text", text: promptText },
+          { type: "image", image: payload.image }
+        ],
+      }],
     });
     const tokens = response.usage.totalTokens;
     console.log("incrementing token usage vision", userId, tokens);

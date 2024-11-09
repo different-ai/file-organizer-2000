@@ -4,6 +4,7 @@ import { GeneralTab } from './general-tab';
 import { FileConfigTab } from './file-config-tab';
 import { CustomizationTab } from './customization-tab';
 import { AdvancedTab } from './advanced-tab';
+import { ExperimentTab } from './experiment-tab';
 
 interface Tab {
   name: string;
@@ -19,8 +20,9 @@ export const SettingsTabContent: React.FC<SettingsTabContentProps> = ({ plugin }
 
   const tabs: Tab[] = [
     { name: 'General', component: GeneralTab },
-    { name: 'File Config', component: FileConfigTab },
-    { name: 'Customization', component: CustomizationTab },
+    { name: 'Organization Preferences', component: CustomizationTab },
+    { name: 'Vault Access', component: FileConfigTab },
+    { name: 'Experiment', component: ExperimentTab },
     { name: 'Advanced', component: AdvancedTab },
   ];
 
@@ -55,7 +57,7 @@ const TabButton: React.FC<{
   onClick: () => void;
 }> = ({ name, isActive, onClick }) => (
   <div
-    className={`flex-1 py-2 px-4 text-sm font-medium text-center cursor-pointer select-none
+    className={`w-min flex-1 py-2 px-4 text-sm font-medium text-center cursor-pointer select-none
       ${isActive
         ? 'border-t border-x border-gray-200 rounded-t-md -mb-px'
         : 'text-gray-600 border-b border-gray-200'

@@ -355,9 +355,7 @@ export default class FileOrganizer extends Plugin {
     if (this.settings.useSimilarTags) {
       await this.generateAndAppendSimilarTags(file, content, newName);
     }
-    // if (this.settings.enableAliasGeneration) {
-    //   await this.generateAndAppendAliases(file, newName, content);
-    // }
+
   }
 
   private async createMediaContainer(content: string): Promise<TFile> {
@@ -1313,13 +1311,16 @@ export default class FileOrganizer extends Plugin {
 
   async extractTextFromImage(image: ArrayBuffer): Promise<string> {
     const base64Image = this.arrayBufferToBase64(image);
-
+  
     const response = await makeApiRequest(() =>
       requestUrl({
         url: `${this.getServerUrl()}/api/vision`,
         method: "POST",
         contentType: "application/json",
-        body: JSON.stringify({ image: base64Image }),
+        body: JSON.stringify({ 
+          image: base64Image,
+          instructions: this.settings.imageInstructions 
+        }),
         throw: false,
         headers: {
           Authorization: `Bearer ${this.settings.API_KEY}`,
@@ -1424,9 +1425,7 @@ export default class FileOrganizer extends Plugin {
     content: string,
     filePath: string
   ): Promise<FolderSuggestion[]> {
-    const customInstructions = this.settings.enableCustomFolderInstructions
-      ? this.settings.customFolderInstructions
-      : undefined;
+    const customInstructions = this.settings.customFolderInstructions;
 
     const folders = this.getAllUserFolders();
     const response = await fetch(`${this.getServerUrl()}/api/folders/v2`, {
