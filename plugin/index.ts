@@ -1104,31 +1104,32 @@ export default class FileOrganizer extends Plugin {
       this.settings.backupFolderPath,
       this.settings.templatePaths,
       this.settings.fabricPaths,
+      this.settings.pathToWatch,
+      '_FileOrganizer2000',
+      '/'
     ];
     logMessage("ignoredFolders", ignoredFolders);
     // remove empty strings
     return ignoredFolders.filter(folder => folder !== "");
   }
+  // this is a list of all the folders that file organizer to use for organization
+  getAllUserFolders(): string[] {
+    const allFolders = this.app.vault.getAllFolders();
+    const allFoldersPaths = allFolders.map(folder => folder.path);
+    const ignoredFolders = this.getAllIgnoredFolders();
 
-  getAllNonFo2kFolders(): string[] {
-    const allFolders = getAllFolders(this.app);
-
-    // if ignoreFolders includes * then return all folders
+    // If ignoreFolders includes "*", return empty array as all folders are ignored
     if (this.settings.ignoreFolders.includes("*")) {
       return [];
     }
 
-    return (
-      allFolders
-        // filter anything below fo2k
-        .filter(folder => !folder.includes("_FileOrganizer2000"))
-        .filter(folder => !this.settings.ignoreFolders.includes(folder))
-        .filter(folder => folder !== this.settings.defaultDestinationPath)
-        .filter(folder => folder !== this.settings.attachmentsPath)
-        .filter(folder => folder !== this.settings.backupFolderPath)
-        .filter(folder => folder !== this.settings.templatePaths)
-        .filter(folder => folder !== this.settings.fabricPaths)
-    );
+    return allFoldersPaths.filter(folder => {
+      // Check if the folder is not in the ignored folders list
+      return !ignoredFolders.includes(folder) && 
+             !ignoredFolders.some(ignoredFolder => 
+               folder.startsWith(ignoredFolder + "/")
+             );
+    });
   }
 
   async getSimilarFiles(fileToCheck: TFile): Promise<string[]> {
