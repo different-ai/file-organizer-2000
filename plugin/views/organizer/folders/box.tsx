@@ -36,7 +36,7 @@ export const SimilarFolderBox: React.FC<SimilarFolderBoxProps> = ({
       );
       
       // Get all valid folders
-      const validFolders = plugin.getAllNonFo2kFolders();
+      const validFolders = plugin.getAllUserFolders();
       
       // Filter suggestions to only include existing folders or new folders
       const filteredSuggestions = folderSuggestions.filter(suggestion => 

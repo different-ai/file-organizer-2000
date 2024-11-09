@@ -1428,7 +1428,7 @@ export default class FileOrganizer extends Plugin {
       ? this.settings.customFolderInstructions
       : undefined;
 
-    const folders = this.getAllNonFo2kFolders();
+    const folders = this.getAllUserFolders();
     const response = await fetch(`${this.getServerUrl()}/api/folders/v2`, {
       method: "POST",
       headers: {
@@ -1616,7 +1616,7 @@ export default class FileOrganizer extends Plugin {
     }
     const currentFolder =
       this.app.vault.getAbstractFileByPath(filePath)?.parent?.path || "";
-    const filteredFolders = this.getAllNonFo2kFolders()
+    const filteredFolders = this.getAllUserFolders()
       .filter(folder => folder !== currentFolder)
 
       // if  this.settings.ignoreFolders has one or more folder specified, filter them out including subfolders
@@ -1661,7 +1661,7 @@ export default class FileOrganizer extends Plugin {
     }
   }
   async getNewFolders(content: string, filePath: string): Promise<string[]> {
-    const uniqueFolders = await this.getAllNonFo2kFolders();
+    const uniqueFolders = await this.getAllUserFolders();
     if (this.settings.ignoreFolders.includes("*")) {
       return [this.settings.defaultDestinationPath];
     }
