@@ -29,7 +29,7 @@ export async function POST(request: NextRequest) {
           })
         ),
       }),
-      system: `Given the content and (if useful) the current file name: "${fileName}", suggest at least 3 clear and concise titles for this content.  avoid using special characters${
+      system: `Given the content and of this Obsidian note (if useful) the current file name: "${fileName}", suggest at least 3 clear and concise titles for this content.  avoid using special characters${
         customInstructions
           ? `Follow these custom instructions: "${customInstructions}"`
           : ""

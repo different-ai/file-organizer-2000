@@ -40,8 +40,6 @@ export const GeneralTab: React.FC<GeneralTabProps> = ({ plugin }) => {
       setLoading(false);
     }
   };
-  // log usage data
-  console.log(usageData, 'usage');
 
   const handleLicenseKeyChange = async (value: string) => {
     setLicenseKey(value);

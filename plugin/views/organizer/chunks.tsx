@@ -17,7 +17,6 @@ export const DocumentChunks: React.FC<DocumentChunksProps> = ({ plugin, activeFi
     try {
       const content = await plugin.app.vault.read(activeFile);
       const result = await plugin.identifyConceptsAndFetchChunks(content);
-      console.log("result", result);
       setConcepts(result.map(c => c.name));
       setChunks(result.map(c => ({ concept: c.name, content: c.chunk })));
     } catch (error) {

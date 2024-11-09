@@ -1,4 +1,3 @@
-import { openai } from "@ai-sdk/openai";
 import { guessRelevantFolder } from "../aiService";
 import { NextRequest, NextResponse } from "next/server";
 import { handleAuthorization } from "@/lib/handleAuthorization";

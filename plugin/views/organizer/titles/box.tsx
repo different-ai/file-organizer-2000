@@ -4,7 +4,8 @@ import FileOrganizer from "../../../index";
 import { z } from "zod";
 import { motion, AnimatePresence } from "framer-motion";
 import { SkeletonLoader } from "../components/skeleton-loader";
-import { TitleSuggestion } from "./title-suggestion-item";
+import { ExistingFolderButton } from "../components/suggestion-buttons";
+import { logMessage } from "../../../../utils";
 
 interface RenameSuggestionProps {
   plugin: FileOrganizer;
@@ -41,7 +42,9 @@ export const RenameSuggestion: React.FC<RenameSuggestionProps> = ({
 
     try {
       const titles = await plugin.guessTitles(content, file.name);
-      setSuggestions(titles);
+      // remove current file name from suggestions
+      const filteredTitles = titles.filter(title => title.title !== file.name);
+      setSuggestions(filteredTitles);
     } catch (err) {
       console.error("Error fetching titles:", err);
       const errorMessage = err instanceof Error ? err.message : "Unknown error";
@@ -56,6 +59,9 @@ export const RenameSuggestion: React.FC<RenameSuggestionProps> = ({
   }, [suggestTitles, refreshKey]);
 
   const handleTitleApply = async (title: string) => {
+    // if same title, do nothing
+    logMessage({ title, fileName: file?.basename });
+    if (title === file?.basename) return;
     if (!file?.parent) return;
 
     setLoading(true);
@@ -89,18 +95,13 @@ export const RenameSuggestion: React.FC<RenameSuggestionProps> = ({
         >
           <AnimatePresence>
             {suggestions.map((suggestion, index) => (
-              <motion.button
+              <ExistingFolderButton
                 key={index}
-                className="px-3 py-1 bg-[--background-secondary] text-[--text-normal] rounded-md hover:bg-[--interactive-accent] hover:text-white transition-colors duration-200"
-                onClick={() => handleTitleApply(suggestion.title)}
-                initial={{ opacity: 0, scale: 0.8 }}
-                animate={{ opacity: 1, scale: 1 }}
-                exit={{ opacity: 0, scale: 0.8 }}
-                transition={{ duration: 0.2 }}
-                title={`Score of ${suggestion.score} because ${suggestion.reason}`}
-              >
-                {suggestion.title}
-              </motion.button>
+                folder={suggestion.title}
+                onClick={handleTitleApply}
+                score={suggestion.score}
+                reason={suggestion.reason}
+              />
             ))}
           </AnimatePresence>
         </motion.div>

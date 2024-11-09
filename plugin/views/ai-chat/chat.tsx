@@ -142,7 +142,6 @@ export const ChatComponent: React.FC<ChatComponentProps> = ({
             return `Path: ${file.path}\nTitle: ${file.title}\nReference: ${file.reference}\nContent:\n${file.content}`;
           })
           .join("\n\n-------\n\n");
-        console.log(contextString, "contextString");
 
         const result = await streamText({
           model: ollama("llama3.2"),
@@ -161,7 +160,7 @@ export const ChatComponent: React.FC<ChatComponentProps> = ({
       return fetch(url, options);
     },
     onToolCall({ toolCall  }) {
-      console.log("toolCall", toolCall);
+      logMessage("toolCall", toolCall);
     },
     keepLastMessageOnError: true,
     onError: error => {
@@ -496,7 +495,6 @@ export const ChatComponent: React.FC<ChatComponentProps> = ({
 
   const handleYouTubeTranscript = useCallback(
     (transcript: string, title: string, videoId: string) => {
-      console.log(transcript, "this is the transcript");
       setSelectedYouTubeVideos(prev => [
         ...prev,
         {

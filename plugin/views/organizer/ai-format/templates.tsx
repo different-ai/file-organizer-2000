@@ -51,7 +51,6 @@ export const ClassificationContainer: React.FC<ClassificationBoxProps> = ({
         });
       }
 
-      console.log("Content formatted successfully");
     } catch (error) {
       console.error("Error in handleFormat:", error);
     }

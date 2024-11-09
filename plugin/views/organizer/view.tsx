@@ -170,7 +170,7 @@ export const AssistantView: React.FC<AssistantViewProps> = ({
   }
 
   return (
-    <div className="tw-p-4 fo2k ">
+    <div className="tw-p-4 fo2k-cleaned">
       <div className="flex gap-3 items-center">
         <RefreshButton onRefresh={refreshContext} />
         <div className="tw-mb-4">

@@ -4,53 +4,11 @@ import FileOrganizer from "../../index";
 import { sanitizeTag } from "../../../utils";
 import { SkeletonLoader } from "./components/skeleton-loader";
 import { motion, AnimatePresence } from "framer-motion";
+import { ExistingFolderButton, NewFolderButton } from "./components/suggestion-buttons";
 
-// Base Tag Component
-const BaseTag: React.FC<{
-  tag: string;
-  onClick: (tag: string) => void;
-  className?: string;
-  score?: number;
-  reason?: string;
-}> = ({ tag, onClick, className, score, reason }) => (
-  <motion.span
-    className={`inline-block rounded px-2 py-1 text-sm cursor-pointer transition-colors duration-200 ${className}`}
-    onClick={() => onClick(tag)}
-    initial={{ opacity: 0, scale: 0.8 }}
-    animate={{ opacity: 1, scale: 1 }}
-    exit={{ opacity: 0, scale: 0.8 }}
-    transition={{ duration: 0.2 }}
-    title={`Score: ${score}, Reason: ${reason}`}
-  >
-    {sanitizeTag(tag)}
-  </motion.span>
-);
-
-// Existing Tag Component
-const ExistingTag: React.FC<{
-  tag: string;
-  onClick: (tag: string) => void;
-  score: number;
-  reason: string;
-}> = props => (
-  <BaseTag
-    {...props}
-    className="bg-[--background-secondary] text-[--text-normal] hover:text-[--text-on-accent] hover:bg-[--interactive-accent] hover:font-medium"
-  />
-);
-
-// New Tag Component
-const NewTag: React.FC<{
-  tag: string;
-  onClick: (tag: string) => void;
-  score: number;
-  reason: string;
-}> = props => (
-  <BaseTag
-    {...props}
-    className="bg-transparent border border-dashed border-[--text-muted] text-[--text-muted] hover:text-[--text-on-accent] hover:bg-[--interactive-accent] hover:font-medium"
-  />
-);
+// Rename the button components for tags
+const ExistingTagButton = ExistingFolderButton;
+const NewTagButton = NewFolderButton;
 
 interface SimilarTagsProps {
   plugin: FileOrganizer;
@@ -133,18 +91,18 @@ export const SimilarTags: React.FC<SimilarTagsProps> = ({
       >
         <AnimatePresence>
           {existingTags.map((tag, index) => (
-            <ExistingTag
+            <ExistingTagButton
               key={`existing-${index}`}
-              tag={tag.tag}
+              folder={sanitizeTag(tag.tag)}
               onClick={handleTagClick}
               score={tag.score}
               reason={tag.reason}
             />
           ))}
           {newTags.map((tag, index) => (
-            <NewTag
+            <NewTagButton
               key={`new-${index}`}
-              tag={tag.tag}
+              folder={sanitizeTag(tag.tag)}
               onClick={handleTagClick}
               score={tag.score}
               reason={tag.reason}

@@ -4,6 +4,8 @@ import FileOrganizer from "../../../index";
 import { motion, AnimatePresence } from "framer-motion";
 import { SkeletonLoader } from "../components/skeleton-loader";
 import { FolderSuggestion } from "../../../index";
+import { logMessage } from "../../../../utils";
+import { ExistingFolderButton, NewFolderButton } from "../components/suggestion-buttons";
 
 interface SimilarFolderBoxProps {
   plugin: FileOrganizer;
@@ -34,22 +36,24 @@ export const SimilarFolderBox: React.FC<SimilarFolderBoxProps> = ({
         content,
         file.path
       );
-      
+
       // Get all valid folders
       const validFolders = plugin.getAllUserFolders();
-      
+
       // Filter suggestions to only include existing folders or new folders
-      const filteredSuggestions = folderSuggestions.filter(suggestion => 
-        suggestion.isNewFolder || validFolders.includes(suggestion.folder)
+      const filteredSuggestions = folderSuggestions.filter(
+        suggestion =>
+          suggestion.isNewFolder || validFolders.includes(suggestion.folder)
       );
 
       setSuggestions(filteredSuggestions);
     } catch (err) {
       console.error("Error fetching folders:", err);
-      const errorMessage = typeof err === 'object' && err !== null
-        ? (err.error?.message || err.error || err.message || "Unknown error")
-        : String(err);
-        
+      const errorMessage =
+        typeof err === "object" && err !== null
+          ? err.error?.message || err.error || err.message || "Unknown error"
+          : String(err);
+
       setError(new Error(errorMessage));
     } finally {
       setLoading(false);
@@ -66,27 +70,36 @@ export const SimilarFolderBox: React.FC<SimilarFolderBoxProps> = ({
   };
 
   const handleFolderClick = async (folder: string) => {
+    // if same folder, do nothing
+    logMessage({ newFolder: folder, currentFolder: file?.parent?.path });
+    if (folder === file?.parent?.path) return;
     if (!file) return;
-    
+
     setLoading(true);
     try {
       await plugin.moveFile(file, file.basename, folder);
       new Notice(`Moved ${file.basename} to ${folder}`);
     } catch (error) {
       console.error("Error moving file:", error);
-      const errorMessage = error instanceof Error ? error.message : "Unknown error occurred";
-      new Notice(`Failed to move ${file.basename} to ${folder}: ${errorMessage}`);
+      const errorMessage =
+        error instanceof Error ? error.message : "Unknown error occurred";
+      new Notice(
+        `Failed to move ${file.basename} to ${folder}: ${errorMessage}`
+      );
     } finally {
       setLoading(false);
     }
   };
+  const filteredSuggestions = suggestions.filter(
+    s => s.folder !== file?.parent?.path
+  );
 
   // Derive existing and new folders from suggestions
-  const existingFolders = suggestions.filter(s => !s.isNewFolder);
-  const newFolders = suggestions.filter(s => s.isNewFolder);
+  const existingFolders = filteredSuggestions.filter(s => !s.isNewFolder);
+  const newFolders = filteredSuggestions.filter(s => s.isNewFolder);
 
   const renderError = () => (
-    <motion.div 
+    <motion.div
       initial={{ opacity: 0, y: -10 }}
       animate={{ opacity: 1, y: 0 }}
       className="space-y-3 rounded-md  border-opacity-20"
@@ -101,17 +114,17 @@ export const SimilarFolderBox: React.FC<SimilarFolderBoxProps> = ({
           </p>
         </div>
       </div>
-      
+
       <div className="flex items-center gap-3 text-sm">
         <div className="flex gap-2">
-          <button 
+          <button
             onClick={handleRetry}
             disabled={loading}
             className="px-3 py-1.5 bg-[--interactive-accent] text-[--text-on-accent] rounded hover:bg-[--interactive-accent-hover] disabled:opacity-50 transition-colors duration-200"
           >
             {loading ? "Retrying..." : "Retry"}
           </button>
-          <button 
+          <button
             onClick={() => setError(null)}
             className="px-3 py-1.5 border border-[--background-modifier-border] rounded hover:bg-[--background-modifier-hover] transition-colors duration-200"
           >
@@ -146,33 +159,22 @@ export const SimilarFolderBox: React.FC<SimilarFolderBoxProps> = ({
       >
         <AnimatePresence>
           {existingFolders.map((folder, index) => (
-            <motion.button
+            <ExistingFolderButton
               key={`existing-${index}`}
-              className="px-3 py-1 bg-[--background-secondary] text-[--text-normal] rounded-md hover:bg-[--interactive-accent] hover:text-white transition-colors duration-200"
-              onClick={() => handleFolderClick(folder.folder)}
-              initial={{ opacity: 0, scale: 0.8 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.8 }}
-              transition={{ duration: 0.2 }}
-              //  add score as well
-              title={`Score of ${folder.score} because ${folder.reason} `}
-            >
-              {folder.folder}
-            </motion.button>
+              folder={folder.folder}
+              onClick={handleFolderClick}
+              score={folder.score}
+              reason={folder.reason}
+            />
           ))}
           {newFolders.map((folder, index) => (
-            <motion.button
+            <NewFolderButton
               key={`new-${index}`}
-              className="px-3 py-1 bg-transparent border border-dashed border-[--text-muted] text-[--text-muted] rounded-md hover:bg-[--interactive-accent] hover:text-white hover:border-transparent transition-colors duration-200"
-              onClick={() => handleFolderClick(folder.folder)}
-              initial={{ opacity: 0, scale: 0.8 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.8 }}
-              transition={{ duration: 0.2 }}
-              title={`Score of ${folder.score} because ${folder.reason}`}
-            >
-              {folder.folder}
-            </motion.button>
+              folder={folder.folder}
+              onClick={handleFolderClick}
+              score={folder.score}
+              reason={folder.reason}
+            />
           ))}
         </AnimatePresence>
       </motion.div>
