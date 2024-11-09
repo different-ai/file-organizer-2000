@@ -1,5 +1,5 @@
 import { NextResponse, NextRequest } from "next/server";
-import { convertToCoreMessages, generateText } from "ai";
+import {  generateText } from "ai";
 import { getModel } from "@/lib/models";
 import { handleAuthorization } from "@/lib/handleAuthorization";
 import { incrementAndLogTokenUsage } from "@/lib/incrementAndLogTokenUsage";
