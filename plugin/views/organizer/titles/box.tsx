@@ -5,7 +5,6 @@ import { z } from "zod";
 import { motion, AnimatePresence } from "framer-motion";
 import { SkeletonLoader } from "../components/skeleton-loader";
 import { TitleSuggestion } from "./title-suggestion-item";
-import { useTitleSuggestions } from "./use-title-suggestions";
 
 interface RenameSuggestionProps {
   plugin: FileOrganizer;
@@ -27,6 +26,7 @@ interface TitleSuggestion {
 export const RenameSuggestion: React.FC<RenameSuggestionProps> = ({
   plugin,
   file,
+  content,
   refreshKey,
 }) => {
   const [suggestions, setSuggestions] = React.useState<TitleSuggestion[]>([]);
@@ -40,7 +40,7 @@ export const RenameSuggestion: React.FC<RenameSuggestionProps> = ({
     setError(null);
 
     try {
-      const titles = await plugin.guessTitles(file.path, file.name);
+      const titles = await plugin.guessTitles(content, file.name);
       setSuggestions(titles);
     } catch (err) {
       console.error("Error fetching titles:", err);
