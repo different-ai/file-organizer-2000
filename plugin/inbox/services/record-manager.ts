@@ -1,0 +1,221 @@
+import { TFile } from "obsidian";
+import { FileRecord, FileStatus, FileMetadata, EventRecord } from "../types";
+import { IdService } from "./id-service";
+import { ErrorService, ErrorSeverity } from "./error-service";
+import { isMediaFile } from "../utils/file";
+import moment from "moment";
+
+export class RecordManager {
+  private static instance: RecordManager;
+  private fileRecords: Map<string, FileRecord> = new Map();
+  private eventRecords: Map<string, EventRecord[]> = new Map();
+  private idService: IdService;
+
+  private constructor() {
+    this.idService = IdService.getInstance();
+  }
+
+  public static getInstance(): RecordManager {
+    if (!RecordManager.instance) {
+      RecordManager.instance = new RecordManager();
+    }
+    return RecordManager.instance;
+  }
+
+  public createOrUpdateFileRecord(
+    file: TFile,
+    updates?: Partial<FileRecord>
+  ): FileRecord {
+    try {
+      const hash = this.idService.generateFileHash(file);
+      const existingRecord = this.getRecordByHash(hash);
+
+      if (existingRecord) {
+        if (updates) {
+          return this.updateRecord(hash, updates);
+        }
+        return existingRecord;
+      }
+
+      const now = moment().format();
+      const metadata: FileMetadata = {
+        size: file.stat.size,
+        extension: file.extension,
+        createdTime: file.stat.ctime,
+        modifiedTime: file.stat.mtime,
+        isMediaFile: isMediaFile(file),
+      };
+
+      const newRecord: FileRecord = {
+        id: hash,
+        filePath: file.path,
+        fileName: file.basename,
+        previousName: file.basename,
+        status: "queued" as FileStatus,
+        createdAt: now,
+        updatedAt: now,
+        metadata,
+        errors: [],
+        ...updates,
+      };
+
+      this.fileRecords.set(hash, newRecord);
+      this.addEvent(hash, "File record initialized", { metadata });
+
+      return newRecord;
+    } catch (error) {
+      ErrorService.getInstance().handleError({
+        message: "Failed to create/update file record",
+        severity: ErrorSeverity.HIGH,
+        error: error as Error,
+        context: { filePath: file.path },
+      });
+      throw error;
+    }
+  }
+
+  private updateRecord(hash: string, updates: Partial<FileRecord>): FileRecord {
+    const record = this.getRecordByHash(hash);
+    if (!record) {
+      throw new Error(`Record not found for hash: ${hash}`);
+    }
+
+    const updatedRecord = {
+      ...record,
+      ...updates,
+      updatedAt: moment().format(),
+    };
+
+    this.fileRecords.set(hash, updatedRecord);
+    return updatedRecord;
+  }
+
+  public updateFileStatus(
+    record: FileRecord,
+    status: FileStatus,
+    message?: string,
+    metadata?: Record<string, any>
+  ): void {
+    const hash = record.id;
+
+    // Update the record with new status
+    this.updateRecord(hash, {
+      status,
+      updatedAt: moment().format(),
+    });
+
+    // Add event with status change
+    const statusMessage = message || `File status changed to ${status}`;
+    this.addEvent(hash, statusMessage, {
+      status,
+      previousStatus: record.status,
+      ...metadata,
+    });
+  }
+
+  public recordProcessingStart(record: FileRecord): void {
+    this.updateFileStatus(record, "processing", "Started processing file");
+  }
+
+  public recordProcessingComplete(
+    record: FileRecord,
+    metadata?: {
+      newPath?: string;
+      newName?: string;
+      tags?: string[];
+    }
+  ): void {
+    const updates: Partial<FileRecord> = {
+      status: "completed",
+      updatedAt: moment().format(),
+    };
+
+    if (metadata) {
+      // Update file paths
+      if (metadata.newPath) updates.newPath = metadata.newPath;
+      if (metadata.newName) updates.newName = metadata.newName;
+
+      // Update tags
+      if (metadata.tags) updates.tags = metadata.tags;
+
+      // Update processing information
+    }
+
+    this.updateRecord(record.id, updates);
+    this.addEvent(record.id, "File processing completed", metadata);
+  }
+
+  public recordProcessingBypassed(record: FileRecord, reason?: string): void {
+    this.updateFileStatus(
+      record,
+      "bypassed",
+      reason || "File processing bypassed"
+    );
+  }
+
+  public recordError(record: FileRecord, error: Error): void {
+    const hash = record.id;
+    const errorRecord = {
+      timestamp: moment().format(),
+      message: error.message,
+      stack: error.stack,
+    };
+
+    this.updateRecord(hash, {
+      errors: [...(record.errors || []), errorRecord],
+    });
+    this.addEvent(hash, `Error: ${error.message}`, { error: errorRecord });
+  }
+
+  public updateDestination(
+    record: FileRecord,
+    newName: string,
+    newPath: string
+  ): void {
+    const hash = record.id;
+    this.updateRecord(hash, { newName, newPath });
+    this.addEvent(hash, `Updated destination: ${newPath}/${newName}`);
+  }
+
+  public addTags(record: FileRecord, tags: string[]): void {
+    const hash = record.id;
+    this.updateRecord(hash, { tags });
+    this.addEvent(hash, `Added tags: ${tags.join(", ")}`);
+  }
+
+  public getRecordByHash(hash: string): FileRecord | undefined {
+    return this.fileRecords.get(hash);
+  }
+
+  public getRecordByPath(path: string): FileRecord | undefined {
+    return Array.from(this.fileRecords.values()).find(
+      record => record.filePath === path
+    );
+  }
+
+  public getAllRecords(): FileRecord[] {
+    return Array.from(this.fileRecords.values());
+  }
+
+  public getFileEvents(fileId: string): EventRecord[] {
+    return this.eventRecords.get(fileId) || [];
+  }
+
+  private addEvent(
+    hash: string,
+    message: string,
+    metadata?: Record<string, any>
+  ): void {
+    const event: EventRecord = {
+      id: this.idService.generateEventId(hash, Date.now()),
+      fileRecordId: hash,
+      timestamp: moment().format(),
+      message,
+      metadata,
+    };
+
+    const events = this.eventRecords.get(hash) || [];
+    events.push(event);
+    this.eventRecords.set(hash, events);
+  }
+}

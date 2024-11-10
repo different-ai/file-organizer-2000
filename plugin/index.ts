@@ -10,10 +10,11 @@ import {
   normalizePath,
   loadPdfJs,
   requestUrl,
+  arrayBufferToBase64,
 } from "obsidian";
 import { logMessage, formatToSafeName, sanitizeTag } from "../utils";
 import { FileOrganizerSettingTab } from "./views/settings/view";
-import { ORGANIZER_VIEW_TYPE } from "./views/organizer";
+import { ORGANIZER_VIEW_TYPE } from "./views/organizer/view";
 import { CHAT_VIEW_TYPE } from "./views/ai-chat/view";
 import Jimp from "jimp/es/index";
 
@@ -30,36 +31,22 @@ import {
   checkAndCreateFolders,
   checkAndCreateTemplates,
   moveFile,
-  getAllFolders,
 } from "./fileUtils";
+
 import { checkLicenseKey } from "./apiUtils";
 import { makeApiRequest } from "./apiUtils";
+
+import {
+  VALID_IMAGE_EXTENSIONS,
+  VALID_AUDIO_EXTENSIONS,
+  VALID_MEDIA_EXTENSIONS,
+} from "./constants";
+import { initializeInboxQueue, Inbox } from "./inbox";
+import { validateFile } from "./utils";
 
 type TagCounts = {
   [key: string]: number;
 };
-
-const validImageExtensions = ["png", "jpg", "jpeg", "gif", "svg", "webp"];
-const validAudioExtensions = [
-  "mp3",
-  "mp4",
-  "mpeg",
-  "mpga",
-  "m4a",
-  "wav",
-  "webm",
-];
-export const validMediaExtensions = [
-  ...validImageExtensions,
-  ...validAudioExtensions,
-];
-const validTextExtensions = ["md", "txt"];
-
-const validExtensions = [
-  ...validMediaExtensions,
-  ...validTextExtensions,
-  "pdf",
-];
 
 export interface FolderSuggestion {
   isNewFolder: boolean;
@@ -68,13 +55,6 @@ export interface FolderSuggestion {
   reason: string;
 }
 
-const isValidExtension = (extension: string) => {
-  if (!validExtensions.includes(extension)) {
-    new Notice("Sorry, FileOrganizer does not support this file type.");
-    return false;
-  }
-  return true;
-};
 // determine sever url
 interface ProcessingResult {
   text: string;
@@ -107,6 +87,7 @@ interface TitleSuggestion {
 }
 
 export default class FileOrganizer extends Plugin {
+  public inbox: Inbox;
   settings: FileOrganizerSettings;
 
   async loadSettings() {
@@ -160,7 +141,7 @@ export default class FileOrganizer extends Plugin {
       // Step 1-3: Initialize and validate
       await this.initializeProcessing(logFilePath, processedFileName);
 
-      if (!this.validateFile(originalFile)) {
+      if (!validateFile(originalFile)) {
         await this.log(
           logFilePath,
           `2. Unsupported file type. Skipping ${processedFileName}`
@@ -229,15 +210,7 @@ export default class FileOrganizer extends Plugin {
     await this.log(logFilePath, `3. Verified necessary folders exist`);
   }
 
-  private validateFile(file: TFile): boolean {
-    if (!file.extension || !isValidExtension(file.extension)) {
-      new Notice("Unsupported file type. Skipping.", 3000);
-      return false;
-    }
-    return true;
-  }
-
-  private async processContent(
+  async processContent(
     file: TFile,
     logFilePath: string
   ): Promise<ProcessingResult | null> {
@@ -319,7 +292,7 @@ export default class FileOrganizer extends Plugin {
       `8c. Moved container to: [[${newPath}/${newName}]]`
     );
 
-    await this.addMetadata(containerFile, content, newName);
+    await this.generateAndAppendSimilarTags(containerFile, content, newName);
   }
 
   private async processNonMediaFile(
@@ -339,7 +312,7 @@ export default class FileOrganizer extends Plugin {
       );
     }
 
-    await this.addMetadata(file, content, newName);
+    await this.generateAndAppendSimilarTags(file, content, newName);
     await this.moveFile(file, newName, newPath);
     await this.log(
       logFilePath,
@@ -347,18 +320,7 @@ export default class FileOrganizer extends Plugin {
     );
   }
 
-  private async addMetadata(
-    file: TFile,
-    content: string,
-    newName: string
-  ): Promise<void> {
-    if (this.settings.useSimilarTags) {
-      await this.generateAndAppendSimilarTags(file, content, newName);
-    }
-
-  }
-
-  private async createMediaContainer(content: string): Promise<TFile> {
+  async createMediaContainer(content: string): Promise<TFile> {
     const containerContent = `${content}`;
     const containerFilePath = `${
       this.settings.defaultDestinationPath
@@ -467,7 +429,8 @@ export default class FileOrganizer extends Plugin {
 
   shouldCreateMarkdownContainer(file: TFile): boolean {
     return (
-      validMediaExtensions.includes(file.extension) || file.extension === "pdf"
+      VALID_MEDIA_EXTENSIONS.includes(file.extension) ||
+      file.extension === "pdf"
     );
   }
 
@@ -686,7 +649,7 @@ export default class FileOrganizer extends Plugin {
     );
   }
 
-  async identifyConcepts(content: string): Promise<string[]> {
+  async _experimentalIdentifyConcepts(content: string): Promise<string[]> {
     try {
       const response = await makeApiRequest(() =>
         requestUrl({
@@ -889,10 +852,7 @@ export default class FileOrganizer extends Plugin {
   async generateTranscriptFromAudio(
     file: TFile
   ): Promise<AsyncIterableIterator<string>> {
-    new Notice(
-      `Generating transcription for ${file.basename}. This may take a few minutes.`,
-      8000
-    );
+
     try {
       const audioBuffer = await this.app.vault.readBinary(file);
       const response = await this.transcribeAudio(audioBuffer, file.extension);
@@ -911,7 +871,6 @@ export default class FileOrganizer extends Plugin {
         }
       }
 
-      new Notice(`Transcription started for ${file.basename}`, 5000);
       return generateTranscript();
     } catch (e) {
       console.error("Error generating transcript", e);
@@ -939,29 +898,24 @@ export default class FileOrganizer extends Plugin {
     classifications: string[]
   ): Promise<string> {
     const serverUrl = this.getServerUrl();
-    try {
-      const response = await fetch(`${serverUrl}/api/classify1`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${this.settings.API_KEY}`,
-        },
-        body: JSON.stringify({
-          content,
-          templateNames: classifications,
-        }),
-      });
+    const response = await fetch(`${serverUrl}/api/classify1`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${this.settings.API_KEY}`,
+      },
+      body: JSON.stringify({
+        content,
+        templateNames: classifications,
+      }),
+    });
 
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-
-      const { documentType } = await response.json();
-      return documentType;
-    } catch (error) {
-      console.error("Error in classifyContentV2:", error);
-      throw error;
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
     }
+
+    const { documentType } = await response.json();
+    return documentType;
   }
 
   async organizeFile(file: TFile, content: string) {
@@ -1015,9 +969,9 @@ export default class FileOrganizer extends Plugin {
         const pdfContent = await this.extractTextFromPDF(file);
         return pdfContent;
       }
-      case validImageExtensions.includes(file.extension):
+      case VALID_IMAGE_EXTENSIONS.includes(file.extension):
         return await this.generateImageAnnotation(file);
-      case validAudioExtensions.includes(file.extension): {
+      case VALID_AUDIO_EXTENSIONS.includes(file.extension): {
         // Change this part to consume the iterator
         const transcriptIterator = await this.generateTranscriptFromAudio(file);
         let transcriptText = "";
@@ -1103,8 +1057,9 @@ export default class FileOrganizer extends Plugin {
       this.settings.templatePaths,
       this.settings.fabricPaths,
       this.settings.pathToWatch,
-      '_FileOrganizer2000',
-      '/'
+      this.settings.errorFilePath,
+      "_FileOrganizer2000",
+      "/",
     ];
     logMessage("ignoredFolders", ignoredFolders);
     // remove empty strings
@@ -1123,14 +1078,18 @@ export default class FileOrganizer extends Plugin {
 
     return allFoldersPaths.filter(folder => {
       // Check if the folder is not in the ignored folders list
-      return !ignoredFolders.includes(folder) && 
-             !ignoredFolders.some(ignoredFolder => 
-               folder.startsWith(ignoredFolder + "/")
-             );
+      return (
+        !ignoredFolders.includes(folder) &&
+        !ignoredFolders.some(ignoredFolder =>
+          folder.startsWith(ignoredFolder + "/")
+        )
+      );
     });
   }
 
-  async getSimilarFiles(fileToCheck: TFile): Promise<string[]> {
+  async _experimentalGenerateSimilarFiles(
+    fileToCheck: TFile
+  ): Promise<string[]> {
     if (!fileToCheck) {
       return [];
     }
@@ -1156,7 +1115,7 @@ export default class FileOrganizer extends Plugin {
       name: file.path,
     }));
 
-    const similarFiles = await this.generateRelationships(
+    const similarFiles = await this._experimentalGenerateRelationships(
       activeFileContent,
       fileContents
     );
@@ -1168,7 +1127,7 @@ export default class FileOrganizer extends Plugin {
     );
   }
 
-  async generateRelationships(
+  async _experimentalGenerateRelationships(
     activeFileContent: string,
     files: { name: string }[]
   ): Promise<string[]> {
@@ -1219,6 +1178,7 @@ export default class FileOrganizer extends Plugin {
     return formatToSafeName(name);
   }
 
+  // should be deprecated to use v2 api routes
   async generateDocumentTitle(
     content: string,
     currentName: string,
@@ -1280,10 +1240,7 @@ export default class FileOrganizer extends Plugin {
   }
 
   async generateImageAnnotation(file: TFile) {
-    new Notice(
-      `Generating annotation for ${file.basename} this can take up to a minute`,
-      8000
-    );
+
 
     const arrayBuffer = await this.app.vault.readBinary(file);
     const fileContent = Buffer.from(arrayBuffer);
@@ -1310,16 +1267,16 @@ export default class FileOrganizer extends Plugin {
   }
 
   async extractTextFromImage(image: ArrayBuffer): Promise<string> {
-    const base64Image = this.arrayBufferToBase64(image);
-  
+    const base64Image = arrayBufferToBase64(image);
+
     const response = await makeApiRequest(() =>
       requestUrl({
         url: `${this.getServerUrl()}/api/vision`,
         method: "POST",
         contentType: "application/json",
-        body: JSON.stringify({ 
+        body: JSON.stringify({
           image: base64Image,
-          instructions: this.settings.imageInstructions 
+          instructions: this.settings.imageInstructions,
         }),
         throw: false,
         headers: {
@@ -1331,15 +1288,6 @@ export default class FileOrganizer extends Plugin {
     return text;
   }
 
-  arrayBufferToBase64(buffer: ArrayBuffer): string {
-    let binary = "";
-    const bytes = new Uint8Array(buffer);
-    const len = bytes.byteLength;
-    for (let i = 0; i < len; i++) {
-      binary += String.fromCharCode(bytes[i]);
-    }
-    return window.btoa(binary);
-  }
   async getBacklog() {
     const allFiles = this.app.vault.getFiles();
     const pendingFiles = allFiles.filter(file =>
@@ -1349,6 +1297,13 @@ export default class FileOrganizer extends Plugin {
   }
   async processBacklog() {
     const pendingFiles = await this.getBacklog();
+    if (this.settings.useInbox) {
+      logMessage("Enqueuing files from backlog V3");
+      Inbox.getInstance().enqueueFiles(pendingFiles);
+      return;
+    }
+    logMessage("Processing files from backlog V2");
+
     for (const file of pendingFiles) {
       await this.processFileV2(file);
     }
@@ -1376,6 +1331,7 @@ export default class FileOrganizer extends Plugin {
     return file instanceof TFolder;
   }
 
+  // should be reprecatd and only use guessRelevantFolders
   async getAIClassifiedFolder(
     content: string,
     filePath: string
@@ -1450,31 +1406,6 @@ export default class FileOrganizer extends Plugin {
     return suggestedFolders;
   }
 
-  async createNewFolder(
-    content: string,
-    fileName: string,
-    existingFolders: string[]
-  ): Promise<string> {
-    const response = await makeApiRequest(() =>
-      requestUrl({
-        url: `${this.getServerUrl()}/api/create-folder`,
-        method: "POST",
-        contentType: "application/json",
-        body: JSON.stringify({
-          content,
-          fileName,
-          existingFolders,
-        }),
-        throw: false,
-        headers: {
-          Authorization: `Bearer ${this.settings.API_KEY}`,
-        },
-      })
-    );
-    const { folderName } = await response.json;
-    return folderName;
-  }
-
   async appendTag(file: TFile, tag: string) {
     // Ensure the tag starts with a hash symbol
     const formattedTag = sanitizeTag(tag);
@@ -1485,25 +1416,13 @@ export default class FileOrganizer extends Plugin {
     }
     await this.app.vault.append(file, `\n${formattedTag}`);
   }
-  d;
-
-  validateAPIKey() {
-    if (!this.settings.usePro) {
-      // atm we assume no api auth for self hosted
-      return true;
-    }
-
-    if (!this.settings.API_KEY) {
-      throw new Error(
-        "Please enter your API Key in the settings of the FileOrganizer plugin."
-      );
-    }
-  }
-
   async onload() {
+    this.inbox = Inbox.initialize(this);
     await this.initializePlugin();
 
     await this.saveSettings();
+
+    initializeInboxQueue(this);
 
     // Initialize different features
     initializeChat(this);
@@ -1606,113 +1525,10 @@ export default class FileOrganizer extends Plugin {
     return templateFiles.map(file => file.basename);
   }
 
-  async getExistingFolders(
+  async guessTitles(
     content: string,
     filePath: string
-  ): Promise<string[]> {
-    if (this.settings.ignoreFolders.includes("*")) {
-      return [this.settings.defaultDestinationPath];
-    }
-    const currentFolder =
-      this.app.vault.getAbstractFileByPath(filePath)?.parent?.path || "";
-    const filteredFolders = this.getAllUserFolders()
-      .filter(folder => folder !== currentFolder)
-
-      // if  this.settings.ignoreFolders has one or more folder specified, filter them out including subfolders
-      .filter(folder => {
-        const hasIgnoreFolders =
-          this.settings.ignoreFolders.length > 0 &&
-          this.settings.ignoreFolders[0] !== "";
-        if (!hasIgnoreFolders) return true;
-        const isFolderIgnored = this.settings.ignoreFolders.some(ignoreFolder =>
-          folder.startsWith(ignoreFolder)
-        );
-        return !isFolderIgnored;
-      })
-      .filter(folder => folder !== "/");
-
-    try {
-      const apiEndpoint = this.settings.useFolderEmbeddings
-        ? "/api/folders/embeddings"
-        : "/api/folders/existing";
-
-      const response = await makeApiRequest(() =>
-        requestUrl({
-          url: `${this.getServerUrl()}${apiEndpoint}`,
-          method: "POST",
-          contentType: "application/json",
-          body: JSON.stringify({
-            content,
-            fileName: filePath,
-            folders: filteredFolders,
-          }),
-          throw: false,
-          headers: {
-            Authorization: `Bearer ${this.settings.API_KEY}`,
-          },
-        })
-      );
-      const { folders: guessedFolders } = await response.json;
-      return guessedFolders;
-    } catch (error) {
-      console.error("Error in getExistingFolders:", error);
-      return [this.settings.defaultDestinationPath];
-    }
-  }
-  async getNewFolders(content: string, filePath: string): Promise<string[]> {
-    const uniqueFolders = await this.getAllUserFolders();
-    if (this.settings.ignoreFolders.includes("*")) {
-      return [this.settings.defaultDestinationPath];
-    }
-    const currentFolder =
-      this.app.vault.getAbstractFileByPath(filePath)?.parent?.path || "";
-    const filteredFolders = uniqueFolders
-      .filter(folder => folder !== currentFolder)
-      .filter(folder => folder !== filePath)
-      .filter(folder => folder !== this.settings.defaultDestinationPath)
-      .filter(folder => folder !== this.settings.attachmentsPath)
-      .filter(folder => folder !== this.settings.logFolderPath)
-      .filter(folder => folder !== this.settings.pathToWatch)
-      .filter(folder => folder !== this.settings.templatePaths)
-      .filter(folder => !folder.includes("_FileOrganizer2000"))
-      // if  this.settings.ignoreFolders has one or more folder specified, filter them out including subfolders
-      .filter(folder => {
-        const hasIgnoreFolders =
-          this.settings.ignoreFolders.length > 0 &&
-          this.settings.ignoreFolders[0] !== "";
-        if (!hasIgnoreFolders) return true;
-        const isFolderIgnored = this.settings.ignoreFolders.some(ignoreFolder =>
-          folder.startsWith(ignoreFolder)
-        );
-        return !isFolderIgnored;
-      })
-      .filter(folder => folder !== "/");
-    try {
-      const response = await makeApiRequest(() =>
-        requestUrl({
-          url: `${this.getServerUrl()}/api/folders/new`,
-          method: "POST",
-          contentType: "application/json",
-          body: JSON.stringify({
-            content,
-            fileName: filePath,
-            folders: filteredFolders,
-          }),
-          throw: false,
-          headers: {
-            Authorization: `Bearer ${this.settings.API_KEY}`,
-          },
-        })
-      );
-      const { folders: guessedFolders } = await response.json;
-      return guessedFolders;
-    } catch (error) {
-      console.error("Error in getNewFolders:", error);
-      return [this.settings.defaultDestinationPath];
-    }
-  }
-
-  async guessTitles(content: string, filePath: string): Promise<TitleSuggestion[]> {
+  ): Promise<TitleSuggestion[]> {
     const customInstructions = this.settings.enableFileRenaming
       ? this.settings.renameInstructions
       : undefined;
