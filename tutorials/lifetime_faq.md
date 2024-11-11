@@ -94,5 +94,5 @@ jobs:
         run: |
           git add .
           git commit -m "Update repository with latest /web content from upstream"
-          git push origin main```
+          git push origin main
 
