@@ -71,9 +71,9 @@ Current filename: "${fileName}"`,
 
     const result = {
       classification: response.object.classification,
-      folders: sortByScore(response.object.folders),
-      titles: sortByScore(safeTitles),
-      tags: sortByScore(response.object.tags),
+      folders: sortByScore(response.object.folders as { score: number }[]),
+      titles: sortByScore(safeTitles as { score: number }[]),
+      tags: sortByScore(response.object.tags as { score: number }[]),
     };
 
     // Log and increment token usage
