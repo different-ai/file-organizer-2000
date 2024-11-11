@@ -47,7 +47,7 @@ export default function OnboardingPage() {
               <div className="aspect-video mb-8">
                 <iframe
                   className="w-full h-full rounded-lg shadow-lg"
-                  src="https://www.youtube.com/embed/Oo2hevCihGc?controls=1&modestbranding=1&showinfo=0"
+                  src="https://youtube.com/embed/videoseries?list=PLgRcC-DFR5jcwwg0Dr3gNZrkZxkztraKE&controls=1&rel=0&modestbranding=1"
                   allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture"
                   allowFullScreen
                 ></iframe>
