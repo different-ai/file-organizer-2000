@@ -4,7 +4,9 @@ import { Inbox } from "../inbox";
 
 export function registerEventHandlers(plugin: FileOrganizer) {
   plugin.registerEvent(
-    plugin.app.vault.on("create", file => {
+    plugin.app.vault.on("create", async file => {
+      // wait 1s
+      await new Promise(resolve => setTimeout(resolve, 1000));
       if (!file.path.includes(plugin.settings.pathToWatch)) return;
       if (file instanceof TFile) {
         if (plugin.settings.useInbox) {
@@ -17,7 +19,10 @@ export function registerEventHandlers(plugin: FileOrganizer) {
   );
 
   plugin.registerEvent(
-    plugin.app.vault.on("rename", (file, oldPath) => {
+    plugin.app.vault.on("rename", async (file, oldPath) => {
+      // wait 1s
+      await new Promise(resolve => setTimeout(resolve, 1000));
+
       if (!file.path.includes(plugin.settings.pathToWatch)) return;
       if (file instanceof TFile) {
         if (plugin.settings.useInbox) {

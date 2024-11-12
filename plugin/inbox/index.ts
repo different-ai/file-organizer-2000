@@ -164,6 +164,7 @@ export class Inbox {
       idService: this.idService,
       queue: this.queue,
     };
+    // wait 1s
 
     try {
       await startProcessing(context)
@@ -180,12 +181,6 @@ export class Inbox {
     }
   }
 
-  private shouldCreateMarkdownContainer(file: TFile): boolean {
-    return (
-      VALID_MEDIA_EXTENSIONS.includes(file.extension) ||
-      file.extension === "pdf"
-    );
-  }
 }
 
 // Pipeline processing steps
@@ -221,6 +216,7 @@ async function extractTextStep(
 ): Promise<ProcessingContext> {
   try {
     const text = await context.plugin.getTextFromFile(context.file);
+    logger.info("Extracted text", text);
     context.content = text;
     return context;
   } catch (error) {
@@ -299,6 +295,9 @@ async function recommendOrganizationStructure(
 async function formatContentStep(
   context: ProcessingContext
 ): Promise<ProcessingContext> {
+  logger.info("Formatting content step", context.classification);
+  // log content
+  logger.info("Content", context.content);
   if (!context.classification || context.classification.confidence < 50) return context;
   try {
     const instructions = await context.plugin.getTemplateInstructions(

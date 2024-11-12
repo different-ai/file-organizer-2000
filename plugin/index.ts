@@ -515,23 +515,23 @@ export default class FileOrganizer extends Plugin {
     formattingInstruction: string
   ): Promise<string> {
     try {
-      const response = await makeApiRequest(() =>
-        requestUrl({
-          url: `${this.getServerUrl()}/api/format`,
-          method: "POST",
-          contentType: "application/json",
-          body: JSON.stringify({
-            content,
-            formattingInstruction,
-          }),
-          throw: false,
-          headers: {
-            Authorization: `Bearer ${this.settings.API_KEY}`,
-          },
-        })
-      );
+      const response = await fetch(`${this.getServerUrl()}/api/format`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${this.settings.API_KEY}`,
+        },
+        body: JSON.stringify({
+          content,
+          formattingInstruction,
+        }),
+      });
 
-      const { content: formattedContent } = await response.json;
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const { content: formattedContent } = await response.json();
       return formattedContent;
     } catch (error) {
       logger.error("Error formatting content:", error);
@@ -1437,7 +1437,7 @@ export default class FileOrganizer extends Plugin {
 
     await this.app.vault.append(file, `\n${formattedTag}`);
   }
-  
+
   async onload() {
     this.inbox = Inbox.initialize(this);
     await this.initializePlugin();
