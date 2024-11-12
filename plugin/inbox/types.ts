@@ -2,6 +2,28 @@ import { TFile } from "obsidian";
 
 export type FileStatus = "queued" | "processing" | "completed" | "error" | "bypassed";
 
+export type ActionType = 'renamed' | 'moved' | 'classified' | 'tagged' | 'error';
+
+export interface Classification {
+  documentType: string;
+  confidence: number;
+  reasoning: string;
+}
+
+export interface ActionLog {
+  action: ActionType;
+  timestamp: string;
+  details: {
+    from?: string;
+    to?: string;
+    tags?: string[];
+    classification?: Classification;
+    error?: string;
+    destinationFolder?: string;
+    wasFormatted?: boolean;
+  };
+}
+
 export interface FileMetadata {
   size: number;
   extension: string;
@@ -27,6 +49,10 @@ export interface FileRecord {
   newPath?: string;
   newName?: string;
   tags?: string[];
+  actions?: ActionLog[];
+  classification?: Classification;
+  formattedContent?: boolean;
+  destinationFolder?: string;
 }
 
 export interface EventRecord {

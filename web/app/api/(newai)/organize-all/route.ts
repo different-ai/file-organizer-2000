@@ -12,7 +12,7 @@ const sanitizeFileName = (fileName: string) => {
 export async function POST(request: NextRequest) {
   try {
     const { userId } = await handleAuthorization(request);
-    const { content, fileName, folders, existingTags, customInstructions } = await request.json();
+    const { content, fileName, folders, existingTags, customInstructions, classifications } = await request.json();
     const model = getModel(process.env.MODEL_NAME);
 
     const response = await generateObject({
@@ -48,10 +48,10 @@ export async function POST(request: NextRequest) {
         ),
       }),
       system: `You are an expert document organizer. Analyze the given content and:
-1. Classify the document type
-2. Suggest relevant folders (using existing folders: ${folders.join(", ")})
-3. Generate clear, concise titles (avoid special characters)
-4. Suggest relevant tags (existing tags: ${existingTags?.join(", ") || "none"})
+1. Suggest relevant folders (using existing folders: ${folders.join(", ")})
+2. Generate clear, concise titles (avoid special characters)
+3. Suggest relevant tags (existing tags: ${existingTags?.join(", ") || "none"})
+${classifications ? `4. Classify the document type only using these classifications: ${classifications?.join(", ") || "none"}` : ""}
 ${customInstructions ? `Additional instructions: ${customInstructions}` : ""}
 
 Consider the relationships between all suggestions to maintain consistency.
@@ -78,7 +78,7 @@ Current filename: "${fileName}"`,
 
     // Log and increment token usage
     const tokens = response.usage.totalTokens;
-    console.log("incrementing token usage organize-all", userId, tokens);
+  console.log("incrementing token usage organize-all", userId, tokens);
     await incrementAndLogTokenUsage(userId, tokens);
 
     return NextResponse.json(result);

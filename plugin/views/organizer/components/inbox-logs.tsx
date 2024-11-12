@@ -6,6 +6,8 @@ import { ChevronDown, Search, ExternalLink } from "lucide-react";
 import { App, TFile } from "obsidian";
 import { motion, AnimatePresence } from "framer-motion";
 import { logMessage } from "../../../someUtils";
+import { usePlugin } from "../provider";
+import { logger } from "../../../services/logger";
 
 interface InboxLogsProps {
   plugin: FileOrganizer & {
@@ -36,6 +38,228 @@ function calculateStatsFromRecords(records: FileRecord[]) {
       bypassed: 0,
       error: 0,
     }
+  );
+}
+
+// Replace FileDetails component with ActionLog component
+const ActionLog: React.FC<{ record: FileRecord }> = ({ record }) => {
+  if (!record.actions?.length) return null;
+
+  return (
+    <div className="p-4 space-y-2 bg-[--background-primary] rounded-lg">
+      {record.actions.map((action, index) => (
+        <div key={index} className="flex items-start gap-3 text-sm">
+          <div className="w-20 text-[--text-muted]">
+            {moment(action.timestamp).format("HH:mm:ss")}
+          </div>
+
+          <div className="flex-1">
+            {action.action === "renamed" && (
+              <div className="flex items-center gap-2">
+                <span>Renamed from</span>
+                <code className="px-1 bg-[--background-primary] rounded">
+                  {action.details.from}
+                </code>
+                <span>to</span>
+                <code className="px-1 bg-[--background-primary] rounded">
+                  {action.details.to}
+                </code>
+              </div>
+            )}
+
+            {action.action === "moved" && (
+              <div className="flex items-center gap-2">
+                <span>Moved to</span>
+                <code className="px-1 bg-[--background-primary] rounded">
+                  {action.details.to}
+                </code>
+              </div>
+            )}
+
+            {action.action === "classified" && (
+              <div className="flex items-center gap-2">
+                <span>Classified as</span>
+                <code className="px-1 bg-[--background-primary] rounded">
+                  {action.details.classification?.documentType}
+                </code>
+              </div>
+            )}
+
+            {action.action === "tagged" && (
+              <div className="flex items-center gap-2">
+                <span>Added tags</span>
+                <div className="flex gap-1">
+                  {action.details.tags?.map((tag, i) => (
+                    <span
+                      key={i}
+                      className="px-2 py-0.5 bg-[--background-primary] rounded-full text-xs"
+                    >
+                      {tag}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {action.action === "error" && (
+              <div className="text-[--text-error]">{action.details.error}</div>
+            )}
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+};
+
+function FileCard({ file }: { file: FileRecord }) {
+  const [isExpanded, setIsExpanded] = React.useState(false);
+  const plugin = usePlugin();
+  const nameTransitionVariants = {
+    initial: {
+      opacity: 1,
+    },
+    renamed: {
+      opacity: 0.8,
+      textDecoration: "line-through",
+    },
+  };
+  const getStatusBadgeClass = (status: FileStatus) => {
+    const baseClasses =
+      "py-1 rounded-full text-sm font-medium whitespace-nowrap";
+    const statusColors = {
+      queued:
+        "bg-opacity-20 text-[--text-warning] border border-[--text-warning]",
+      processing:
+        "bg-opacity-20 text-[--text-accent] border border-[--text-accent]",
+      completed:
+        "bg-opacity-20 text-[--text-success] border border-[--text-success]",
+      error: "bg-opacity-20 text-[--text-error] border border-[--text-error]",
+      bypassed:
+        "bg-opacity-20 text-[--text-muted] border border-[--text-muted]",
+    } as const;
+
+    return `${baseClasses} ${statusColors[status] || ""}`;
+  };
+
+  return (
+    <motion.div
+      layout
+      className="bg-[--background-primary] border border-[--background-modifier-border] rounded-lg w-full"
+    >
+      <div className="p-4">
+        <div className="flex items-center justify-between mb-2">
+          <div className="flex items-center gap-2 flex-1">
+            <motion.span
+              variants={nameTransitionVariants}
+              initial="initial"
+              animate={file.newName ? "renamed" : "initial"}
+              className="font-medium"
+            >
+              {file.fileName}
+            </motion.span>
+
+            {file.newName && (
+              <motion.span
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                className="text-[--text-accent] cursor-pointer"
+                onClick={() => {
+                  logger.info("opening file", file);
+                  plugin.app.workspace.openLinkText(
+                    file.newName,
+                    file.newPath
+                  );
+                }}
+              >
+                → {file.newName}
+              </motion.span>
+            )}
+          </div>
+          <button
+            onClick={() => setIsExpanded(!isExpanded)}
+            className="shadow-none p-1 hover:bg-[--background-modifier-hover] rounded-full"
+          >
+            <ChevronDown
+              className={`w-4 h-4 transition-transform ${
+                isExpanded ? "transform rotate-180" : ""
+              }`}
+            />
+          </button>
+        </div>
+
+        {/* Add classification and destination info */}
+        {(file.classification || file.destinationFolder) && (
+          <div className="mt-2 space-y-2">
+            {file.classification && (
+              <div className="flex items-center gap-2 text-sm">
+                <span className="text-[--text-muted]">Classification:</span>
+                <span className="font-medium">
+                  {file.classification.documentType}
+                </span>
+                <span
+                  className={`px-2 py-0.5 rounded-full text-xs ${
+                    file.classification.confidence >= 50
+                      ? "bg-[--background-modifier-success-rgb] text-[--text-success]"
+                      : "bg-[--background-modifier-error-rgb] text-[--text-error]"
+                  }`}
+                >
+                  {file.classification.confidence}% confident
+                </span>
+                {file.formattedContent && (
+                  <span className="text-[--text-success] text-xs">
+                    ✓ Content formatted
+                  </span>
+                )}
+              </div>
+            )}
+
+            {file.destinationFolder && (
+              <div className="flex items-center gap-2 text-sm">
+                <span className="text-[--text-muted]">Destination:</span>
+                <code className="px-2 py-0.5 bg-[--background-primary] rounded">
+                  {file.destinationFolder}
+                </code>
+              </div>
+            )}
+          </div>
+        )}
+
+        <div className="flex justify-between items-end">
+          <div className="flex items-center gap-2">
+            <span className={getStatusBadgeClass(file.status)}>
+              {file.status}
+            </span>
+            {file.tags && file.tags.length > 0 && (
+              <div className="flex gap-1">
+                {file.tags.map((tag, index) => (
+                  <span
+                    key={index}
+                    className="px-2 py-1 bg-[--background-secondary] rounded-full text-xs"
+                  >
+                    {tag}
+                  </span>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+
+      {/* Add the new expandable details section */}
+      <AnimatePresence>
+        {isExpanded && (
+          <motion.div
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: "auto", opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            transition={{ duration: 0.2 }}
+            className="overflow-hidden border-t border-[--background-modifier-border]"
+          >
+            <ActionLog record={file} />
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </motion.div>
   );
 }
 
@@ -94,37 +318,9 @@ export const InboxLogs: React.FC<InboxLogsProps> = ({ plugin }) => {
     logMessage("files", files);
   }, [files]);
 
-  const getStatusBadgeClass = (status: FileStatus) => {
-    const baseClasses =
-      "px-2 py-1 rounded-full text-sm font-medium whitespace-nowrap";
-    const statusColors = {
-      queued:
-        "bg-opacity-20 text-[--text-warning] border border-[--text-warning]",
-      processing:
-        "bg-opacity-20 text-[--text-accent] border border-[--text-accent]",
-      completed:
-        "bg-opacity-20 text-[--text-success] border border-[--text-success]",
-      error: "bg-opacity-20 text-[--text-error] border border-[--text-error]",
-      bypassed:
-        "bg-opacity-20 text-[--text-muted] border border-[--text-muted]",
-    } as const;
-
-    return `${baseClasses} ${statusColors[status] || ""}`;
-  };
-
   const stats = React.useMemo(() => {
     return calculateStatsFromRecords(files);
   }, [files]);
-
-  const nameTransitionVariants = {
-    initial: { 
-      opacity: 1,
-    },
-    renamed: {
-      opacity: 0.8,
-      textDecoration: "line-through",
-    },
-  };
 
   return (
     <div className="p-4">
@@ -197,77 +393,7 @@ export const InboxLogs: React.FC<InboxLogsProps> = ({ plugin }) => {
       <div className="space-y-4">
         <AnimatePresence>
           {filteredAndSortedFiles.map(file => (
-            <motion.div
-              key={file.id}
-              initial={{ opacity: 0.95 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: 0.2 }}
-              className="bg-[--background-primary] border border-[--background-modifier-border] rounded-lg w-full"
-            >
-              <div className="p-4">
-                <div className="mb-2">
-                  <div className="flex items-center gap-2">
-                    <motion.div
-                      className="font-medium truncate"
-                      animate={file.newName ? "renamed" : "initial"}
-                      variants={nameTransitionVariants}
-                      title={file.fileName}
-                    >
-                      {file.fileName}
-                    </motion.div>
-
-                    {file.newName && (
-                      <>
-                        <svg
-                          className="w-4 h-4 text-[--text-muted]"
-                          viewBox="0 0 24 24"
-                          fill="none"
-                          stroke="currentColor"
-                          strokeWidth="2"
-                        >
-                          <path d="M5 12h14M12 5l7 7-7 7" />
-                        </svg>
-                        <a
-                          href="#"
-                          onClick={() => {
-                            plugin.app.workspace.openLinkText(
-                              file.newName || "",
-                              file.newPath || ""
-                            );
-                          }}
-                          className="text-[--text-accent] underline hover:text-[--text-accent-hover] cursor-pointer"
-                        >
-                          {file.newName}
-                        </a>
-                      </>
-                    )}
-                  </div>
-
-                  <div className="text-sm text-[--text-muted] mt-1">
-                    {moment(file.updatedAt).format("YYYY-MM-DD HH:mm:ss")}
-                  </div>
-                </div>
-
-                <div className="flex justify-between items-end">
-                  <div>
-                    <div className="text-sm text-[--text-muted]">
-                      Project folder:
-                    </div>
-                    <div
-                      className="text-sm truncate"
-                      title={file.newPath || "Not set"}
-                    >
-                      {file.newPath || "—"}
-                    </div>
-                  </div>
-
-                  <div className={getStatusBadgeClass(file.status)}>
-                    {file.status}
-                  </div>
-                </div>
-              </div>
-            </motion.div>
+            <FileCard key={file.id} file={file} />
           ))}
         </AnimatePresence>
       </div>

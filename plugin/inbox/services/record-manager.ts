@@ -1,9 +1,23 @@
 import { TFile } from "obsidian";
-import { FileRecord, FileStatus, FileMetadata, EventRecord } from "../types";
+import { FileRecord, FileStatus, FileMetadata, EventRecord, Classification } from "../types";
 import { IdService } from "./id-service";
 import { ErrorService, ErrorSeverity } from "./error-service";
 import { isMediaFile } from "../utils/file";
 import moment from "moment";
+
+interface ActionLog {
+  action: 'renamed' | 'moved' | 'classified' | 'tagged' | 'error';
+  timestamp: string;
+  details: {
+    from?: string;
+    to?: string;
+    tags?: string[];
+    classification?: Classification;
+    error?: string;
+    destinationFolder?: string;
+    wasFormatted?: boolean;
+  };
+}
 
 export class RecordManager {
   private static instance: RecordManager;
@@ -154,17 +168,7 @@ export class RecordManager {
   }
 
   public recordError(record: FileRecord, error: Error): void {
-    const hash = record.id;
-    const errorRecord = {
-      timestamp: moment().format(),
-      message: error.message,
-      stack: error.stack,
-    };
-
-    this.updateRecord(hash, {
-      errors: [...(record.errors || []), errorRecord],
-    });
-    this.addEvent(hash, `Error: ${error.message}`, { error: errorRecord });
+    this.logAction(record, 'error', { error: error.message });
   }
 
   public updateDestination(
@@ -217,5 +221,50 @@ export class RecordManager {
     const events = this.eventRecords.get(hash) || [];
     events.push(event);
     this.eventRecords.set(hash, events);
+  }
+
+  public logAction(record: FileRecord, action: ActionLog['action'], details: ActionLog['details']): void {
+    const actionLog: ActionLog = {
+      action,
+      timestamp: moment().format(),
+      details
+    };
+
+    this.updateRecord(record.id, {
+      actions: [...(record.actions || []), actionLog]
+    });
+  }
+
+  public recordRename(record: FileRecord, oldName: string, newName: string): void {
+    this.logAction(record, 'renamed', { from: oldName, to: newName });
+  }
+
+  public recordMove(record: FileRecord, oldPath: string, newPath: string): void {
+    const destinationFolder = newPath.split('/').slice(0, -1).join('/');
+    this.logAction(record, 'moved', { 
+      from: oldPath, 
+      to: newPath,
+      destinationFolder 
+    });
+    
+    this.updateRecord(record.id, {
+      destinationFolder
+    });
+  }
+
+  public recordClassification(record: FileRecord, classification: Classification): void {
+    this.logAction(record, 'classified', { 
+      classification,
+      wasFormatted: classification.confidence >= 50 
+    });
+    
+    this.updateRecord(record.id, {
+      classification,
+      formattedContent: classification.confidence >= 50
+    });
+  }
+
+  public recordTags(record: FileRecord, tags: string[]): void {
+    this.logAction(record, 'tagged', { tags });
   }
 }

@@ -5,25 +5,26 @@ import { AssistantView } from "./organizer";
 import FileOrganizer from "../..";
 import { InboxLogs } from "./components/inbox-logs";
 import { SectionHeader } from "./components/section-header";
+import { AppContext } from "./provider";
 
 export const ORGANIZER_VIEW_TYPE = "fo2k.assistant.sidebar2";
 
-type Tab = 'organizer' | 'inbox';
+type Tab = "organizer" | "inbox";
 
-function TabContent({ 
-  activeTab, 
-  plugin, 
-  leaf 
-}: { 
-  activeTab: Tab, 
-  plugin: FileOrganizer, 
-  leaf: WorkspaceLeaf 
+function TabContent({
+  activeTab,
+  plugin,
+  leaf,
+}: {
+  activeTab: Tab;
+  plugin: FileOrganizer;
+  leaf: WorkspaceLeaf;
 }) {
-  if (activeTab === 'organizer') {
+  if (activeTab === "organizer") {
     return <AssistantView plugin={plugin} leaf={leaf} />;
   }
-  
-  if (activeTab === 'inbox') {
+
+  if (activeTab === "inbox") {
     return (
       <>
         <SectionHeader text="Inbox Processing" icon="📥 " />
@@ -31,28 +32,29 @@ function TabContent({
       </>
     );
   }
-  
+
   return null;
 }
 
-function TabButton({ 
-  isActive, 
-  onClick, 
-  children 
-}: { 
-  isActive: boolean, 
-  onClick: () => void, 
-  children: React.ReactNode 
+function TabButton({
+  isActive,
+  onClick,
+  children,
+}: {
+  isActive: boolean;
+  onClick: () => void;
+  children: React.ReactNode;
 }) {
   return (
     <button
       onClick={onClick}
       className={`
         px-3 py-2 text-sm font-medium  shadow-none
-       ${isActive 
-          ? 'bg[--interactive-accent] text[--text-on-accent] ' 
-          : 'bg[--background-primary] text-[--text-muted] hover:bg[--background-modifier-hover]'
-        }
+       ${
+         isActive
+           ? "bg[--interactive-accent] text[--text-on-accent] "
+           : "bg[--background-primary] text-[--text-muted] hover:bg[--background-modifier-hover]"
+       }
       `}
     >
       {children}
@@ -60,33 +62,35 @@ function TabButton({
   );
 }
 
-function OrganizerContent({ plugin, leaf }: { plugin: FileOrganizer, leaf: WorkspaceLeaf }) {
-  const [activeTab, setActiveTab] = React.useState<Tab>('organizer');
+function OrganizerContent({
+  plugin,
+  leaf,
+}: {
+  plugin: FileOrganizer;
+  leaf: WorkspaceLeaf;
+}) {
+  const [activeTab, setActiveTab] = React.useState<Tab>("organizer");
 
   return (
     <div className="flex flex-col h-full">
       <div className="flex bg-[--background-primary] shadow-none w-fit">
-        <TabButton 
-          isActive={activeTab === 'organizer'} 
-          onClick={() => setActiveTab('organizer')}
+        <TabButton
+          isActive={activeTab === "organizer"}
+          onClick={() => setActiveTab("organizer")}
         >
           Assistant
         </TabButton>
         {plugin.settings.useInbox && (
-          <TabButton 
-            isActive={activeTab === 'inbox'} 
-            onClick={() => setActiveTab('inbox')}
+          <TabButton
+            isActive={activeTab === "inbox"}
+            onClick={() => setActiveTab("inbox")}
           >
             Inbox
           </TabButton>
         )}
       </div>
-      
-      <TabContent 
-        activeTab={activeTab} 
-        plugin={plugin} 
-        leaf={leaf} 
-      />
+
+      <TabContent activeTab={activeTab} plugin={plugin} leaf={leaf} />
     </div>
   );
 }
@@ -109,7 +113,7 @@ export class AssistantViewWrapper extends ItemView {
   }
 
   getIcon(): string {
-    return "sparkle"; 
+    return "sparkle";
   }
 
   async onOpen(): Promise<void> {
@@ -119,11 +123,13 @@ export class AssistantViewWrapper extends ItemView {
 
   render(): void {
     this.root?.render(
-      <React.StrictMode>
-        <div className="h-full fo2k">
-          <OrganizerContent plugin={this.plugin} leaf={this.leaf} />
-        </div>
-      </React.StrictMode>
+      <AppContext.Provider value={{ plugin: this.plugin, root: this.root }}>
+        <React.StrictMode>
+          <div className="h-full fo2k">
+            <OrganizerContent plugin={this.plugin} leaf={this.leaf} />
+          </div>
+        </React.StrictMode>
+      </AppContext.Provider>
     );
   }
 

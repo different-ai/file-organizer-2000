@@ -12,7 +12,7 @@ import {
   requestUrl,
   arrayBufferToBase64,
 } from "obsidian";
-import { logMessage, formatToSafeName, sanitizeTag,  } from "./someUtils";
+import { logMessage, formatToSafeName, sanitizeTag } from "./someUtils";
 import { FileOrganizerSettingTab } from "./views/settings/view";
 import { ORGANIZER_VIEW_TYPE } from "./views/organizer/view";
 import { CHAT_VIEW_TYPE } from "./views/ai-chat/view";
@@ -853,7 +853,6 @@ export default class FileOrganizer extends Plugin {
   async generateTranscriptFromAudio(
     file: TFile
   ): Promise<AsyncIterableIterator<string>> {
-
     try {
       const audioBuffer = await this.app.vault.readBinary(file);
       const response = await this.transcribeAudio(audioBuffer, file.extension);
@@ -1241,8 +1240,6 @@ export default class FileOrganizer extends Plugin {
   }
 
   async generateImageAnnotation(file: TFile) {
-
-
     const arrayBuffer = await this.app.vault.readBinary(file);
     const fileContent = Buffer.from(arrayBuffer);
     const imageSize = fileContent.byteLength;
@@ -1410,16 +1407,41 @@ export default class FileOrganizer extends Plugin {
   async appendTag(file: TFile, tag: string) {
     // Ensure the tag starts with a hash symbol
     const formattedTag = sanitizeTag(tag);
-    // Append similar tags
-    if (this.settings.useSimilarTagsInFrontmatter) {
-      await this.appendToFrontMatter(file, "tags", formattedTag);
+
+    // Get the file content and metadata
+    const fileContent = await this.app.vault.read(file);
+    const metadata = this.app.metadataCache.getFileCache(file);
+
+    // Check if tag exists in frontmatter
+    const hasFrontmatterTag = metadata?.frontmatter?.tags?.includes(
+      formattedTag.replace("#", "")
+    );
+
+    // Check if tag exists in content (for inline tags)
+    const hasInlineTag = fileContent.includes(formattedTag);
+
+    // If tag already exists, skip adding it
+    if (hasFrontmatterTag || hasInlineTag) {
       return;
     }
+
+    // Append similar tags
+    if (this.settings.useSimilarTagsInFrontmatter) {
+      await this.appendToFrontMatter(
+        file,
+        "tags",
+        formattedTag.replace("#", "")
+      );
+      return;
+    }
+
     await this.app.vault.append(file, `\n${formattedTag}`);
   }
+  
   async onload() {
     this.inbox = Inbox.initialize(this);
     await this.initializePlugin();
+    logger.configure(this.settings.debugMode);
 
     await this.saveSettings();
 

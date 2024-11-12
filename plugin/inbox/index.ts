@@ -1,4 +1,4 @@
-import { TFile, moment, Notice, Vault } from "obsidian";
+import { TFile, moment, Notice, Vault, TFolder } from "obsidian";
 import { VALID_MEDIA_EXTENSIONS } from "../constants";
 import FileOrganizer from "../index";
 import { validateFile } from "../utils";
@@ -50,6 +50,12 @@ interface ProcessingContext {
   recordManager: RecordManager;
   idService: IdService;
   queue: Queue<TFile>;
+  formattedContent?: string;
+  classification?: {
+    documentType: string;
+    confidence: number;
+    reasoning: string;
+  };
 }
 
 export class Inbox {
@@ -162,15 +168,10 @@ export class Inbox {
     try {
       await startProcessing(context)
         .then(validateFileStep)
-        .then(processContentStep)
-        .then(determineDestinationStep)
-        .then(async ctx => {
-          if (this.shouldCreateMarkdownContainer(ctx.file)) {
-            return await processMediaFileStep(ctx);
-          } else {
-            return await processNonMediaFileStep(ctx);
-          }
-        })
+        .then(extractTextStep)
+        .then(recommendOrganizationStructure)
+        .then(formatContentStep)
+        .then(processFileStep)
         .then(completeProcessing);
       this.queue.remove(context.hash);
     } catch (error) {
@@ -192,7 +193,11 @@ export class Inbox {
 async function startProcessing(
   context: ProcessingContext
 ): Promise<ProcessingContext> {
-  context.recordManager.recordProcessingStart(context.record);
+  context.recordManager.updateFileStatus(
+    context.record,
+    "processing",
+    "Started processing file"
+  );
   return context;
 }
 
@@ -211,106 +216,180 @@ async function validateFileStep(
   return context;
 }
 
-async function processContentStep(
+async function extractTextStep(
   context: ProcessingContext
 ): Promise<ProcessingContext> {
-  const result = await processContent(context.plugin, context.file);
-  if (!result) {
-    context.recordManager.recordProcessingBypassed(
-      context.record,
-      "No content to process"
-    );
-    throw new Error("No content to process");
+  try {
+    const text = await context.plugin.getTextFromFile(context.file);
+    context.content = text;
+    return context;
+  } catch (error) {
+    context.recordManager.recordError(context.record, error);
+    throw error;
   }
-  context.content = result.text;
-  return context;
 }
 
-async function determineDestinationStep(
+async function recommendOrganizationStructure(
   context: ProcessingContext
 ): Promise<ProcessingContext> {
-  // Get AI classified folder and update record
-  context.newPath = await context.plugin.getAIClassifiedFolder(
-    context.content!,
-    context.file.path
-  );
-  context.recordManager.updateFileStatus(
-    context.record,
-    "processing",
-    `Determined destination folder: ${context.newPath}`
-  );
+  try {
+    const folders = await context.plugin.app.vault
+      .getAllLoadedFiles()
+      .filter(file => file instanceof TFolder)
+      .map(folder => folder.path);
 
-  // Generate AI name and update record
-  context.newName = await context.plugin.generateNameFromContent(
-    context.content!,
-    context.file.name
-  );
-  context.recordManager.updateFileStatus(
-    context.record,
-    "processing",
-    `Generated new name: ${context.newName}`
-  );
+    const existingTags = await context.plugin.getAllVaultTags();
+    const templateNames = await context.plugin.getTemplateNames();
 
-  return context;
+    const response = await fetch(
+      `${context.plugin.getServerUrl()}/api/organize-all`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${context.plugin.settings.API_KEY}`,
+        },
+        body: JSON.stringify({
+          content: context.content,
+          classifications: templateNames,
+          fileName: context.file.name,
+          folders,
+          existingTags,
+          customInstructions: `Extra folder instructions: ${context.plugin.settings.customFolderInstructions}. 
+          Extra rename instructions: ${context.plugin.settings.renameInstructions}.`,
+        }),
+      }
+    );
+
+    if (!response.ok) {
+      throw new Error(`API request failed: ${response.statusText}`);
+    }
+
+    const result = await response.json();
+
+    // Update context with recommendations
+    context.classification = result.classification;
+    context.newPath = result.folders?.[0]?.folder;
+    context.newName = result.titles?.[0]?.title;
+    context.tags = result.tags?.map(t => t.tag);
+
+    // Record the classification and destination
+    if (context.classification) {
+      context.recordManager.recordClassification(
+        context.record,
+        context.classification
+      );
+    }
+
+    if (context.newPath) {
+      context.recordManager.recordMove(
+        context.record,
+        context.file.path,
+        context.newPath
+      );
+    }
+
+    return context;
+  } catch (error) {
+    context.recordManager.recordError(context.record, error);
+    throw error;
+  }
 }
 
-async function processMediaFileStep(
+async function formatContentStep(
   context: ProcessingContext
 ): Promise<ProcessingContext> {
-  // Create container file
-  const containerPath = `${context.newPath}/${context.newName}.md`;
-  context.containerFile = await createFile(
-    context,
-    containerPath,
-    context.content!
-  );
-
-  // Move attachment
-  const attachmentFolderPath = `${context.newPath}/attachments`;
-  await moveFile(
-    context,
-    context.file,
-    `${attachmentFolderPath}/${context.file.name}`
-  );
-  context.attachmentFile = context.plugin.app.vault.getAbstractFileByPath(
-    `${attachmentFolderPath}/${context.file.name}`
-  ) as TFile;
-
-  // Update container with attachment reference
-  await context.plugin.app.vault.modify(
-    context.containerFile,
-    `${context.content}\n\n![[${context.attachmentFile.path}]]`
-  );
-
-  // Generate tags
-  const existingTags = await context.plugin.getAllVaultTags();
-  context.tags = (
-    await context.plugin.guessRelevantTags(
+  if (!context.classification || context.classification.confidence < 50) return context;
+  try {
+    const instructions = await context.plugin.getTemplateInstructions(
+      context.classification.documentType
+    );
+    context.formattedContent = await context.plugin.formatContentV2(
       context.content!,
-      context.file.path,
-      existingTags
-    )
-  ).map(tag => tag.tag);
-
-  return context;
+      instructions
+    );
+    return context;
+  } catch (error) {
+    context.recordManager.recordError(context.record, error);
+    throw error;
+  }
 }
 
-async function processNonMediaFileStep(
+async function processFileStep(
   context: ProcessingContext
 ): Promise<ProcessingContext> {
-  const existingTags = await context.plugin.getAllVaultTags();
-  context.tags = (
-    await context.plugin.guessRelevantTags(
-      context.content!,
-      context.file.path,
-      existingTags
-    )
-  ).map(tag => tag.tag);
+  try {
+    if (context.newName !== context.file.basename) {
+      context.recordManager.recordRename(
+        context.record,
+        context.file.basename,
+        context.newName!
+      );
+    }
 
-  const finalPath = `${context.newPath}/${context.newName}.md`;
-  await moveFile(context, context.file, finalPath);
+    if (context.newPath) {
+      context.recordManager.recordMove(
+        context.record,
+        context.file.path,
+        context.newPath
+      );
+    }
 
-  return context;
+    if (context.classification) {
+      context.recordManager.recordClassification(
+        context.record,
+        context.classification
+      );
+    }
+
+    if (context.tags?.length) {
+      context.recordManager.recordTags(context.record, context.tags);
+    }
+
+    const finalPath = `${context.newPath}/${context.newName}.md`;
+
+    if (context.plugin.shouldCreateMarkdownContainer(context.file)) {
+      // Media file processing
+      // Create container file
+      context.containerFile = await createFile(
+        context,
+        finalPath,
+        context.formattedContent || context.content!
+      );
+
+      // Move attachment to the 'attachments' folder
+      const attachmentFolderPath = `${context.newPath}/attachments`;
+      await moveFile(
+        context,
+        context.file,
+        `${attachmentFolderPath}/${context.file.name}`
+      );
+      context.attachmentFile = context.plugin.app.vault.getAbstractFileByPath(
+        `${attachmentFolderPath}/${context.file.name}`
+      ) as TFile;
+
+      // Update container with attachment reference
+      await context.plugin.app.vault.modify(
+        context.containerFile,
+        `${context.formattedContent}\n\n![[${context.attachmentFile.path}]]`
+      );
+    } else {
+      // Non-media file processing
+      // Move file directly to the final destination
+      if (context.formattedContent) {
+        await context.plugin.app.vault.modify(
+          context.file,
+          context.formattedContent
+        );
+      }
+      await moveFile(context, context.file, finalPath);
+    }
+
+    return context;
+  } catch (error) {
+    context.recordManager.recordError(context.record, error);
+    throw error;
+  }
 }
 
 async function completeProcessing(
@@ -365,19 +444,6 @@ async function moveFileToErrorFolder(
   await moveFile(context, context.file, newPath);
 }
 
-async function processContent(
-  plugin: FileOrganizer,
-  file: TFile
-): Promise<{ text: string } | null> {
-  try {
-    const text = await plugin.getTextFromFile(file);
-    return { text };
-  } catch (error) {
-    logger.error("Error in processContent:", error);
-    throw new Error("Error in processContent");
-  }
-}
-
 async function moveFile(
   context: ProcessingContext,
   file: TFile,
@@ -388,7 +454,7 @@ async function moveFile(
 
     const exists = await context.plugin.app.vault.adapter.exists(newPath);
     if (exists) {
-      const timestamp = moment().format("YYYY-MM-DD-HHmmss");
+      const timestamp = moment.format("YYYY-MM-DD-HHmmss");
       const parts = newPath.split(".");
       const ext = parts.pop();
       newPath = `${parts.join(".")}-${timestamp}.${ext}`;
