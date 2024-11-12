@@ -1,5 +1,6 @@
 ## I'm getting an error on the organizer
 
+1. Too many folders
 Most likely issue: you have too many folders. Check this screen in settings (Vault Access)
 
 ![image](https://github.com/user-attachments/assets/ce2d8436-1cb5-42c5-9b8b-c066ea6db832)
@@ -7,6 +8,18 @@ Most likely issue: you have too many folders. Check this screen in settings (Vau
 Try to ignore some folders and try again. If it works it means we can't proccess all your folder.
 
 If you're importing files from another system. Try to put them all in a seperate folder, mark it as ignore and try to do it step by step.
+
+2. It's not that help us help you.
+
+Open developers settings, reload the organizer side bar by typing refresh, and show us your logs and network tabs. 
+
+You can hover over the network logs to find out which api is causing issues (see screenshot below)
+<img width="509" alt="Screenshot 2024-11-12 at 15 52 10" src="https://github.com/user-attachments/assets/1dfba391-813b-4e9c-91cd-02d2945b8461">
+
+then you can browse through headers, payload, and preview
+<img width="508" alt="Screenshot 2024-11-12 at 15 52 56" src="https://github.com/user-attachments/assets/4efe3ae4-43d4-47ae-8393-93d0161133b3">
+
+take screenshot of each section and send it to us.
 
 
 ## I'm getting "Too many requests"
@@ -58,6 +71,8 @@ Fabric integration in File Organizer 2000 allows you to enhance your document fo
 	•	Once enabled, a Fabric Prompt Manager will appear.
 	•	Use the Fabric Prompt Manager to download or update prompts from the Fabric repository.
 	•	These prompts are stored in a designated folder specified in your settings (e.g., fabricPaths).
+
+ 
 	3.	Apply Fabric Prompts:
 	•	The downloaded prompts are used to format your documents according to Fabric methodologies.
 	•	When you process files, the plugin applies these prompts to enhance organization and structure.
