@@ -1,7 +1,8 @@
 import * as React from "react";
 import { TFile } from "obsidian";
 import FileOrganizer from "../../../index";
-import { logMessage } from "../../../../utils";
+import { logMessage } from "../../../someUtils";
+import { logger } from "../../../services/logger";
 
 interface ClassificationBoxProps {
   plugin: FileOrganizer;
@@ -37,7 +38,7 @@ export const ClassificationBox: React.FC<ClassificationBoxProps> = ({
     const fetchClassificationAndTemplates = async () => {
       if (!content || !file) {
         setContentLoadStatus("error");
-        console.error("No content or file available");
+        logger.error("No content or file available");
         return;
       }
 
@@ -75,7 +76,7 @@ export const ClassificationBox: React.FC<ClassificationBoxProps> = ({
         }
         setClassificationStatus("success");
       } catch (error) {
-        console.error("Error in fetchClassificationAndTemplates:", error);
+        logger.error("Error in fetchClassificationAndTemplates:", error);
         setClassificationStatus("error");
       }
     };
@@ -119,7 +120,7 @@ export const ClassificationBox: React.FC<ClassificationBoxProps> = ({
 
       setSelectedTemplateName(null);
     } catch (error) {
-      console.error("Error in handleFormat:", error);
+      logger.error("Error in handleFormat:", error);
       setErrorMessage((error as Error).message);
     } finally {
       setFormatting(false);

@@ -1,6 +1,7 @@
 import * as React from "react";
 import { TFile, Notice } from "obsidian";
 import FileOrganizer from "../../index";
+import { logger } from "../../services/logger";
 
 interface TranscriptionButtonProps {
   plugin: FileOrganizer;
@@ -25,7 +26,7 @@ export const TranscriptionButton: React.FC<TranscriptionButtonProps> = ({ plugin
         );
 
         if (!(audioFile instanceof TFile)) {
-          console.error("Audio file not found");
+          logger.error("Audio file not found");
           new Notice("Audio file not found");
           return;
         }
@@ -42,7 +43,7 @@ export const TranscriptionButton: React.FC<TranscriptionButtonProps> = ({ plugin
         }
       }
     } catch (error) {
-      console.error("Error transcribing audio:", error);
+      logger.error("Error transcribing audio:", error);
       new Notice("Error transcribing audio");
     } finally {
       setTranscribing(false);

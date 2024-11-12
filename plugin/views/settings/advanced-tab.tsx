@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import FileOrganizer from '../../index';
+import { logger } from '../../services/logger';
 
 interface AdvancedTabProps {
   plugin: FileOrganizer;
@@ -9,6 +10,8 @@ export const AdvancedTab: React.FC<AdvancedTabProps> = ({ plugin }) => {
   const [enableSelfHosting, setEnableSelfHosting] = useState(plugin.settings.enableSelfHosting);
   const [selfHostingURL, setSelfHostingURL] = useState(plugin.settings.selfHostingURL);
   const [useLogs, setUseLogs] = useState(plugin.settings.useLogs);
+  const [debugMode, setDebugMode] = useState(plugin.settings.debugMode);
+  const [showLogs, setShowLogs] = useState(false);
 
   const handleToggleChange = async (value: boolean) => {
     setEnableSelfHosting(value);
@@ -22,15 +25,40 @@ export const AdvancedTab: React.FC<AdvancedTabProps> = ({ plugin }) => {
     await plugin.saveSettings();
   };
 
+  const handleExportLogs = () => {
+    const csv = logger.exportToCSV();
+    const blob = new Blob([csv], { type: 'text/csv' });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `file-organizer-logs-${new Date().toISOString()}.csv`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    window.URL.revokeObjectURL(url);
+  };
+
   return (
     <div className="p-4 space-y-4">
       <ToggleSetting
-        name="FileOrganizer logs"
+        name="Fo2k File Logs"
         description="Allows you to keep track of the changes made by file Organizer."
         value={useLogs}
         onChange={(value) => {
           setUseLogs(value);
           plugin.settings.useLogs = value;
+          plugin.saveSettings();
+        }}
+      />
+
+      <ToggleSetting
+        name="Debug Mode"
+        description="Enable detailed logging for troubleshooting. This may impact performance."
+        value={debugMode}
+        onChange={(value) => {
+          setDebugMode(value);
+          logger.configure(value);
+          plugin.settings.debugMode = value;
           plugin.saveSettings();
         }}
       />
@@ -64,6 +92,53 @@ export const AdvancedTab: React.FC<AdvancedTabProps> = ({ plugin }) => {
               onChange={(e) => handleURLChange(e.target.value)}
             />
           </div>
+        </div>
+      )}
+
+      {useLogs && (
+        <div className="space-y-2">
+          <div className="flex justify-between items-center">
+            <button
+              className="bg-[--interactive-accent] text-[--text-on-accent] px-3 py-1 rounded"
+              onClick={() => setShowLogs(!showLogs)}
+            >
+              {showLogs ? 'Hide Debug Data' : 'Show Debug Data'}
+            </button>
+            <button
+              className="bg-[--interactive-accent] text-[--text-on-accent] px-3 py-1 rounded"
+              onClick={handleExportLogs}
+            >
+              Export Debug Data
+            </button>
+          </div>
+
+          {showLogs && (
+            <div className="max-h-96 overflow-y-auto border border-[--background-modifier-border] rounded p-2">
+              {logger.getLogs().map((log, index) => (
+                <div 
+                  key={index}
+                  className={`py-1 ${
+                    log.level === 'error' ? 'text-[--text-error]' :
+                    log.level === 'warn' ? 'text-[--text-warning]' :
+                    'text-[--text-normal]'
+                  }`}
+                >
+                  <span className="text-[--text-muted] text-xs">
+                    {new Date(log.timestamp).toLocaleString()}
+                  </span>
+                  {' '}
+                  <span className="font-medium">[{log.level.toUpperCase()}]</span>
+                  {' '}
+                  {log.message}
+                  {log.details && (
+                    <pre className="text-xs mt-1 text-[--text-muted]">
+                      {log.details}
+                    </pre>
+                  )}
+                </div>
+              ))}
+            </div>
+          )}
         </div>
       )}
     </div>

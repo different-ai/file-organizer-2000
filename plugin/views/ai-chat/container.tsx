@@ -3,7 +3,7 @@ import { ChatComponent } from "./chat";
 import FileOrganizer from "../..";
 import { Card } from "./card";
 import { Button } from "./button";
-
+import { logger } from "../../services/logger";
 interface AIChatSidebarProps {
   plugin: FileOrganizer;
   apiKey: string;
@@ -33,7 +33,7 @@ const AIChatSidebar: React.FC<AIChatSidebarProps> = ({ plugin, apiKey }) => {
           setFileContent(content);
           setFileName(activeFile.basename);
         } catch (error) {
-          console.error(`Error reading file: ${error}`);
+          logger.error(`Error reading file: ${error}`);
           setFileContent("");
           setFileName(null);
         }

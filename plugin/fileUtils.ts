@@ -1,5 +1,5 @@
 import { App, TFolder, TFile, normalizePath } from "obsidian";
-import { Notice } from "obsidian";
+import { FileOrganizerSettings } from "./settings";
 export async function ensureFolderExists(app: App, folderPath: string) {
   if (!(await app.vault.adapter.exists(folderPath))) {
     await app.vault.createFolder(folderPath);

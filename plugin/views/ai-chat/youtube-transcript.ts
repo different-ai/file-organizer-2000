@@ -1,4 +1,5 @@
-import { requestUrl } from 'obsidian';
+import { requestUrl } from "obsidian";
+import { logger } from "../../services/logger";
 
 export async function getYouTubeTranscript(videoId: string): Promise<string> {
   try {
@@ -23,7 +24,7 @@ export async function getYouTubeTranscript(videoId: string): Promise<string> {
 
     return transcript || '';
   } catch (error) {
-    console.error('Error fetching YouTube transcript:', error);
+    logger.error('Error fetching YouTube transcript:', error);
     throw new Error('Failed to fetch YouTube transcript');
   }
 }
@@ -41,7 +42,7 @@ export async function getYouTubeVideoTitle(videoId: string): Promise<string> {
       return 'Untitled YouTube Video';
     }
   } catch (error) {
-    console.error('Error fetching YouTube video title:', error);
+    logger.error('Error fetching YouTube video title:', error);
     return 'Untitled YouTube Video';
   }
 }

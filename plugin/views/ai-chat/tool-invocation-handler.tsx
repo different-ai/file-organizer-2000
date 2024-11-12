@@ -6,6 +6,7 @@ import {
 } from "./youtube-transcript";
 import { App } from "obsidian";
 import { moment } from "obsidian";
+import { logger } from "../../services/logger";
 
 interface ToolInvocationHandlerProps {
   toolInvocation: any; // Replace 'any' with a more specific type if available
@@ -56,7 +57,7 @@ function YouTubeHandler({
           onYoutubeTranscript(transcript, title, videoId);
           handleAddResult(JSON.stringify({ transcript, title, videoId }));
         } catch (error) {
-          console.error("Error fetching YouTube transcript:", error);
+          logger.error("Error fetching YouTube transcript:", error);
           handleAddResult(JSON.stringify({ error: error.message }));
         }
       }
@@ -148,7 +149,7 @@ function SearchHandler({
           onSearchResults(searchResults);
           handleAddResult(JSON.stringify(searchResults));
         } catch (error) {
-          console.error("Error searching notes:", error);
+          logger.error("Error searching notes:", error);
           handleAddResult(JSON.stringify({ error: error.message }));
         }
       }
@@ -236,7 +237,7 @@ function DateRangeHandler({
           onDateRangeResults(searchResults);
           handleAddResult(JSON.stringify(searchResults));
         } catch (error) {
-          console.error("Error filtering notes by date:", error);
+          logger.error("Error filtering notes by date:", error);
           handleAddResult(JSON.stringify({ error: error.message }));
         }
       }
@@ -310,7 +311,7 @@ function LastModifiedHandler({
           onLastModifiedResults(searchResults);
           handleAddResult(JSON.stringify(searchResults));
         } catch (error) {
-          console.error("Error getting last modified files:", error);
+          logger.error("Error getting last modified files:", error);
           handleAddResult(JSON.stringify({ error: error.message }));
         }
       }

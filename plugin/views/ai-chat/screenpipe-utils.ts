@@ -1,5 +1,7 @@
 import { groupBy } from "lodash";
-import { logMessage } from "../../../utils";
+import { logger } from "../../services/logger";
+import { logMessage } from "../../someUtils";
+g
 
 interface ScreenpipeQueryParams {
   startTime: string;
@@ -25,7 +27,7 @@ async function queryScreenpipe(params: ScreenpipeQueryParams) {
     if (params.appName) queryParams.append('app_name', params.appName);
 
     const url = `http://localhost:3030/search?${queryParams}`;
-    logMessage('Querying Screenpipe with URL:', url);
+    logger.info("Querying Screenpipe with URL:", url);
 
     const response = await fetch(url, {
       method: 'GET',
@@ -47,7 +49,7 @@ async function queryScreenpipe(params: ScreenpipeQueryParams) {
     const data = JSON.parse(responseText);
     return data;
   } catch (error) {
-    console.error("Error querying screenpipe:", error);
+    logger.error("Error querying screenpipe:", error);
     throw error;
   }
 }

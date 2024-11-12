@@ -1,6 +1,7 @@
 import * as React from "react";
 import { TFile } from "obsidian";
 import FileOrganizer from "../../index";
+import { logger } from "../../services/logger";
 
 interface DocumentChunksProps {
   plugin: FileOrganizer;
@@ -20,7 +21,7 @@ export const DocumentChunks: React.FC<DocumentChunksProps> = ({ plugin, activeFi
       setConcepts(result.map(c => c.name));
       setChunks(result.map(c => ({ concept: c.name, content: c.chunk })));
     } catch (error) {
-      console.error("Error parsing document:", error);
+      logger.error("Error parsing document:", error);
     } finally {
       setLoading(false);
     }
@@ -30,7 +31,7 @@ export const DocumentChunks: React.FC<DocumentChunksProps> = ({ plugin, activeFi
     try {
       await plugin.createFileInInbox(chunkContent);
     } catch (error) {
-      console.error("Error adding to inbox:", error);
+      logger.error("Error adding to inbox:", error);
     }
   };
 

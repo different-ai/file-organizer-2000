@@ -2,7 +2,7 @@ import React, { useRef, useState, useEffect } from "react";
 import { Button } from "./button";
 import { usePlugin } from "./provider";
 import { Loader2, MicIcon, StopCircle } from "lucide-react";
-
+import { logger } from "../../services/logger";
 interface AudioRecorderProps {
   onTranscriptionComplete: (text: string) => void;
   debug?: boolean;
@@ -47,7 +47,7 @@ export const AudioRecorder: React.FC<AudioRecorderProps> = ({
       mediaRecorder.start(250);
       setIsRecording(true);
     } catch (error) {
-      console.error("Error accessing microphone:", error);
+      logger.error("Error accessing microphone:", error);
     }
   };
 
@@ -113,7 +113,7 @@ export const AudioRecorder: React.FC<AudioRecorderProps> = ({
             onTranscriptionComplete(data.text);
             resolve();
           } catch (error) {
-            console.error("Error processing audio:", error);
+            logger.error("Error processing audio:", error);
             reject(error);
           } finally {
             setIsProcessing(false);
@@ -121,7 +121,7 @@ export const AudioRecorder: React.FC<AudioRecorderProps> = ({
         };
       });
     } catch (error) {
-      console.error("Recording error:", error);
+      logger.error("Recording error:", error);
       setIsProcessing(false);
     }
   };

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { Notice } from "obsidian";
 import FileOrganizer from "../../index";
+import { logger } from "../../services/logger";
 
 interface GeneralTabProps {
   plugin: FileOrganizer;
@@ -35,7 +36,7 @@ export const GeneralTab: React.FC<GeneralTabProps> = ({ plugin }) => {
       const data = await response.json();
       setUsageData(data);
     } catch (error) {
-      console.error('Error fetching usage data:', error);
+      logger.error('Error fetching usage data:', error);
     } finally {
       setLoading(false);
     }

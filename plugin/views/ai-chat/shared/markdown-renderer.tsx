@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from "react";
 import { MarkdownRenderer, MarkdownView, TFile } from "obsidian";
+import { logger } from "../../../services/logger";
 import { usePlugin } from "../provider";
 
 interface MarkdownContentProps {
@@ -83,7 +84,7 @@ export const MarkdownContent: React.FC<MarkdownContentProps> = ({
         
         setRenderedContent(tempContainer.innerHTML);
       } catch (e) {
-        console.error("Error rendering markdown:", e);
+        logger.error("Error rendering markdown:", e);
         setRenderedContent(`<p>Error rendering content: ${e.message}</p>`);
       }
     };

@@ -1,10 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import FileOrganizer from '../../index';
-import { cleanPath } from '../../../utils';
+import { cleanPath } from '../../someUtils';
 import { normalizePath } from 'obsidian';
 import { Search } from 'lucide-react';
-import { getAllFolders } from '../../fileUtils';
-
+import { logger } from '../../services/logger';
 interface FileConfigTabProps {
   plugin: FileOrganizer;
 }
@@ -140,7 +139,7 @@ export const FileConfigTab: React.FC<FileConfigTabProps> = ({ plugin }) => {
     settingKey: keyof typeof plugin.settings
   ) => {
     setter(value);
-    plugin.settings[settingKey] = value;
+    (plugin.settings as any)[settingKey] = value;
     await plugin.saveSettings();
   };
 
@@ -161,7 +160,7 @@ export const FileConfigTab: React.FC<FileConfigTabProps> = ({ plugin }) => {
       const exists = await plugin.app.vault.adapter.exists(normalizedPath);
       return exists;
     } catch (error) {
-      console.error(`Error checking path existence: ${error}`);
+      logger.error(`Error checking path existence: ${error}`);
       return false;
     }
   };
@@ -172,7 +171,7 @@ export const FileConfigTab: React.FC<FileConfigTabProps> = ({ plugin }) => {
       await plugin.app.vault.createFolder(normalizedPath);
       return true;
     } catch (error) {
-      console.error(`Error creating folder: ${error}`);
+      logger.error(`Error creating folder: ${error}`);
       return false;
     }
   };

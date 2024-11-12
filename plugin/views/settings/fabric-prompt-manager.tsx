@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import FileOrganizer from '../../index';
 import { TFolder } from "obsidian";
-import { logMessage } from "../../../utils";
+import { logMessage } from "../../someUtils";
+import { logger } from "../../services/logger";
 
 interface FabricPromptManagerProps {
   plugin: FileOrganizer;
@@ -75,7 +76,7 @@ export const FabricPromptManager: React.FC<FabricPromptManagerProps> = ({ plugin
         logMessage('Prompts are already up to date');
       }
     } catch (error) {
-      console.error('Error downloading Fabric prompts:', error);
+      logger.error('Error downloading Fabric prompts:', error);
     } finally {
       setIsLoading(false);
     }

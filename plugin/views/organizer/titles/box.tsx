@@ -5,7 +5,8 @@ import { z } from "zod";
 import { motion, AnimatePresence } from "framer-motion";
 import { SkeletonLoader } from "../components/skeleton-loader";
 import { ExistingFolderButton } from "../components/suggestion-buttons";
-import { logMessage } from "../../../../utils";
+import { logMessage } from "../../../someUtils";
+import { logger } from "../../../services/logger";
 
 interface RenameSuggestionProps {
   plugin: FileOrganizer;
@@ -46,7 +47,7 @@ export const RenameSuggestion: React.FC<RenameSuggestionProps> = ({
       const filteredTitles = titles.filter(title => title.title !== file.name);
       setSuggestions(filteredTitles);
     } catch (err) {
-      console.error("Error fetching titles:", err);
+      logger.error("Error fetching titles:", err);
       const errorMessage = err instanceof Error ? err.message : "Unknown error";
       setError(new Error(errorMessage));
     } finally {
@@ -69,7 +70,7 @@ export const RenameSuggestion: React.FC<RenameSuggestionProps> = ({
       await plugin.moveFile(file, title, file.parent.path);
       new Notice(`Renamed to ${title}`);
     } catch (error) {
-      console.error("Error renaming file:", error);
+      logger.error("Error renaming file:", error);
       const errorMessage =
         error instanceof Error ? error.message : "Unknown error";
       new Notice(`Failed to rename: ${errorMessage}`);

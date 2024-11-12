@@ -13,7 +13,7 @@ import Tiptap from "./tiptap";
 import { Button } from "./button";
 import { usePlugin } from "./provider";
 
-import { logMessage } from "../../../utils";
+import { logMessage } from "../../someUtils";
 import { SelectedItem } from "./selected-item";
 import { MessageRenderer } from "./message-renderer";
 import ToolInvocationHandler from "./tool-invocation-handler";
@@ -24,6 +24,7 @@ import { ContextLimitIndicator } from "./context-limit-indicator";
 import { ModelSelector } from "./model-selector";
 import { ModelType } from "./types";
 import { AudioRecorder } from "./audio-recorder";
+import { logger } from "../../services/logger";
 
 interface ChatComponentProps {
   plugin: FileOrganizer;
@@ -164,7 +165,7 @@ export const ChatComponent: React.FC<ChatComponentProps> = ({
     },
     keepLastMessageOnError: true,
     onError: error => {
-      console.error(error);
+      logger.error(error.message);
       setErrorMessage(
         "Connection failed. If the problem persists, please check your internet connection or VPN."
       );

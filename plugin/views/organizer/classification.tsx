@@ -2,8 +2,10 @@ import * as React from "react";
 import { TFile, Notice } from "obsidian";
 import FileOrganizer from "../../index";
 import { ClassificationBox } from "./ai-format/user-templates";
-import { FabricClassificationBox } from "./fabric-classification-box";
 import { DEFAULT_SETTINGS } from "../../settings";
+import { logger } from "../../services/logger";
+import { FabricClassificationBox } from "./ai-format/fabric-templates";
+
 
 interface ClassificationBoxProps {
   plugin: FileOrganizer;
@@ -25,7 +27,7 @@ export const ClassificationContainer: React.FC<ClassificationBoxProps> = ({
 
   const handleFormat = async (templateName: string) => {
     if (!file) {
-      console.error("No file selected");
+      logger.error("No file selected");
       return;
     }
     try {
@@ -44,7 +46,7 @@ export const ClassificationContainer: React.FC<ClassificationBoxProps> = ({
       });
 
     } catch (error) {
-      console.error("Error in handleFormat:", error);
+      logger.error("Error in handleFormat:", error);
     }
   };
 
@@ -63,7 +65,7 @@ export const ClassificationContainer: React.FC<ClassificationBoxProps> = ({
       await plugin.app.vault.modify(file, backupContent);
       new Notice("Successfully reverted to backup version", 3000);
     } catch (error) {
-      console.error("Error reverting to backup:", error);
+      logger.error("Error reverting to backup:", error);
     }
   };
 

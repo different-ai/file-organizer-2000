@@ -12,7 +12,7 @@ import {
   requestUrl,
   arrayBufferToBase64,
 } from "obsidian";
-import { logMessage, formatToSafeName, sanitizeTag } from "../utils";
+import { logMessage, formatToSafeName, sanitizeTag,  } from "./someUtils";
 import { FileOrganizerSettingTab } from "./views/settings/view";
 import { ORGANIZER_VIEW_TYPE } from "./views/organizer/view";
 import { CHAT_VIEW_TYPE } from "./views/ai-chat/view";
@@ -43,6 +43,7 @@ import {
 } from "./constants";
 import { initializeInboxQueue, Inbox } from "./inbox";
 import { validateFile } from "./utils";
+import { logger } from "./services/logger";
 
 type TagCounts = {
   [key: string]: number;
@@ -102,7 +103,7 @@ export default class FileOrganizer extends Plugin {
       await this.saveSettings();
       return isValid;
     } catch (error) {
-      console.error("Error checking API key:", error);
+      logger.error("Error checking API key:", error);
       this.settings.isLicenseValid = false;
       await this.saveSettings();
       return false;
@@ -237,7 +238,7 @@ export default class FileOrganizer extends Plugin {
         `Error reading file ${file.basename}: ${error.message}`
       );
       new Notice(`Error reading file ${file.basename}`, 3000);
-      console.error("Error in getTextFromFile:", error);
+      logger.error("Error in getTextFromFile:", error);
       return null;
     }
   }
@@ -346,7 +347,7 @@ export default class FileOrganizer extends Plugin {
       `Error processing ${fileName}: ${error.message}`
     );
     new Notice(`Unexpected error processing ${fileName}`, 3000);
-    console.error("Error in processFileV2:", error);
+    logger.error("Error in processFileV2:", error);
   }
 
   /**
@@ -455,7 +456,7 @@ export default class FileOrganizer extends Plugin {
       const { concepts } = await response.json();
       return concepts;
     } catch (error) {
-      console.error("Error in identifyConceptsAndFetchChunks:", error);
+      logger.error("Error in identifyConceptsAndFetchChunks:", error);
       new Notice("An error occurred while processing the document.", 6000);
       throw error;
     }
@@ -533,7 +534,7 @@ export default class FileOrganizer extends Plugin {
       const { content: formattedContent } = await response.json;
       return formattedContent;
     } catch (error) {
-      console.error("Error formatting content:", error);
+      logger.error("Error formatting content:", error);
       new Notice("An error occurred while formatting the content.", 6000);
       return "";
     }
@@ -551,7 +552,7 @@ export default class FileOrganizer extends Plugin {
       `${this.settings.templatePaths}/${classification}`
     );
     if (!templateFile || !(templateFile instanceof TFile)) {
-      console.error("Template file not found or is not a valid file.");
+      logger.error("Template file not found or is not a valid file.");
       return "";
     }
     return await this.app.vault.read(templateFile);
@@ -593,7 +594,7 @@ export default class FileOrganizer extends Plugin {
 
       new Notice("Content formatted in split view successfully", 3000);
     } catch (error) {
-      console.error("Error formatting content in split view:", error);
+      logger.error("Error formatting content in split view:", error);
       new Notice(
         "An error occurred while formatting the content in split view.",
         6000
@@ -635,7 +636,7 @@ export default class FileOrganizer extends Plugin {
 
       new Notice("Content formatted successfully", 3000);
     } catch (error) {
-      console.error("Error formatting content:", error);
+      logger.error("Error formatting content:", error);
       new Notice("An error occurred while formatting the content.", 6000);
     }
   }
@@ -669,7 +670,7 @@ export default class FileOrganizer extends Plugin {
       const { concepts } = await response.json;
       return concepts;
     } catch (error) {
-      console.error("Error identifying concepts:", error);
+      logger.error("Error identifying concepts:", error);
       new Notice("An error occurred while identifying concepts.", 6000);
       return [];
     }
@@ -699,7 +700,7 @@ export default class FileOrganizer extends Plugin {
       const { chunk } = await response.json;
       return { content: chunk };
     } catch (error) {
-      console.error("Error fetching chunk for concept:", error);
+      logger.error("Error fetching chunk for concept:", error);
       new Notice("An error occurred while fetching chunk for concept.", 6000);
       return { content: "" };
     }
@@ -713,7 +714,7 @@ export default class FileOrganizer extends Plugin {
     );
 
     if (!templateFolder || !(templateFolder instanceof TFolder)) {
-      console.error("Template folder not found or is not a valid folder.");
+      logger.error("Template folder not found or is not a valid folder.");
       return [];
     }
 
@@ -745,7 +746,7 @@ export default class FileOrganizer extends Plugin {
       }
       return text;
     } catch (error) {
-      console.error(`Error extracting text from PDF: ${error}`);
+      logger.error(`Error extracting text from PDF: ${error}`);
       return "";
     }
   }
@@ -873,7 +874,7 @@ export default class FileOrganizer extends Plugin {
 
       return generateTranscript();
     } catch (e) {
-      console.error("Error generating transcript", e);
+      logger.error("Error generating transcript", e);
       new Notice("Error generating transcript", 3000);
       throw e;
     }
@@ -884,7 +885,7 @@ export default class FileOrganizer extends Plugin {
       this.settings.fabricPaths
     );
     if (!patternFolder || !(patternFolder instanceof TFolder)) {
-      console.error("Pattern folder not found or is not a valid folder.");
+      logger.error("Pattern folder not found or is not a valid folder.");
       return [];
     }
     const patternFolders = patternFolder.children
@@ -946,7 +947,7 @@ export default class FileOrganizer extends Plugin {
     // Create or get a new leaf on the right sidebar
     const leaf = this.app.workspace.getRightLeaf(false);
     if (!leaf) {
-      console.error("Failed to obtain a workspace leaf for AI Chat View.");
+      logger.error("Failed to obtain a workspace leaf for AI Chat View.");
       new Notice("Unable to open AI Chat View.", 3000);
       return;
     }
@@ -1495,7 +1496,7 @@ export default class FileOrganizer extends Plugin {
       this.settings.templatePaths
     );
     if (!templateFolder || !(templateFolder instanceof TFolder)) {
-      console.error("Template folder not found or is not a valid folder.");
+      logger.error("Template folder not found or is not a valid folder.");
       return "";
     }
     // only look at files first
@@ -1503,7 +1504,7 @@ export default class FileOrganizer extends Plugin {
       file => file instanceof TFile && file.basename === templateName
     );
     if (!templateFile || !(templateFile instanceof TFile)) {
-      console.error("Template file not found or is not a valid file.");
+      logger.error("Template file not found or is not a valid file.");
       return "";
     }
     return await this.app.vault.read(templateFile);
@@ -1516,7 +1517,7 @@ export default class FileOrganizer extends Plugin {
       this.settings.templatePaths
     );
     if (!templateFolder || !(templateFolder instanceof TFolder)) {
-      console.error("Template folder not found or is not a valid folder.");
+      logger.error("Template folder not found or is not a valid folder.");
       return [];
     }
     const templateFiles = templateFolder.children.filter(

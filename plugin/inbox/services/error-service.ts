@@ -1,5 +1,5 @@
 import { Notice } from "obsidian";
-import { logMessage } from "../../utils";
+import { logger } from "../../services/logger";
 
 export enum ErrorSeverity {
   LOW = "low",
@@ -42,7 +42,7 @@ export class ErrorService {
 
     // Log to console in debug mode
     if (this.isDebugEnabled) {
-      console.error("[FileOrganizer Error]", {
+      logger.error("[FileOrganizer Error]", {
         ...details,
         timestamp: new Date().toISOString()
       });

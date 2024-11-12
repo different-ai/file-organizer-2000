@@ -5,9 +5,9 @@ import { validateFile } from "../utils";
 import { Queue } from "./services/queue";
 import { RecordManager } from "./services/record-manager";
 import { FileRecord, QueueStatus } from "./types";
-import { logMessage } from "../../utils";
+import { logMessage } from "../someUtils";
 import { IdService } from "./services/id-service";
-
+import { logger } from "../services/logger";
 export interface FolderSuggestion {
   isNewFolder: boolean;
   score: number;
@@ -122,7 +122,7 @@ export class Inbox {
       },
       onComplete: (file: TFile, metadata?: Record<string, any>) => {},
       onError: (error: Error, file: TFile, metadata?: Record<string, any>) => {
-        console.error("Queue processing error:", error);
+        logger.error("Queue processing error:", error);
       },
     });
   }
@@ -174,7 +174,7 @@ export class Inbox {
         .then(completeProcessing);
       this.queue.remove(context.hash);
     } catch (error) {
-      console.error("Error processing inbox file:", error);
+      logger.error("Error processing inbox file:", error);
       await handleError(error, context);
     }
   }
@@ -373,7 +373,7 @@ async function processContent(
     const text = await plugin.getTextFromFile(file);
     return { text };
   } catch (error) {
-    console.error("Error in processContent:", error);
+    logger.error("Error in processContent:", error);
     throw new Error("Error in processContent");
   }
 }
@@ -396,7 +396,7 @@ async function moveFile(
 
     await context.plugin.app.vault.rename(file, newPath);
   } catch (error) {
-    console.error(`Failed to move file ${file.path} to ${newPath}:`, error);
+    logger.error(`Failed to move file ${file.path} to ${newPath}:`, error);
     throw new Error(`Failed to move file: ${error.message}`);
   }
 }
@@ -410,7 +410,7 @@ async function createFile(
     await ensureFolder(context, path);
     return await context.plugin.app.vault.create(path, content);
   } catch (error) {
-    console.error(`Failed to create file at ${path}:`, error);
+    logger.error(`Failed to create file at ${path}:`, error);
     throw new Error(`Failed to create file: ${error.message}`);
   }
 }
@@ -424,7 +424,7 @@ async function ensureFolder(
     await context.plugin.app.vault.createFolder(folderPath);
   } catch (error) {
     if (!error.message.includes("already exists")) {
-      console.error("Error creating folder:", error);
+      logger.error("Error creating folder:", error);
       throw error;
     }
   }

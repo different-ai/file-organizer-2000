@@ -1,7 +1,8 @@
 import React from "react";  
 import { getYouTubeTranscript, getYouTubeVideoTitle } from "../youtube-transcript";
-import { logMessage } from "../../../../utils";
+import { logger } from "../../../services/logger";
 import { ToolInvocation } from "ai";
+import { logMessage } from "../../../someUtils";
 
 interface YouTubeHandlerProps {
   toolInvocation: ToolInvocation;
@@ -23,13 +24,13 @@ export function YouTubeHandler({
       if (!hasFetchedRef.current && !("result" in toolInvocation)) {
         hasFetchedRef.current = true;
         const { videoId } = toolInvocation.args;
-        logMessage('toolInvocation', toolInvocation);
+        logger.info("toolInvocation", toolInvocation);
         
         try {
           const transcript = await getYouTubeTranscript(videoId);
           const title = await getYouTubeVideoTitle(videoId);
           const result = { transcript, title, videoId };
-          logMessage('result', result);
+          logger.info("result", result);
           
           handleAddResult({ 
             toolCallId: toolInvocation.toolCallId,
@@ -37,7 +38,7 @@ export function YouTubeHandler({
           });
           onYoutubeTranscript(transcript, title, videoId);
         } catch (error) {
-          console.error("Error fetching YouTube transcript:", error);
+          logger.error("Error fetching YouTube transcript:", error);
           handleAddResult({ 
             toolCallId: toolInvocation.toolCallId,
             result: { error: error.message }

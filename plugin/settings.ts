@@ -37,6 +37,7 @@ export class FileOrganizerSettings {
   formatBehavior: "override" | "newFile" = "override";
   useInbox = false;
   imageInstructions = "Analyze the image and provide a clear, detailed description focusing on the main elements, context, and any text visible in the image. Include relevant details that would be useful for searching and organizing the image later.";
+  debugMode = false;
 }
 
 export const DEFAULT_SETTINGS = new FileOrganizerSettings();

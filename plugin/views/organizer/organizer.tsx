@@ -13,9 +13,10 @@ import { ClassificationContainer } from "./ai-format/templates";
 import { TranscriptionButton } from "./transcript";
 import { SimilarFilesBox } from "./files";
 import { EmptyState } from "./components/empty-state";
-import { logMessage } from "../../../utils";
+import { logMessage } from "../../someUtils";
 import { LicenseValidator } from "./components/license-validator";
 import { VALID_MEDIA_EXTENSIONS } from "../../constants";
+import { logger } from "../../services/logger";
 
 interface AssistantViewProps {
   plugin: FileOrganizer;
@@ -66,7 +67,7 @@ export const AssistantView: React.FC<AssistantViewProps> = ({
       }
       setActiveFile(file);
     } catch (err) {
-      console.error("Error updating active file:", err);
+      logger.error("Error updating active file:", err);
       setError("Failed to load file content");
     }
   }, [
@@ -105,7 +106,7 @@ export const AssistantView: React.FC<AssistantViewProps> = ({
       try {
         return component;
       } catch (err) {
-        console.error(errorMessage, err);
+        logger.error(errorMessage, err);
         return <div className="section-error">{errorMessage}</div>;
       }
     },
@@ -119,7 +120,7 @@ export const AssistantView: React.FC<AssistantViewProps> = ({
       await plugin.app.vault.delete(activeFile);
       new Notice("File deleted successfully");
     } catch (err) {
-      console.error("Error deleting file:", err);
+      logger.error("Error deleting file:", err);
       setError("Failed to delete file");
     }
   }, [activeFile, plugin.app.vault]);

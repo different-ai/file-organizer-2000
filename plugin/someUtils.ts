@@ -1,3 +1,5 @@
+import { logger } from "./services/logger";
+
 export function formatToSafeName(format: string) {
   return format.replace(/[\\/:"]/g, "");
 }
@@ -10,11 +12,19 @@ export function cleanPath(path: string) {
   );
   return pathWithoutLeadingAndTrailingSlashes;
 }
+
 export const logMessage = (...args: any[]) => {
-  if (process.env.NODE_ENV === "production") {
-    return;
-  }
-  console.log(...args);
+  const message = args
+    .map(arg => (typeof arg === "object" ? JSON.stringify(arg) : arg))
+    .join(" ");
+
+  logger.debug(message);
+};
+
+export const logError = (error: Error | string, details?: any) => {
+  const message = error instanceof Error ? error.message : error;
+  console.error(message);
+  logger.error(message, details);
 };
 
 export function sanitizeTag(tag: string): string {

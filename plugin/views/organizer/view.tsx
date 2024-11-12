@@ -27,7 +27,7 @@ function TabContent({
     return (
       <>
         <SectionHeader text="Inbox Processing" icon="📥 " />
-        <InboxLogs plugin={plugin} />
+        <InboxLogs plugin={plugin as any} />
       </>
     );
   }

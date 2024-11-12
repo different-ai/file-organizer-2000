@@ -1,7 +1,8 @@
 import * as React from "react";
 import { Notice, TFile, TFolder } from "obsidian";
 import FileOrganizer from "../../../index";
-import { logMessage } from "../../../../utils";
+import { logMessage } from "../../../someUtils";
+import { logger } from "../../../services/logger";
 
 interface FabricClassificationBoxProps {
   plugin: FileOrganizer;
@@ -75,7 +76,7 @@ export const FabricClassificationBox: React.FC<
       await plugin.app.vault.modify(params.file, data.formattedContent);
       new Notice("Content formatted successfully with Fabric.", 3000);
     } catch (error) {
-      console.error("Error in formatFabricContent:", error);
+      logger.error("Error in formatFabricContent:", error);
       new Notice(`Formatting failed: ${(error as Error).message}`, 5000);
     }
   };
@@ -117,7 +118,7 @@ export const FabricClassificationBox: React.FC<
       }
 
     } catch (error) {
-      console.error("Error in autoClassifyContent:", error);
+      logger.error("Error in autoClassifyContent:", error);
       setErrorMessage(`Classification failed: ${(error as Error).message}`);
     }
   }, [content, file, fabricPatterns, plugin]);
@@ -133,7 +134,7 @@ export const FabricClassificationBox: React.FC<
     const fetchFabricPatternsEffect = async () => {
       if (!content || !file) {
         setLoadStatus("error");
-        console.error("No content or file available for Fabric classification");
+        logger.error("No content or file available for Fabric classification");
         return;
       }
 
@@ -161,7 +162,7 @@ export const FabricClassificationBox: React.FC<
         setFabricPatterns(patterns);
         setLoadStatus("success");
       } catch (error) {
-        console.error("Error fetching Fabric patterns:", error);
+        logger.error("Error fetching Fabric patterns:", error);
         setLoadStatus("error");
         setFabricPatterns([]);
       }
@@ -232,7 +233,7 @@ export const FabricClassificationBox: React.FC<
       setSelectedFabricPattern(null);
       new Notice("Content formatted successfully with Fabric", 3000);
     } catch (error) {
-      console.error("Error in handleApplyFabric:", error);
+      logger.error("Error in handleApplyFabric:", error);
       setErrorMessage((error as Error).message);
     } finally {
       setIsFormatting(false);

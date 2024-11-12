@@ -5,6 +5,7 @@ import moment from "moment";
 import { ChevronDown, Search, ExternalLink } from "lucide-react";
 import { App, TFile } from "obsidian";
 import { motion, AnimatePresence } from "framer-motion";
+import { logMessage } from "../../../someUtils";
 
 interface InboxLogsProps {
   plugin: FileOrganizer & {
@@ -90,7 +91,7 @@ export const InboxLogs: React.FC<InboxLogsProps> = ({ plugin }) => {
     return () => clearInterval(interval);
   }, [plugin]);
   React.useEffect(() => {
-    console.log("files", files);
+    logMessage("files", files);
   }, [files]);
 
   const getStatusBadgeClass = (status: FileStatus) => {

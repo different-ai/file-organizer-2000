@@ -3,7 +3,7 @@ import { App, PluginSettingTab } from 'obsidian';
 import FileOrganizer from '../../index';
 import { createRoot, Root } from 'react-dom/client';
 import { SettingsTabContent } from './main';
-import { logMessage } from '../../../utils';
+import { logMessage } from '../../someUtils';
 
 export class FileOrganizerSettingTab extends PluginSettingTab {
   plugin: FileOrganizer;

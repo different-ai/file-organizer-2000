@@ -1,6 +1,6 @@
 import { Notice, RequestUrlResponse, requestUrl } from "obsidian";
-import { logMessage } from "../utils";
-
+import { logMessage } from "./someUtils";
+import { logger } from "./services/logger";
 
 export async function makeApiRequest<T>(
   requestFn: () => Promise<RequestUrlResponse>
@@ -32,7 +32,7 @@ export async function checkLicenseKey(
     });
     return response.status === 200;
   } catch (error) {
-    console.error("Error checking API key:", error);
+    logger.error("Error checking API key:", error);
     return false;
   }
 }
