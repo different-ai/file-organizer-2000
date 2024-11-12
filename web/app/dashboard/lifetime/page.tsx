@@ -113,6 +113,19 @@ export default async function LifetimeAccessPage() {
                     <li>Click "Activate" button</li>
                   </ul>
                 </li>
+                <li className="rounded-lg border bg-card p-4 text-card-foreground shadow-sm">
+                  <strong>Need help?</strong>
+                  <div className="mt-2">
+                    <a
+                      href="https://github.com/different-ai/file-organizer-2000/blob/master/tutorials/lifetime_faq.md"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-[--text-accent] hover:text-[--text-accent-hover]"
+                    >
+                      Check out our FAQ
+                    </a>
+                  </div>
+                </li>
               </ol>
             </CardContent>
           </Card>
