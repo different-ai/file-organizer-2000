@@ -5,6 +5,17 @@ Submit a [new issue with steps to reproduce](https://github.com/different-ai/fil
 You can also enable "debug" mode and add it to your issue attachments. But be careful, this can leak sensitive information double check it.
 <img width="1840" alt="Screenshot 2024-11-12 at 16 59 18" src="https://github.com/user-attachments/assets/5d047bf6-205f-4b98-b67c-df408eef285f">
 
+## How to save my web articles with Obsidian Web Clipper
+
+Obsidian web clipper works great with File Organizer 2000, it makes it easy to easily not only Organize your clips automatically. But also format them!
+
+Just install [the web clipper]([url](https://obsidian.md/clipper)) and configure it to save your files to _FileOrganizer2000/Inbox
+
+![image](https://github.com/user-attachments/assets/8117cc17-4665-40ac-987f-191ae35e7484)
+
+You can also mix it with "AI Templates" and auto-format certain articles with AI.
+
+
 
 
 ## I'm getting an error on the organizer
