@@ -28,6 +28,7 @@ If it includes "self-hosted" or "dashboard", you are also using the wrong url
 - See youtube video: https://www.youtube.com/watch?v=yVZn-cGOMzE
 - Currently only works with any openAI compatible model
 
+---
 
 ### How to set up auto updates with vercel? (Free)
 
