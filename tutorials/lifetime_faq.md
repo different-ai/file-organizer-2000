@@ -21,6 +21,7 @@ If it includes "self-hosted" or "dashboard", you are also using the wrong url
 
 - Make sure SOLO_API_KEY is your license key and OPENAI_API_KEY is the openAI API key
 
+---
 
 ### How can I change the model? 
 
@@ -96,6 +97,8 @@ jobs:
           git commit -m "Update repository with latest /web content from upstream"
           git push origin main
 ```
+
+---
 
 ### If you need assistance 
 
