@@ -103,7 +103,7 @@ jobs:
 
 ### If you need assistance 
 
-Please make sure your github repository is public. Here's how you can do that if it's not already done: 
+Please make sure your github repository is public before reaching out so we can help you troubleshoot. Here's how you can do that if it's not already done: 
 
 https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/managing-repository-settings/setting-repository-visibility#changing-a-repositorys-visibility
 
