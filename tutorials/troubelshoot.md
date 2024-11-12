@@ -9,7 +9,7 @@ Try to ignore some folders and try again. If it works it means we can't proccess
 
 If you're importing files from another system. Try to put them all in a seperate folder, mark it as ignore and try to do it step by step.
 
-2. It's not that help us help you.
+## Debugging organizer sidebar issues
 
 Open developers settings, reload the organizer side bar by typing refresh, and show us your logs and network tabs. 
 
