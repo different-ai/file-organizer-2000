@@ -12,6 +12,7 @@ export const ExperimentTab: React.FC<ExperimentTabProps> = ({ plugin }) => {
   const [enableScreenpipe, setEnableScreenpipe] = useState(plugin.settings.enableScreenpipe);
   const [enableFabric, setEnableFabric] = useState(plugin.settings.enableFabric);
   const [useInbox, setUseInbox] = useState(plugin.settings.useInbox);
+  const [showLocalLLMInChat, setShowLocalLLMInChat] = useState(plugin.settings.showLocalLLMInChat);
 
   const handleToggleChange = async (value: boolean, setter: React.Dispatch<React.SetStateAction<boolean>>, settingKey: keyof typeof plugin.settings) => {
     setter(value);
@@ -72,6 +73,25 @@ export const ExperimentTab: React.FC<ExperimentTabProps> = ({ plugin }) => {
               }
               value={useInbox}
               onChange={(value) => handleToggleChange(value, setUseInbox, 'useInbox')}
+            />
+            <ToggleSetting
+              name="Local LLM Integration"
+              description={
+                <div className="space-y-2">
+                  <p>Enable local LLM options in the chat interface for offline AI processing.</p>
+                  <div className="mt-2 p-3 bg-[--background-secondary] rounded text-sm space-y-2">
+                    <p className="text-[--text-warning]">⚡ Requires a compatible local LLM setup</p>
+                    <p className="text-[--text-muted]">Currently supports:</p>
+                    <ul className="list-disc pl-4 text-[--text-muted]">
+                      <li>Llama 3.2</li>
+                      <li>Ollama</li>
+                    </ul>
+                    <p className="text-xs text-[--text-faint]">More models coming soon</p>
+                  </div>
+                </div>
+              }
+              value={showLocalLLMInChat}
+              onChange={(value) => handleToggleChange(value, setShowLocalLLMInChat, 'showLocalLLMInChat')}
             />
           </div>
         </div>
