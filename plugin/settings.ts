@@ -9,6 +9,10 @@ export class FileOrganizerSettings {
   backupFolderPath = "_FileOrganizer2000/Backups";
   templatePaths = "_FileOrganizer2000/Templates";
   fabricPaths = "_FileOrganizer2000/Fabric";
+  bypassedFilePath = "_FileOrganizer2000/Bypassed";
+  errorFilePath = "_FileOrganizer2000/Errors";
+
+
   useSimilarTags = true;
   renameInstructions = "Create a concise, descriptive name for the document based on its key content. Prioritize clarity and searchability, using specific terms that will make the document easy to find later. Avoid generic words and focus on unique, identifying elements.";
   usePro = true;
@@ -31,6 +35,7 @@ export class FileOrganizerSettings {
   selectedModel: "gpt-4o" | "llama3.2" = "gpt-4o";
   tagScoreThreshold = 70;
   formatBehavior: "override" | "newFile" = "override";
+  useInbox = false;
   imageInstructions = "Analyze the image and provide a clear, detailed description focusing on the main elements, context, and any text visible in the image. Include relevant details that would be useful for searching and organizing the image later.";
 }
 

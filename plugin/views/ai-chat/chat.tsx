@@ -302,7 +302,7 @@ export const ChatComponent: React.FC<ChatComponentProps> = ({
       const tags = await plugin.getAllVaultTags();
       setAllTags(tags);
 
-      const folders = plugin.getAllNonFo2kFolders();
+      const folders = plugin.getAllUserFolders();
       setAllFolders(folders);
     };
 

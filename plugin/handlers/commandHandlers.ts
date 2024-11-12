@@ -1,7 +1,8 @@
 import { WorkspaceLeaf } from "obsidian";
 import FileOrganizer from "../index";
-import { ORGANIZER_VIEW_TYPE, AssistantViewWrapper } from "../views/organizer";
+import { ORGANIZER_VIEW_TYPE, AssistantViewWrapper } from "../views/organizer/view";
 import { AIChatView, CHAT_VIEW_TYPE } from "../views/ai-chat/view";
+import { Inbox } from "../inbox";
 
 export function initializeChat(plugin: FileOrganizer) {
   plugin.registerView(
@@ -50,8 +51,9 @@ export function initializeFileOrganizationCommands(plugin: FileOrganizer) {
     name: "Put in inbox",
     callback: async () => {
       const activeFile = plugin.app.workspace.getActiveFile();
+      // move to file to inbox
       if (activeFile) {
-        await plugin.processFileV2(activeFile);
+        await plugin.app.vault.rename(activeFile, `${plugin.settings.pathToWatch}/${activeFile.name}`);
       }
     },
   });

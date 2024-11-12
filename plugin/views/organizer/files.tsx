@@ -15,7 +15,7 @@ export const SimilarFilesBox: React.FC<SimilarFilesBoxProps> = ({ plugin, file }
     if (!file) return;
     setLoading(true);
     try {
-      const similarFiles = await plugin.getSimilarFiles(file);
+      const similarFiles = await plugin._experimentalGenerateSimilarFiles(file);
       setFilePaths(similarFiles);
     } catch (error) {
       console.error("Error fetching similar files:", error);
