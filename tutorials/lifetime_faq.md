@@ -28,7 +28,7 @@ If it includes "self-hosted" or "dashboard", you are also using the wrong url
 - Currently only works with any openAI compatible model
 
 
-### How to set up auto updates with vercel? 
+### How to set up auto updates with vercel? (Free)
 
 To set up your instance for auto-updates, you can follow these instructions: 
 
@@ -95,4 +95,12 @@ jobs:
           git add .
           git commit -m "Update repository with latest /web content from upstream"
           git push origin main
+```
+
+### If you need assistance 
+
+Please make sure your github repository is public. Here's how you can do that if it's not already done: 
+
+https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/managing-repository-settings/setting-repository-visibility#changing-a-repositorys-visibility
+
 
