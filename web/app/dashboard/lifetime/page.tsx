@@ -87,11 +87,15 @@ export default async function LifetimeAccessPage() {
                       . Make sure you have added credits to your account.
                     </li>
                     <li>
-                      For the SOLO_API_KEY, use the license key generated in the "Generate License" section below.
+                      For the SOLO_API_KEY, use the license key generated in the
+                      "Generate License" section below.
                     </li>
                   </ul>
                   <p className="mt-4 text-sm">
-                    <strong>Note on Render:</strong> Deployment on Render costs €7/month. However, Render provides automatic updates for your installation, ensuring you always have the latest version.
+                    <strong>Note on Render:</strong> Deployment on Render costs
+                    $7/month. However, Render provides automatic updates for
+                    your installation, ensuring you always have the latest
+                    version.
                   </p>
                 </li>
                 <li className="rounded-lg border bg-card p-4 text-card-foreground shadow-sm">
@@ -121,9 +125,29 @@ export default async function LifetimeAccessPage() {
             </CardHeader>
             <CardContent>
               <a href="obsidian://show-plugin?id=fileorganizer2000">
-                <Button className="w-full" variant="default">Download</Button>
+                <Button className="w-full" variant="default">
+                  Download
+                </Button>
               </a>
-              <p className="mt-3 text-sm text-muted-foreground">Requires Obsidian app.</p>
+              <p className="mt-3 text-sm text-muted-foreground">
+                Requires Obsidian app.
+              </p>
+            </CardContent>
+          </Card>
+
+          <Card className="mt-8 p-4 bg-transparent inline-block">
+            <CardHeader>
+              <CardTitle className="text-center mb-3">Need Help?</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <a
+                href="https://github.com/different-ai/file-organizer-2000/blob/master/tutorials/lifetime_faq.md"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-[--text-accent] hover:text-[--text-accent-hover]"
+              >
+                Check out our FAQ
+              </a>
             </CardContent>
           </Card>
         </footer>
