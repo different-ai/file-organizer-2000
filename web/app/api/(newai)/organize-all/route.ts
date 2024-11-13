@@ -49,8 +49,7 @@ export async function POST(request: NextRequest) {
       }),
       system: `You are an expert document organizer. Analyze the given content and:
 1. Suggest relevant folders (using existing folders: ${folders.join(", ")})
-2. Generate clear, concise titles (avoid special characters)
-3. Suggest relevant tags (existing tags: ${existingTags?.join(", ") || "none"})
+2. Suggest relevant tags (existing tags: ${existingTags?.join(", ") || "none"})
 ${classifications ? `4. Classify the document type only using these classifications: ${classifications?.join(", ") || "none"}` : ""}
 ${customInstructions ? `Additional instructions: ${customInstructions}` : ""}
 
