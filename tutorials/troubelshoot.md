@@ -1,3 +1,17 @@
+## Activating your License
+
+General Settings
+License Configuration
+
+File Organizer License Key: Activation key required to unlock full functionality
+
+Status indicator shows if license is currently activated
+"Get License" button redirects to purchase page
+Support for open-source development available through website
+
+<img width="1840" alt="Screenshot 2024-11-13 at 14 41 20" src="https://github.com/user-attachments/assets/9a491629-0b00-463e-a9dd-808e55ebe74e">
+
+
 ## What to do when you got an error
 
 Submit a [new issue with steps to reproduce](https://github.com/different-ai/file-organizer-2000/issues/new/choose)
