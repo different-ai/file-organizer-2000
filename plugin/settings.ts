@@ -40,6 +40,8 @@ export class FileOrganizerSettings {
     "Analyze the image and provide a clear, detailed description focusing on the main elements, context, and any text visible in the image. Include relevant details that would be useful for searching and organizing the image later.";
   debugMode = false;
   enableTitleSuggestions = false;
+  contentCutoffChars = 1000;
+  maxFormattingTokens = 100 * 1000;
 }
 
 export const DEFAULT_SETTINGS = new FileOrganizerSettings();

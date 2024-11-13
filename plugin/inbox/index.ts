@@ -7,8 +7,17 @@ import { FileRecord, QueueStatus } from "./types";
 import { logMessage } from "../someUtils";
 import { IdService } from "./services/id-service";
 import { logger } from "../services/logger";
+import {
+  initializeTokenCounter,
+  getTokenCount,
+  cleanup,
+} from "../utils/token-counter";
 
+// Move constants to the top level and ensure they're used consistently
 const CONTENT_PREVIEW_LENGTH = 500;
+const MAX_CONCURRENT_TASKS = 20;
+const MAX_CONCURRENT_MEDIA_TASKS = 5;
+const TOKEN_LIMIT = 50000; // 50k tokens limit for formatting
 
 export interface FolderSuggestion {
   isNewFolder: boolean;
@@ -70,7 +79,8 @@ interface ProcessingContext {
 export class Inbox {
   protected static instance: Inbox;
   private plugin: FileOrganizer;
-  private readonly MAX_CONCURRENT_TASKS: number = 100;
+  private activeMediaTasks: number = 0;
+  private mediaQueue: Array<TFile> = [];
 
   private queue: Queue<TFile>;
   private recordManager: RecordManager;
@@ -100,6 +110,7 @@ export class Inbox {
   public static cleanup(): void {
     if (Inbox.instance) {
       Inbox.instance.queue.clear();
+      cleanup(); // Clean up token counter
       // @ts-ignore - We know what we're doing here
       Inbox.instance = null;
     }
@@ -111,35 +122,103 @@ export class Inbox {
 
   public enqueueFiles(files: TFile[]): void {
     logMessage(`Enqueuing ${files.length} files`);
-    for (const file of files) {
+
+    // Separate media and non-media files
+    const [mediaFiles, regularFiles] = files.reduce<[TFile[], TFile[]]>(
+      (acc, file) => {
+        if (this.plugin.shouldCreateMarkdownContainer(file)) {
+          acc[0].push(file);
+        } else {
+          acc[1].push(file);
+        }
+        return acc;
+      },
+      [[], []]
+    );
+
+    // First enqueue regular files
+    for (const file of regularFiles) {
       const hash = this.idService.generateFileHash(file);
       const record = this.recordManager.createOrUpdateFileRecord(file);
-
       this.recordManager.updateFileStatus(
         record,
         "queued",
         "File enqueued for processing"
       );
-
-      this.queue.add(file, {
-        metadata: { hash },
-      });
+      this.queue.add(file, { metadata: { hash } });
     }
-    logMessage(`Enqueued ${this.getQueueStats().queued} files`);
+
+    // Then enqueue media files
+    for (const file of mediaFiles) {
+      const hash = this.idService.generateFileHash(file);
+      const record = this.recordManager.createOrUpdateFileRecord(file);
+      this.recordManager.updateFileStatus(
+        record,
+        "queued",
+        "Media file enqueued for processing"
+      );
+      this.queue.add(file, { metadata: { hash } });
+    }
+
+    logMessage(
+      `Enqueued ${regularFiles.length} regular files and ${mediaFiles.length} media files`
+    );
   }
 
   private initializeQueue(): void {
     this.queue = new Queue<TFile>({
-      concurrency: this.MAX_CONCURRENT_TASKS,
+      concurrency: MAX_CONCURRENT_TASKS,
       timeout: 30000,
       onProcess: async (file: TFile, metadata?: Record<string, any>) => {
-        await this.processInboxFile(file);
+        try {
+          const isMediaFile = this.plugin.shouldCreateMarkdownContainer(file);
+
+          if (isMediaFile) {
+            // Check if we can process more media files
+            if (this.activeMediaTasks >= MAX_CONCURRENT_MEDIA_TASKS) {
+              // Add to media queue and skip for now
+              this.mediaQueue.push(file);
+              if (metadata?.hash) {
+                this.queue.remove(metadata.hash);
+              }
+              return;
+            }
+            this.activeMediaTasks++;
+          }
+
+          await this.processInboxFile(file);
+
+          if (isMediaFile) {
+            this.activeMediaTasks--;
+            // Process next media file if available
+            this.processNextMediaFile();
+          }
+        } finally {
+          if (metadata?.hash) {
+            this.queue.remove(metadata.hash);
+          }
+        }
       },
-      onComplete: (file: TFile, metadata?: Record<string, any>) => {},
-      onError: (error: Error, file: TFile, metadata?: Record<string, any>) => {
+      onComplete: () => {},
+      onError: (error: Error) => {
         logger.error("Queue processing error:", error);
       },
     });
+  }
+
+  private async processNextMediaFile(): Promise<void> {
+    if (
+      this.mediaQueue.length === 0 ||
+      this.activeMediaTasks >= MAX_CONCURRENT_MEDIA_TASKS
+    ) {
+      return;
+    }
+
+    const nextFile = this.mediaQueue.shift();
+    if (nextFile) {
+      const hash = this.idService.generateFileHash(nextFile);
+      this.queue.add(nextFile, { metadata: { hash } });
+    }
   }
 
   public getFileStatus(filePath: string): FileRecord | undefined {
@@ -156,6 +235,13 @@ export class Inbox {
 
   public getQueueStats(): QueueStatus {
     return this.queue.getStats();
+  }
+
+  public getMediaProcessingStats(): { active: number; queued: number } {
+    return {
+      active: this.activeMediaTasks,
+      queued: this.mediaQueue.length,
+    };
   }
 
   // Refactored method using a pipeline-style processing
@@ -186,8 +272,6 @@ export class Inbox {
         .then(processFileStep)
         .then(formatContentStep)
         .then(completeProcessing);
-
-      this.queue.remove(context.hash);
     } catch (error) {
       logger.error("Error processing inbox file:", error);
       await handleError(error, context);
@@ -227,11 +311,20 @@ async function extractTextStep(
   context: ProcessingContext
 ): Promise<ProcessingContext> {
   try {
-    const text = await context.plugin.getTextFromFile(context.file);
-    logger.info("Extracted text", text);
-    context.content = text;
+    if (context.plugin.shouldCreateMarkdownContainer(context.file)) {
+      // Handle image/media files
+      const content = await context.plugin.generateImageAnnotation(context.file);
+      logger.info("Extracted text from image/media", content);
+      context.content = content;
+    } else {
+      // Handle regular text files
+      const text = await context.plugin.getTextFromFile(context.file);
+      logger.info("Extracted text from file", text);
+      context.content = text;
+    }
     return context;
   } catch (error) {
+    logger.error("Error in extractTextStep:", error);
     context.recordManager.recordError(context.record, error);
     throw error;
   }
@@ -241,6 +334,25 @@ async function preprocessContentStep(
   context: ProcessingContext
 ): Promise<ProcessingContext> {
   if (!context.content) return context;
+
+  // Strip front matter before checking content length
+  const contentWithoutFrontMatter = context.content
+    .replace(/^---\n[\s\S]*?\n---\n/, "")
+    .trim();
+
+  // Check for minimum content length (ignoring front matter)
+  if (contentWithoutFrontMatter.length < 5) {
+    logger.info(
+      "Content too short (excluding front matter), bypassing processing"
+    );
+    context.queue.bypass(context.hash);
+    await moveFileToBypassedFolder(context);
+    context.recordManager.recordProcessingBypassed(
+      context.record,
+      "Content too short (less than 5 characters, excluding front matter)"
+    );
+    throw new Error("Content too short (excluding front matter)");
+  }
 
   // Check if content appears to be binary
   const isBinary = /[\u0000-\u0008\u000E-\u001F]/.test(
@@ -278,26 +390,15 @@ async function classifyDocument(
 ): Promise<ProcessingContext> {
   if (!context.plugin.settings.enableDocumentClassification) return context;
   const templateNames = await context.plugin.getTemplateNames();
-  const response = await fetch(
-    `${context.plugin.getServerUrl()}/api/classify-v2`,
-    {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${context.plugin.settings.API_KEY}`,
-      },
-      body: JSON.stringify({
-        content: context.content,
-        fileName: context.file.name,
-        templateNames,
-      }),
-    }
+  const result = await context.plugin.classifyContentV2(
+    context.content,
+    templateNames
   );
-
-  if (!response.ok)
-    throw new Error(`Classification failed: ${response.statusText}`);
-  const result = await response.json();
-  context.classification = result.classification;
+  context.classification = {
+    documentType: result,
+    confidence: 100,
+    reasoning: "N/A",
+  };
 
   if (context.classification) {
     context.recordManager.recordClassification(
@@ -316,33 +417,12 @@ async function classifyDocument(
 async function suggestFolder(
   context: ProcessingContext
 ): Promise<ProcessingContext> {
-  const folders = await context.plugin.app.vault
-    .getAllLoadedFiles()
-    .filter(file => file instanceof TFolder)
-    .map(folder => folder.path);
-
-  const response = await fetch(
-    `${context.plugin.getServerUrl()}/api/folders/v2`,
-    {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${context.plugin.settings.API_KEY}`,
-      },
-      body: JSON.stringify({
-        content: context.content,
-        fileName: context.file.name,
-        folders,
-        count: 1,
-        customInstructions: context.plugin.settings.customFolderInstructions,
-      }),
-    }
+  const recommendedFolders = await context.plugin.recommendFolders(
+    context.content,
+    context.file.name
   );
 
-  if (!response.ok)
-    throw new Error(`Folder suggestion failed: ${response.statusText}`);
-  const result = await response.json();
-  context.newPath = result.folders[0]?.folder;
+  context.newPath = recommendedFolders[0]?.folder;
 
   if (context.newPath) {
     // Create folder structure immediately
@@ -366,27 +446,11 @@ async function suggestFolder(
 async function suggestTitle(
   context: ProcessingContext
 ): Promise<ProcessingContext> {
-  const response = await fetch(
-    `${context.plugin.getServerUrl()}/api/title/v2`,
-    {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${context.plugin.settings.API_KEY}`,
-      },
-      body: JSON.stringify({
-        content: context.content,
-        fileName: context.file.name,
-        count: 1,
-        customInstructions: context.plugin.settings.renameInstructions,
-      }),
-    }
+  const result = await context.plugin.recommendName(
+    context.content,
+    context.file.name
   );
-
-  if (!response.ok)
-    throw new Error(`Title suggestion failed: ${response.statusText}`);
-  const result = await response.json();
-  context.newName = result.titles[0]?.title;
+  context.newName = result[0]?.title;
 
   if (context.newName) {
     context.recordManager.recordRename(
@@ -407,16 +471,43 @@ async function formatContentStep(
   if (!context.classification || context.classification.confidence < 80) {
     return context;
   }
+  // get token amount from token counter
+  await initializeTokenCounter();
+  const tokenAmount = getTokenCount(context.content);
+  cleanup();
+  if (tokenAmount > context.plugin.settings.maxFormattingTokens) {
+    logger.info("Skipping formatting: content too large", {
+      tokenAmount,
+      maxFormattingTokens: context.plugin.settings.maxFormattingTokens,
+    });
+    return context;
+  }
 
   try {
-    const instructions = await context.plugin.getTemplateInstructions(
-      context.classification.documentType
-    );
-
     // Make sure we have content to format
     if (!context.content) {
       throw new Error("No content available for formatting");
     }
+
+    // Initialize token counter if needed
+    await initializeTokenCounter();
+
+    // Check token count
+    const tokenCount = getTokenCount(context.content);
+    if (tokenCount > TOKEN_LIMIT) {
+      logger.info(
+        `Skipping formatting: content too large (${tokenCount} tokens)`
+      );
+      context.recordManager.recordProcessingBypassed(
+        context.record,
+        `Content too large for formatting (${tokenCount} tokens)`
+      );
+      return context;
+    }
+
+    const instructions = await context.plugin.getTemplateInstructions(
+      context.classification.documentType
+    );
 
     // Call the new v2 endpoint
     const response = await fetch(
@@ -453,57 +544,74 @@ async function processFileStep(
   context: ProcessingContext
 ): Promise<ProcessingContext> {
   try {
-    const isMediaFile = context.plugin.shouldCreateMarkdownContainer(
-      context.file
-    );
+    const isMediaFile = context.plugin.shouldCreateMarkdownContainer(context.file);
     const finalPath = `${context.newPath}/${context.newName}.md`;
 
     if (isMediaFile) {
-      // Media file processing
-      // Ensure we have string content
-      const contentToUse = (
-        context.formattedContent ||
-        context.content ||
-        ""
-      ).toString();
+      // Add error handling for media files
+      try {
+        // Ensure we have string content
+        const contentToUse = (
+          context.formattedContent ||
+          context.content ||
+          "No content extracted"
+        ).toString();
 
-      const containerContent = [
-        "---",
-        `original-file: ${context.file.name}`,
-        "---",
-        "",
-        contentToUse,
-        "", // Empty line for separation
-      ].join("\n");
+        // Add front matter with metadata
+        const containerContent = [
+          "---",
+          `original-file: ${context.file.name}`,
+          `processed-date: ${moment().format('YYYY-MM-DD HH:mm:ss')}`,
+          `file-type: ${context.file.extension}`,
+          "---",
+          "",
+          contentToUse,
+          "", // Empty line for separation
+        ].join("\n");
 
-      context.containerFile = await createFile(
-        context,
-        finalPath,
-        containerContent
-      );
+        // Create container file with better error handling
+        context.containerFile = await createFile(
+          context,
+          finalPath,
+          containerContent
+        ).catch(error => {
+          logger.error("Failed to create container file:", error);
+          throw error;
+        });
 
-      // 2. Create attachments folder
-      const attachmentFolderPath = `${context.newPath}/attachments`;
-      await ensureFolder(context, attachmentFolderPath);
+        // Create attachments folder with better path handling
+        const attachmentFolderPath = `${context.newPath}/attachments`;
+        await ensureFolder(context, attachmentFolderPath);
 
-      // 3. Move the original media file to attachments folder
-      const attachmentPath = `${attachmentFolderPath}/${context.file.name}`;
-      await moveFile(context, context.file, attachmentPath);
-      context.attachmentFile = context.plugin.app.vault.getAbstractFileByPath(
-        attachmentPath
-      ) as TFile;
+        // Move the original media file with better error handling
+        const attachmentPath = `${attachmentFolderPath}/${context.file.name}`;
+        await moveFile(context, context.file, attachmentPath);
+        
+        context.attachmentFile = context.plugin.app.vault.getAbstractFileByPath(
+          attachmentPath
+        ) as TFile;
 
-      // 4. Update the container file with the attachment reference
-      const finalContent = [
-        containerContent,
-        "## Original File",
-        `![[${context.attachmentFile.path}]]`,
-      ].join("\n");
+        if (!context.attachmentFile) {
+          throw new Error("Failed to locate moved attachment file");
+        }
 
-      await context.plugin.app.vault.modify(
-        context.containerFile,
-        finalContent
-      );
+        // Update container with attachment reference
+        const finalContent = [
+          containerContent,
+          "## Original File",
+          `![[${context.attachmentFile.path}]]`,
+        ].join("\n");
+
+        await context.plugin.app.vault.modify(
+          context.containerFile,
+          finalContent
+        );
+
+      } catch (mediaError) {
+        logger.error("Media processing error:", mediaError);
+        context.recordManager.recordError(context.record, mediaError);
+        throw mediaError;
+      }
     } else {
       // Regular file processing
       if (context.formattedContent) {
@@ -607,7 +715,7 @@ async function moveFile(
 
     const exists = await context.plugin.app.vault.adapter.exists(newPath);
     if (exists) {
-      const timestamp = moment.format("YYYY-MM-DD-HHmmss");
+      const timestamp = moment().format("YYYY-MM-DD-HHmmss");
       const parts = newPath.split(".");
       const ext = parts.pop();
       newPath = `${parts.join(".")}-${timestamp}.${ext}`;

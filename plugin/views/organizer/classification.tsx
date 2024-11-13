@@ -1,10 +1,11 @@
 import * as React from "react";
 import { TFile, Notice } from "obsidian";
 import FileOrganizer from "../../index";
-import { ClassificationBox } from "./ai-format/user-templates";
+import { UserTemplates } from "./ai-format/user-templates";
 import { DEFAULT_SETTINGS } from "../../settings";
 import { logger } from "../../services/logger";
 import { FabricClassificationBox } from "./ai-format/fabric-templates";
+import { getTokenCount } from "../../utils/token-counter";
 
 
 interface ClassificationBoxProps {
@@ -24,10 +25,18 @@ export const ClassificationContainer: React.FC<ClassificationBoxProps> = ({
     "override" | "newFile"
   >(plugin.settings.formatBehavior || DEFAULT_SETTINGS.formatBehavior);
   const [backupFile, setBackupFile] = React.useState<string | null>(null);
+  // check if file is too large
+
 
   const handleFormat = async (templateName: string) => {
     if (!file) {
       logger.error("No file selected");
+      return;
+    }
+    // use tiktotken to check file size
+    const tokenCount = getTokenCount(content);
+    if (tokenCount > 128000) {
+      new Notice("File is too large to format", 3000);
       return;
     }
     try {
@@ -121,7 +130,7 @@ export const ClassificationContainer: React.FC<ClassificationBoxProps> = ({
             <option value="newFile">New File</option>
           </select>
         </div>
-        <ClassificationBox
+        <UserTemplates
           plugin={plugin}
           file={file}
           content={content}

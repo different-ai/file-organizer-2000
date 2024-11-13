@@ -3,8 +3,13 @@ import { TFile } from "obsidian";
 import FileOrganizer from "../../../index";
 import { logMessage } from "../../../someUtils";
 import { logger } from "../../../services/logger";
+import {
+  cleanup,
+  getTokenCount,
+  initializeTokenCounter,
+} from "../../../utils/token-counter";
 
-interface ClassificationBoxProps {
+interface UserTemplatesProps {
   plugin: FileOrganizer;
   file: TFile | null;
   content: string;
@@ -12,7 +17,7 @@ interface ClassificationBoxProps {
   onFormat: (templateName: string) => void;
 }
 
-export const ClassificationBox: React.FC<ClassificationBoxProps> = ({
+export const UserTemplates: React.FC<UserTemplatesProps> = ({
   plugin,
   file,
   content,
@@ -33,6 +38,30 @@ export const ClassificationBox: React.FC<ClassificationBoxProps> = ({
   >("loading");
   const [errorMessage, setErrorMessage] = React.useState<string | null>(null);
   const dropdownRef = React.useRef<HTMLDivElement>(null);
+  const [isFileTooLarge, setIsFileTooLarge] = React.useState<boolean>(false);
+
+  React.useEffect(() => {
+    let isMounted = true;
+
+    const checkTokenCount = async () => {
+      try {
+        await initializeTokenCounter();
+        if (isMounted) {
+          const tokenCount = getTokenCount(content);
+          setIsFileTooLarge(tokenCount > 128000);
+        }
+      } catch (error) {
+        console.error("Error checking token count:", error);
+      }
+    };
+
+    checkTokenCount();
+
+    return () => {
+      isMounted = false;
+      cleanup();
+    };
+  }, [content]);
 
   React.useEffect(() => {
     const fetchClassificationAndTemplates = async () => {
@@ -96,36 +125,6 @@ export const ClassificationBox: React.FC<ClassificationBoxProps> = ({
       document.removeEventListener("mousedown", handleClickOutside);
     };
   }, [content, file, plugin, refreshKey]);
-
-  const handleFormat = async (templateName: string) => {
-    try {
-      setFormatting(true);
-      if (!file) throw new Error("No file selected");
-      if (!templateName) {
-        throw new Error("Invalid template name");
-      }
-      const fileContent = await plugin.app.vault.read(file);
-      if (typeof fileContent !== "string") {
-        throw new Error("File content is not a string");
-      }
-      const formattingInstruction = await plugin.getTemplateInstructions(
-        templateName
-      );
-
-      await plugin.streamFormatInSplitView({
-        file: file,
-        content: fileContent,
-        formattingInstruction: formattingInstruction,
-      });
-
-      setSelectedTemplateName(null);
-    } catch (error) {
-      logger.error("Error in handleFormat:", error);
-      setErrorMessage((error as Error).message);
-    } finally {
-      setFormatting(false);
-    }
-  };
 
   const getDisplayText = () => {
     if (selectedTemplateName) {
@@ -204,13 +203,18 @@ export const ClassificationBox: React.FC<ClassificationBoxProps> = ({
             </div>
           )}
         </div>
+        {isFileTooLarge && (
+          <div className="text-[--text-error] p-2 rounded-md bg-[--background-modifier-error]">
+            File is too large to format.
+          </div>
+        )}
         <button
           className={`px-4 py-2 rounded-md transition-colors duration-200 ${
             !selectedTemplateName || formatting
               ? "bg-[--background-modifier-border] text-[--text-muted] cursor-not-allowed"
               : "bg-[--interactive-accent] text-white hover:bg-[--interactive-accent-hover]"
           }`}
-          disabled={!selectedTemplateName || formatting}
+          disabled={!selectedTemplateName || formatting || isFileTooLarge}
           onClick={handleFormatClick}
         >
           {formatting ? "Applying..." : "Apply"}
@@ -219,9 +223,5 @@ export const ClassificationBox: React.FC<ClassificationBoxProps> = ({
     );
   };
 
-  return (
-    <div className="">
-      {renderContent()}
-    </div>
-  );
+  return <div className="">{renderContent()}</div>;
 };

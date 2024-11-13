@@ -11,7 +11,7 @@ const tagsSchema = z.object({
     isNew: z.boolean(),
     tag: z.string(),
     reason: z.string(),
-  })).min(1).max(10)
+  }))
 });
 
 export async function POST(request: NextRequest) {

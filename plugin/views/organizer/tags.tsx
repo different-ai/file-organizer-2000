@@ -42,7 +42,7 @@ export const SimilarTags: React.FC<SimilarTagsProps> = ({
 
       try {
         const vaultTags = await plugin.getAllVaultTags();
-        const suggestedTags = await plugin.guessRelevantTags(
+        const suggestedTags = await plugin.recommendTags(
           content,
           file.basename,
           vaultTags

@@ -46,7 +46,7 @@ const ActionLog: React.FC<{ record: FileRecord }> = ({ record }) => {
   if (!record.actions?.length) return null;
 
   return (
-    <div className="p-4 space-y-2 bg-[--background-primary] rounded-lg">
+    <div className="p-4 space-y-2 bg-[--background-primary] rounded-lg overflow-x-auto">
       {record.actions.map((action, index) => (
         <div key={index} className="flex items-start gap-3 text-sm">
           <div className="w-20 text-[--text-muted]">
@@ -114,31 +114,17 @@ const ActionLog: React.FC<{ record: FileRecord }> = ({ record }) => {
 function FileCard({ file }: { file: FileRecord }) {
   const [isExpanded, setIsExpanded] = React.useState(false);
   const plugin = usePlugin();
-  const nameTransitionVariants = {
-    initial: {
-      opacity: 1,
-    },
-    renamed: {
-      opacity: 0.8,
-      textDecoration: "line-through",
-    },
-  };
-  const getStatusBadgeClass = (status: FileStatus) => {
-    const baseClasses =
-      "py-1 rounded-full text-sm font-medium whitespace-nowrap";
-    const statusColors = {
-      queued:
-        "bg-opacity-20 text-[--text-warning] border border-[--text-warning]",
-      processing:
-        "bg-opacity-20 text-[--text-accent] border border-[--text-accent]",
-      completed:
-        "bg-opacity-20 text-[--text-success] border border-[--text-success]",
-      error: "bg-opacity-20 text-[--text-error] border border-[--text-error]",
-      bypassed:
-        "bg-opacity-20 text-[--text-muted] border border-[--text-muted]",
-    } as const;
 
-    return `${baseClasses} ${statusColors[status] || ""}`;
+  // Status indicator colors without text
+  const getStatusColor = (status: FileStatus) => {
+    const colors = {
+      queued: "bg-[--text-warning]",
+      processing: "bg-[--text-accent]",
+      completed: "bg-[--text-success]",
+      error: "bg-[--text-error]",
+      bypassed: "bg-[--text-muted]",
+    } as const;
+    return colors[status] || "";
   };
 
   return (
@@ -146,120 +132,129 @@ function FileCard({ file }: { file: FileRecord }) {
       layout
       className="bg-[--background-primary] border border-[--background-modifier-border] rounded-lg w-full"
     >
-      <div className="p-4">
-        <div className="flex items-center justify-between mb-2">
-          <div className="flex items-center gap-2 flex-1">
-            <motion.span
-              variants={nameTransitionVariants}
-              initial="initial"
-              animate={file.newName ? "renamed" : "initial"}
-              className="font-medium"
-            >
-              {file.fileName}
-            </motion.span>
+      <div className="p-4 relative">
+        {/* Status indicator dot */}
+        <div
+          className={`absolute top-4 right-4 w-2.5 h-2.5 rounded-full ${getStatusColor(
+            file.status
+          )}`}
+        />
 
-            {file.newName && (
-              <motion.span
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                className="text-[--text-accent] cursor-pointer"
-                onClick={() => {
-                  logger.info("opening file", file);
-                  plugin.app.workspace.openLinkText(
-                    file.newName,
-                    file.newPath
-                  );
-                }}
+        {/* Main content */}
+        <div className="pr-8">
+          {/* Filename section */}
+          <div className="flex items-center gap-2 mb-3">
+            {file.newName && file.newName !== file.fileName ? (
+              <div className="flex items-center gap-2">
+                <span className="text-[--text-muted] line-through">
+                  {file.fileName}
+                </span>
+                <span className="text-[--text-accent]">→</span>
+                <span
+                  className="text-[--text-accent] cursor-pointer hover:underline"
+                  onClick={() =>
+                    plugin.app.workspace.openLinkText(
+                      file.newName,
+                      file.newPath
+                    )
+                  }
+                >
+                  {file.newName}
+                </span>
+              </div>
+            ) : (
+              <span
+                className="text-[--text-accent] cursor-pointer hover:underline"
+                onClick={() =>
+                  plugin.app.workspace.openLinkText(file.fileName, file.path)
+                }
               >
-                → {file.newName}
-              </motion.span>
+                {file.fileName}
+              </span>
             )}
           </div>
+
+          {/* Expand/collapse button */}
           <button
             onClick={() => setIsExpanded(!isExpanded)}
-            className="shadow-none p-1 hover:bg-[--background-modifier-hover] rounded-full"
+            className="flex items-center gap-2 text-[--text-muted] hover:text-[--text-normal] text-sm"
           >
             <ChevronDown
               className={`w-4 h-4 transition-transform ${
-                isExpanded ? "transform rotate-180" : ""
+                isExpanded ? "rotate-180" : ""
               }`}
             />
+            {isExpanded ? "Less details" : "More details"}
           </button>
         </div>
 
-        {/* Add classification and destination info */}
-        {(file.classification || file.destinationFolder) && (
-          <div className="mt-2 space-y-2">
-            {file.classification && (
-              <div className="flex items-center gap-2 text-sm group">
-                <span className="text-[--text-muted]">Classification:</span>
-                <span className="font-medium relative">
-                  {file.classification.documentType}
-                  {/* Confidence tooltip on hover */}
-                  <span className="absolute left-1/2 -translate-x-1/2 -top-8 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
-                    <span className={`px-2 py-0.5 rounded-full text-xs whitespace-nowrap ${
-                      file.classification.confidence >= 50
-                        ? "bg-[--background-modifier-success-rgb] text-[--text-success]"
-                        : "bg-[--background-modifier-error-rgb] text-[--text-error]"
-                    }`}>
-                      {file.classification.confidence}% confident
+        {/* Expanded content */}
+        <AnimatePresence>
+          {isExpanded && (
+            <motion.div
+              initial={{ height: 0, opacity: 0 }}
+              animate={{ height: "auto", opacity: 1 }}
+              exit={{ height: 0, opacity: 0 }}
+              transition={{ duration: 0.2 }}
+              className="mt-4 space-y-4 border-t border-[--background-modifier-border] pt-4"
+            >
+              {/* Classification */}
+              {file.classification && (
+                <div className="flex items-center gap-2">
+                  <span className="text-[--text-muted] text-sm">AI Template:</span>
+                  <span
+                    className="text-sm cursor-pointer hover:text-[--text-accent]"
+                    onClick={() => {
+                      // Add your classification click handler here
+                      plugin.app.workspace.openLinkText(
+                        file.classification.documentType,
+                        plugin.settings.templatePaths
+                      );
+                      console.log(
+                        "Classification clicked:",
+                        file.classification
+                      );
+                    }}
+                  >
+                    {file.classification.documentType}
+                    <span className="ml-2 text-[--text-muted]">
+                      ({file.classification.confidence}% confidence)
                     </span>
                   </span>
-                </span>
-                {file.formattedContent && (
-                  <span className="text-[--text-success] text-xs">
-                    ✓ Content formatted
-                  </span>
-                )}
-              </div>
-            )}
+                </div>
+              )}
 
-            {file.destinationFolder && (
-              <div className="flex items-center gap-2 text-sm">
-                <span className="text-[--text-muted]">Destination:</span>
-                <code className="px-2 py-0.5 bg-[--background-primary] rounded">
-                  {file.destinationFolder}
-                </code>
-              </div>
-            )}
-          </div>
-        )}
+              {/* Destination folder */}
+              {file.destinationFolder && (
+                <div className="flex items-center gap-2">
+                  <span className="text-[--text-muted] text-sm">Location:</span>
+                  <span className="text-sm">{file.destinationFolder}</span>
+                </div>
+              )}
 
-        <div className="flex justify-between items-end">
-          <div className="flex items-center gap-2">
-            <span className={getStatusBadgeClass(file.status)}>
-              {file.status}
-            </span>
-            {file.tags && file.tags.length > 0 && (
-              <div className="flex gap-1">
-                {file.tags.map((tag, index) => (
-                  <span
-                    key={index}
-                    className="px-2 py-1 bg-[--background-secondary] rounded-full text-xs"
-                  >
-                    {tag}
-                  </span>
-                ))}
-              </div>
-            )}
-          </div>
-        </div>
+              {/* Tags */}
+              {file.tags && file.tags.length > 0 && (
+                <div className="flex items-center gap-2">
+                  <span className="text-[--text-muted] text-sm">Tags:</span>
+                  <div className="flex flex-wrap gap-1">
+                    {file.tags.map((tag, index) => (
+                      <span
+                        key={index}
+                        className="px-2 py-0.5 bg-[--background-secondary] rounded-full text-xs"
+                      >
+                        {tag}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Action log */}
+              <ActionLog record={file} />
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
-
-      {/* Add the new expandable details section */}
-      <AnimatePresence>
-        {isExpanded && (
-          <motion.div
-            initial={{ height: 0, opacity: 0 }}
-            animate={{ height: "auto", opacity: 1 }}
-            exit={{ height: 0, opacity: 0 }}
-            transition={{ duration: 0.2 }}
-            className="overflow-hidden border-t border-[--background-modifier-border]"
-          >
-            <ActionLog record={file} />
-          </motion.div>
-        )}
-      </AnimatePresence>
     </motion.div>
   );
 }

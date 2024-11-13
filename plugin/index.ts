@@ -411,7 +411,7 @@ export default class FileOrganizer extends Plugin {
     newName: string
   ): Promise<void> {
     const existingTags = await this.getAllVaultTags();
-    const similarTags = await this.guessRelevantTags(
+    const similarTags = await this.recommendTags(
       content,
       file.path,
       existingTags
@@ -896,6 +896,8 @@ export default class FileOrganizer extends Plugin {
     classifications: string[]
   ): Promise<string> {
     const serverUrl = this.getServerUrl();
+    const cutoff = this.settings.contentCutoffChars;
+    const trimmedContent = content.slice(0, cutoff);
     const response = await fetch(`${serverUrl}/api/classify1`, {
       method: "POST",
       headers: {
@@ -903,7 +905,7 @@ export default class FileOrganizer extends Plugin {
         Authorization: `Bearer ${this.settings.API_KEY}`,
       },
       body: JSON.stringify({
-        content,
+        content: trimmedContent,
         templateNames: classifications,
       }),
     });
@@ -1265,22 +1267,23 @@ export default class FileOrganizer extends Plugin {
   async extractTextFromImage(image: ArrayBuffer): Promise<string> {
     const base64Image = arrayBufferToBase64(image);
 
-    const response = await makeApiRequest(() =>
-      requestUrl({
-        url: `${this.getServerUrl()}/api/vision`,
-        method: "POST",
-        contentType: "application/json",
-        body: JSON.stringify({
-          image: base64Image,
-          instructions: this.settings.imageInstructions,
-        }),
-        throw: false,
-        headers: {
-          Authorization: `Bearer ${this.settings.API_KEY}`,
-        },
-      })
-    );
-    const { text } = await response.json;
+    const response = await fetch(`${this.getServerUrl()}/api/vision`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${this.settings.API_KEY}`,
+      },
+      body: JSON.stringify({
+        image: base64Image,
+        instructions: this.settings.imageInstructions,
+      }),
+    });
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    const { text } = await response.json();
     return text;
   }
 
@@ -1342,16 +1345,19 @@ export default class FileOrganizer extends Plugin {
       return this.settings.defaultDestinationPath;
     }
 
-    const guessedFolders = await this.guessRelevantFolders(content, filePath);
+    const guessedFolders = await this.recommendFolders(content, filePath);
     destinationFolder =
       guessedFolders[0].folder || this.settings.defaultDestinationPath;
     return destinationFolder;
   }
-  async guessRelevantTags(
+  async recommendTags(
     content: string,
     filePath: string,
     existingTags: string[] // Add this parameter to match the expected request body
   ): Promise<{ score: number; tag: string; reason: string; isNew: boolean }[]> {
+    // trimmed content
+    const cutoff = this.settings.contentCutoffChars;
+    const trimmedContent = content.slice(0, cutoff);
     const response = await fetch(`${this.getServerUrl()}/api/tags/v2`, {
       method: "POST",
       headers: {
@@ -1359,7 +1365,7 @@ export default class FileOrganizer extends Plugin {
         Authorization: `Bearer ${this.settings.API_KEY}`,
       },
       body: JSON.stringify({
-        content,
+        content: trimmedContent,
         fileName: filePath,
         existingTags, // Include existingTags in the request body
       }),
@@ -1373,11 +1379,13 @@ export default class FileOrganizer extends Plugin {
     return suggestedTags;
   }
 
-  async guessRelevantFolders(
+  async recommendFolders(
     content: string,
     filePath: string
   ): Promise<FolderSuggestion[]> {
     const customInstructions = this.settings.customFolderInstructions;
+    const cutoff = this.settings.contentCutoffChars;
+    const trimmedContent = content.slice(0, cutoff);
 
     const folders = this.getAllUserFolders();
     const response = await fetch(`${this.getServerUrl()}/api/folders/v2`, {
@@ -1387,7 +1395,7 @@ export default class FileOrganizer extends Plugin {
         Authorization: `Bearer ${this.settings.API_KEY}`,
       },
       body: JSON.stringify({
-        content,
+        content: trimmedContent,
         fileName: filePath,
         folders,
         customInstructions,
@@ -1442,6 +1450,7 @@ export default class FileOrganizer extends Plugin {
     logger.configure(this.settings.debugMode);
 
     await this.saveSettings();
+    await ensureFolderExists(this.app, this.settings.logFolderPath);
 
     initializeInboxQueue(this);
 
@@ -1545,10 +1554,14 @@ export default class FileOrganizer extends Plugin {
     return templateFiles.map(file => file.basename);
   }
 
-  async guessTitles(
+  async recommendName(
     content: string,
     filePath: string
   ): Promise<TitleSuggestion[]> {
+    // cutoff
+    const cutoff = this.settings.contentCutoffChars;
+    const trimmedContent = content.slice(0, cutoff);
+
     const customInstructions = this.settings.enableFileRenaming
       ? this.settings.renameInstructions
       : undefined;
@@ -1560,7 +1573,7 @@ export default class FileOrganizer extends Plugin {
         Authorization: `Bearer ${this.settings.API_KEY}`,
       },
       body: JSON.stringify({
-        content,
+        content: trimmedContent,
         fileName: filePath,
         customInstructions,
       }),

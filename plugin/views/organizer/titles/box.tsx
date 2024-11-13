@@ -42,7 +42,7 @@ export const RenameSuggestion: React.FC<RenameSuggestionProps> = ({
     setError(null);
 
     try {
-      const titles = await plugin.guessTitles(content, file.name);
+      const titles = await plugin.recommendName(content, file.name);
       // remove current file name from suggestions
       const filteredTitles = titles.filter(title => title.title !== file.name);
       setSuggestions(filteredTitles);

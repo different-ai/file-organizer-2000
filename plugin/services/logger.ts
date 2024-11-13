@@ -8,30 +8,43 @@ export interface LogEntry {
 class LoggerService {
   private logs: LogEntry[] = [];
   private isEnabled = false;
-  private maxLogs = 1000; // Prevent memory issues
+  private maxLogs = 1000;
 
   configure(enabled: boolean) {
     this.isEnabled = enabled;
   }
 
   private addLog(level: LogEntry['level'], message: string, details?: any) {
-    if (!this.isEnabled) {
-      return;
-    }
+    if (!this.isEnabled) return;
 
+    const timestamp = new Date().toISOString();
     const entry = {
-      timestamp: new Date().toISOString(),
+      timestamp,
       level,
       message,
       details: details ? JSON.stringify(details) : undefined
     };
 
-    console.debug('[Logger Entry]', entry);
+    const consoleArgs = [`[${timestamp}] ${message}`, details].filter(Boolean);
+    
+    switch (level) {
+      case 'info':
+        console.info(...consoleArgs);
+        break;
+      case 'error':
+        console.error(...consoleArgs);
+        break;
+      case 'warn':
+        console.warn(...consoleArgs);
+        break;
+      case 'debug':
+        console.debug(...consoleArgs);
+        break;
+    }
+
     this.logs.push(entry);
 
-    // Maintain max logs limit
     if (this.logs.length > this.maxLogs) {
-      console.debug(`[Logger] Trimming logs to ${this.maxLogs} entries`);
       this.logs = this.logs.slice(-this.maxLogs);
     }
   }
@@ -41,7 +54,6 @@ class LoggerService {
   }
 
   error(message: string, details?: any) {
-    console.error(message, details);
     this.addLog('error', message, details);
   }
 

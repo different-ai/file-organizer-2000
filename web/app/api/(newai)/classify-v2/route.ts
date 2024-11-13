@@ -20,7 +20,7 @@ export async function POST(request: NextRequest) {
             confidence: z.number().min(0).max(100),
             reasoning: z.string(),
           })
-        ).min(1).max(3),
+        )
       }),
       system: `Given the content and file name: "${fileName}", classify the document type. Available templates: ${templateNames.join(
         ", "
@@ -41,6 +41,7 @@ export async function POST(request: NextRequest) {
       alternatives: response.object.documentTypes.slice(1),
     });
   } catch (error) {
+    console.error("Error in classify-v2", error);
     if (error) {
       return NextResponse.json(
         { error: error.message },

@@ -1,7 +1,7 @@
 import * as React from "react";
 import { TFile, Notice } from "obsidian";
 import FileOrganizer from "../../../index";
-import { ClassificationBox } from "./user-templates";
+import { UserTemplates } from "./user-templates";
 import { FabricClassificationBox } from "./fabric-templates";
 import { DEFAULT_SETTINGS } from "../../../settings";
 import { logger } from "../../../services/logger";
@@ -128,7 +128,7 @@ export const ClassificationContainer: React.FC<ClassificationBoxProps> = ({
             )}
           </div>
         </div>
-        <ClassificationBox
+        <UserTemplates
           plugin={plugin}
           file={file}
           content={content}

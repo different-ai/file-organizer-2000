@@ -34,7 +34,7 @@ export const SimilarFolderBox: React.FC<SimilarFolderBoxProps> = ({
     // cut content length to only first 50k/4 chars 
     const truncatedContent = content.slice(0, 50000);
     try {
-      const folderSuggestions = await plugin.guessRelevantFolders(
+      const folderSuggestions = await plugin.recommendFolders(
         truncatedContent,
         file.path
       );
