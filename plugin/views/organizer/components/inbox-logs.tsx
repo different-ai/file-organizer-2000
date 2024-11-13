@@ -146,7 +146,7 @@ function FileCard({ file }: { file: FileRecord }) {
       layout
       className="bg-[--background-primary] border border-[--background-modifier-border] rounded-lg w-full"
     >
-      <div className="">
+      <div className="p-4">
         <div className="flex items-center justify-between mb-2">
           <div className="flex items-center gap-2 flex-1">
             <motion.span

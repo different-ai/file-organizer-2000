@@ -31,12 +31,14 @@ export const SimilarFolderBox: React.FC<SimilarFolderBoxProps> = ({
     setSuggestions([]);
     setLoading(true);
     setError(null);
-
+    // cut content length to only first 50k/4 chars 
+    const truncatedContent = content.slice(0, 50000);
     try {
       const folderSuggestions = await plugin.guessRelevantFolders(
-        content,
+        truncatedContent,
         file.path
       );
+
 
       // Get all valid folders
       const validFolders = plugin.getAllUserFolders();
