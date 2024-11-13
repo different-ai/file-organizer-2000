@@ -44,7 +44,6 @@
     "framer-motion": "^11.5.4",
     "fuse.js": "^7.0.0",
     "jimp": "^0.22.12",
-    "js-tiktoken": "^1.0.12",
     "lodash": "^4.17.21",
     "lucide-react": "^0.441.0",
     "moment": "^2.29.4",

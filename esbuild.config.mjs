@@ -55,6 +55,7 @@ const context = await esbuild.context({
 	} : {},
 	loader: {
 		'.ts': 'ts',
+		'.wasm': 'binary',
 	},
 	tsconfig: "tsconfig.json", // Specify the path to your tsconfig.json
 });
