@@ -15,14 +15,12 @@ import {
 import { logMessage, formatToSafeName, sanitizeTag } from "./someUtils";
 import { FileOrganizerSettingTab } from "./views/settings/view";
 import { ORGANIZER_VIEW_TYPE } from "./views/organizer/view";
-import { CHAT_VIEW_TYPE } from "./views/ai-chat/view";
 import Jimp from "jimp/es/index";
 
 import { FileOrganizerSettings, DEFAULT_SETTINGS } from "./settings";
 
 import { registerEventHandlers } from "./handlers/eventHandlers";
 import {
-  initializeChat,
   initializeOrganizer,
   initializeFileOrganizationCommands,
 } from "./handlers/commandHandlers";
@@ -1448,7 +1446,6 @@ export default class FileOrganizer extends Plugin {
     initializeInboxQueue(this);
 
     // Initialize different features
-    initializeChat(this);
     initializeOrganizer(this);
     initializeFileOrganizationCommands(this);
 

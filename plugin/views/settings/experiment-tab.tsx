@@ -13,6 +13,7 @@ export const ExperimentTab: React.FC<ExperimentTabProps> = ({ plugin }) => {
   const [enableFabric, setEnableFabric] = useState(plugin.settings.enableFabric);
   const [useInbox, setUseInbox] = useState(plugin.settings.useInbox);
   const [showLocalLLMInChat, setShowLocalLLMInChat] = useState(plugin.settings.showLocalLLMInChat);
+  const [enableTitleSuggestions, setEnableTitleSuggestions] = useState(plugin.settings.enableTitleSuggestions);
 
   const handleToggleChange = async (value: boolean, setter: React.Dispatch<React.SetStateAction<boolean>>, settingKey: keyof typeof plugin.settings) => {
     setter(value);
@@ -92,6 +93,24 @@ export const ExperimentTab: React.FC<ExperimentTabProps> = ({ plugin }) => {
               }
               value={showLocalLLMInChat}
               onChange={(value) => handleToggleChange(value, setShowLocalLLMInChat, 'showLocalLLMInChat')}
+            />
+            <ToggleSetting
+              name="Title Suggestions (Deprecated)"
+              description={
+                <div className="space-y-2">
+                  <p>Show title suggestions in the sidebar.</p>
+                  <div className="mt-2 p-3 bg-[--background-secondary] rounded text-sm space-y-1">
+                    <p className="text-[--text-warning]">⚠️ Deprecated Feature</p>
+                    <p className="text-[--text-muted]">This feature will be removed in a future update. For file renaming:</p>
+                    <ul className="list-disc pl-4 text-[--text-muted]">
+                      <li>Use the rename instructions in Organization preferences</li>
+                      <li>Configure file renaming behavior for inbox processing</li>
+                    </ul>
+                  </div>
+                </div>
+              }
+              value={enableTitleSuggestions}
+              onChange={(value) => handleToggleChange(value, setEnableTitleSuggestions, 'enableTitleSuggestions')}
             />
           </div>
         </div>

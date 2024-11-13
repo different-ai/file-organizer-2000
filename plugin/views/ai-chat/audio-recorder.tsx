@@ -1,8 +1,8 @@
 import React, { useRef, useState, useEffect } from "react";
 import { Button } from "./button";
-import { usePlugin } from "./provider";
 import { Loader2, MicIcon, StopCircle } from "lucide-react";
 import { logger } from "../../services/logger";
+import { usePlugin } from "../organizer/provider";
 interface AudioRecorderProps {
   onTranscriptionComplete: (text: string) => void;
   debug?: boolean;

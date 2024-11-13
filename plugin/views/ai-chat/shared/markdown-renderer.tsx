@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import { MarkdownRenderer, MarkdownView, TFile } from "obsidian";
 import { logger } from "../../../services/logger";
-import { usePlugin } from "../provider";
+import { usePlugin } from "../../organizer/provider";
 
 interface MarkdownContentProps {
   content: string;

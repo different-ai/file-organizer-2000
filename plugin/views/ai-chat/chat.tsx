@@ -11,7 +11,7 @@ import { TFolder, TFile, moment, App, debounce } from "obsidian";
 import FileOrganizer from "../..";
 import Tiptap from "./tiptap";
 import { Button } from "./button";
-import { usePlugin } from "./provider";
+import { usePlugin } from "../organizer/provider";
 
 import { logMessage } from "../../someUtils";
 import { SelectedItem } from "./selected-item";

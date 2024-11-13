@@ -1,6 +1,6 @@
 import React from 'react';
 import { ModelType } from './types';
-import { usePlugin } from './provider';
+import { usePlugin } from '../organizer/provider';
 
 interface ModelSelectorProps {
   selectedModel: ModelType;

@@ -3,6 +3,7 @@ import { openai } from '@ai-sdk/openai';
 import { NextResponse, NextRequest } from "next/server";
 import { incrementAndLogTokenUsage } from "@/lib/incrementAndLogTokenUsage";
 import { handleAuthorization } from "@/lib/handleAuthorization";
+import { getModel } from '@/lib/models';
 
 export const maxDuration = 60; // This function can run for a maximum of 5 seconds
 
@@ -10,9 +11,10 @@ export async function POST(request: NextRequest) {
   try {
     const { userId } = await handleAuthorization(request);
     const { content, formattingInstruction } = await request.json();
+    const model = getModel(process.env.MODEL_NAME);
 
     const result = await streamText({
-      model: openai(process.env.MODEL_NAME || 'gpt-4'),
+      model,
       system: "Answer directly in markdown",
       messages: [
         {
@@ -36,11 +38,6 @@ Formatting Instruction:
 
     const response = result.toTextStreamResponse();
     
-    // Add CORS headers
-    response.headers.set('Access-Control-Allow-Origin', '*');
-    response.headers.set('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
-    response.headers.set('Access-Control-Allow-Headers', 'Content-Type, Authorization');
-
     return response;
   } catch (error) {
     if (error) {
@@ -52,11 +49,3 @@ Formatting Instruction:
   }
 }
 
-// Add OPTIONS method to handle preflight requests
-export async function OPTIONS() {
-  const response = new NextResponse(null, { status: 200 });
-  response.headers.set('Access-Control-Allow-Origin', '*');
-  response.headers.set('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
-  response.headers.set('Access-Control-Allow-Headers', 'Content-Type, Authorization');
-  return response;
-}

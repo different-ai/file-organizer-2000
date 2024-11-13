@@ -115,7 +115,7 @@ export const AssistantView: React.FC<AssistantViewProps> = ({
 
   const handleDelete = React.useCallback(async () => {
     if (!activeFile) return;
-    
+
     try {
       await plugin.app.vault.delete(activeFile);
       new Notice("File deleted successfully");
@@ -172,14 +172,10 @@ export const AssistantView: React.FC<AssistantViewProps> = ({
   }
 
   return (
-    <div className="p-4 fo2k-cleaned">
-      <div className="flex gap-3 items-center">
+    <div className="">
+      <div className="flex gap-3 items-center ">
         <RefreshButton onRefresh={refreshContext} />
-        <div className="mb-4">
-          <div className="text-lg text-accent mb-4">
-            {activeFile.basename}
-          </div>
-        </div>
+        <div className="text-accent">{activeFile.basename}</div>
       </div>
 
       {renderSection(
@@ -203,15 +199,19 @@ export const AssistantView: React.FC<AssistantViewProps> = ({
         "Error loading tags"
       )}
 
-      <SectionHeader text="Titles" icon="💡 " />
-      {renderSection(
-        <RenameSuggestion
-          plugin={plugin}
-          file={activeFile}
-          content={noteContent}
-          refreshKey={refreshKey}
-        />,
-        "Error loading title suggestions"
+      {plugin.settings.enableTitleSuggestions && (
+        <>
+          <SectionHeader text="Titles" icon="💡 " />
+          {renderSection(
+            <RenameSuggestion
+              plugin={plugin}
+              file={activeFile}
+              content={noteContent}
+              refreshKey={refreshKey}
+            />,
+            "Error loading title suggestions"
+          )}
+        </>
       )}
 
       <SectionHeader text="Folders" icon="📁 " />
@@ -258,8 +258,6 @@ export const AssistantView: React.FC<AssistantViewProps> = ({
           )}
         </>
       )}
-
-
     </div>
   );
 };

@@ -6,10 +6,11 @@ import FileOrganizer from "../..";
 import { InboxLogs } from "./components/inbox-logs";
 import { SectionHeader } from "./components/section-header";
 import { AppContext } from "./provider";
+import AIChatSidebar from '../ai-chat/container';
 
 export const ORGANIZER_VIEW_TYPE = "fo2k.assistant.sidebar2";
 
-type Tab = "organizer" | "inbox";
+type Tab = "organizer" | "inbox" | "chat";
 
 function TabContent({
   activeTab,
@@ -33,6 +34,10 @@ function TabContent({
     );
   }
 
+  if (activeTab === "chat") {
+    return <AIChatSidebar plugin={plugin} apiKey={plugin.settings.API_KEY} />;
+  }
+
   return null;
 }
 
@@ -49,7 +54,7 @@ function TabButton({
     <button
       onClick={onClick}
       className={`
-        px-3 py-2 text-sm font-medium  shadow-none
+        px-3 py-2 text-sm font-medium  shadow-none cursor-pointer
        ${
          isActive
            ? "bg[--interactive-accent] text[--text-on-accent] "
@@ -72,13 +77,13 @@ function OrganizerContent({
   const [activeTab, setActiveTab] = React.useState<Tab>("organizer");
 
   return (
-    <div className="flex flex-col h-full">
+    <div className="flex flex-col h-full ">
       <div className="flex bg-[--background-primary] shadow-none w-fit">
         <TabButton
           isActive={activeTab === "organizer"}
           onClick={() => setActiveTab("organizer")}
         >
-          Assistant
+          Organizer
         </TabButton>
         {plugin.settings.useInbox && (
           <TabButton
@@ -88,9 +93,17 @@ function OrganizerContent({
             Inbox
           </TabButton>
         )}
+        <TabButton
+          isActive={activeTab === "chat"}
+          onClick={() => setActiveTab("chat")}
+        >
+          Chat
+        </TabButton>
       </div>
 
+      <div className="pt-4 h-full">
       <TabContent activeTab={activeTab} plugin={plugin} leaf={leaf} />
+      </div>
     </div>
   );
 }
@@ -125,7 +138,7 @@ export class AssistantViewWrapper extends ItemView {
     this.root?.render(
       <AppContext.Provider value={{ plugin: this.plugin, root: this.root }}>
         <React.StrictMode>
-          <div className="h-full fo2k">
+          <div className="h-full ">
             <OrganizerContent plugin={this.plugin} leaf={this.leaf} />
           </div>
         </React.StrictMode>

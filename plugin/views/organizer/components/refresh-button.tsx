@@ -28,6 +28,7 @@ export const RefreshButton: React.FC<RefreshButtonProps> = ({ onRefresh }) => {
       }}
       whileHover={{ scale: 1.05 }}
       whileTap={{ scale: 0.95 }}
+      className="text-accent shadow-sm"
       onClick={handleRefresh}
       disabled={loading}
     >

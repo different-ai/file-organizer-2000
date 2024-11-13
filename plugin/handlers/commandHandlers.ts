@@ -1,27 +1,8 @@
 import { WorkspaceLeaf } from "obsidian";
 import FileOrganizer from "../index";
 import { ORGANIZER_VIEW_TYPE, AssistantViewWrapper } from "../views/organizer/view";
-import { AIChatView, CHAT_VIEW_TYPE } from "../views/ai-chat/view";
-import { Inbox } from "../inbox";
 
-export function initializeChat(plugin: FileOrganizer) {
-  plugin.registerView(
-    CHAT_VIEW_TYPE,
-    (leaf: WorkspaceLeaf) => new AIChatView(leaf, plugin)
-  );
 
-  plugin.addRibbonIcon("bot", "Fo2k Chat", () => {
-    plugin.showAIChatView();
-  });
-
-  plugin.addCommand({
-    id: "show-ai-chat",
-    name: "Show AI Chat",
-    callback: async () => {
-      await plugin.showAIChatView();
-    },
-  });
-}
 
 export function initializeOrganizer(plugin: FileOrganizer) {
 

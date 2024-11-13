@@ -7,6 +7,7 @@ const models = {
   "gpt-4o-mini": openai("gpt-4o-mini"),
   "claude-3-5-sonnet-20240620": anthropic("claude-3-5-sonnet-20240620"),
   "claude-3-5-sonnet-20241022": anthropic("claude-3-5-sonnet-20241022"),
+  "claude-3-5-haiku-20241022": anthropic("claude-3-5-haiku-20241022"),
 };
 
 export const getModel = (name: string) => {

@@ -12,9 +12,9 @@ export class FileOrganizerSettings {
   bypassedFilePath = "_FileOrganizer2000/Bypassed";
   errorFilePath = "_FileOrganizer2000/Errors";
 
-
   useSimilarTags = true;
-  renameInstructions = "Create a concise, descriptive name for the document based on its key content. Prioritize clarity and searchability, using specific terms that will make the document easy to find later. Avoid generic words and focus on unique, identifying elements.";
+  renameInstructions =
+    "If document has a human readable name, use it. Otherwise, create a concise, descriptive name for the document based on its key content. Prioritize clarity and searchability, using specific terms that will make the document easy to find later. Avoid generic words and focus on unique, identifying elements.";
   usePro = true;
   useSimilarTagsInFrontmatter = false;
   enableAtomicNotes = false;
@@ -36,8 +36,10 @@ export class FileOrganizerSettings {
   tagScoreThreshold = 70;
   formatBehavior: "override" | "newFile" = "override";
   useInbox = false;
-  imageInstructions = "Analyze the image and provide a clear, detailed description focusing on the main elements, context, and any text visible in the image. Include relevant details that would be useful for searching and organizing the image later.";
+  imageInstructions =
+    "Analyze the image and provide a clear, detailed description focusing on the main elements, context, and any text visible in the image. Include relevant details that would be useful for searching and organizing the image later.";
   debugMode = false;
+  enableTitleSuggestions = false;
 }
 
 export const DEFAULT_SETTINGS = new FileOrganizerSettings();
