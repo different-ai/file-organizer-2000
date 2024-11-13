@@ -6,7 +6,7 @@ import { isMediaFile } from "../utils/file";
 import moment from "moment";
 
 interface ActionLog {
-  action: 'renamed' | 'moved' | 'classified' | 'tagged' | 'error';
+  action: 'renamed' | 'moved' | 'classified' | 'tagged' | 'error' | 'processing' | 'queued' | 'analyzing';
   timestamp: string;
   details: {
     from?: string;
@@ -16,6 +16,8 @@ interface ActionLog {
     error?: string;
     destinationFolder?: string;
     wasFormatted?: boolean;
+    step?: string;
+    progress?: string;
   };
 }
 
@@ -244,7 +246,8 @@ export class RecordManager {
     this.logAction(record, 'moved', { 
       from: oldPath, 
       to: newPath,
-      destinationFolder 
+      destinationFolder,
+      progress: `Moving to ${destinationFolder}`
     });
     
     this.updateRecord(record.id, {
@@ -255,7 +258,8 @@ export class RecordManager {
   public recordClassification(record: FileRecord, classification: Classification): void {
     this.logAction(record, 'classified', { 
       classification,
-      wasFormatted: classification.confidence >= 50 
+      wasFormatted: classification.confidence >= 50,
+      progress: `Classified as ${classification.documentType} (${classification.confidence}% confident)`
     });
     
     this.updateRecord(record.id, {
@@ -266,5 +270,44 @@ export class RecordManager {
 
   public recordTags(record: FileRecord, tags: string[]): void {
     this.logAction(record, 'tagged', { tags });
+  }
+
+  public recordProcessingStep(record: FileRecord, step: string): void {
+    this.logAction(record, 'processing', { 
+      step,
+      progress: `Processing ${step}...`
+    });
+  }
+
+  public recordAnalysisStart(record: FileRecord): void {
+    this.logAction(record, 'analyzing', {
+      step: 'start',
+      progress: 'Starting content analysis...'
+    });
+    
+    this.updateRecord(record.id, {
+      status: 'processing'
+    });
+  }
+
+  public recordClassificationStart(record: FileRecord): void {
+    this.logAction(record, 'processing', {
+      step: 'classification',
+      progress: 'Determining document type...'
+    });
+  }
+
+  public recordFolderSuggestionStart(record: FileRecord): void {
+    this.logAction(record, 'processing', {
+      step: 'folder',
+      progress: 'Suggesting folder location...'
+    });
+  }
+
+  public recordTitleSuggestionStart(record: FileRecord): void {
+    this.logAction(record, 'processing', {
+      step: 'title',
+      progress: 'Generating title suggestions...'
+    });
   }
 }

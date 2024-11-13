@@ -41,6 +41,7 @@ class LoggerService {
   }
 
   error(message: string, details?: any) {
+    console.error(message, details);
     this.addLog('error', message, details);
   }
 

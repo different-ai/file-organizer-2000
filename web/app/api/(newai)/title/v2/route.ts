@@ -11,30 +11,49 @@ function sanitizeFileName(fileName: string) {
   return fileName.replace(/[^a-zA-Z0-9\s]/g, "_");
 }
 
-
-
 export async function POST(request: NextRequest) {
   try {
     const { userId } = await handleAuthorization(request);
-    const { content, fileName, customInstructions } = await request.json();
+    const {
+      content,
+      fileName,
+      customInstructions,
+      count = 3,
+    } = await request.json();
     const model = getModel(process.env.MODEL_NAME);
+    const shouldRename = await generateObject({
+      model,
+      schema: z.object({
+        shouldRename: z.boolean(),
+      }),
+      prompt: `Given the content and file name: "${fileName}", should we rename the file? Content: "${content}", based on ${customInstructions}`,
+    });
+    if (!shouldRename.object.shouldRename) {
+      // remove extension from fileName if it exists
+      const fileNameWithoutExtension = fileName.split(".").slice(0, -1).join(".");
+      return NextResponse.json({
+        titles: [{ score: 100, title: fileNameWithoutExtension, reason: "No need to rename" }],
+      });
+    }
+
     const response = await generateObject({
       model,
       schema: z.object({
-        suggestedTitles: z.array(
-          z.object({
-            score: z.number().min(0).max(100),
-            title: z.string(),
-            reason: z.string(),
-          })
-        ),
+        suggestedTitles: z
+          .array(
+            z.object({
+              score: z.number().min(0).max(100),
+              title: z.string(),
+              reason: z.string(),
+            })
+          )
+          .min(1)
+          .max(count),
       }),
-      system: `Given the content and of this Obsidian note (if useful) the current file name: "${fileName}", suggest at least 3 clear and concise titles for this content.  avoid using special characters${
-        customInstructions
-          ? `Follow these custom instructions: "${customInstructions}"`
-          : ""
+      system: `Given the content and file name: "${fileName}", suggest exactly ${count} clear titles. Avoid special characters. ${
+        customInstructions ? `Instructions: "${customInstructions}"` : ""
       }`,
-      prompt: `Given the content: "${content}"`,
+      prompt: `Content: "${content}"`,
     });
 
     // increment tokenUsage
@@ -46,7 +65,6 @@ export async function POST(request: NextRequest) {
     const safeTitles = response.object.suggestedTitles.map((title) => {
       return { ...title, title: sanitizeFileName(title.title) };
     });
-
 
     return NextResponse.json({
       titles: safeTitles.sort((a, b) => b.score - a.score),

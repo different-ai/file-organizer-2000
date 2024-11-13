@@ -8,47 +8,44 @@ import { generateObject } from "ai";
 export async function POST(request: NextRequest) {
   try {
     const { userId } = await handleAuthorization(request);
-    const { content, fileName, folders, customInstructions, count = 3 } =
-      await request.json();
+    const { content, fileName, templateNames } = await request.json();
     const model = getModel(process.env.MODEL_NAME);
+
     const response = await generateObject({
       model,
       schema: z.object({
-        suggestedFolders: z
-          .array(
-            z.object({
-              score: z.number().min(0).max(100),
-              isNewFolder: z.boolean(),
-              folder: z.string(),
-              reason: z.string(),
-            })
-          )
-          .min(1)
-          .max(count)
+        documentTypes: z.array(
+          z.object({
+            documentType: z.string(),
+            confidence: z.number().min(0).max(100),
+            reasoning: z.string(),
+          })
+        ).min(1).max(3),
       }),
-      system: `Given the content and file name: "${fileName}", suggest exactly ${count} folders. You can use: ${folders.join(
+      system: `Given the content and file name: "${fileName}", classify the document type. Available templates: ${templateNames.join(
         ", "
-      )}. If none are relevant, suggest new folders. ${
-        customInstructions ? `Instructions: "${customInstructions}"` : ""
-      }`,
+      )}. Return up to 3 possible classifications with confidence scores and reasoning.`,
       prompt: `Content: "${content}"`,
     });
+
     // increment tokenUsage
     const tokens = response.usage.totalTokens;
-    console.log("incrementing token usage folders", userId, tokens);
+    console.log("incrementing token usage classify", userId, tokens);
     await incrementAndLogTokenUsage(userId, tokens);
 
+    // Sort by confidence and return
     return NextResponse.json({
-      folders: response.object.suggestedFolders.sort(
-        (a, b) => b.score - a.score
-      ),
+      classification: response.object.documentTypes.sort(
+        (a, b) => b.confidence - a.confidence
+      )[0],
+      alternatives: response.object.documentTypes.slice(1),
     });
   } catch (error) {
     if (error) {
       return NextResponse.json(
         { error: error.message },
-        { status: error.status }
+        { status: error.status || 500 }
       );
     }
   }
-}
+} 

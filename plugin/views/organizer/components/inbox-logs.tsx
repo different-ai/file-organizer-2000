@@ -191,19 +191,20 @@ function FileCard({ file }: { file: FileRecord }) {
         {(file.classification || file.destinationFolder) && (
           <div className="mt-2 space-y-2">
             {file.classification && (
-              <div className="flex items-center gap-2 text-sm">
+              <div className="flex items-center gap-2 text-sm group">
                 <span className="text-[--text-muted]">Classification:</span>
-                <span className="font-medium">
+                <span className="font-medium relative">
                   {file.classification.documentType}
-                </span>
-                <span
-                  className={`px-2 py-0.5 rounded-full text-xs ${
-                    file.classification.confidence >= 50
-                      ? "bg-[--background-modifier-success-rgb] text-[--text-success]"
-                      : "bg-[--background-modifier-error-rgb] text-[--text-error]"
-                  }`}
-                >
-                  {file.classification.confidence}% confident
+                  {/* Confidence tooltip on hover */}
+                  <span className="absolute left-1/2 -translate-x-1/2 -top-8 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                    <span className={`px-2 py-0.5 rounded-full text-xs whitespace-nowrap ${
+                      file.classification.confidence >= 50
+                        ? "bg-[--background-modifier-success-rgb] text-[--text-success]"
+                        : "bg-[--background-modifier-error-rgb] text-[--text-error]"
+                    }`}>
+                      {file.classification.confidence}% confident
+                    </span>
+                  </span>
                 </span>
                 {file.formattedContent && (
                   <span className="text-[--text-success] text-xs">

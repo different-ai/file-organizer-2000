@@ -5,48 +5,56 @@ import { getModel } from "@/lib/models";
 import { z } from "zod";
 import { generateObject } from "ai";
 
+const tagsSchema = z.object({
+  suggestedTags: z.array(z.object({
+    score: z.number().min(0).max(100),
+    isNew: z.boolean(),
+    tag: z.string(),
+    reason: z.string(),
+  })).min(1).max(10)
+});
+
 export async function POST(request: NextRequest) {
   try {
     const { userId } = await handleAuthorization(request);
-    const { content, fileName, existingTags, customInstructions } = await request.json();
-    const model = getModel(process.env.MODEL_NAME);
+    const { content, fileName, existingTags = [], customInstructions = "", count = 3 } = await request.json();
+
     const response = await generateObject({
-      model,
-      schema: z.object({
-        suggestedTags: z
-          .array(
-            z.object({
-              score: z.number().min(0).max(100),
-              isNew: z.boolean(),
-              tag: z.string(),
-              reason: z.string(),
-            })
-          )
-      }),
-      system: `Given the content and (if useful) the file name: "${fileName}", suggest at least 3 tags. You can use the following list: ${existingTags?.join(
-        ", if none of the tags are relevant, suggest new tags"
-      )}, ${
-        customInstructions
-          ? `with the following custom instructions: "${customInstructions}"`
-          : ""
-      }`,
-      prompt: `Given the content: "${content}"`,
+      model: getModel(process.env.MODEL_NAME),
+      schema: tagsSchema,
+      system: `You are a precise tag generator. Analyze content and suggest ${count} relevant tags.
+              ${existingTags.length ? `Consider existing tags: ${existingTags.join(", ")}` : 'Create new tags if needed.'}
+              ${customInstructions ? `Follow these instructions: ${customInstructions}` : ''}
+              
+              Guidelines:
+              - Prefer existing tags when appropriate (score them higher)
+              - Create specific, meaningful new tags when needed
+              - Score based on relevance (0-100)
+              - Include brief reasoning for each tag
+              - Focus on key themes, topics, and document type`,
+      prompt: `File: "${fileName}"
+              
+              Content: """
+              ${content}
+              """`,
     });
 
-    // increment tokenUsage
-    const tokens = response.usage.totalTokens;
-    console.log("incrementing token usage tags", userId, tokens);
-    await incrementAndLogTokenUsage(userId, tokens);
+    await incrementAndLogTokenUsage(userId, response.usage.totalTokens);
 
-    return NextResponse.json({
-      tags: response.object.suggestedTags.sort((a, b) => b.score - a.score),
-    });
+    // Sort tags by score and format response
+    const sortedTags = response.object.suggestedTags
+      .sort((a, b) => b.score - a.score)
+      .map(tag => ({
+        ...tag,
+        tag: tag.tag.startsWith('#') ? tag.tag : `#${tag.tag}`,
+      }));
+
+    return NextResponse.json({ tags: sortedTags });
   } catch (error) {
-    if (error) {
-      return NextResponse.json(
-        { error: error.message },
-        { status: error.status }
-      );
-    }
+    console.error('Tag generation error:', error);
+    return NextResponse.json(
+      { error: error.message || 'Failed to generate tags' },
+      { status: error.status || 500 }
+    );
   }
 }
