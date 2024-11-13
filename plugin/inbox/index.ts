@@ -14,9 +14,8 @@ import {
 } from "../utils/token-counter";
 
 // Move constants to the top level and ensure they're used consistently
-const CONTENT_PREVIEW_LENGTH = 500;
-const MAX_CONCURRENT_TASKS = 20;
-const MAX_CONCURRENT_MEDIA_TASKS = 5;
+const MAX_CONCURRENT_TASKS = 5;
+const MAX_CONCURRENT_MEDIA_TASKS = 2;
 const TOKEN_LIMIT = 50000; // 50k tokens limit for formatting
 
 export interface FolderSuggestion {
@@ -67,7 +66,6 @@ interface ProcessingContext {
     confidence: number;
     reasoning: string;
   };
-  contentPreview?: string;
   suggestedTags?: Array<{
     score: number;
     isNew: boolean;
@@ -271,10 +269,19 @@ export class Inbox {
         .then(suggestTitle)
         .then(processFileStep)
         .then(formatContentStep)
-        .then(completeProcessing);
+        .then(completeProcessing)
+        .catch(async (error) => {
+          // Only handle as error if it's not a bypass
+          if (!error.message.includes("No content") && 
+              !error.message.includes("Content too short")) {
+            await handleError(error, context);
+          }
+          // Always rethrow to stop processing
+          throw error;
+        });
     } catch (error) {
+      // Log but don't handle again
       logger.error("Error processing inbox file:", error);
-      await handleError(error, context);
     }
   }
 }
@@ -313,7 +320,9 @@ async function extractTextStep(
   try {
     if (context.plugin.shouldCreateMarkdownContainer(context.file)) {
       // Handle image/media files
-      const content = await context.plugin.generateImageAnnotation(context.file);
+      const content = await context.plugin.generateImageAnnotation(
+        context.file
+      );
       logger.info("Extracted text from image/media", content);
       context.content = content;
     } else {
@@ -333,56 +342,56 @@ async function extractTextStep(
 async function preprocessContentStep(
   context: ProcessingContext
 ): Promise<ProcessingContext> {
-  if (!context.content) return context;
+  try {
+    // Early return if no content
+    if (!context.content) {
+      await handleBypass(context, "No content available");
+      throw new Error("No content available");
+    }
 
-  // Strip front matter before checking content length
-  const contentWithoutFrontMatter = context.content
-    .replace(/^---\n[\s\S]*?\n---\n/, "")
-    .trim();
+    // Strip front matter and trim
+    const contentWithoutFrontMatter = context.content
+      .replace(/^---\n[\s\S]*?\n---\n/, "")
+      .trim();
 
-  // Check for minimum content length (ignoring front matter)
-  if (contentWithoutFrontMatter.length < 5) {
-    logger.info(
-      "Content too short (excluding front matter), bypassing processing"
-    );
+    // Bypass if content is too short
+    if (contentWithoutFrontMatter.length < 5) {
+      await handleBypass(context, "Content too short (less than 5 characters)");
+      throw new Error("Content too short");
+    }
+
+    // Set the cleaned content back
+    context.content = contentWithoutFrontMatter;
+    return context;
+  } catch (error) {
+    logger.error("Error in preprocessContentStep:", error);
+    throw error;
+  }
+}
+
+// New helper function to handle bypassing
+async function handleBypass(
+  context: ProcessingContext,
+  reason: string
+): Promise<void> {
+  try {
+    // First mark as bypassed in the record manager
+    context.recordManager.recordProcessingBypassed(context.record, reason);
+
+    // Then move the file
+    const bypassedFolderPath = context.plugin.settings.bypassedFilePath;
+    await ensureFolder(context, bypassedFolderPath);
+    const newPath = `${bypassedFolderPath}/${context.file.name}`;
+
+    // Move file using the vault API
+    await context.plugin.app.vault.rename(context.file, newPath);
+
+    // Finally, bypass in the queue
     context.queue.bypass(context.hash);
-    await moveFileToBypassedFolder(context);
-    context.recordManager.recordProcessingBypassed(
-      context.record,
-      "Content too short (less than 5 characters, excluding front matter)"
-    );
-    throw new Error("Content too short (excluding front matter)");
+  } catch (error) {
+    logger.error("Error in handleBypass:", error);
+    throw error;
   }
-
-  // Check if content appears to be binary
-  const isBinary = /[\u0000-\u0008\u000E-\u001F]/.test(
-    context.content.slice(0, 1000)
-  );
-  if (isBinary) {
-    logger.info("Binary file detected, bypassing content preprocessing");
-    context.queue.bypass(context.hash);
-    await moveFileToBypassedFolder(context);
-    context.recordManager.recordProcessingBypassed(
-      context.record,
-      "Binary file detected"
-    );
-    throw new Error("Binary file detected");
-  }
-
-  // Create a preview of the content for initial analysis
-  context.contentPreview = context.content.slice(0, CONTENT_PREVIEW_LENGTH);
-
-  // Add ellipsis if content was truncated
-  if (context.content.length > CONTENT_PREVIEW_LENGTH) {
-    context.contentPreview += "...";
-  }
-
-  logger.info("Content preview generated", {
-    previewLength: context.contentPreview.length,
-    fullLength: context.content.length,
-  });
-
-  return context;
 }
 
 async function classifyDocument(
@@ -466,11 +475,19 @@ async function suggestTitle(
 async function formatContentStep(
   context: ProcessingContext
 ): Promise<ProcessingContext> {
-  logger.info("Formatting content step", context.classification);
-
+  // Early return if no classification or low confidence
   if (!context.classification || context.classification.confidence < 80) {
     return context;
   }
+
+  // Early return if no content
+  if (!context.content) {
+    logger.info("Skipping formatting: no content available");
+    return context;
+  }
+
+  logger.info("Formatting content step", context.classification);
+
   // get token amount from token counter
   await initializeTokenCounter();
   const tokenAmount = getTokenCount(context.content);
@@ -544,7 +561,9 @@ async function processFileStep(
   context: ProcessingContext
 ): Promise<ProcessingContext> {
   try {
-    const isMediaFile = context.plugin.shouldCreateMarkdownContainer(context.file);
+    const isMediaFile = context.plugin.shouldCreateMarkdownContainer(
+      context.file
+    );
     const finalPath = `${context.newPath}/${context.newName}.md`;
 
     if (isMediaFile) {
@@ -561,7 +580,7 @@ async function processFileStep(
         const containerContent = [
           "---",
           `original-file: ${context.file.name}`,
-          `processed-date: ${moment().format('YYYY-MM-DD HH:mm:ss')}`,
+          `processed-date: ${moment().format("YYYY-MM-DD HH:mm:ss")}`,
           `file-type: ${context.file.extension}`,
           "---",
           "",
@@ -586,7 +605,7 @@ async function processFileStep(
         // Move the original media file with better error handling
         const attachmentPath = `${attachmentFolderPath}/${context.file.name}`;
         await moveFile(context, context.file, attachmentPath);
-        
+
         context.attachmentFile = context.plugin.app.vault.getAbstractFileByPath(
           attachmentPath
         ) as TFile;
@@ -606,7 +625,6 @@ async function processFileStep(
           context.containerFile,
           finalContent
         );
-
       } catch (mediaError) {
         logger.error("Media processing error:", mediaError);
         context.recordManager.recordError(context.record, mediaError);
@@ -807,3 +825,4 @@ async function suggestTags(
 
   return context;
 }
+
