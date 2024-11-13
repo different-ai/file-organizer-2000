@@ -12,6 +12,8 @@ export const AdvancedTab: React.FC<AdvancedTabProps> = ({ plugin }) => {
   const [useLogs, setUseLogs] = useState(plugin.settings.useLogs);
   const [debugMode, setDebugMode] = useState(plugin.settings.debugMode);
   const [showLogs, setShowLogs] = useState(false);
+  const [contentCutoffChars, setContentCutoffChars] = useState(plugin.settings.contentCutoffChars);
+  const [maxFormattingTokens, setMaxFormattingTokens] = useState(plugin.settings.maxFormattingTokens);
 
   const handleToggleChange = async (value: boolean) => {
     setEnableSelfHosting(value);
@@ -141,6 +143,57 @@ export const AdvancedTab: React.FC<AdvancedTabProps> = ({ plugin }) => {
           )}
         </div>
       )}
+
+      <div className="setting-item">
+        <div className="setting-item-info">
+          <div className="setting-item-name">Content Analysis Cutoff</div>
+          <div className="setting-item-description">
+            Maximum number of characters to analyze for folder suggestions, tagging, and titles. 
+            Lower values improve performance and reduce API costs. Default: 1000
+          </div>
+        </div>
+        <div className="setting-item-control">
+          <input
+            type="number"
+            min="100"
+            max="10000"
+            value={contentCutoffChars}
+            onChange={(e) => {
+              const value = parseInt(e.target.value);
+              setContentCutoffChars(value);
+              plugin.settings.contentCutoffChars = value;
+              plugin.saveSettings();
+            }}
+            className="w-24"
+          />
+        </div>
+      </div>
+
+      <div className="setting-item">
+        <div className="setting-item-info">
+          <div className="setting-item-name">Max Formatting Tokens</div>
+          <div className="setting-item-description">
+            Maximum number of tokens allowed for document formatting in the inbox. 
+            Documents exceeding this limit will be skipped. Default: 100,000
+          </div>
+        </div>
+        <div className="setting-item-control">
+          <input
+            type="number"
+            min="1000"
+            max="500000"
+            step="1000"
+            value={maxFormattingTokens}
+            onChange={(e) => {
+              const value = parseInt(e.target.value);
+              setMaxFormattingTokens(value);
+              plugin.settings.maxFormattingTokens = value;
+              plugin.saveSettings();
+            }}
+            className="w-24"
+          />
+        </div>
+      </div>
     </div>
   );
 };
