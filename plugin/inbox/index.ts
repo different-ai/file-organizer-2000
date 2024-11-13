@@ -252,7 +252,7 @@ async function recommendOrganizationStructure(
           folders,
           existingTags,
           customInstructions: `Extra folder instructions: ${context.plugin.settings.customFolderInstructions}. 
-          Extra rename instructions: ${context.plugin.settings.renameInstructions}.`,
+          Extra title instructions: ${context.plugin.settings.renameInstructions}.`,
         }),
       }
     );
@@ -298,7 +298,7 @@ async function formatContentStep(
   logger.info("Formatting content step", context.classification);
   // log content
   logger.info("Content", context.content);
-  if (!context.classification || context.classification.confidence < 50) return context;
+  if (!context.classification || context.classification.confidence < 80) return context;
   try {
     const instructions = await context.plugin.getTemplateInstructions(
       context.classification.documentType
