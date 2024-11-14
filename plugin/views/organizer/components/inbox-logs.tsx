@@ -8,6 +8,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { logMessage } from "../../../someUtils";
 import { usePlugin } from "../provider";
 import { logger } from "../../../services/logger";
+import { ProcessingStep } from "../../../inbox/services/record-manager";
 
 interface InboxLogsProps {
   plugin: FileOrganizer & {
@@ -111,6 +112,39 @@ const ActionLog: React.FC<{ record: FileRecord }> = ({ record }) => {
   );
 };
 
+const StepIndicator: React.FC<{ step: ProcessingStep }> = ({ step }) => {
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case 'completed': return 'text-[--text-success]';
+      case 'error': return 'text-[--text-error]';
+      default: return 'text-[--text-accent]';
+    }
+  };
+
+  const getStatusIcon = (status: string) => {
+    switch (status) {
+      case 'completed': return '✓';
+      case 'error': return '✗';
+      default: return '●';
+    }
+  };
+
+  return (
+    <div className="flex items-center gap-2 py-1">
+      <span className={`${getStatusColor(step.status)}`}>
+        {getStatusIcon(step.status)}
+      </span>
+      <span className="text-[--text-muted] w-20 text-xs">
+        {moment(step.timestamp).format('HH:mm:ss')}
+      </span>
+      <span className="text-sm">{step.step}</span>
+      {step.details && (
+        <span className="text-xs text-[--text-muted]">- {step.details}</span>
+      )}
+    </div>
+  );
+};
+
 function FileCard({ file }: { file: FileRecord }) {
   const [isExpanded, setIsExpanded] = React.useState(false);
   const plugin = usePlugin();
@@ -198,6 +232,13 @@ function FileCard({ file }: { file: FileRecord }) {
               transition={{ duration: 0.2 }}
               className="mt-4 space-y-4 border-t border-[--background-modifier-border] pt-4"
             >
+              {/* Processing Steps */}
+              <div className="space-y-1">
+                {file.steps?.map((step, index) => (
+                  <StepIndicator key={index} step={step} />
+                ))}
+              </div>
+
               {/* Classification */}
               {file.classification && (
                 <div className="flex items-center gap-2">

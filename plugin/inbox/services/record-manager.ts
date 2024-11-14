@@ -21,6 +21,13 @@ interface ActionLog {
   };
 }
 
+export interface ProcessingStep {
+  step: string;
+  timestamp: string;
+  status: 'started' | 'completed' | 'error';
+  details?: string;
+}
+
 export class RecordManager {
   private static instance: RecordManager;
   private fileRecords: Map<string, FileRecord> = new Map();
@@ -309,5 +316,48 @@ export class RecordManager {
       step: 'title',
       progress: 'Generating title suggestions...'
     });
+  }
+
+  public recordStep(record: FileRecord, stepName: string, details?: string): void {
+    const step: ProcessingStep = {
+      step: stepName,
+      timestamp: moment().format(),
+      status: 'started',
+      details
+    };
+
+    this.updateRecord(record.id, {
+      steps: [...(record.steps || []), step]
+    });
+
+    // Also log as an action for backwards compatibility
+    this.logAction(record, 'processing', { 
+      step: stepName,
+      progress: details || `Processing ${stepName}...`
+    });
+  }
+
+  public completeStep(record: FileRecord, stepName: string, details?: string): void {
+    const steps = [...(record.steps || [])];
+    const currentStep = steps.findLast(s => s.step === stepName);
+    
+    if (currentStep) {
+      currentStep.status = 'completed';
+      if (details) currentStep.details = details;
+    }
+
+    this.updateRecord(record.id, { steps });
+  }
+
+  public errorStep(record: FileRecord, stepName: string, error: Error): void {
+    const steps = [...(record.steps || [])];
+    const currentStep = steps.findLast(s => s.step === stepName);
+    
+    if (currentStep) {
+      currentStep.status = 'error';
+      currentStep.details = error.message;
+    }
+
+    this.updateRecord(record.id, { steps });
   }
 }

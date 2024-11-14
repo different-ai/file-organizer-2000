@@ -242,7 +242,7 @@ export class Inbox {
     };
   }
 
-  // Refactored method using a pipeline-style processing
+  // Refactored method using parallel processing where possible
   private async processInboxFile(file: TFile): Promise<void> {
     const hash = this.idService.generateFileHash(file);
     const record = this.recordManager.getRecordByHash(hash);
@@ -263,24 +263,40 @@ export class Inbox {
         .then(validateFileStep)
         .then(extractTextStep)
         .then(preprocessContentStep)
-        .then(classifyDocument)
-        .then(suggestTags)
-        .then(suggestFolder)
-        .then(suggestTitle)
+        // Parallelize independent operations
+        .then(async (ctx) => {
+          const [
+            classificationResult,
+            tagsResult,
+            foldersResult,
+            titleResult
+          ] = await Promise.all([
+            classifyDocument(ctx),
+            suggestTags(ctx),
+            this.plugin.recommendFolders(ctx.content, ctx.file.name),
+            this.plugin.recommendName(ctx.content, ctx.file.name)
+          ]);
+
+          // Merge results back into context
+          ctx.classification = classificationResult.classification;
+          ctx.tags = tagsResult.tags;
+          ctx.newPath = foldersResult[0]?.folder;
+          ctx.newName = titleResult[0]?.title;
+
+          return ctx;
+        })
+        // Continue with sequential steps that depend on previous results
         .then(processFileStep)
         .then(formatContentStep)
         .then(completeProcessing)
         .catch(async (error) => {
-          // Only handle as error if it's not a bypass
           if (!error.message.includes("No content") && 
               !error.message.includes("Content too short")) {
             await handleError(error, context);
           }
-          // Always rethrow to stop processing
           throw error;
         });
     } catch (error) {
-      // Log but don't handle again
       logger.error("Error processing inbox file:", error);
     }
   }
@@ -291,27 +307,31 @@ export class Inbox {
 async function startProcessing(
   context: ProcessingContext
 ): Promise<ProcessingContext> {
-  context.recordManager.updateFileStatus(
-    context.record,
-    "processing",
-    "Started processing file"
-  );
+  context.recordManager.recordStep(context.record, 'initialization', 'Starting file processing');
+  context.recordManager.updateFileStatus(context.record, "processing", "Started processing file");
   return context;
 }
 
 async function validateFileStep(
   context: ProcessingContext
 ): Promise<ProcessingContext> {
-  if (!validateFile(context.file)) {
-    context.queue.bypass(context.hash);
-    await moveFileToBypassedFolder(context);
-    context.recordManager.recordProcessingBypassed(
-      context.record,
-      "File validation failed"
-    );
-    throw new Error("File validation failed");
+  context.recordManager.recordStep(context.record, 'validation', 'Validating file');
+  
+  try {
+    if (!validateFile(context.file)) {
+      context.queue.bypass(context.hash);
+      await moveFileToBypassedFolder(context);
+      context.recordManager.recordProcessingBypassed(context.record, "File validation failed");
+      context.recordManager.completeStep(context.record, 'validation', 'File validation failed');
+      throw new Error("File validation failed");
+    }
+    
+    context.recordManager.completeStep(context.record, 'validation', 'File validated successfully');
+    return context;
+  } catch (error) {
+    context.recordManager.errorStep(context.record, 'validation', error);
+    throw error;
   }
-  return context;
 }
 
 async function extractTextStep(
@@ -424,24 +444,15 @@ async function classifyDocument(
 }
 
 async function suggestFolder(
-  context: ProcessingContext
+  context: ProcessingContext,
+  recommendedFolders: FolderSuggestion[]
 ): Promise<ProcessingContext> {
-  const recommendedFolders = await context.plugin.recommendFolders(
-    context.content,
-    context.file.name
-  );
-
   context.newPath = recommendedFolders[0]?.folder;
 
   if (context.newPath) {
-    // Create folder structure immediately
     await ensureFolder(context, context.newPath);
-
-    // Move file to new folder immediately, keeping original filename for now
     const newFilePath = `${context.newPath}/${context.file.name}`;
     await moveFile(context, context.file, newFilePath);
-
-    // Update record
     context.recordManager.recordMove(
       context.record,
       context.file.path,
@@ -453,13 +464,10 @@ async function suggestFolder(
 }
 
 async function suggestTitle(
-  context: ProcessingContext
+  context: ProcessingContext,
+  titleResult: any[]
 ): Promise<ProcessingContext> {
-  const result = await context.plugin.recommendName(
-    context.content,
-    context.file.name
-  );
-  context.newName = result[0]?.title;
+  context.newName = titleResult[0]?.title;
 
   if (context.newName) {
     context.recordManager.recordRename(
@@ -475,8 +483,17 @@ async function suggestTitle(
 async function formatContentStep(
   context: ProcessingContext
 ): Promise<ProcessingContext> {
-  // Early return if no classification or low confidence
-  if (!context.classification || context.classification.confidence < 80) {
+  // Early return if no classification
+  if (!context.classification) {
+    logger.info("Skipping formatting: no classification available");
+    return context;
+  }
+
+  // Early return if classification confidence is too low
+  if (context.classification.confidence < 80) {
+    logger.info("Skipping formatting: classification confidence too low", {
+      confidence: context.classification.confidence
+    });
     return context;
   }
 
