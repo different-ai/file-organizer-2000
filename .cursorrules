@@ -147,6 +147,7 @@ export async function POST(req: Request) {
 
 import { ToolInvocation } from 'ai';
 import { Message, useChat } from 'ai/react';
+import { pipeline } from 'stream'
 
 export default function Chat() {
   const {
@@ -229,3 +230,26 @@ Additional Notes:
 	•	Test the chatbot thoroughly to handle edge cases and unexpected user inputs.
 
 This revised prompt organizes the information more clearly, making it easier to understand and follow. It highlights key project guidelines, structures, and code examples, providing a comprehensive overview for anyone involved in the development process.
+
+
+## pipeline
+
+We have an inbox that processes files. 
+
+The process happens in these steps:
+- preprocess : trim content  | check if we support file type | check if we have a license
+- extract (ai): extract text from file, we have a function in the plugin/index.ts for that
+- classify (ai): classify the file, we have a function in the plugin/index.ts for that
+- tag (ai): tag the file, we have a function in the plugin/index.ts for that
+- format (ai): format the file, we have a function in the plugin/index.ts for that
+- move: move the file to the correct folder, we have a function in the plugin/index.ts for that
+
+
+each step should be logged in the record manager, and we should record the start and end of each step. 
+
+all the ai steps are two folds one api call to get the llm recommendations
+and one call to apply the recommendation. add tag after tagging , move file after folder recommendation, rename file after naming
+
+when you classify apply a tag to the document there's append tag funciton on plugin 
+only format if 1. there's a classification 2. there's no tag with the classification presetn
+
