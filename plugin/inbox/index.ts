@@ -12,6 +12,8 @@ import {
   getTokenCount,
   cleanup,
 } from "../utils/token-counter";
+import { isValidExtension, VALID_MEDIA_EXTENSIONS } from "../constants";
+import { record } from "zod";
 
 // Move constants to the top level and ensure they're used consistently
 const MAX_CONCURRENT_TASKS = 5;
@@ -47,15 +49,15 @@ interface EventRecord {
 }
 
 interface ProcessingContext {
-  file: TFile;
+  inboxFile: TFile;
+  containerFile?: TFile;
+  attachmentFile?: TFile;
   hash: string;
   record: FileRecord;
   content?: string;
   newPath?: string;
   newName?: string;
   tags?: string[];
-  containerFile?: TFile;
-  attachmentFile?: TFile;
   plugin: FileOrganizer;
   recordManager: RecordManager;
   idService: IdService;
@@ -77,7 +79,7 @@ interface ProcessingContext {
 export class Inbox {
   protected static instance: Inbox;
   private plugin: FileOrganizer;
-  private activeMediaTasks: number = 0;
+  private activeMediaTasks = 0;
   private mediaQueue: Array<TFile> = [];
 
   private queue: Queue<TFile>;
@@ -137,24 +139,12 @@ export class Inbox {
     // First enqueue regular files
     for (const file of regularFiles) {
       const hash = this.idService.generateFileHash(file);
-      const record = this.recordManager.createOrUpdateFileRecord(file);
-      this.recordManager.updateFileStatus(
-        record,
-        "queued",
-        "File enqueued for processing"
-      );
       this.queue.add(file, { metadata: { hash } });
     }
 
     // Then enqueue media files
     for (const file of mediaFiles) {
       const hash = this.idService.generateFileHash(file);
-      const record = this.recordManager.createOrUpdateFileRecord(file);
-      this.recordManager.updateFileStatus(
-        record,
-        "queued",
-        "Media file enqueued for processing"
-      );
       this.queue.add(file, { metadata: { hash } });
     }
 
@@ -220,15 +210,16 @@ export class Inbox {
   }
 
   public getFileStatus(filePath: string): FileRecord | undefined {
-    return this.recordManager.getRecordByPath(filePath);
+    // return this.recordManager.getRecordByPath(filePath);
   }
 
   public getFileEvents(fileId: string): EventRecord[] {
-    return this.recordManager.getFileEvents(fileId);
+    // return this.recordManager.getFileEvents(fileId);
+    return [];
   }
 
   public getAllFiles(): FileRecord[] {
-    return this.recordManager.getAllRecords();
+    return [];
   }
 
   public getQueueStats(): QueueStatus {
@@ -243,57 +234,39 @@ export class Inbox {
   }
 
   // Refactored method using parallel processing where possible
-  private async processInboxFile(file: TFile): Promise<void> {
-    const hash = this.idService.generateFileHash(file);
-    const record = this.recordManager.getRecordByHash(hash);
-    if (!record) return;
+  private async processInboxFile(inboxFile: TFile): Promise<void> {
+    const hash = this.idService.generateFileHash(inboxFile);
+    // const record = this.recordManager.getRecordByHash(hash);
+    // if (!record) return;
 
+    console.log("Processing inbox file", inboxFile);
     const context: ProcessingContext = {
-      file,
+      inboxFile,
+      // from now on we will only work with the container file
       hash,
-      record,
+      // record,
       plugin: this.plugin,
       recordManager: this.recordManager,
       idService: this.idService,
       queue: this.queue,
     };
+    console.log("Processing inbox file", context.inboxFile.path);
 
     try {
       await startProcessing(context)
-        .then(validateFileStep)
-        .then(extractTextStep)
+        .then(hasValidFileStep)
+        .then(getContainerFileStep)
+        .then(moveAttachmentFile)
+        .then(getContentStep)
         .then(preprocessContentStep)
-        // Parallelize independent operations
-        .then(async (ctx) => {
-          const [
-            classificationResult,
-            tagsResult,
-            foldersResult,
-            titleResult
-          ] = await Promise.all([
-            classifyDocument(ctx),
-            suggestTags(ctx),
-            this.plugin.recommendFolders(ctx.content, ctx.file.name),
-            this.plugin.recommendName(ctx.content, ctx.file.name)
-          ]);
-
-          // Merge results back into context
-          ctx.classification = classificationResult.classification;
-          ctx.tags = tagsResult.tags;
-          ctx.newPath = foldersResult[0]?.folder;
-          ctx.newName = titleResult[0]?.title;
-
-          return ctx;
-        })
-        // Continue with sequential steps that depend on previous results
-        .then(processFileStep)
+        .then(recommendTagsStep)
+        .then(recommendClassificationStep)
+        .then(recommendFolderStep)
+        .then(recommendNameStep)
         .then(formatContentStep)
         .then(completeProcessing)
-        .catch(async (error) => {
-          if (!error.message.includes("No content") && 
-              !error.message.includes("Content too short")) {
-            await handleError(error, context);
-          }
+        .catch(async error => {
+          await handleError(error, context);
           throw error;
         });
     } catch (error) {
@@ -301,60 +274,106 @@ export class Inbox {
     }
   }
 }
+async function moveAttachmentFile(
+  context: ProcessingContext
+): Promise<ProcessingContext> {
+  if (VALID_MEDIA_EXTENSIONS.includes(context.inboxFile.extension)) {
+    await moveFile(
+      context,
+      context.inboxFile,
+      context.plugin.settings.attachmentsPath
+    );
+  }
+  return context;
+}
+
+async function getContainerFileStep(
+  context: ProcessingContext
+): Promise<ProcessingContext> {
+  if (VALID_MEDIA_EXTENSIONS.includes(context.inboxFile.extension)) {
+    await this.plugin.app.vault.create(
+      context.inboxFile.name,
+      `![[${context.inboxFile.name}]]`
+    );
+    return context;
+  }
+  // return the inboxFile if it is not a media file
+  return context;
+}
+
+async function hasValidFileStep(
+  context: ProcessingContext
+): Promise<ProcessingContext> {
+  console.log("hasValidFileStep", context.containerFile.extension);
+  // check if file is supported if not bypass
+  if (!isValidExtension(context.containerFile.extension)) {
+    await handleBypass(context, "Unsupported file type");
+    throw new Error("Unsupported file type");
+  }
+  return context;
+}
+
+async function recommendNameStep(
+  context: ProcessingContext
+): Promise<ProcessingContext> {
+  const newName = await context.plugin.recommendName(
+    context.content,
+    context.inboxFile.path
+  );
+  context.newName = newName[0]?.title;
+  moveFile(context, context.inboxFile, context.newPath);
+  return context;
+}
+
+async function recommendFolderStep(
+  context: ProcessingContext
+): Promise<ProcessingContext> {
+  const newPath = await context.plugin.recommendFolders(
+    context.content,
+    context.inboxFile.path
+  );
+  context.newPath = newPath[0]?.folder;
+  moveFile(context, context.inboxFile, context.newPath);
+
+  return context;
+}
+
+async function recommendClassificationStep(
+  context: ProcessingContext
+): Promise<ProcessingContext> {
+  if (!context.plugin.settings.enableDocumentClassification) {
+    const templateNames = await context.plugin.getTemplateNames();
+    const result = await context.plugin.classifyContentV2(
+      context.content,
+      templateNames
+    );
+    context.plugin.appendTag(context.containerFile, result);
+    context.classification = {
+      documentType: result,
+      confidence: 100,
+      reasoning: "N/A",
+    };
+  }
+  return context;
+}
 
 // Pipeline processing steps
 
 async function startProcessing(
   context: ProcessingContext
 ): Promise<ProcessingContext> {
-  context.recordManager.recordStep(context.record, 'initialization', 'Starting file processing');
-  context.recordManager.updateFileStatus(context.record, "processing", "Started processing file");
   return context;
 }
 
-async function validateFileStep(
-  context: ProcessingContext
-): Promise<ProcessingContext> {
-  context.recordManager.recordStep(context.record, 'validation', 'Validating file');
-  
-  try {
-    if (!validateFile(context.file)) {
-      context.queue.bypass(context.hash);
-      await moveFileToBypassedFolder(context);
-      context.recordManager.recordProcessingBypassed(context.record, "File validation failed");
-      context.recordManager.completeStep(context.record, 'validation', 'File validation failed');
-      throw new Error("File validation failed");
-    }
-    
-    context.recordManager.completeStep(context.record, 'validation', 'File validated successfully');
-    return context;
-  } catch (error) {
-    context.recordManager.errorStep(context.record, 'validation', error);
-    throw error;
-  }
-}
-
-async function extractTextStep(
+async function getContentStep(
   context: ProcessingContext
 ): Promise<ProcessingContext> {
   try {
-    if (context.plugin.shouldCreateMarkdownContainer(context.file)) {
-      // Handle image/media files
-      const content = await context.plugin.generateImageAnnotation(
-        context.file
-      );
-      logger.info("Extracted text from image/media", content);
-      context.content = content;
-    } else {
-      // Handle regular text files
-      const text = await context.plugin.getTextFromFile(context.file);
-      logger.info("Extracted text from file", text);
-      context.content = text;
-    }
+    const content = await context.plugin.getTextFromFile(context.containerFile);
+    context.content = content;
     return context;
   } catch (error) {
     logger.error("Error in extractTextStep:", error);
-    context.recordManager.recordError(context.record, error);
     throw error;
   }
 }
@@ -396,7 +415,6 @@ async function handleBypass(
 ): Promise<void> {
   try {
     // First mark as bypassed in the record manager
-    context.recordManager.recordProcessingBypassed(context.record, reason);
 
     // Then move the file
     const bypassedFolderPath = context.plugin.settings.bypassedFilePath;
@@ -429,54 +447,6 @@ async function classifyDocument(
     reasoning: "N/A",
   };
 
-  if (context.classification) {
-    context.recordManager.recordClassification(
-      context.record,
-      context.classification
-    );
-    // Start formatting content early if we have classification
-    if (context.classification.confidence >= 80) {
-      await formatContentStep(context);
-    }
-  }
-
-  return context;
-}
-
-async function suggestFolder(
-  context: ProcessingContext,
-  recommendedFolders: FolderSuggestion[]
-): Promise<ProcessingContext> {
-  context.newPath = recommendedFolders[0]?.folder;
-
-  if (context.newPath) {
-    await ensureFolder(context, context.newPath);
-    const newFilePath = `${context.newPath}/${context.file.name}`;
-    await moveFile(context, context.file, newFilePath);
-    context.recordManager.recordMove(
-      context.record,
-      context.file.path,
-      context.newPath
-    );
-  }
-
-  return context;
-}
-
-async function suggestTitle(
-  context: ProcessingContext,
-  titleResult: any[]
-): Promise<ProcessingContext> {
-  context.newName = titleResult[0]?.title;
-
-  if (context.newName) {
-    context.recordManager.recordRename(
-      context.record,
-      context.file.basename,
-      context.newName
-    );
-  }
-
   return context;
 }
 
@@ -484,7 +454,7 @@ async function formatContentStep(
   context: ProcessingContext
 ): Promise<ProcessingContext> {
   // Early return if no classification
-  if (!context.classification) {
+  if (!context.classification.documentType) {
     logger.info("Skipping formatting: no classification available");
     return context;
   }
@@ -492,7 +462,7 @@ async function formatContentStep(
   // Early return if classification confidence is too low
   if (context.classification.confidence < 80) {
     logger.info("Skipping formatting: classification confidence too low", {
-      confidence: context.classification.confidence
+      confidence: context.classification.confidence,
     });
     return context;
   }
@@ -518,184 +488,48 @@ async function formatContentStep(
   }
 
   try {
-    // Make sure we have content to format
-    if (!context.content) {
-      throw new Error("No content available for formatting");
-    }
-
-    // Initialize token counter if needed
-    await initializeTokenCounter();
-
-    // Check token count
-    const tokenCount = getTokenCount(context.content);
-    if (tokenCount > TOKEN_LIMIT) {
-      logger.info(
-        `Skipping formatting: content too large (${tokenCount} tokens)`
-      );
-      context.recordManager.recordProcessingBypassed(
-        context.record,
-        `Content too large for formatting (${tokenCount} tokens)`
-      );
-      return context;
-    }
-
     const instructions = await context.plugin.getTemplateInstructions(
       context.classification.documentType
     );
 
-    // Call the new v2 endpoint
-    const response = await fetch(
-      `${context.plugin.getServerUrl()}/api/format/v2`,
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${context.plugin.settings.API_KEY}`,
-        },
-        body: JSON.stringify({
-          content: context.content,
-          formattingInstruction: instructions,
-        }),
-      }
-    );
-
-    if (!response.ok) {
-      throw new Error(`Format failed: ${response.statusText}`);
+    if (!instructions) {
+      logger.info("Skipping formatting: no instructions available");
+      return context;
     }
 
-    const result = await response.json();
-    context.formattedContent = result.content;
+    const formattedContent = await context.plugin.formatContentV2(
+      context.content,
+      instructions
+    );
+    context.formattedContent = formattedContent;
+    context.plugin.app.vault.modify(context.containerFile, formattedContent);
 
     return context;
   } catch (error) {
     logger.error("Error in formatContentStep:", error);
-    context.recordManager.recordError(context.record, error);
     throw error;
   }
 }
-
-async function processFileStep(
+async function recommendTagsStep(
   context: ProcessingContext
 ): Promise<ProcessingContext> {
-  try {
-    const isMediaFile = context.plugin.shouldCreateMarkdownContainer(
-      context.file
-    );
-    const finalPath = `${context.newPath}/${context.newName}.md`;
-
-    if (isMediaFile) {
-      // Add error handling for media files
-      try {
-        // Ensure we have string content
-        const contentToUse = (
-          context.formattedContent ||
-          context.content ||
-          "No content extracted"
-        ).toString();
-
-        // Add front matter with metadata
-        const containerContent = [
-          "---",
-          `original-file: ${context.file.name}`,
-          `processed-date: ${moment().format("YYYY-MM-DD HH:mm:ss")}`,
-          `file-type: ${context.file.extension}`,
-          "---",
-          "",
-          contentToUse,
-          "", // Empty line for separation
-        ].join("\n");
-
-        // Create container file with better error handling
-        context.containerFile = await createFile(
-          context,
-          finalPath,
-          containerContent
-        ).catch(error => {
-          logger.error("Failed to create container file:", error);
-          throw error;
-        });
-
-        // Create attachments folder with better path handling
-        const attachmentFolderPath = `${context.newPath}/attachments`;
-        await ensureFolder(context, attachmentFolderPath);
-
-        // Move the original media file with better error handling
-        const attachmentPath = `${attachmentFolderPath}/${context.file.name}`;
-        await moveFile(context, context.file, attachmentPath);
-
-        context.attachmentFile = context.plugin.app.vault.getAbstractFileByPath(
-          attachmentPath
-        ) as TFile;
-
-        if (!context.attachmentFile) {
-          throw new Error("Failed to locate moved attachment file");
-        }
-
-        // Update container with attachment reference
-        const finalContent = [
-          containerContent,
-          "## Original File",
-          `![[${context.attachmentFile.path}]]`,
-        ].join("\n");
-
-        await context.plugin.app.vault.modify(
-          context.containerFile,
-          finalContent
-        );
-      } catch (mediaError) {
-        logger.error("Media processing error:", mediaError);
-        context.recordManager.recordError(context.record, mediaError);
-        throw mediaError;
-      }
-    } else {
-      // Regular file processing
-      if (context.formattedContent) {
-        // Ensure we're writing a string
-        const contentToWrite = context.formattedContent.toString();
-        await context.plugin.app.vault.modify(context.file, contentToWrite);
-      }
-
-      if (context.newName !== context.file.basename) {
-        await moveFile(context, context.file, finalPath);
-      }
-    }
-
-    // Record metadata updates
-    if (context.classification) {
-      context.recordManager.recordClassification(
-        context.record,
-        context.classification
-      );
-    }
-
-    if (context.tags?.length) {
-      context.recordManager.recordTags(context.record, context.tags);
-    }
-
-    if (context.newName !== context.file.basename) {
-      context.recordManager.recordRename(
-        context.record,
-        context.file.basename,
-        context.newName!
-      );
-    }
-
-    return context;
-  } catch (error) {
-    logger.error("Error in processFileStep:", error);
-    context.recordManager.recordError(context.record, error);
-    throw error;
+  const existingTags = await context.plugin.getAllVaultTags();
+  const tags = await context.plugin.recommendTags(
+    context.content,
+    context.inboxFile.path,
+    existingTags
+  );
+  context.tags = tags?.map(t => t.tag);
+  // for each tag, append it to the file
+  for (const tag of context.tags) {
+    await context.plugin.appendTag(context.containerFile, tag);
   }
+  return context;
 }
 
 async function completeProcessing(
   context: ProcessingContext
 ): Promise<ProcessingContext> {
-  context.recordManager.recordProcessingComplete(context.record, {
-    newPath: context.newPath!,
-    newName: context.newName!,
-    tags: context.tags,
-  });
   return context;
 }
 
@@ -705,21 +539,7 @@ async function handleError(
   error: any,
   context: ProcessingContext
 ): Promise<void> {
-  context.recordManager.recordError(context.record, error);
   await moveFileToErrorFolder(context);
-  context.recordManager.updateFileStatus(
-    context.record,
-    "error",
-    `Processing error: ${error.message}`,
-    {
-      errorDetails: {
-        message: error.message,
-        stack: error.stack,
-        fileName: context.file.name,
-        newLocation: context.plugin.settings.errorFilePath,
-      },
-    }
-  );
 }
 
 // Helper functions for file operations
@@ -728,16 +548,16 @@ async function moveFileToBypassedFolder(
   context: ProcessingContext
 ): Promise<void> {
   const bypassedFolderPath = context.plugin.settings.bypassedFilePath;
-  const newPath = `${bypassedFolderPath}/${context.file.name}`;
-  await moveFile(context, context.file, newPath);
+  const newPath = `${bypassedFolderPath}/${context.inboxFile.name}`;
+  await moveFile(context, context.inboxFile, newPath);
 }
 
 async function moveFileToErrorFolder(
   context: ProcessingContext
 ): Promise<void> {
   const errorFolderPath = context.plugin.settings.errorFilePath;
-  const newPath = `${errorFolderPath}/${context.file.name}`;
-  await moveFile(context, context.file, newPath);
+  const newPath = `${errorFolderPath}/${context.inboxFile.name}`;
+  await moveFile(context, context.inboxFile, newPath);
 }
 
 async function moveFile(
@@ -760,20 +580,6 @@ async function moveFile(
   } catch (error) {
     logger.error(`Failed to move file ${file.path} to ${newPath}:`, error);
     throw new Error(`Failed to move file: ${error.message}`);
-  }
-}
-
-async function createFile(
-  context: ProcessingContext,
-  path: string,
-  content: string
-): Promise<TFile> {
-  try {
-    await ensureFolder(context, path);
-    return await context.plugin.app.vault.create(path, content);
-  } catch (error) {
-    logger.error(`Failed to create file at ${path}:`, error);
-    throw new Error(`Failed to create file: ${error.message}`);
   }
 }
 
@@ -805,41 +611,3 @@ export function enqueueFiles(files: TFile[]): void {
 export function getInboxStatus(): QueueStatus {
   return Inbox.getInstance().getQueueStats();
 }
-
-async function suggestTags(
-  context: ProcessingContext
-): Promise<ProcessingContext> {
-  const existingTags = await context.plugin.getAllVaultTags();
-  const response = await fetch(`${context.plugin.getServerUrl()}/api/tags/v2`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${context.plugin.settings.API_KEY}`,
-    },
-    body: JSON.stringify({
-      content: context.content,
-      fileName: context.file.name,
-      existingTags,
-      count: 5,
-    }),
-  });
-
-  if (!response.ok)
-    throw new Error(`Tag suggestion failed: ${response.statusText}`);
-  const result = await response.json();
-
-  // Filter tags by confidence threshold (e.g., 70)
-  context.suggestedTags = result.tags.filter(t => t.score >= 70);
-  context.tags = context.suggestedTags.map(t => t.tag);
-
-  // Apply tags immediately if we have suggestions
-  if (context.tags?.length) {
-    for (const tag of context.tags) {
-      await context.plugin.appendTag(context.file, tag);
-    }
-    context.recordManager.recordTags(context.record, context.tags);
-  }
-
-  return context;
-}
-
