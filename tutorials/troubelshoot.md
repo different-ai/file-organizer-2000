@@ -12,7 +12,7 @@ Support for open-source development available through website
 <img width="1840" alt="Screenshot 2024-11-13 at 14 41 20" src="https://github.com/user-attachments/assets/9a491629-0b00-463e-a9dd-808e55ebe74e">
 
 
-## What to do when you got an error
+## What to do when you get an error
 
 Submit a [new issue with steps to reproduce](https://github.com/different-ai/file-organizer-2000/issues/new/choose)
 
