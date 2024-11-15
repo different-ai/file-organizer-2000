@@ -115,14 +115,14 @@ export default function OnboardingPage() {
                   <Card
                     key={key}
                     className={twMerge(
-                      "p-4",
+                      "p-4 rounded-xl",
                       isLifetime &&
-                        "border-primary scale-105 shadow-lg relative"
+                        "!border-violet-500 !border-[1px] scale-105 shadow-lg relative"
                     )}
                   >
                     {isLifetime && (
                       <div className="absolute -top-3 left-1/2 transform -translate-x-1/2">
-                        <span className="bg-primary text-primary-foreground px-3 py-1 rounded-full text-sm font-medium">
+                        <span className="bg-[hsl(258,88%,90%)] text-[hsl(258,88%,45%)] px-3 py-1 rounded-full text-sm font-medium">
                           Best Value
                         </span>
                       </div>
@@ -155,7 +155,11 @@ export default function OnboardingPage() {
                     </CardContent>
                     <CardFooter>
                       <Button
-                        className="w-full mt-3"
+                        className={twMerge(
+                          "w-full mt-3",
+                          isLifetime &&
+                            "bg-violet-600 hover:bg-violet-700 text-white border-none"
+                        )}
                         variant={isLifetime ? "default" : "outline"}
                         onClick={() => handlePlanSelection(planKey)}
                       >
