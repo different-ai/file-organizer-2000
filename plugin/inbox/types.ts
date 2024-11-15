@@ -32,29 +32,6 @@ export interface FileMetadata {
   isMediaFile: boolean;
 }
 
-export interface FileRecord {
-  id: string;
-  filePath: string;
-  fileName: string;
-  previousName: string;
-  status: FileStatus;
-  createdAt: string;
-  updatedAt: string;
-  metadata: FileMetadata;
-  errors: Array<{
-    timestamp: string;
-    message: string;
-    stack?: string;
-  }>;
-  newPath?: string;
-  newName?: string;
-  tags?: string[];
-  actions?: ActionLog[];
-  classification?: Classification;
-  formattedContent?: boolean;
-  destinationFolder?: string;
-}
-
 export interface EventRecord {
   id: string;
   fileRecordId: string;

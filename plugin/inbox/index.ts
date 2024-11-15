@@ -1,8 +1,8 @@
 import { TFile, moment, TFolder } from "obsidian";
 import FileOrganizer from "../index";
 import { Queue } from "./services/queue";
-import { RecordManager } from "./services/record-manager";
-import { FileRecord, QueueStatus } from "./types";
+import { FileRecord, RecordManager } from "./services/record-manager";
+import {  QueueStatus } from "./types";
 import { cleanPath, logMessage } from "../someUtils";
 import { IdService } from "./services/id-service";
 import { logger } from "../services/logger";
@@ -52,7 +52,6 @@ interface ProcessingContext {
   containerFile?: TFile;
   attachmentFile?: TFile;
   hash: string;
-  record: FileRecord;
   content?: string;
   newPath?: string;
   newName?: string;
@@ -210,6 +209,7 @@ export class Inbox {
 
   public getFileStatus(filePath: string): FileRecord | undefined {
     // return this.recordManager.getRecordByPath(filePath);
+    return undefined;
   }
 
   public getFileEvents(fileId: string): EventRecord[] {
@@ -218,7 +218,7 @@ export class Inbox {
   }
 
   public getAllFiles(): FileRecord[] {
-    return [];
+    return this.recordManager.getAllRecords();
   }
 
   public getQueueStats(): QueueStatus {
@@ -238,12 +238,12 @@ export class Inbox {
     // const record = this.recordManager.getRecordByHash(hash);
     // if (!record) return;
 
+    this.recordManager.startTracking(hash);
     console.log("Processing inbox file", inboxFile);
     const context: ProcessingContext = {
       inboxFile,
       // from now on we will only work with the container file
       hash,
-      // record,
       plugin: this.plugin,
       recordManager: this.recordManager,
       idService: this.idService,
@@ -535,10 +535,19 @@ async function renameFile(
   file: TFile,
   newName: string
 ): Promise<void> {
-  await context.plugin.app.fileManager.renameFile(
-    file,
-    `${file.parent.path}/${newName}.${file.extension}`
-  );
+  const parentPath = file.parent.path;
+  const extension = file.extension;
+  let uniqueName = newName;
+  let destinationPath = `${parentPath}/${uniqueName}.${extension}`;
+
+  // Check if the destination file exists
+  while (context.plugin.app.vault.getAbstractFileByPath(destinationPath)) {
+    // Generate a new unique name by appending a suffix
+    uniqueName = `${newName}-${moment().format("YYYYMMDD-HHmmss")}`;
+    destinationPath = `${parentPath}/${uniqueName}.${extension}`;
+  }
+
+  await context.plugin.app.fileManager.renameFile(file, destinationPath);
 }
 
 async function moveFile(
@@ -548,8 +557,20 @@ async function moveFile(
 ): Promise<void> {
   await ensureFolderExists(context.plugin.app, newFolderPath);
 
-  const sanitizedNewPath = `${cleanPath(newFolderPath)}/${file.name}`;
-  await context.plugin.app.fileManager.renameFile(file, sanitizedNewPath);
+  const fileName = file.name;
+  let destinationPath = `${cleanPath(newFolderPath)}/${fileName}`;
+
+  // Check if the destination file exists
+  while (context.plugin.app.vault.getAbstractFileByPath(destinationPath)) {
+    // Generate a new unique name by appending a suffix
+    const baseName = fileName.replace(`.${file.extension}`, "");
+    const uniqueName = `${baseName}-${moment().format("YYYYMMDD-HHmmss")}.${
+      file.extension
+    }`;
+    destinationPath = `${cleanPath(newFolderPath)}/${uniqueName}`;
+  }
+
+  await context.plugin.app.fileManager.renameFile(file, destinationPath);
 }
 
 // Helper functions for initialization and usage

@@ -2,19 +2,19 @@ import { TFile } from "obsidian";
 import { IdService } from "./id-service";
 import moment from "moment";
 
-enum Step {
-  PREPROCESS = 'preprocess',
-  EXTRACT = 'extract',
-  CLASSIFY = 'classify',
-  TAG = 'tag',
-  FORMAT = 'format',
-  MOVE = 'move'
+export enum Step {
+  PREPROCESS = "preprocess",
+  EXTRACT = "extract",
+  CLASSIFY = "classify",
+  TAG = "tag",
+  FORMAT = "format",
+  MOVE = "move",
 }
 
-interface LogEntry {
+export interface LogEntry {
   timestamp: string;
   step: Step;
-  type: 'log' | 'error';
+  type: "log" | "error";
   message: string;
   error?: {
     message: string;
@@ -22,15 +22,19 @@ interface LogEntry {
   };
 }
 
-interface FileLog {
+export interface FileRecord {
   id: string;
-  filePath: string;
+  tags: string[];
+  classification?: string;
+  formatted: boolean;
+  newPath?: string;
+  newName?: string;
   logs: LogEntry[];
 }
 
 export class RecordManager {
   private static instance: RecordManager;
-  private logs: Map<string, FileLog> = new Map();
+  private records: Map<string, FileRecord> = new Map();
   private idService: IdService;
 
   private constructor() {
@@ -44,102 +48,128 @@ export class RecordManager {
     return RecordManager.instance;
   }
 
-  public trackFile(file: TFile): string {
-    const id = this.idService.generateFileHash(file);
-    
-    if (!this.logs.has(id)) {
-      this.logs.set(id, {
-        id,
-        filePath: file.path,
-        logs: []
+  public startTracking(hash: string): string {
+    if (!this.records.has(hash)) {
+      this.records.set(hash, {
+        id: hash,
+        tags: [],
+        formatted: false,
+        logs: [],
       });
     }
-
-    return id;
+    return hash;
   }
 
-  private addLog(fileId: string, step: Step, message: string, error?: Error): void {
-    const log = this.logs.get(fileId);
-    if (!log) return;
+  // Record update methods
+  public addTag(hash: string, tag: string): void {
+    const record = this.records.get(hash);
+    if (record && !record.tags.includes(tag)) {
+      record.tags.push(tag);
+    }
+  }
+
+  public setClassification(hash: string, classification: string): void {
+    const record = this.records.get(hash);
+    if (record) {
+      record.classification = classification;
+    }
+  }
+
+  public setFormatted(hash: string, formatted: boolean): void {
+    const record = this.records.get(hash);
+    if (record) {
+      record.formatted = formatted;
+    }
+  }
+
+  public setNewPath(hash: string, newPath: string): void {
+    const record = this.records.get(hash);
+    if (record) {
+      record.newPath = newPath;
+    }
+  }
+
+  public setNewName(hash: string, newName: string): void {
+    const record = this.records.get(hash);
+    if (record) {
+      record.newName = newName;
+    }
+  }
+
+  private addLog(
+    hash: string,
+    step: Step,
+    message: string,
+    error?: Error
+  ): void {
+    const record = this.records.get(hash);
+    if (!record) return;
 
     const entry: LogEntry = {
       timestamp: moment().format(),
       step,
-      type: error ? 'error' : 'log',
+      type: error ? "error" : "log",
       message,
       ...(error && {
         error: {
           message: error.message,
-          stack: error.stack
-        }
-      })
+          stack: error.stack,
+        },
+      }),
     };
 
-    log.logs.push(entry);
+    record.logs.push(entry);
   }
 
-  // Consistent logging API
-  public log(fileId: string, step: Step, message: string): void {
-    this.addLog(fileId, step, message);
+  // Logging methods
+  public log(hash: string, step: Step, message: string): void {
+    this.addLog(hash, step, message);
   }
 
-  public logError(fileId: string, step: Step, error: Error): void {
-    this.addLog(fileId, step, error.message, error);
+  public logError(hash: string, step: Step, error: Error): void {
+    this.addLog(hash, step, error.message, error);
   }
 
   // Query methods
-  public hasErrors(fileId: string, step?: Step): boolean {
-    const log = this.logs.get(fileId);
-    if (!log) return false;
-    
-    return log.logs.some(entry => 
-      entry.type === 'error' && 
-      (!step || entry.step === step)
+  public getRecord(hash: string): FileRecord | undefined {
+    return this.records.get(hash);
+  }
+
+  public hasErrors(hash: string, step?: Step): boolean {
+    const record = this.records.get(hash);
+    if (!record) return false;
+
+    return record.logs.some(
+      entry => entry.type === "error" && (!step || entry.step === step)
     );
   }
 
-  public getStepLogs(fileId: string, step: Step): LogEntry[] {
-    const log = this.logs.get(fileId);
-    if (!log) return [];
-    return log.logs.filter(entry => entry.step === step);
+  public getStepLogs(hash: string, step: Step): LogEntry[] {
+    const record = this.records.get(hash);
+    if (!record) return [];
+    return record.logs.filter(entry => entry.step === step);
   }
 
-  public getLastStep(fileId: string): Step | null {
-    const log = this.logs.get(fileId);
-    if (!log || log.logs.length === 0) return null;
-    return log.logs[log.logs.length - 1].step;
+  public getLastStep(hash: string): Step | null {
+    const record = this.records.get(hash);
+    if (!record || record.logs.length === 0) return null;
+    return record.logs[record.logs.length - 1].step;
   }
 
-  // Query methods for multiple files
-  public getAllRecords(): FileLog[] {
-    return Array.from(this.logs.values());
+  // Query methods for multiple records
+  public getAllRecords(): FileRecord[] {
+    return Array.from(this.records.values());
   }
 
-  public getRecordsWithErrors(): FileLog[] {
-    return this.getAllRecords().filter(log => 
-      log.logs.some(entry => entry.type === 'error')
+  public getRecordsWithErrors(): FileRecord[] {
+    return this.getAllRecords().filter(record =>
+      record.logs.some(entry => entry.type === "error")
     );
   }
 
-  public getRecordsByStep(step: Step): FileLog[] {
-    return this.getAllRecords().filter(log =>
-      log.logs.some(entry => entry.step === step)
+  public getRecordsByStep(step: Step): FileRecord[] {
+    return this.getAllRecords().filter(record =>
+      record.logs.some(entry => entry.step === step)
     );
-  }
-
-  public getRecordsSummary(): Array<{
-    id: string;
-    filePath: string;
-    lastStep: Step | null;
-    hasErrors: boolean;
-    logCount: number;
-  }> {
-    return this.getAllRecords().map(log => ({
-      id: log.id,
-      filePath: log.filePath,
-      lastStep: log.logs.length ? log.logs[log.logs.length - 1].step : null,
-      hasErrors: log.logs.some(entry => entry.type === 'error'),
-      logCount: log.logs.length
-    }));
   }
 }
