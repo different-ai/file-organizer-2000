@@ -115,17 +115,25 @@ export default function OnboardingPage() {
                   <Card
                     key={key}
                     className={twMerge(
-                      "p-4 rounded-xl",
+                      "p-4 rounded-xl relative",
                       isLifetime &&
-                        "!border-violet-500 !border-[1px] scale-105 shadow-lg relative"
+                        "!border-violet-500 !border-[1px] scale-105 shadow-lg"
                     )}
                   >
-                    {isLifetime && (
+                    {isLifetime ? (
                       <div className="absolute -top-3 left-1/2 transform -translate-x-1/2">
-                        <span className="bg-[hsl(258,88%,90%)] text-[hsl(258,88%,45%)] px-3 py-1 rounded-full text-sm font-medium">
+                        <span className="bg-violet-100 text-violet-600 px-3 py-1 rounded-full text-sm font-medium">
                           Best Value
                         </span>
                       </div>
+                    ) : (
+                      planKey === "Monthly" && (
+                        <div className="absolute -top-3 left-1/2 transform -translate-x-1/2">
+                          <span className="bg-emerald-100 text-emerald-600 px-3 py-1 rounded-full text-sm font-medium">
+                            First month $9 with code ARIGATO
+                          </span>
+                        </div>
+                      )
                     )}
                     <CardHeader>
                       <div className="flex justify-between items-center">
