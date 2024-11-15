@@ -1381,7 +1381,7 @@ export default class FileOrganizer extends Plugin {
 
   async recommendFolders(
     content: string,
-    filePath: string
+    fileName: string
   ): Promise<FolderSuggestion[]> {
     const customInstructions = this.settings.customFolderInstructions;
     const cutoff = this.settings.contentCutoffChars;
@@ -1396,7 +1396,7 @@ export default class FileOrganizer extends Plugin {
       },
       body: JSON.stringify({
         content: trimmedContent,
-        fileName: filePath,
+        fileName: fileName,
         folders,
         customInstructions,
       }),

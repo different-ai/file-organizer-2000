@@ -12,7 +12,6 @@ import {
   cleanup,
 } from "../utils/token-counter";
 import { isValidExtension, VALID_MEDIA_EXTENSIONS } from "../constants";
-import { record } from "zod";
 import { ensureFolderExists } from "../fileUtils";
 
 // Move constants to the top level and ensure they're used consistently
@@ -253,23 +252,20 @@ export class Inbox {
     console.log("Processing inbox file", context.inboxFile.path);
 
     try {
-      await startProcessing(context)
-        .then(hasValidFileStep)
-        .then(getContainerFileStep)
-        .then(moveAttachmentFile)
-        .then(getContentStep)
-        .then(preprocessContentStep)
-        .then(recommendTagsStep)
-        .then(recommendClassificationStep)
-        .then(recommendFolderStep)
-        .then(recommendNameStep)
-        .then(formatContentStep)
-        .then(completeProcessing)
-        .catch(async error => {
-          await handleError(error, context);
-          throw error;
-        });
+      await startProcessing(context);
+      await hasValidFileStep(context);
+      await getContainerFileStep(context);
+      await moveAttachmentFile(context);
+      await getContentStep(context);
+      await preprocessContentStep(context);
+      await recommendTagsStep(context);
+      await recommendClassificationStep(context);
+      await recommendFolderStep(context);
+      await recommendNameStep(context);
+      await formatContentStep(context);
+      await completeProcessing(context);
     } catch (error) {
+      await handleError(error, context);
       logger.error("Error processing inbox file:", error);
     }
   }
@@ -320,11 +316,11 @@ async function recommendNameStep(
 ): Promise<ProcessingContext> {
   const newName = await context.plugin.recommendName(
     context.content,
-    context.inboxFile.path
+    context.inboxFile.basename
   );
   context.newName = newName[0]?.title;
+  console.log("going to rename file", context.containerFile, context.newName);
   await renameFile(context, context.containerFile, context.newName);
-  console.log("renamed file to", context.containerFile);
   return context;
 }
 
@@ -333,7 +329,7 @@ async function recommendFolderStep(
 ): Promise<ProcessingContext> {
   const newPath = await context.plugin.recommendFolders(
     context.content,
-    context.inboxFile.path
+    context.inboxFile.basename
   );
   context.newPath = newPath[0]?.folder;
   console.log("new path", context.newPath, context.containerFile);
@@ -346,7 +342,7 @@ async function recommendFolderStep(
 async function recommendClassificationStep(
   context: ProcessingContext
 ): Promise<ProcessingContext> {
-  if (!context.plugin.settings.enableDocumentClassification) {
+  if (context.plugin.settings.enableDocumentClassification) {
     const templateNames = await context.plugin.getTemplateNames();
     const result = await context.plugin.classifyContentV2(
       context.content,
@@ -374,15 +370,10 @@ async function startProcessing(
 async function getContentStep(
   context: ProcessingContext
 ): Promise<ProcessingContext> {
-  try {
-    console.log("getContentStep", context.inboxFile.path);
-    const content = await context.plugin.getTextFromFile(context.inboxFile);
-    context.content = content;
-    return context;
-  } catch (error) {
-    logger.error("Error in extractTextStep:", error);
-    throw error;
-  }
+  const fileToRead = context.inboxFile;
+  const content = await context.plugin.getTextFromFile(fileToRead);
+  context.content = content;
+  return context;
 }
 
 async function preprocessContentStep(
@@ -425,8 +416,8 @@ async function handleBypass(
     const bypassedFolderPath = context.plugin.settings.bypassedFilePath;
     await moveFile(context, context.inboxFile, bypassedFolderPath);
 
-    // Finally, bypass in the queue
     context.queue.bypass(context.hash);
+    throw new Error("Bypassed due to " + reason);
   } catch (error) {
     logger.error("Error in handleBypass:", error);
     throw error;
@@ -526,6 +517,7 @@ async function handleError(
   error: any,
   context: ProcessingContext
 ): Promise<void> {
+  console.log("handleError", error);
   await moveFileToErrorFolder(context);
 }
 
@@ -535,8 +527,7 @@ async function moveFileToErrorFolder(
   context: ProcessingContext
 ): Promise<void> {
   const errorFolderPath = context.plugin.settings.errorFilePath;
-  const newPath = `${errorFolderPath}/${context.inboxFile.name}`;
-  await moveFile(context, context.inboxFile, newPath);
+  await moveFile(context, context.inboxFile, errorFolderPath);
 }
 
 async function renameFile(
@@ -553,21 +544,12 @@ async function renameFile(
 async function moveFile(
   context: ProcessingContext,
   file: TFile,
-  newPath: string
+  newFolderPath: string
 ): Promise<void> {
-  try {
-    await ensureFolderExists(context.plugin.app, newPath);
+  await ensureFolderExists(context.plugin.app, newFolderPath);
 
-    const sanitizedNewPath = `${cleanPath(newPath)}/${file.name}`;
-    console.log("moving ", file, "to", sanitizedNewPath);
-    await context.plugin.app.fileManager.renameFile(
-      file,
-      `${sanitizedNewPath}`
-    );
-  } catch (error) {
-    logger.error(`Failed to move file ${file.path} to ${newPath}:`, error);
-    throw new Error(`Failed to move file: ${error.message}`);
-  }
+  const sanitizedNewPath = `${cleanPath(newFolderPath)}/${file.name}`;
+  await context.plugin.app.fileManager.renameFile(file, sanitizedNewPath);
 }
 
 // Helper functions for initialization and usage

@@ -32,7 +32,7 @@ export async function POST(request: NextRequest) {
       // remove extension from fileName if it exists
       const fileNameWithoutExtension = fileName.split(".").slice(0, -1).join(".");
       return NextResponse.json({
-        titles: [{ score: 100, title: fileNameWithoutExtension, reason: "No need to rename" }],
+        titles: [{ score: 100, title: fileName, reason: "No need to rename" }],
       });
     }
 
