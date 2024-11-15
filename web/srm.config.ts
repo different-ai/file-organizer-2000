@@ -2,7 +2,7 @@ import { PreSRMConfig } from "@u22n/srm/dist";
 
 const features = {
   support: "Support",
-  freeTrial: "3-day Free trial",
+  freeTrial: "7-day Free trial",
   noExternalAI: "No external AI subscription needed",
   easySetup: "Seamless no-sweat setup",
   fileLimit: "~1000 files per month",
@@ -64,7 +64,7 @@ export const config = {
           amount: 9900, // Adjust this to match your current price
           interval: "year",
           type: "recurring",
-          trialPeriodDays: 3, // Add trial period for annual plan
+          trialPeriodDays: 7, // Add trial period for annual plan
 
         },
       },

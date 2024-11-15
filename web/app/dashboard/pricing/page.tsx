@@ -11,8 +11,6 @@ import { config } from "@/srm.config";
 import { CheckIcon } from "lucide-react";
 
 export default function PlanSelectionPage() {
-
-
   const renderPricingCard = (
     planKey: string,
     product: any,
@@ -23,8 +21,8 @@ export default function PlanSelectionPage() {
     const isYearlyPlan = planKey === "Yearly";
 
     return (
-      <Card 
-        key={planKey} 
+      <Card
+        key={planKey}
         className={`border relative p-6 flex flex-col ${
           isYearlyPlan ? "border-purple-400 shadow-lg" : "border-stone-300"
         }`}
@@ -32,11 +30,11 @@ export default function PlanSelectionPage() {
         {isYearlyPlan && (
           <div className="absolute -top-3 left-0 right-0 flex justify-center">
             <span className="bg-purple-100 text-purple-800 text-sm font-medium px-3 py-1 rounded-full">
-              Try free for 3 days
+              Try free for 7 days
             </span>
           </div>
         )}
-        
+
         <h2 className="text-2xl mb-2 font-semibold">{planKey} Plan</h2>
         <p className="text-4xl font-bold mb-4">
           ${price.amount / 100}
@@ -55,7 +53,7 @@ export default function PlanSelectionPage() {
         <Button
           onClick={() => handlePlanSelection(planKey)}
           className={`px-4 py-2 w-full transition-colors ${
-            isYearlyPlan 
+            isYearlyPlan
               ? "bg-purple-600 hover:bg-purple-700 text-white"
               : "bg-stone-800 text-stone-100 hover:bg-stone-700"
           }`}
@@ -63,7 +61,7 @@ export default function PlanSelectionPage() {
           {planKey === "Lifetime"
             ? "Get Lifetime Access"
             : isYearlyPlan
-            ? "Start 3-day Free Trial"
+            ? "Start 7-day Free Trial"
             : `Choose ${planKey} Plan`}
         </Button>
       </Card>
@@ -77,9 +75,24 @@ export default function PlanSelectionPage() {
         Select the perfect plan for your needs.
       </p>
       <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-        {renderPricingCard("Monthly", config.products.HobbyMonthly, "monthly", createSubscriptionCheckout)}
-        {renderPricingCard("Yearly", config.products.HobbyYearly, "yearly", createYearlySubscriptionCheckout)}
-        {renderPricingCard("Lifetime", config.products.Lifetime, "lifetime", createOneTimePaymentCheckout)}
+        {renderPricingCard(
+          "Monthly",
+          config.products.HobbyMonthly,
+          "monthly",
+          createSubscriptionCheckout
+        )}
+        {renderPricingCard(
+          "Yearly",
+          config.products.HobbyYearly,
+          "yearly",
+          createYearlySubscriptionCheckout
+        )}
+        {renderPricingCard(
+          "Lifetime",
+          config.products.Lifetime,
+          "lifetime",
+          createOneTimePaymentCheckout
+        )}
       </div>
     </section>
   );
