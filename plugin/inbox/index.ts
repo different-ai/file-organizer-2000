@@ -1,10 +1,9 @@
 import { TFile, moment, TFolder } from "obsidian";
 import FileOrganizer from "../index";
-import { validateFile } from "../utils";
 import { Queue } from "./services/queue";
 import { RecordManager } from "./services/record-manager";
 import { FileRecord, QueueStatus } from "./types";
-import { logMessage } from "../someUtils";
+import { cleanPath, logMessage } from "../someUtils";
 import { IdService } from "./services/id-service";
 import { logger } from "../services/logger";
 import {
@@ -14,6 +13,7 @@ import {
 } from "../utils/token-counter";
 import { isValidExtension, VALID_MEDIA_EXTENSIONS } from "../constants";
 import { record } from "zod";
+import { ensureFolderExists } from "../fileUtils";
 
 // Move constants to the top level and ensure they're used consistently
 const MAX_CONCURRENT_TASKS = 5;
@@ -291,22 +291,24 @@ async function getContainerFileStep(
   context: ProcessingContext
 ): Promise<ProcessingContext> {
   if (VALID_MEDIA_EXTENSIONS.includes(context.inboxFile.extension)) {
-    await this.plugin.app.vault.create(
+    const containerFile = await context.plugin.app.vault.create(
       context.inboxFile.name,
       `![[${context.inboxFile.name}]]`
     );
+    context.containerFile = containerFile;
     return context;
   }
   // return the inboxFile if it is not a media file
+  context.containerFile = context.inboxFile;
   return context;
 }
 
 async function hasValidFileStep(
   context: ProcessingContext
 ): Promise<ProcessingContext> {
-  console.log("hasValidFileStep", context.containerFile.extension);
+  console.log("hasValidFileStep", context.inboxFile.extension);
   // check if file is supported if not bypass
-  if (!isValidExtension(context.containerFile.extension)) {
+  if (!isValidExtension(context.inboxFile.extension)) {
     await handleBypass(context, "Unsupported file type");
     throw new Error("Unsupported file type");
   }
@@ -321,7 +323,8 @@ async function recommendNameStep(
     context.inboxFile.path
   );
   context.newName = newName[0]?.title;
-  moveFile(context, context.inboxFile, context.newPath);
+  await renameFile(context, context.containerFile, context.newName);
+  console.log("renamed file to", context.containerFile);
   return context;
 }
 
@@ -333,7 +336,9 @@ async function recommendFolderStep(
     context.inboxFile.path
   );
   context.newPath = newPath[0]?.folder;
-  moveFile(context, context.inboxFile, context.newPath);
+  console.log("new path", context.newPath, context.containerFile);
+  await moveFile(context, context.containerFile, context.newPath);
+  console.log("moved file to", context.containerFile);
 
   return context;
 }
@@ -362,6 +367,7 @@ async function recommendClassificationStep(
 async function startProcessing(
   context: ProcessingContext
 ): Promise<ProcessingContext> {
+  console.log("startProcessing", context);
   return context;
 }
 
@@ -369,7 +375,8 @@ async function getContentStep(
   context: ProcessingContext
 ): Promise<ProcessingContext> {
   try {
-    const content = await context.plugin.getTextFromFile(context.containerFile);
+    console.log("getContentStep", context.inboxFile.path);
+    const content = await context.plugin.getTextFromFile(context.inboxFile);
     context.content = content;
     return context;
   } catch (error) {
@@ -385,7 +392,6 @@ async function preprocessContentStep(
     // Early return if no content
     if (!context.content) {
       await handleBypass(context, "No content available");
-      throw new Error("No content available");
     }
 
     // Strip front matter and trim
@@ -396,7 +402,6 @@ async function preprocessContentStep(
     // Bypass if content is too short
     if (contentWithoutFrontMatter.length < 5) {
       await handleBypass(context, "Content too short (less than 5 characters)");
-      throw new Error("Content too short");
     }
 
     // Set the cleaned content back
@@ -418,11 +423,7 @@ async function handleBypass(
 
     // Then move the file
     const bypassedFolderPath = context.plugin.settings.bypassedFilePath;
-    await ensureFolder(context, bypassedFolderPath);
-    const newPath = `${bypassedFolderPath}/${context.file.name}`;
-
-    // Move file using the vault API
-    await context.plugin.app.vault.rename(context.file, newPath);
+    await moveFile(context, context.inboxFile, bypassedFolderPath);
 
     // Finally, bypass in the queue
     context.queue.bypass(context.hash);
@@ -432,27 +433,13 @@ async function handleBypass(
   }
 }
 
-async function classifyDocument(
-  context: ProcessingContext
-): Promise<ProcessingContext> {
-  if (!context.plugin.settings.enableDocumentClassification) return context;
-  const templateNames = await context.plugin.getTemplateNames();
-  const result = await context.plugin.classifyContentV2(
-    context.content,
-    templateNames
-  );
-  context.classification = {
-    documentType: result,
-    confidence: 100,
-    reasoning: "N/A",
-  };
-
-  return context;
-}
-
 async function formatContentStep(
   context: ProcessingContext
 ): Promise<ProcessingContext> {
+  if (!context.classification) {
+    logger.info("Skipping formatting: no classification available");
+    return context;
+  }
   // Early return if no classification
   if (!context.classification.documentType) {
     logger.info("Skipping formatting: no classification available");
@@ -516,7 +503,7 @@ async function recommendTagsStep(
   const existingTags = await context.plugin.getAllVaultTags();
   const tags = await context.plugin.recommendTags(
     context.content,
-    context.inboxFile.path,
+    context.containerFile.path,
     existingTags
   );
   context.tags = tags?.map(t => t.tag);
@@ -544,14 +531,6 @@ async function handleError(
 
 // Helper functions for file operations
 
-async function moveFileToBypassedFolder(
-  context: ProcessingContext
-): Promise<void> {
-  const bypassedFolderPath = context.plugin.settings.bypassedFilePath;
-  const newPath = `${bypassedFolderPath}/${context.inboxFile.name}`;
-  await moveFile(context, context.inboxFile, newPath);
-}
-
 async function moveFileToErrorFolder(
   context: ProcessingContext
 ): Promise<void> {
@@ -560,41 +539,34 @@ async function moveFileToErrorFolder(
   await moveFile(context, context.inboxFile, newPath);
 }
 
+async function renameFile(
+  context: ProcessingContext,
+  file: TFile,
+  newName: string
+): Promise<void> {
+  await context.plugin.app.fileManager.renameFile(
+    file,
+    `${file.parent.path}/${newName}.${file.extension}`
+  );
+}
+
 async function moveFile(
   context: ProcessingContext,
   file: TFile,
   newPath: string
 ): Promise<void> {
   try {
-    await ensureFolder(context, newPath);
+    await ensureFolderExists(context.plugin.app, newPath);
 
-    const exists = await context.plugin.app.vault.adapter.exists(newPath);
-    if (exists) {
-      const timestamp = moment().format("YYYY-MM-DD-HHmmss");
-      const parts = newPath.split(".");
-      const ext = parts.pop();
-      newPath = `${parts.join(".")}-${timestamp}.${ext}`;
-    }
-
-    await context.plugin.app.vault.rename(file, newPath);
+    const sanitizedNewPath = `${cleanPath(newPath)}/${file.name}`;
+    console.log("moving ", file, "to", sanitizedNewPath);
+    await context.plugin.app.fileManager.renameFile(
+      file,
+      `${sanitizedNewPath}`
+    );
   } catch (error) {
     logger.error(`Failed to move file ${file.path} to ${newPath}:`, error);
     throw new Error(`Failed to move file: ${error.message}`);
-  }
-}
-
-async function ensureFolder(
-  context: ProcessingContext,
-  path: string
-): Promise<void> {
-  const folderPath = path.split("/").slice(0, -1).join("/");
-  try {
-    await context.plugin.app.vault.createFolder(folderPath);
-  } catch (error) {
-    if (!error.message.includes("already exists")) {
-      logger.error("Error creating folder:", error);
-      throw error;
-    }
   }
 }
 
