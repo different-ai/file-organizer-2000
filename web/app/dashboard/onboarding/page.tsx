@@ -131,6 +131,11 @@ export default function OnboardingPage() {
                       <div className="flex justify-between items-center">
                         <CardTitle>{planKey}</CardTitle>
                         <CardDescription className="text-2xl font-bold">
+                          {planKey === "Yearly" && (
+                            <span className="line-through text-muted-foreground mr-2">
+                              $180
+                            </span>
+                          )}
                           ${price.amount / 100}
                           {price.type === "recurring" && (
                             <span className="text-sm">/{price.interval}</span>
