@@ -325,9 +325,9 @@ async function getContainerFileStep(
   context: ProcessingContext
 ): Promise<ProcessingContext> {
   if (VALID_MEDIA_EXTENSIONS.includes(context.inboxFile.extension)) {
-    const containerFile = await context.plugin.app.vault.create(
-      context.inboxFile.basename + ".md",
-      ``
+    const containerFile = await safeCreate(
+      context,
+      context.inboxFile.basename + ".md"
     );
     context.containerFile = containerFile;
   } else {
@@ -354,11 +354,11 @@ async function recommendNameStep(
 ): Promise<ProcessingContext> {
   const newName = await context.plugin.recommendName(
     context.content,
-    context.inboxFile.basename
+    context.containerFile.basename
   );
   context.newName = newName[0]?.title;
   // if new name is the same as the old name then don't rename
-  if (context.newName === context.inboxFile.basename) {
+  if (context.newName === context.containerFile.basename) {
     return context;
   }
   context.recordManager.setNewName(context.hash, context.newName);
@@ -556,7 +556,7 @@ async function formatContentStep(
     );
     await context.plugin.app.vault.append(
       context.containerFile,
-      `\n\n---\n\This file is formatted and the original file is: ${markdownLink}\n\n---\n\n`
+      `\n\n---\nThis file is formatted and the original file is: ${markdownLink}\n\n---\n\n`
     );
 
     context.recordManager.addAction(context.hash, Action.FORMATTING, true);
@@ -655,6 +655,22 @@ async function getAvailablePath(
   }
 
   return available;
+}
+async function safeCreate(
+  context: ProcessingContext,
+  desiredPath: string,
+  content?: string
+): Promise<TFile> {
+  await ensureFolderExists(context.plugin.app, desiredPath);
+  const availablePath = await getAvailablePath(
+    desiredPath,
+    context.plugin.app.vault
+  );
+  const createdFile = await context.plugin.app.vault.create(
+    availablePath,
+    content
+  );
+  return createdFile;
 }
 
 async function safeRename(

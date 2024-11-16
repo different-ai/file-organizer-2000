@@ -1556,7 +1556,7 @@ export default class FileOrganizer extends Plugin {
 
   async recommendName(
     content: string,
-    filePath: string
+    fileName: string
   ): Promise<TitleSuggestion[]> {
     // cutoff
     const cutoff = this.settings.contentCutoffChars;
@@ -1574,7 +1574,7 @@ export default class FileOrganizer extends Plugin {
       },
       body: JSON.stringify({
         content: trimmedContent,
-        fileName: filePath,
+        fileName: fileName,
         customInstructions,
       }),
     });
