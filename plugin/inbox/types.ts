@@ -1,6 +1,5 @@
 import { TFile } from "obsidian";
 
-export type FileStatus = "queued" | "processing" | "completed" | "error" | "bypassed";
 
 export type ActionType = 'renamed' | 'moved' | 'classified' | 'tagged' | 'error';
 
@@ -30,29 +29,6 @@ export interface FileMetadata {
   createdTime: number;
   modifiedTime: number;
   isMediaFile: boolean;
-}
-
-export interface FileRecord {
-  id: string;
-  filePath: string;
-  fileName: string;
-  previousName: string;
-  status: FileStatus;
-  createdAt: string;
-  updatedAt: string;
-  metadata: FileMetadata;
-  errors: Array<{
-    timestamp: string;
-    message: string;
-    stack?: string;
-  }>;
-  newPath?: string;
-  newName?: string;
-  tags?: string[];
-  actions?: ActionLog[];
-  classification?: Classification;
-  formattedContent?: boolean;
-  destinationFolder?: string;
 }
 
 export interface EventRecord {

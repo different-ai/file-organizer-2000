@@ -1,30 +1,64 @@
 import { TFile } from "obsidian";
-import { FileRecord, FileStatus, FileMetadata, EventRecord, Classification } from "../types";
 import { IdService } from "./id-service";
-import { ErrorService, ErrorSeverity } from "./error-service";
-import { isMediaFile } from "../utils/file";
 import moment from "moment";
 
-interface ActionLog {
-  action: 'renamed' | 'moved' | 'classified' | 'tagged' | 'error' | 'processing' | 'queued' | 'analyzing';
+export enum Action {
+  CLEANUP = "cleaning up file",
+  CLEANUP_DONE = "file cleaned up",
+  RENAME = "renaming file",
+  RENAME_DONE = "file renamed",
+  EXTRACT = "extracting text",
+  EXTRACT_DONE = "text extracted",
+  MOVING_ATTACHEMENT = "moving attachments",
+  MOVING_ATTACHEMENT_DONE = "attachments moved",
+  CLASSIFY = "classifying",
+  CLASSIFY_DONE = "classified",
+  TAGGING = "recommending tags",
+  TAGGING_DONE = "tags recommended",
+  APPLYING_TAGS = "applying tags",
+  APPLYING_TAGS_DONE = "tags applied",
+  RECOMMEND_NAME = "recommending name",
+  RECOMMEND_NAME_DONE = "name recommended",
+  APPLYING_NAME = "applying name",
+  APPLYING_NAME_DONE = "name applied",
+  FORMATTING = "formatting",
+  FORMATTING_DONE = "formatted",
+  MOVING = "moving",
+  MOVING_DONE = "moved",
+  COMPLETED = "completed",
+}
+
+export interface LogEntry {
   timestamp: string;
-  details: {
-    from?: string;
-    to?: string;
-    tags?: string[];
-    classification?: Classification;
-    error?: string;
-    destinationFolder?: string;
-    wasFormatted?: boolean;
-    step?: string;
-    progress?: string;
+  completed?: boolean;
+  error?: {
+    message: string;
+    stack?: string;
   };
+}
+
+export type FileStatus =
+  | "queued"
+  | "processing"
+  | "completed"
+  | "error"
+  | "bypassed";
+
+export interface FileRecord {
+  id: string;
+  tags: string[];
+  classification?: string;
+  formatted: boolean;
+  newPath?: string;
+  newName?: string;
+  logs: Record<Action, LogEntry>;
+  status: FileStatus;
+  file: TFile | null;
 }
 
 export class RecordManager {
   private static instance: RecordManager;
-  private fileRecords: Map<string, FileRecord> = new Map();
-  private eventRecords: Map<string, EventRecord[]> = new Map();
+  private records: Map<string, FileRecord> = new Map();
   private idService: IdService;
 
   private constructor() {
@@ -38,276 +72,164 @@ export class RecordManager {
     return RecordManager.instance;
   }
 
-  public createOrUpdateFileRecord(
-    file: TFile,
-    updates?: Partial<FileRecord>
-  ): FileRecord {
-    try {
-      const hash = this.idService.generateFileHash(file);
-      const existingRecord = this.getRecordByHash(hash);
-
-      if (existingRecord) {
-        if (updates) {
-          return this.updateRecord(hash, updates);
-        }
-        return existingRecord;
-      }
-
-      const now = moment().format();
-      const metadata: FileMetadata = {
-        size: file.stat.size,
-        extension: file.extension,
-        createdTime: file.stat.ctime,
-        modifiedTime: file.stat.mtime,
-        isMediaFile: isMediaFile(file),
-      };
-
-      const newRecord: FileRecord = {
+  public startTracking(hash: string): string {
+    if (!this.records.has(hash)) {
+      this.records.set(hash, {
         id: hash,
-        filePath: file.path,
-        fileName: file.basename,
-        previousName: file.basename,
-        status: "queued" as FileStatus,
-        createdAt: now,
-        updatedAt: now,
-        metadata,
-        errors: [],
-        ...updates,
-      };
-
-      this.fileRecords.set(hash, newRecord);
-      this.addEvent(hash, "File record initialized", { metadata });
-
-      return newRecord;
-    } catch (error) {
-      ErrorService.getInstance().handleError({
-        message: "Failed to create/update file record",
-        severity: ErrorSeverity.HIGH,
-        error: error as Error,
-        context: { filePath: file.path },
+        file: null,
+        tags: [],
+        formatted: false,
+        logs: {} as Record<Action, LogEntry>,
+        status: "queued",
       });
-      throw error;
+    }
+    return hash;
+  }
+
+  public setFile(hash: string, file: TFile): void {
+    const record = this.records.get(hash);
+    if (record) {
+      record.file = file;
     }
   }
 
-  private updateRecord(hash: string, updates: Partial<FileRecord>): FileRecord {
-    const record = this.getRecordByHash(hash);
-    if (!record) {
-      throw new Error(`Record not found for hash: ${hash}`);
+  public setStatus(hash: string, status: FileStatus): void {
+    const record = this.records.get(hash);
+    if (record) {
+      record.status = status;
     }
+  }
 
-    const updatedRecord = {
-      ...record,
-      ...updates,
-      updatedAt: moment().format(),
+  public addAction(hash: string, step: Action, completed = false): void {
+    const record = this.records.get(hash);
+    if (record) {
+      // For completed actions, find and update the corresponding in-progress action
+      if (completed) {
+        const baseAction = this.getBaseAction(step);
+        if (baseAction && record.logs[baseAction]) {
+          record.logs[baseAction].completed = true;
+          return;
+        }
+      }
+      
+      // For new actions, add them as in-progress
+      record.logs[step] = {
+        timestamp: moment().format("YYYY-MM-DD HH:mm:ss"),
+        completed,
+      };
+    }
+  }
+
+  private getBaseAction(completedStep: Action): Action | undefined {
+    const reverseMap: Partial<Record<Action, Action>> = {
+      [Action.CLEANUP_DONE]: Action.CLEANUP,
+      [Action.RENAME_DONE]: Action.RENAME,
+      [Action.EXTRACT_DONE]: Action.EXTRACT,
+      [Action.MOVING_ATTACHEMENT_DONE]: Action.MOVING_ATTACHEMENT,
+      [Action.CLASSIFY_DONE]: Action.CLASSIFY,
+      [Action.TAGGING_DONE]: Action.TAGGING,
+      [Action.APPLYING_TAGS_DONE]: Action.APPLYING_TAGS,
+      [Action.RECOMMEND_NAME_DONE]: Action.RECOMMEND_NAME,
+      [Action.APPLYING_NAME_DONE]: Action.APPLYING_NAME,
+      [Action.FORMATTING_DONE]: Action.FORMATTING,
+      [Action.MOVING_DONE]: Action.MOVING,
     };
-
-    this.fileRecords.set(hash, updatedRecord);
-    return updatedRecord;
+    return reverseMap[completedStep];
   }
 
-  public updateFileStatus(
-    record: FileRecord,
-    status: FileStatus,
-    message?: string,
-    metadata?: Record<string, any>
-  ): void {
-    const hash = record.id;
-
-    // Update the record with new status
-    this.updateRecord(hash, {
-      status,
-      updatedAt: moment().format(),
-    });
-
-    // Add event with status change
-    const statusMessage = message || `File status changed to ${status}`;
-    this.addEvent(hash, statusMessage, {
-      status,
-      previousStatus: record.status,
-      ...metadata,
-    });
-  }
-
-  public recordProcessingStart(record: FileRecord): void {
-    this.updateFileStatus(record, "processing", "Started processing file");
-  }
-
-  public recordProcessingComplete(
-    record: FileRecord,
-    metadata?: {
-      newPath?: string;
-      newName?: string;
-      tags?: string[];
+  // Record update methods
+  public addTag(hash: string, tag: string): void {
+    const record = this.records.get(hash);
+    if (record && !record.tags.includes(tag)) {
+      record.tags.push(tag);
     }
-  ): void {
-    const updates: Partial<FileRecord> = {
-      status: "completed",
-      updatedAt: moment().format(),
-    };
+  }
 
-    if (metadata) {
-      // Update file paths
-      if (metadata.newPath) updates.newPath = metadata.newPath;
-      if (metadata.newName) updates.newName = metadata.newName;
+  public setTags(hash: string, tags: string[]): void {
+    const record = this.records.get(hash);
+    if (record) {
+      record.tags = tags;
+    }
+  }
 
-      // Update tags
-      if (metadata.tags) updates.tags = metadata.tags;
+  public setClassification(hash: string, classification: string): void {
+    const record = this.records.get(hash);
+    if (record) {
+      record.classification = classification;
+    }
+  }
 
-      // Update processing information
+  public setFormatted(hash: string, formatted: boolean): void {
+    const record = this.records.get(hash);
+    if (record) {
+      record.formatted = formatted;
+    }
+  }
+
+  public setNewPath(hash: string, newPath: string): void {
+    const record = this.records.get(hash);
+    if (record) {
+      record.newPath = newPath;
+    }
+  }
+
+  public setNewName(hash: string, newName: string): void {
+    const record = this.records.get(hash);
+    if (record) {
+      record.newName = newName;
+    }
+  }
+
+  // Logging methods
+  // Query methods
+  public getRecord(hash: string): FileRecord | undefined {
+    return this.records.get(hash);
+  }
+
+  public hasErrors(hash: string, step?: Action): boolean {
+    const record = this.records.get(hash);
+    if (!record) return false;
+
+    if (step) {
+      return !!record.logs[step]?.error;
     }
 
-    this.updateRecord(record.id, updates);
-    this.addEvent(record.id, "File processing completed", metadata);
+    return Object.values(record.logs).some(log => !!log.error);
   }
 
-  public recordProcessingBypassed(record: FileRecord, reason?: string): void {
-    this.updateFileStatus(
-      record,
-      "bypassed",
-      reason || "File processing bypassed"
-    );
+  public getStepLogs(hash: string, step: Action): LogEntry | undefined {
+    const record = this.records.get(hash);
+    if (!record) return undefined;
+    return record.logs[step];
   }
 
-  public recordError(record: FileRecord, error: Error): void {
-    this.logAction(record, 'error', { error: error.message });
+  public getLastStep(hash: string): Action | null {
+    const record = this.records.get(hash);
+    if (!record) return null;
+
+    const steps = Object.entries(record.logs);
+    if (steps.length === 0) return null;
+
+    return steps.reduce((latest, [action, log]) => {
+      if (!latest || moment(log.timestamp).isAfter(moment(record.logs[latest].timestamp))) {
+        return action as Action;
+      }
+      return latest;
+    }, null as Action | null);
   }
 
-  public updateDestination(
-    record: FileRecord,
-    newName: string,
-    newPath: string
-  ): void {
-    const hash = record.id;
-    this.updateRecord(hash, { newName, newPath });
-    this.addEvent(hash, `Updated destination: ${newPath}/${newName}`);
-  }
-
-  public addTags(record: FileRecord, tags: string[]): void {
-    const hash = record.id;
-    this.updateRecord(hash, { tags });
-    this.addEvent(hash, `Added tags: ${tags.join(", ")}`);
-  }
-
-  public getRecordByHash(hash: string): FileRecord | undefined {
-    return this.fileRecords.get(hash);
-  }
-
-  public getRecordByPath(path: string): FileRecord | undefined {
-    return Array.from(this.fileRecords.values()).find(
-      record => record.filePath === path
-    );
-  }
-
+  // Query methods for multiple records
   public getAllRecords(): FileRecord[] {
-    return Array.from(this.fileRecords.values());
+    return Array.from(this.records.values());
   }
 
-  public getFileEvents(fileId: string): EventRecord[] {
-    return this.eventRecords.get(fileId) || [];
+  public getRecordsWithErrors(): FileRecord[] {
+    return this.getAllRecords().filter(record =>
+      Object.values(record.logs).some(log => !!log.error)
+    );
   }
 
-  private addEvent(
-    hash: string,
-    message: string,
-    metadata?: Record<string, any>
-  ): void {
-    const event: EventRecord = {
-      id: this.idService.generateEventId(hash, Date.now()),
-      fileRecordId: hash,
-      timestamp: moment().format(),
-      message,
-      metadata,
-    };
-
-    const events = this.eventRecords.get(hash) || [];
-    events.push(event);
-    this.eventRecords.set(hash, events);
-  }
-
-  public logAction(record: FileRecord, action: ActionLog['action'], details: ActionLog['details']): void {
-    const actionLog: ActionLog = {
-      action,
-      timestamp: moment().format(),
-      details
-    };
-
-    this.updateRecord(record.id, {
-      actions: [...(record.actions || []), actionLog]
-    });
-  }
-
-  public recordRename(record: FileRecord, oldName: string, newName: string): void {
-    this.logAction(record, 'renamed', { from: oldName, to: newName });
-  }
-
-  public recordMove(record: FileRecord, oldPath: string, newPath: string): void {
-    const destinationFolder = newPath.split('/').slice(0, -1).join('/');
-    this.logAction(record, 'moved', { 
-      from: oldPath, 
-      to: newPath,
-      destinationFolder,
-      progress: `Moving to ${destinationFolder}`
-    });
-    
-    this.updateRecord(record.id, {
-      destinationFolder
-    });
-  }
-
-  public recordClassification(record: FileRecord, classification: Classification): void {
-    this.logAction(record, 'classified', { 
-      classification,
-      wasFormatted: classification.confidence >= 50,
-      progress: `Classified as ${classification.documentType} (${classification.confidence}% confident)`
-    });
-    
-    this.updateRecord(record.id, {
-      classification,
-      formattedContent: classification.confidence >= 50
-    });
-  }
-
-  public recordTags(record: FileRecord, tags: string[]): void {
-    this.logAction(record, 'tagged', { tags });
-  }
-
-  public recordProcessingStep(record: FileRecord, step: string): void {
-    this.logAction(record, 'processing', { 
-      step,
-      progress: `Processing ${step}...`
-    });
-  }
-
-  public recordAnalysisStart(record: FileRecord): void {
-    this.logAction(record, 'analyzing', {
-      step: 'start',
-      progress: 'Starting content analysis...'
-    });
-    
-    this.updateRecord(record.id, {
-      status: 'processing'
-    });
-  }
-
-  public recordClassificationStart(record: FileRecord): void {
-    this.logAction(record, 'processing', {
-      step: 'classification',
-      progress: 'Determining document type...'
-    });
-  }
-
-  public recordFolderSuggestionStart(record: FileRecord): void {
-    this.logAction(record, 'processing', {
-      step: 'folder',
-      progress: 'Suggesting folder location...'
-    });
-  }
-
-  public recordTitleSuggestionStart(record: FileRecord): void {
-    this.logAction(record, 'processing', {
-      step: 'title',
-      progress: 'Generating title suggestions...'
-    });
+  public getRecordsByStep(step: Action): FileRecord[] {
+    return this.getAllRecords().filter(record => !!record.logs[step]);
   }
 }

@@ -16,7 +16,6 @@ const features = {
   onboardingCall: "Onboarding call with a founder",
 };
 
-
 // Simplified environment-based target URL configuration
 const getTargetUrl = () => {
   if (process.env.VERCEL_ENV === "production") {
@@ -24,7 +23,7 @@ const getTargetUrl = () => {
   }
 
   if (process.env.VERCEL_ENV === "preview") {
-    return process.env.VERCEL_BRANCH_URL;
+    return "file-organizer-2000-git-billing-test-prologe.vercel.app";
   }
 
   return "localhost:3000";
@@ -32,7 +31,6 @@ const getTargetUrl = () => {
 
 const targetUrl = getTargetUrl();
 const webhookEndpoint = `https://${targetUrl}/api/webhook`;
-
 
 export const config = {
   features: features,
@@ -67,7 +65,6 @@ export const config = {
           interval: "year",
           type: "recurring",
           trialPeriodDays: 7, // Add trial period for annual plan
-
         },
       },
       features: [

@@ -1,6 +1,13 @@
 import { Notice } from "obsidian";
 
-export const VALID_IMAGE_EXTENSIONS = ["png", "jpg", "jpeg", "gif", "svg", "webp"];
+export const VALID_IMAGE_EXTENSIONS = [
+  "png",
+  "jpg",
+  "jpeg",
+  "gif",
+  "svg",
+  "webp",
+];
 
 export const VALID_AUDIO_EXTENSIONS = [
   "mp3",
@@ -15,6 +22,7 @@ export const VALID_AUDIO_EXTENSIONS = [
 export const VALID_MEDIA_EXTENSIONS = [
   ...VALID_IMAGE_EXTENSIONS,
   ...VALID_AUDIO_EXTENSIONS,
+  "pdf",
 ];
 
 export const VALID_TEXT_EXTENSIONS = ["md", "txt"];
@@ -36,4 +44,4 @@ export const isValidExtension = (extension: string): boolean => {
     new Notice("Sorry, FileOrganizer does not support this file type.");
   }
   return isSupported;
-}; 
+};
