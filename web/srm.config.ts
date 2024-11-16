@@ -23,7 +23,7 @@ const getTargetUrl = () => {
   }
 
   if (process.env.VERCEL_ENV === "preview") {
-    return "https://file-organizer-2000-git-billing-test-prologe.vercel.app";
+    return "file-organizer-2000-git-billing-test-prologe.vercel.app";
   }
 
   return "localhost:3000";
