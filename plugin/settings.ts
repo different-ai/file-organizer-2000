@@ -3,6 +3,7 @@ export class FileOrganizerSettings {
   isLicenseValid = false;
   useLogs = true;
   defaultDestinationPath = "_FileOrganizer2000/Processed";
+  referencePath = "_FileOrganizer2000/References";
   attachmentsPath = "_FileOrganizer2000/Processed/Attachments";
   pathToWatch = "_FileOrganizer2000/Inbox";
   logFolderPath = "_FileOrganizer2000/Logs";

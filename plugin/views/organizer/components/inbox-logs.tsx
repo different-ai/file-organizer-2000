@@ -6,7 +6,16 @@ import {
   FileStatus,
 } from "../../../inbox/services/record-manager";
 import moment from "moment";
-import { ChevronDown, Clock, Play, Check, AlertCircle, Ban, Search, Filter } from "lucide-react";
+import {
+  ChevronDown,
+  Clock,
+  Play,
+  Check,
+  AlertCircle,
+  Ban,
+  Search,
+  Filter,
+} from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { usePlugin } from "../provider";
 import { Inbox } from "../../../inbox";
@@ -19,19 +28,32 @@ const LogEntryDisplay: React.FC<{ entry: LogEntry; step: Action }> = ({
   const getDisplayText = (step: Action, completed: boolean) => {
     if (completed) {
       switch (step) {
-        case Action.CLEANUP: return "file cleaned up";
-        case Action.RENAME: return "file renamed";
-        case Action.EXTRACT: return "text extracted";
-        case Action.MOVING_ATTACHEMENT: return "attachments moved";
-        case Action.CLASSIFY: return "classified";
-        case Action.TAGGING: return "tags recommended";
-        case Action.APPLYING_TAGS: return "tags applied";
-        case Action.RECOMMEND_NAME: return "name recommended";
-        case Action.APPLYING_NAME: return "name applied";
-        case Action.FORMATTING: return "formatted";
-        case Action.MOVING: return "moved";
-        case Action.COMPLETED: return "completed";
-        default: return step;
+        case Action.CLEANUP:
+          return "file cleaned up";
+        case Action.RENAME:
+          return "file renamed";
+        case Action.EXTRACT:
+          return "text extracted";
+        case Action.MOVING_ATTACHEMENT:
+          return "attachments moved";
+        case Action.CLASSIFY:
+          return "classified";
+        case Action.TAGGING:
+          return "tags recommended";
+        case Action.APPLYING_TAGS:
+          return "tags applied";
+        case Action.RECOMMEND_NAME:
+          return "name recommended";
+        case Action.APPLYING_NAME:
+          return "name applied";
+        case Action.FORMATTING:
+          return "formatted";
+        case Action.MOVING:
+          return "moved";
+        case Action.COMPLETED:
+          return "completed";
+        default:
+          return step;
       }
     }
     return step;
@@ -51,7 +73,9 @@ const LogEntryDisplay: React.FC<{ entry: LogEntry; step: Action }> = ({
         {getDisplayText(step, entry.completed)}
       </span>
       {entry.error && (
-        <span className="text-sm text-[--text-error]">{entry.error.message}</span>
+        <span className="text-sm text-[--text-error]">
+          {entry.error.message}
+        </span>
       )}
     </div>
   );
@@ -76,13 +100,16 @@ function FileCard({ record }: { record: FileRecord }) {
     >
       <div className="p-4">
         {/* Basic file info */}
-        <div className="flex items-center justify-between mb-2">
+        <div className="flex items-center justify-between mb-2 gap-3">
           <div className="flex items-center gap-2">
             <a
               className="text-[--text-normal]"
               href="#"
               onClick={() =>
-                plugin.app.workspace.openLinkText(record.file.basename)
+                plugin.app.workspace.openLinkText(
+                  record.file.basename,
+                  record.file.parent.path
+                )
               }
             >
               {record.file ? record.file.basename : "No file"}
@@ -151,7 +178,7 @@ function FileCard({ record }: { record: FileRecord }) {
               <div className="flex items-center gap-2 text-sm border-b border-[--background-modifier-border] pb-4">
                 <span className="text-[--text-muted]">Actions:</span>
                 <div className="flex flex-wrap gap-1">
-                  {sortedActions.map((action) => (
+                  {sortedActions.map(action => (
                     <span
                       key={action}
                       className="px-2 py-0.5 bg-[--background-secondary] rounded-full text-xs capitalize"
@@ -181,7 +208,7 @@ function FileCard({ record }: { record: FileRecord }) {
       </div>
     </motion.div>
   );
-};
+}
 
 // Status badge component
 const StatusBadge: React.FC<{ status: FileStatus }> = ({ status }) => {
@@ -200,7 +227,9 @@ const StatusBadge: React.FC<{ status: FileStatus }> = ({ status }) => {
 
   return (
     // make this a small round dot
-    <span className={`px-2 py-0.5 rounded-full text-xs capitalize ${getStatusColor()}`}>
+    <span
+      className={`px-2 py-0.5 rounded-full text-xs capitalize ${getStatusColor()}`}
+    >
       <span className="sr-only">{status}</span>
       <span aria-hidden="true">•</span>
     </span>
@@ -231,7 +260,13 @@ const InboxAnalytics: React.FC<{
     { status: "bypassed", icon: <Ban className="w-4 h-4" /> },
   ];
 
-  const StatusBox = ({ status, icon }: { status: FileStatus; icon: React.ReactNode }) => (
+  const StatusBox = ({
+    status,
+    icon,
+  }: {
+    status: FileStatus;
+    icon: React.ReactNode;
+  }) => (
     <div
       key={status}
       className="bg-[--background-primary] p-4 rounded text-center flex flex-col items-center"
@@ -251,7 +286,7 @@ const InboxAnalytics: React.FC<{
             <StatusBox key={status} status={status} icon={icon} />
           ))}
         </div>
-        
+
         {/* Exceptions row */}
         <div className="grid grid-cols-2 gap-2">
           {exceptions.map(({ status, icon }) => (
@@ -270,16 +305,27 @@ interface SearchBarProps {
   selectedStatus: FileStatus | "";
 }
 
-const SearchBar: React.FC<SearchBarProps> = ({ onSearch, onStatusFilter, selectedStatus }) => {
+const SearchBar: React.FC<SearchBarProps> = ({
+  onSearch,
+  onStatusFilter,
+  selectedStatus,
+}) => {
   const [searchQuery, setSearchQuery] = React.useState("");
-  
+
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const query = e.target.value;
     setSearchQuery(query);
     onSearch(query);
   };
 
-  const statuses: Array<FileStatus | ""> = ["", "queued", "processing", "completed", "error", "bypassed"];
+  const statuses: Array<FileStatus | ""> = [
+    "",
+    "queued",
+    "processing",
+    "completed",
+    "error",
+    "bypassed",
+  ];
 
   return (
     <div className="bg-[--background-primary] p-4 rounded-lg border border-[--background-modifier-border] space-y-2">
@@ -298,12 +344,14 @@ const SearchBar: React.FC<SearchBarProps> = ({ onSearch, onStatusFilter, selecte
           <Filter className="w-4 h-4 absolute left-3 top-1/2 transform -translate-y-1/2 text-[--text-muted]" />
           <select
             value={selectedStatus}
-            onChange={(e) => onStatusFilter(e.target.value as FileStatus | "")}
+            onChange={e => onStatusFilter(e.target.value as FileStatus | "")}
             className="pl-9 pr-4 py-2 bg-[--background-secondary] rounded border border-[--background-modifier-border] text-sm appearance-none"
           >
-            {statuses.map((status) => (
+            {statuses.map(status => (
               <option key={status} value={status}>
-                {status ? status.charAt(0).toUpperCase() + status.slice(1) : "All Status"}
+                {status
+                  ? status.charAt(0).toUpperCase() + status.slice(1)
+                  : "All Status"}
               </option>
             ))}
           </select>
@@ -317,25 +365,37 @@ const SearchBar: React.FC<SearchBarProps> = ({ onSearch, onStatusFilter, selecte
 export const InboxLogs: React.FC = () => {
   const plugin = usePlugin();
   const [records, setRecords] = React.useState<FileRecord[]>([]);
-  const [filteredRecords, setFilteredRecords] = React.useState<FileRecord[]>([]);
-  const [analytics, setAnalytics] = React.useState<ReturnType<typeof Inbox.prototype.getAnalytics>>();
+  const [filteredRecords, setFilteredRecords] = React.useState<FileRecord[]>(
+    []
+  );
+  const [analytics, setAnalytics] =
+    React.useState<ReturnType<typeof Inbox.prototype.getAnalytics>>();
   const [searchQuery, setSearchQuery] = React.useState("");
   const [statusFilter, setStatusFilter] = React.useState<FileStatus | "">("");
 
-  const filterRecords = React.useCallback((records: FileRecord[]) => {
-    return records.filter((record) => {
-      const matchesSearch = searchQuery.toLowerCase().split(" ").every(term =>
-        record.file.basename.toLowerCase().includes(term) ||
-        record.tags.some(tag => tag.toLowerCase().includes(term)) ||
-        Object.keys(record.logs).some(action => action.toLowerCase().includes(term)) ||
-        record.classification?.toLowerCase().includes(term)
-      );
+  const filterRecords = React.useCallback(
+    (records: FileRecord[]) => {
+      return records.filter(record => {
+        const matchesSearch = searchQuery
+          .toLowerCase()
+          .split(" ")
+          .every(
+            term =>
+              record.file.basename.toLowerCase().includes(term) ||
+              record.tags.some(tag => tag.toLowerCase().includes(term)) ||
+              Object.keys(record.logs).some(action =>
+                action.toLowerCase().includes(term)
+              ) ||
+              record.classification?.toLowerCase().includes(term)
+          );
 
-      const matchesStatus = !statusFilter || record.status === statusFilter;
+        const matchesStatus = !statusFilter || record.status === statusFilter;
 
-      return matchesSearch && matchesStatus;
-    });
-  }, [searchQuery, statusFilter]);
+        return matchesSearch && matchesStatus;
+      });
+    },
+    [searchQuery, statusFilter]
+  );
 
   React.useEffect(() => {
     const fetchData = () => {
@@ -362,7 +422,7 @@ export const InboxLogs: React.FC = () => {
   return (
     <div className="space-y-4">
       {analytics && <InboxAnalytics analytics={analytics} />}
-      
+
       <SearchBar
         onSearch={handleSearch}
         onStatusFilter={handleStatusFilter}

@@ -1,4 +1,4 @@
-import { TFile, moment, TFolder } from "obsidian";
+import { TFile, moment, TFolder, Vault } from "obsidian";
 import FileOrganizer from "../index";
 import { Queue } from "./services/queue";
 import {
@@ -307,7 +307,7 @@ async function moveAttachmentFile(
   context.recordManager.addAction(context.hash, Action.MOVING_ATTACHEMENT);
   if (VALID_MEDIA_EXTENSIONS.includes(context.inboxFile.extension)) {
     context.attachmentFile = context.inboxFile;
-    await moveFile(
+    await safeMove(
       context,
       context.inboxFile,
       context.plugin.settings.attachmentsPath
@@ -363,7 +363,7 @@ async function recommendNameStep(
   }
   context.recordManager.setNewName(context.hash, context.newName);
   context.recordManager.addAction(context.hash, Action.RENAME);
-  await renameFile(context, context.containerFile, context.newName);
+  await safeRename(context, context.containerFile, context.newName);
   context.recordManager.addAction(context.hash, Action.RENAME, true);
   return context;
 }
@@ -379,7 +379,7 @@ async function recommendFolderStep(
   context.newPath = newPath[0]?.folder;
   console.log("new path", context.newPath, context.containerFile);
   context.recordManager.addAction(context.hash, Action.MOVING);
-  await moveFile(context, context.containerFile, context.newPath);
+  await safeMove(context, context.containerFile, context.newPath);
   context.recordManager.addAction(context.hash, Action.MOVING, true);
   console.log("moved file to", context.containerFile);
 
@@ -470,7 +470,7 @@ async function handleBypass(
 
     // Then move the file
     const bypassedFolderPath = context.plugin.settings.bypassedFilePath;
-    await moveFile(context, context.inboxFile, bypassedFolderPath);
+    await safeMove(context, context.inboxFile, bypassedFolderPath);
 
     context.queue.bypass(context.hash);
     context.recordManager.setStatus(context.hash, "bypassed");
@@ -539,7 +539,26 @@ async function formatContentStep(
     );
     context.formattedContent = formattedContent;
 
-    context.plugin.app.vault.modify(context.containerFile, formattedContent);
+    const referenceFile = await safeCopy(
+      context,
+      context.containerFile,
+      context.plugin.settings.referencePath
+    );
+
+    await context.plugin.app.vault.modify(
+      context.containerFile,
+      formattedContent
+    );
+
+    const markdownLink = context.plugin.app.fileManager.generateMarkdownLink(
+      referenceFile,
+      context.containerFile.parent.path
+    );
+    await context.plugin.app.vault.append(
+      context.containerFile,
+      `\n\n---\n\This file is formatted and the original file is: ${markdownLink}\n\n---\n\n`
+    );
+
     context.recordManager.addAction(context.hash, Action.FORMATTING, true);
     return context;
   } catch (error) {
@@ -598,56 +617,85 @@ async function handleError(
   await moveFileToErrorFolder(context);
 }
 
-// Helper functions for file operations
+// moveToBackupFolder
+async function moveToBackupFolder(context: ProcessingContext): Promise<void> {
+  const backupFolderPath = context.plugin.settings.backupFolderPath;
+  await safeMove(context, context.inboxFile, backupFolderPath);
+}
 
+// Helper functions for file operations
 async function moveFileToErrorFolder(
   context: ProcessingContext
 ): Promise<void> {
   const errorFolderPath = context.plugin.settings.errorFilePath;
-  await moveFile(context, context.inboxFile, errorFolderPath);
+  await safeMove(context, context.inboxFile, errorFolderPath);
 }
 
-async function renameFile(
+async function getAvailablePath(
+  desiredPath: string,
+  vault: Vault
+): Promise<string> {
+  let available = desiredPath;
+  let increment = 0;
+
+  // Split path into directory and filename
+  const lastDotIndex = desiredPath.lastIndexOf(".");
+  const lastSlashIndex = desiredPath.lastIndexOf("/");
+  const dir = desiredPath.substring(0, lastSlashIndex);
+  const nameWithoutExt = desiredPath.substring(
+    lastSlashIndex + 1,
+    lastDotIndex
+  );
+  const ext = desiredPath.substring(lastDotIndex);
+
+  // Keep incrementing until we find an available path
+  while (await vault.adapter.exists(available)) {
+    increment++;
+    available = `${dir}/${nameWithoutExt} ${increment}${ext}`;
+  }
+
+  return available;
+}
+
+async function safeRename(
   context: ProcessingContext,
   file: TFile,
-  newName: string
+  desiredNewName: string
 ): Promise<void> {
   const parentPath = file.parent.path;
   const extension = file.extension;
-  let uniqueName = newName;
-  let destinationPath = `${parentPath}/${uniqueName}.${extension}`;
-
-  // Check if the destination file exists
-  while (context.plugin.app.vault.getAbstractFileByPath(destinationPath)) {
-    // Generate a new unique name by appending a suffix
-    uniqueName = `${newName}-${moment().format("YYYYMMDD-HHmmss")}`;
-    destinationPath = `${parentPath}/${uniqueName}.${extension}`;
-  }
-
-  await context.plugin.app.fileManager.renameFile(file, destinationPath);
+  const desiredPath = `${parentPath}/${desiredNewName}.${extension}`;
+  const availablePath = await getAvailablePath(
+    desiredPath,
+    context.plugin.app.vault
+  );
+  await context.plugin.app.fileManager.renameFile(file, availablePath);
 }
-
-async function moveFile(
+async function safeCopy(
   context: ProcessingContext,
   file: TFile,
-  newFolderPath: string
+  desiredFolderPath: string
+): Promise<TFile> {
+  await ensureFolderExists(context.plugin.app, desiredFolderPath);
+  const availablePath = await getAvailablePath(
+    `${desiredFolderPath}/${file.name}`,
+    context.plugin.app.vault
+  );
+  const copiedFile = await context.plugin.app.vault.copy(file, availablePath);
+  return copiedFile;
+}
+
+async function safeMove(
+  context: ProcessingContext,
+  file: TFile,
+  desiredFolderPath: string
 ): Promise<void> {
-  await ensureFolderExists(context.plugin.app, newFolderPath);
-
-  const fileName = file.name;
-  let destinationPath = `${cleanPath(newFolderPath)}/${fileName}`;
-
-  // Check if the destination file exists
-  while (context.plugin.app.vault.getAbstractFileByPath(destinationPath)) {
-    // Generate a new unique name by appending a suffix
-    const baseName = fileName.replace(`.${file.extension}`, "");
-    const uniqueName = `${baseName}-${moment().format("YYYYMMDD-HHmmss")}.${
-      file.extension
-    }`;
-    destinationPath = `${cleanPath(newFolderPath)}/${uniqueName}`;
-  }
-
-  await context.plugin.app.fileManager.renameFile(file, destinationPath);
+  await ensureFolderExists(context.plugin.app, desiredFolderPath);
+  const availablePath = await getAvailablePath(
+    `${desiredFolderPath}/${file.name}`,
+    context.plugin.app.vault
+  );
+  await context.plugin.app.fileManager.renameFile(file, availablePath);
 }
 
 // Helper functions for initialization and usage
