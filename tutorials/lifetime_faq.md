@@ -108,3 +108,16 @@ Please make sure your github repository is public before reaching out so we can 
 https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/managing-repository-settings/setting-repository-visibility#changing-a-repositorys-visibility
 
 
+### Updating your server to the latest
+
+If you setup auto-updates via our instructions above you can go to actions, look for the worfklow, and click on run workflow.
+
+And run the update action manually. If you don't we trigger updates every 24h.
+
+This might be useful if we just shipped a fix and you want to be up to date.
+
+
+
+
+
+
