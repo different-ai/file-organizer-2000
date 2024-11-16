@@ -1,8 +1,8 @@
 import { TFile, moment, TFolder } from "obsidian";
 import FileOrganizer from "../index";
 import { Queue } from "./services/queue";
-import { FileRecord, RecordManager } from "./services/record-manager";
-import {  QueueStatus } from "./types";
+import { FileRecord, RecordManager, Action } from "./services/record-manager";
+import { QueueStatus } from "./types";
 import { cleanPath, logMessage } from "../someUtils";
 import { IdService } from "./services/id-service";
 import { logger } from "../services/logger";
@@ -137,12 +137,14 @@ export class Inbox {
     // First enqueue regular files
     for (const file of regularFiles) {
       const hash = this.idService.generateFileHash(file);
+      this.recordManager.startTracking(hash);
       this.queue.add(file, { metadata: { hash } });
     }
 
     // Then enqueue media files
     for (const file of mediaFiles) {
       const hash = this.idService.generateFileHash(file);
+      this.recordManager.startTracking(hash);
       this.queue.add(file, { metadata: { hash } });
     }
 
@@ -172,7 +174,7 @@ export class Inbox {
             this.activeMediaTasks++;
           }
 
-          await this.processInboxFile(file);
+          await this.processInboxFile(file, metadata?.hash);
 
           if (isMediaFile) {
             this.activeMediaTasks--;
@@ -233,12 +235,12 @@ export class Inbox {
   }
 
   // Refactored method using parallel processing where possible
-  private async processInboxFile(inboxFile: TFile): Promise<void> {
-    const hash = this.idService.generateFileHash(inboxFile);
-    // const record = this.recordManager.getRecordByHash(hash);
-    // if (!record) return;
+  private async processInboxFile(
+    inboxFile: TFile,
+    hash?: string
+  ): Promise<void> {
+    this.recordManager.setStatus(hash, "processing");
 
-    this.recordManager.startTracking(hash);
     console.log("Processing inbox file", inboxFile);
     const context: ProcessingContext = {
       inboxFile,
@@ -257,12 +259,12 @@ export class Inbox {
       await getContainerFileStep(context);
       await moveAttachmentFile(context);
       await getContentStep(context);
-      await preprocessContentStep(context);
-      await recommendTagsStep(context);
+      await cleanupStep(context);
       await recommendClassificationStep(context);
       await recommendFolderStep(context);
       await recommendNameStep(context);
       await formatContentStep(context);
+      await recommendTagsStep(context);
       await completeProcessing(context);
     } catch (error) {
       await handleError(error, context);
@@ -273,6 +275,7 @@ export class Inbox {
 async function moveAttachmentFile(
   context: ProcessingContext
 ): Promise<ProcessingContext> {
+  context.recordManager.addAction(context.hash, Action.MOVING_ATTACHEMENT);
   if (VALID_MEDIA_EXTENSIONS.includes(context.inboxFile.extension)) {
     await moveFile(
       context,
@@ -280,6 +283,11 @@ async function moveAttachmentFile(
       context.plugin.settings.attachmentsPath
     );
   }
+  context.recordManager.addAction(
+    context.hash,
+    Action.MOVING_ATTACHEMENT,
+    true
+  );
   return context;
 }
 
@@ -288,21 +296,21 @@ async function getContainerFileStep(
 ): Promise<ProcessingContext> {
   if (VALID_MEDIA_EXTENSIONS.includes(context.inboxFile.extension)) {
     const containerFile = await context.plugin.app.vault.create(
-      context.inboxFile.name,
+      context.inboxFile.basename + ".md",
       `![[${context.inboxFile.name}]]`
     );
     context.containerFile = containerFile;
-    return context;
+  } else {
+    context.containerFile = context.inboxFile;
   }
+  context.recordManager.setFile(context.hash, context.containerFile);
   // return the inboxFile if it is not a media file
-  context.containerFile = context.inboxFile;
   return context;
 }
 
 async function hasValidFileStep(
   context: ProcessingContext
 ): Promise<ProcessingContext> {
-  console.log("hasValidFileStep", context.inboxFile.extension);
   // check if file is supported if not bypass
   if (!isValidExtension(context.inboxFile.extension)) {
     await handleBypass(context, "Unsupported file type");
@@ -319,7 +327,12 @@ async function recommendNameStep(
     context.inboxFile.basename
   );
   context.newName = newName[0]?.title;
-  console.log("going to rename file", context.containerFile, context.newName);
+  // if new name is the same as the old name then don't rename
+  if (context.newName === context.inboxFile.basename) {
+    return context;
+  }
+  context.recordManager.setNewName(context.hash, context.newName);
+  context.recordManager.addAction(context.hash, Action.RENAME);
   await renameFile(context, context.containerFile, context.newName);
   return context;
 }
@@ -331,9 +344,12 @@ async function recommendFolderStep(
     context.content,
     context.inboxFile.basename
   );
+
   context.newPath = newPath[0]?.folder;
   console.log("new path", context.newPath, context.containerFile);
+  context.recordManager.addAction(context.hash, Action.MOVING);
   await moveFile(context, context.containerFile, context.newPath);
+  context.recordManager.addAction(context.hash, Action.MOVING, true);
   console.log("moved file to", context.containerFile);
 
   return context;
@@ -344,6 +360,8 @@ async function recommendClassificationStep(
 ): Promise<ProcessingContext> {
   if (context.plugin.settings.enableDocumentClassification) {
     const templateNames = await context.plugin.getTemplateNames();
+
+    context.recordManager.addAction(context.hash, Action.CLASSIFY);
     const result = await context.plugin.classifyContentV2(
       context.content,
       templateNames
@@ -354,6 +372,8 @@ async function recommendClassificationStep(
       confidence: 100,
       reasoning: "N/A",
     };
+    context.recordManager.addAction(context.hash, Action.CLASSIFY, true);
+    context.recordManager.setClassification(context.hash, result);
   }
   return context;
 }
@@ -371,12 +391,17 @@ async function getContentStep(
   context: ProcessingContext
 ): Promise<ProcessingContext> {
   const fileToRead = context.inboxFile;
+  context.recordManager.addAction(context.hash, Action.EXTRACT);
   const content = await context.plugin.getTextFromFile(fileToRead);
   context.content = content;
+  console.log("content", content);
+  console.log("containerFile", context.containerFile);
+  await context.plugin.app.vault.modify(context.containerFile, content);
+  context.recordManager.addAction(context.hash, Action.EXTRACT, true);
   return context;
 }
 
-async function preprocessContentStep(
+async function cleanupStep(
   context: ProcessingContext
 ): Promise<ProcessingContext> {
   try {
@@ -417,6 +442,7 @@ async function handleBypass(
     await moveFile(context, context.inboxFile, bypassedFolderPath);
 
     context.queue.bypass(context.hash);
+    context.recordManager.setStatus(context.hash, "bypassed");
     throw new Error("Bypassed due to " + reason);
   } catch (error) {
     logger.error("Error in handleBypass:", error);
@@ -452,6 +478,7 @@ async function formatContentStep(
   }
 
   logger.info("Formatting content step", context.classification);
+  context.recordManager.addAction(context.hash, Action.FORMATTING);
 
   // get token amount from token counter
   await initializeTokenCounter();
@@ -480,8 +507,9 @@ async function formatContentStep(
       instructions
     );
     context.formattedContent = formattedContent;
-    context.plugin.app.vault.modify(context.containerFile, formattedContent);
 
+    context.plugin.app.vault.modify(context.containerFile, formattedContent);
+    context.recordManager.addAction(context.hash, Action.FORMATTING, true);
     return context;
   } catch (error) {
     logger.error("Error in formatContentStep:", error);
@@ -491,6 +519,7 @@ async function formatContentStep(
 async function recommendTagsStep(
   context: ProcessingContext
 ): Promise<ProcessingContext> {
+  context.recordManager.addAction(context.hash, Action.TAGGING);
   const existingTags = await context.plugin.getAllVaultTags();
   const tags = await context.plugin.recommendTags(
     context.content,
@@ -502,12 +531,16 @@ async function recommendTagsStep(
   for (const tag of context.tags) {
     await context.plugin.appendTag(context.containerFile, tag);
   }
+  context.recordManager.addAction(context.hash, Action.TAGGING, true);
+  context.recordManager.setTags(context.hash, context.tags);
   return context;
 }
 
 async function completeProcessing(
   context: ProcessingContext
 ): Promise<ProcessingContext> {
+  context.recordManager.addAction(context.hash, Action.COMPLETED, true);
+  context.recordManager.setStatus(context.hash, "completed");
   return context;
 }
 
@@ -518,6 +551,8 @@ async function handleError(
   context: ProcessingContext
 ): Promise<void> {
   console.log("handleError", error);
+  context.recordManager.setStatus(context.hash, "error");
+
   await moveFileToErrorFolder(context);
 }
 

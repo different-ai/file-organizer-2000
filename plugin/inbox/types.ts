@@ -1,6 +1,5 @@
 import { TFile } from "obsidian";
 
-export type FileStatus = "queued" | "processing" | "completed" | "error" | "bypassed";
 
 export type ActionType = 'renamed' | 'moved' | 'classified' | 'tagged' | 'error';
 
