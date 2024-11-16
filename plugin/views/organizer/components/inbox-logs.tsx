@@ -6,7 +6,7 @@ import {
   FileStatus,
 } from "../../../inbox/services/record-manager";
 import moment from "moment";
-import { ChevronDown } from "lucide-react";
+import { ChevronDown, Clock, Play, Check, AlertCircle, Ban } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { usePlugin } from "../provider";
 
@@ -168,31 +168,33 @@ function FileCard({ record }: { record: FileRecord }) {
 const InboxAnalytics: React.FC<{
   analytics: ReturnType<typeof Inbox.prototype.getAnalytics>;
 }> = ({ analytics }) => {
-  const { byStatus, totalFiles, mediaStats, queueStats } = analytics;
+  const { byStatus } = analytics;
 
   // Ensure all possible statuses are represented
-  const allStatuses: FileStatus[] = [
-    "queued",
-    "processing",
-    "completed",
-    "error",
-    "bypassed",
+  const allStatuses: Array<{
+    status: FileStatus;
+    icon: React.ReactNode;
+  }> = [
+    { status: "queued", icon: <Clock className="w-4 h-4" /> },
+    { status: "processing", icon: <Play className="w-4 h-4" /> },
+    { status: "completed", icon: <Check className="w-4 h-4" /> },
+    { status: "error", icon: <AlertCircle className="w-4 h-4" /> },
+    { status: "bypassed", icon: <Ban className="w-4 h-4" /> },
   ];
 
   return (
-    <div className="bg-[--background-secondary] rounded-lg mb-4">
-      <div className="mt-4">
-        <div className="grid grid-cols-2 md:grid-cols-5 gap-2">
-          {allStatuses.map(status => (
-            <div
-              key={status}
-              className="bg-[--background-primary] p-2 rounded text-center"
-            >
-              <div className="text-sm capitalize">{status}</div>
-              <div className="font-semibold">{byStatus[status] || 0}</div>
-            </div>
-          ))}
-        </div>
+    <div className="bg-[--background-secondary] rounded-lg p-2">
+      <div className="grid grid-cols-2 md:grid-cols-5 gap-2">
+        {allStatuses.map(({ status, icon }) => (
+          <div
+            key={status}
+            className="bg-[--background-primary] p-2 rounded text-center flex flex-col items-center"
+          >
+            <div className="text-sm capitalize">{status}</div>
+            <div className="font-semibold">{byStatus[status] || 0}</div>
+            <div className="mt-1 text-[--text-muted]">{icon}</div>
+          </div>
+        ))}
       </div>
     </div>
   );

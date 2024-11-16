@@ -1,7 +1,7 @@
 import { TFile, moment, TFolder } from "obsidian";
 import FileOrganizer from "../index";
 import { Queue } from "./services/queue";
-import { FileRecord, RecordManager, Action } from "./services/record-manager";
+import { FileRecord, RecordManager, Action, FileStatus } from "./services/record-manager";
 import { QueueStatus } from "./types";
 import { cleanPath, logMessage } from "../someUtils";
 import { IdService } from "./services/id-service";
