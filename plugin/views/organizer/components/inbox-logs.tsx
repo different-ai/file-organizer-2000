@@ -81,6 +81,32 @@ const LogEntryDisplay: React.FC<{ entry: LogEntry; step: Action }> = ({
   );
 };
 
+// Error boundary component
+class ErrorBoundary extends React.Component<
+  { children: React.ReactNode },
+  { hasError: boolean }
+> {
+  constructor(props: { children: React.ReactNode }) {
+    super(props);
+    this.state = { hasError: false };
+  }
+
+  static getDerivedStateFromError() {
+    return { hasError: true };
+  }
+
+  render() {
+    if (this.state.hasError) {
+      return (
+        <div className="p-4 bg-[--background-modifier-error] bg-opacity-10 rounded-lg text-[--text-error]">
+          Something went wrong. Please refresh the page.
+        </div>
+      );
+    }
+    return this.props.children;
+  }
+}
+
 // Main file card component
 function FileCard({ record }: { record: FileRecord }) {
   const plugin = usePlugin();
@@ -92,6 +118,15 @@ function FileCard({ record }: { record: FileRecord }) {
       .sort(([, a], [, b]) => moment(b.timestamp).diff(moment(a.timestamp)))
       .map(([action]) => action as Action);
   }, [record.logs]);
+
+  // Add defensive checks
+  if (!record || !record.file) {
+    return (
+      <div className="p-4 bg-[--background-modifier-error] bg-opacity-10 rounded-lg text-[--text-error]">
+        Invalid record data
+      </div>
+    );
+  }
 
   return (
     <motion.div
@@ -311,11 +346,17 @@ const SearchBar: React.FC<SearchBarProps> = ({
   selectedStatus,
 }) => {
   const [searchQuery, setSearchQuery] = React.useState("");
+  const debouncedSearch = React.useCallback(
+    debounce((query: string) => {
+      onSearch(query);
+    }, 300),
+    [onSearch]
+  );
 
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const query = e.target.value;
     setSearchQuery(query);
-    onSearch(query);
+    debouncedSearch(query);
   };
 
   const statuses: Array<FileStatus | ""> = [
@@ -365,78 +406,117 @@ const SearchBar: React.FC<SearchBarProps> = ({
 export const InboxLogs: React.FC = () => {
   const plugin = usePlugin();
   const [records, setRecords] = React.useState<FileRecord[]>([]);
-  const [filteredRecords, setFilteredRecords] = React.useState<FileRecord[]>(
-    []
-  );
-  const [analytics, setAnalytics] =
-    React.useState<ReturnType<typeof Inbox.prototype.getAnalytics>>();
+  const [filteredRecords, setFilteredRecords] = React.useState<FileRecord[]>([]);
+  const [analytics, setAnalytics] = React.useState<ReturnType<typeof Inbox.prototype.getAnalytics>>();
   const [searchQuery, setSearchQuery] = React.useState("");
   const [statusFilter, setStatusFilter] = React.useState<FileStatus | "">("");
+  const [error, setError] = React.useState<Error | null>(null);
 
   const filterRecords = React.useCallback(
     (records: FileRecord[]) => {
-      return records.filter(record => {
-        const matchesSearch = searchQuery
-          .toLowerCase()
-          .split(" ")
-          .every(
-            term =>
-              record.file.basename.toLowerCase().includes(term) ||
-              record.tags.some(tag => tag.toLowerCase().includes(term)) ||
-              Object.keys(record.logs).some(action =>
-                action.toLowerCase().includes(term)
-              ) ||
-              record.classification?.toLowerCase().includes(term)
+      try {
+        return records.filter(record => {
+          if (!record || !record.file) return false;
+
+          const searchTerms = searchQuery.toLowerCase().trim().split(/\s+/);
+          const matchesSearch = !searchQuery.trim() || searchTerms.every(term =>
+            record.file.basename.toLowerCase().includes(term) ||
+            record.tags?.some(tag => tag?.toLowerCase().includes(term)) ||
+            Object.keys(record.logs || {}).some(action => action.toLowerCase().includes(term)) ||
+            record.classification?.toLowerCase().includes(term)
           );
 
-        const matchesStatus = !statusFilter || record.status === statusFilter;
-
-        return matchesSearch && matchesStatus;
-      });
+          const matchesStatus = !statusFilter || record.status === statusFilter;
+          return matchesSearch && matchesStatus;
+        });
+      } catch (err) {
+        console.error("Error filtering records:", err);
+        return records;
+      }
     },
     [searchQuery, statusFilter]
   );
 
   React.useEffect(() => {
-    const fetchData = () => {
-      const files = plugin.inbox.getAllFiles();
-      const currentAnalytics = plugin.inbox.getAnalytics();
-      setRecords(files);
-      setFilteredRecords(filterRecords(files));
-      setAnalytics(currentAnalytics);
+    const controller = new AbortController();
+    let isSubscribed = true;
+
+    const fetchData = async () => {
+      try {
+        if (!plugin?.inbox) {
+          throw new Error("Plugin or inbox not initialized");
+        }
+
+        const files = plugin.inbox.getAllFiles();
+        const currentAnalytics = plugin.inbox.getAnalytics();
+
+        if (isSubscribed) {
+          setRecords(files || []);
+          setFilteredRecords(filterRecords(files || []));
+          setAnalytics(currentAnalytics);
+          setError(null);
+        }
+      } catch (err) {
+        console.error("Error fetching data:", err);
+        if (isSubscribed) {
+          setError(err instanceof Error ? err : new Error("Unknown error"));
+        }
+      }
     };
 
     fetchData();
     const intervalId = setInterval(fetchData, 1000);
-    return () => clearInterval(intervalId);
-  }, [plugin.inbox, filterRecords]);
 
-  const handleSearch = (query: string) => {
-    setSearchQuery(query);
-  };
+    return () => {
+      isSubscribed = false;
+      controller.abort();
+      clearInterval(intervalId);
+    };
+  }, [plugin?.inbox, filterRecords]);
 
-  const handleStatusFilter = (status: FileStatus | "") => {
-    setStatusFilter(status);
-  };
+  if (error) {
+    return (
+      <div className="p-4 bg-[--background-modifier-error] bg-opacity-10 rounded-lg text-[--text-error]">
+        Error: {error.message}
+      </div>
+    );
+  }
 
   return (
-    <div className="space-y-4">
-      {analytics && <InboxAnalytics analytics={analytics} />}
+    <ErrorBoundary>
+      <div className="space-y-4">
+        {analytics && <InboxAnalytics analytics={analytics} />}
+        
+        <SearchBar
+          onSearch={handleSearch}
+          onStatusFilter={handleStatusFilter}
+          selectedStatus={statusFilter}
+        />
 
-      <SearchBar
-        onSearch={handleSearch}
-        onStatusFilter={handleStatusFilter}
-        selectedStatus={statusFilter}
-      />
-
-      {filteredRecords.map(record => (
-        <FileCard key={record.id} record={record} />
-      ))}
-      {filteredRecords.length === 0 && (
-        <div className="text-center py-8 text-[--text-muted]">
-          {records.length === 0 ? "No records found" : "No matching records"}
-        </div>
-      )}
-    </div>
+        {filteredRecords.map(record => (
+          <ErrorBoundary key={record.id}>
+            <FileCard key={record.id} record={record} />
+          </ErrorBoundary>
+        ))}
+        
+        {filteredRecords.length === 0 && (
+          <div className="text-center py-8 text-[--text-muted]">
+            {records.length === 0 ? "No records found" : "No matching records"}
+          </div>
+        )}
+      </div>
+    </ErrorBoundary>
   );
 };
+
+// Helper function for debouncing
+function debounce<T extends (...args: any[]) => any>(
+  func: T,
+  wait: number
+): (...args: Parameters<T>) => void {
+  let timeout: NodeJS.Timeout;
+  return (...args: Parameters<T>) => {
+    clearTimeout(timeout);
+    timeout = setTimeout(() => func(...args), wait);
+  };
+}
