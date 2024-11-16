@@ -18,6 +18,7 @@ import {
 } from "../utils/token-counter";
 import { isValidExtension, VALID_MEDIA_EXTENSIONS } from "../constants";
 import { ensureFolderExists } from "../fileUtils";
+import { log } from "console";
 
 // Move constants to the top level and ensure they're used consistently
 const MAX_CONCURRENT_TASKS = 5;
@@ -324,10 +325,12 @@ async function moveAttachmentFile(
 async function getContainerFileStep(
   context: ProcessingContext
 ): Promise<ProcessingContext> {
-  if (VALID_MEDIA_EXTENSIONS.includes(context.inboxFile.extension)) {
+  logger.info("Get container file step");
+  if (VALID_MEDIA_EXTENSIONS.includes(context.inboxFile?.extension)) {
     const containerFile = await safeCreate(
       context,
-      context.inboxFile.basename + ".md"
+      context.inboxFile.basename + ".md",
+      ""
     );
     context.containerFile = containerFile;
   } else {
@@ -341,8 +344,10 @@ async function getContainerFileStep(
 async function hasValidFileStep(
   context: ProcessingContext
 ): Promise<ProcessingContext> {
+  // check if file is valid
+  logger.info("Has valid file step");
   // check if file is supported if not bypass
-  if (!isValidExtension(context.inboxFile.extension)) {
+  if (!isValidExtension(context.inboxFile?.extension)) {
     await handleBypass(context, "Unsupported file type");
     throw new Error("Unsupported file type");
   }
@@ -425,8 +430,7 @@ async function getContentStep(
   context.recordManager.addAction(context.hash, Action.EXTRACT);
   const content = await context.plugin.getTextFromFile(fileToRead);
   context.content = content;
-  console.log("content", content);
-  console.log("containerFile", context.containerFile);
+  console.log("Got content", content);
   await context.plugin.app.vault.modify(context.containerFile, content);
   context.recordManager.addAction(context.hash, Action.EXTRACT, true);
   return context;
@@ -466,6 +470,7 @@ async function handleBypass(
   reason: string
 ): Promise<void> {
   try {
+    logger.info("Bypassing file", context.inboxFile);
     // First mark as bypassed in the record manager
 
     // Then move the file

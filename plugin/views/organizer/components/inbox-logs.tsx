@@ -107,12 +107,12 @@ function FileCard({ record }: { record: FileRecord }) {
               href="#"
               onClick={() =>
                 plugin.app.workspace.openLinkText(
-                  record.file.basename,
-                  record.file.parent.path
+                  record.file?.basename,
+                  record.file?.parent.path
                 )
               }
             >
-              {record.file ? record.file.basename : "No file"}
+              {record.file ? record.file?.basename : "No file"}
             </a>
             <span className="text-xs text-[--text-muted]">({record.id})</span>
             <StatusBadge status={record.status} />
@@ -381,8 +381,8 @@ export const InboxLogs: React.FC = () => {
           .split(" ")
           .every(
             term =>
-              record.file.basename.toLowerCase().includes(term) ||
-              record.tags.some(tag => tag.toLowerCase().includes(term)) ||
+              record.file?.basename.toLowerCase().includes(term) ||
+              record?.tags.some(tag => tag.toLowerCase().includes(term)) ||
               Object.keys(record.logs).some(action =>
                 action.toLowerCase().includes(term)
               ) ||
