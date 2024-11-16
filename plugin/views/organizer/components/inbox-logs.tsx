@@ -16,14 +16,43 @@ const LogEntryDisplay: React.FC<{ entry: LogEntry; step: Action }> = ({
   entry,
   step,
 }) => {
+  const getDisplayText = (step: Action, completed: boolean) => {
+    if (completed) {
+      switch (step) {
+        case Action.CLEANUP: return "file cleaned up";
+        case Action.RENAME: return "file renamed";
+        case Action.EXTRACT: return "text extracted";
+        case Action.MOVING_ATTACHEMENT: return "attachments moved";
+        case Action.CLASSIFY: return "classified";
+        case Action.TAGGING: return "tags recommended";
+        case Action.APPLYING_TAGS: return "tags applied";
+        case Action.RECOMMEND_NAME: return "name recommended";
+        case Action.APPLYING_NAME: return "name applied";
+        case Action.FORMATTING: return "formatted";
+        case Action.MOVING: return "moved";
+        case Action.COMPLETED: return "completed";
+        default: return step;
+      }
+    }
+    return step;
+  };
+
   return (
-    <div className="flex items-start gap-2 py-1">
+    <div className="flex items-center gap-2 py-1">
+      <div
+        className={`w-2 h-2 rounded-full ${
+          entry.completed ? "bg-[--text-success]" : "bg-[--text-accent]"
+        }`}
+      />
       <span className="text-[--text-muted] w-20 text-xs">
         {moment(entry.timestamp).format("HH:mm:ss")}
       </span>
-      <span className="text-sm capitalize">{step}</span>
-      {entry.completed && <span className="text-[--text-success]">(completed)</span>}
-      {entry.error && ` - ${entry.error.message}`}
+      <span className="text-sm text-[--text-muted]">
+        {getDisplayText(step, entry.completed)}
+      </span>
+      {entry.error && (
+        <span className="text-sm text-[--text-error]">{entry.error.message}</span>
+      )}
     </div>
   );
 };

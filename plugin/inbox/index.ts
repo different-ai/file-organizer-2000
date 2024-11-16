@@ -1,7 +1,12 @@
 import { TFile, moment, TFolder } from "obsidian";
 import FileOrganizer from "../index";
 import { Queue } from "./services/queue";
-import { FileRecord, RecordManager, Action, FileStatus } from "./services/record-manager";
+import {
+  FileRecord,
+  RecordManager,
+  Action,
+  FileStatus,
+} from "./services/record-manager";
 import { QueueStatus } from "./types";
 import { cleanPath, logMessage } from "../someUtils";
 import { IdService } from "./services/id-service";
@@ -359,6 +364,7 @@ async function recommendNameStep(
   context.recordManager.setNewName(context.hash, context.newName);
   context.recordManager.addAction(context.hash, Action.RENAME);
   await renameFile(context, context.containerFile, context.newName);
+  context.recordManager.addAction(context.hash, Action.RENAME, true);
   return context;
 }
 

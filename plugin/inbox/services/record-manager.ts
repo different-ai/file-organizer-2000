@@ -4,16 +4,27 @@ import moment from "moment";
 
 export enum Action {
   CLEANUP = "cleaning up file",
+  CLEANUP_DONE = "file cleaned up",
   RENAME = "renaming file",
+  RENAME_DONE = "file renamed",
   EXTRACT = "extracting text",
+  EXTRACT_DONE = "text extracted",
   MOVING_ATTACHEMENT = "moving attachments",
+  MOVING_ATTACHEMENT_DONE = "attachments moved",
   CLASSIFY = "classifying",
+  CLASSIFY_DONE = "classified",
   TAGGING = "recommending tags",
+  TAGGING_DONE = "tags recommended",
   APPLYING_TAGS = "applying tags",
+  APPLYING_TAGS_DONE = "tags applied",
   RECOMMEND_NAME = "recommending name",
+  RECOMMEND_NAME_DONE = "name recommended",
   APPLYING_NAME = "applying name",
+  APPLYING_NAME_DONE = "name applied",
   FORMATTING = "formatting",
+  FORMATTING_DONE = "formatted",
   MOVING = "moving",
+  MOVING_DONE = "moved",
   COMPLETED = "completed",
 }
 
@@ -92,11 +103,38 @@ export class RecordManager {
   public addAction(hash: string, step: Action, completed = false): void {
     const record = this.records.get(hash);
     if (record) {
+      // For completed actions, find and update the corresponding in-progress action
+      if (completed) {
+        const baseAction = this.getBaseAction(step);
+        if (baseAction && record.logs[baseAction]) {
+          record.logs[baseAction].completed = true;
+          return;
+        }
+      }
+      
+      // For new actions, add them as in-progress
       record.logs[step] = {
         timestamp: moment().format("YYYY-MM-DD HH:mm:ss"),
         completed,
       };
     }
+  }
+
+  private getBaseAction(completedStep: Action): Action | undefined {
+    const reverseMap: Partial<Record<Action, Action>> = {
+      [Action.CLEANUP_DONE]: Action.CLEANUP,
+      [Action.RENAME_DONE]: Action.RENAME,
+      [Action.EXTRACT_DONE]: Action.EXTRACT,
+      [Action.MOVING_ATTACHEMENT_DONE]: Action.MOVING_ATTACHEMENT,
+      [Action.CLASSIFY_DONE]: Action.CLASSIFY,
+      [Action.TAGGING_DONE]: Action.TAGGING,
+      [Action.APPLYING_TAGS_DONE]: Action.APPLYING_TAGS,
+      [Action.RECOMMEND_NAME_DONE]: Action.RECOMMEND_NAME,
+      [Action.APPLYING_NAME_DONE]: Action.APPLYING_NAME,
+      [Action.FORMATTING_DONE]: Action.FORMATTING,
+      [Action.MOVING_DONE]: Action.MOVING,
+    };
+    return reverseMap[completedStep];
   }
 
   // Record update methods
