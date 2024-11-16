@@ -19,7 +19,6 @@ export enum Action {
 
 export interface LogEntry {
   timestamp: string;
-  step: Action;
   completed?: boolean;
   error?: {
     message: string;
@@ -41,7 +40,7 @@ export interface FileRecord {
   formatted: boolean;
   newPath?: string;
   newName?: string;
-  logs: LogEntry[];
+  logs: Record<Action, LogEntry>;
   status: FileStatus;
   file: TFile | null;
 }
@@ -69,32 +68,34 @@ export class RecordManager {
         file: null,
         tags: [],
         formatted: false,
-        logs: [],
+        logs: {} as Record<Action, LogEntry>,
         status: "queued",
       });
     }
     return hash;
   }
+
   public setFile(hash: string, file: TFile): void {
     const record = this.records.get(hash);
     if (record) {
       record.file = file;
     }
   }
+
   public setStatus(hash: string, status: FileStatus): void {
     const record = this.records.get(hash);
     if (record) {
       record.status = status;
     }
   }
+
   public addAction(hash: string, step: Action, completed = false): void {
     const record = this.records.get(hash);
     if (record) {
-      record.logs.push({
+      record.logs[step] = {
         timestamp: moment().format("YYYY-MM-DD HH:mm:ss"),
-        step,
         completed,
-      });
+      };
     }
   }
 
@@ -105,6 +106,7 @@ export class RecordManager {
       record.tags.push(tag);
     }
   }
+
   public setTags(hash: string, tags: string[]): void {
     const record = this.records.get(hash);
     if (record) {
@@ -150,21 +152,32 @@ export class RecordManager {
     const record = this.records.get(hash);
     if (!record) return false;
 
-    return record.logs.some(
-      entry => entry.type === "error" && (!step || entry.step === step)
-    );
+    if (step) {
+      return !!record.logs[step]?.error;
+    }
+
+    return Object.values(record.logs).some(log => !!log.error);
   }
 
-  public getStepLogs(hash: string, step: Action): LogEntry[] {
+  public getStepLogs(hash: string, step: Action): LogEntry | undefined {
     const record = this.records.get(hash);
-    if (!record) return [];
-    return record.logs.filter(entry => entry.step === step);
+    if (!record) return undefined;
+    return record.logs[step];
   }
 
   public getLastStep(hash: string): Action | null {
     const record = this.records.get(hash);
-    if (!record || record.logs.length === 0) return null;
-    return record.logs[record.logs.length - 1].step;
+    if (!record) return null;
+
+    const steps = Object.entries(record.logs);
+    if (steps.length === 0) return null;
+
+    return steps.reduce((latest, [action, log]) => {
+      if (!latest || moment(log.timestamp).isAfter(moment(record.logs[latest].timestamp))) {
+        return action as Action;
+      }
+      return latest;
+    }, null as Action | null);
   }
 
   // Query methods for multiple records
@@ -174,13 +187,11 @@ export class RecordManager {
 
   public getRecordsWithErrors(): FileRecord[] {
     return this.getAllRecords().filter(record =>
-      record.logs.some(entry => entry.type === "error")
+      Object.values(record.logs).some(log => !!log.error)
     );
   }
 
   public getRecordsByStep(step: Action): FileRecord[] {
-    return this.getAllRecords().filter(record =>
-      record.logs.some(entry => entry.step === step)
-    );
+    return this.getAllRecords().filter(record => !!record.logs[step]);
   }
 }

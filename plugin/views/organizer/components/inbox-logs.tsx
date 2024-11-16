@@ -9,19 +9,20 @@ import moment from "moment";
 import { ChevronDown, Clock, Play, Check, AlertCircle, Ban } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { usePlugin } from "../provider";
+import { Inbox } from "../../../inbox";
 
 // Simple log entry display component
-const LogEntryDisplay: React.FC<{ entry: LogEntry; completed?: boolean }> = ({
+const LogEntryDisplay: React.FC<{ entry: LogEntry; step: Action }> = ({
   entry,
-  completed,
+  step,
 }) => {
   return (
     <div className="flex items-start gap-2 py-1">
       <span className="text-[--text-muted] w-20 text-xs">
         {moment(entry.timestamp).format("HH:mm:ss")}
       </span>
-      <span className="text-sm capitalize">{entry.step}</span>
-      {completed && <span className="text-[--text-success]">(completed)</span>}
+      <span className="text-sm capitalize">{step}</span>
+      {entry.completed && <span className="text-[--text-success]">(completed)</span>}
       {entry.error && ` - ${entry.error.message}`}
     </div>
   );
@@ -31,7 +32,13 @@ const LogEntryDisplay: React.FC<{ entry: LogEntry; completed?: boolean }> = ({
 function FileCard({ record }: { record: FileRecord }) {
   const plugin = usePlugin();
   const [isExpanded, setIsExpanded] = React.useState(false);
-  console.log(record);
+
+  // Get sorted actions based on timestamp
+  const sortedActions = React.useMemo(() => {
+    return Object.entries(record.logs)
+      .sort(([, a], [, b]) => moment(b.timestamp).diff(moment(a.timestamp)))
+      .map(([action]) => action as Action);
+  }, [record.logs]);
 
   return (
     <motion.div
@@ -117,41 +124,26 @@ function FileCard({ record }: { record: FileRecord }) {
               <div className="flex items-center gap-2 text-sm border-b border-[--background-modifier-border] pb-4">
                 <span className="text-[--text-muted]">Actions:</span>
                 <div className="flex flex-wrap gap-1">
-                  {record.logs
-                    .sort((a, b) =>
-                      moment(a.timestamp).diff(moment(b.timestamp))
-                    )
-                    .map((log, index, array) => {
-                      // Only show each action once
-                      const isFirstOccurrence =
-                        array.findIndex(l => l.step === log.step) === index;
-                      return isFirstOccurrence ? (
-                        <span
-                          key={`${log.step}-${index}`}
-                          className="px-2 py-0.5 bg-[--background-secondary] rounded-full text-xs capitalize"
-                        >
-                          {log.step}
-                        </span>
-                      ) : null;
-                    })}
+                  {sortedActions.map((action) => (
+                    <span
+                      key={action}
+                      className="px-2 py-0.5 bg-[--background-secondary] rounded-full text-xs capitalize"
+                    >
+                      {action}
+                    </span>
+                  ))}
                 </div>
               </div>
 
               {/* Logs grouped by step */}
               <div className="space-y-4">
-                {Object.values(Action).map(step => {
-                  const stepLogs = record.logs.filter(log => log.step === step);
-                  if (stepLogs.length === 0) return null;
+                {Object.entries(Action).map(([, action]) => {
+                  const log = record.logs[action];
+                  if (!log) return null;
 
                   return (
-                    <div key={step} className="space-y-1">
-                      {stepLogs.map((entry, i) => (
-                        <LogEntryDisplay
-                          key={i}
-                          entry={entry}
-                          completed={entry.completed}
-                        />
-                      ))}
+                    <div key={action} className="space-y-1">
+                      <LogEntryDisplay entry={log} step={action} />
                     </div>
                   );
                 })}
@@ -170,31 +162,51 @@ const InboxAnalytics: React.FC<{
 }> = ({ analytics }) => {
   const { byStatus } = analytics;
 
-  // Ensure all possible statuses are represented
-  const allStatuses: Array<{
+  // Split statuses into main flow and exceptions
+  const mainFlow: Array<{
     status: FileStatus;
     icon: React.ReactNode;
   }> = [
     { status: "queued", icon: <Clock className="w-4 h-4" /> },
     { status: "processing", icon: <Play className="w-4 h-4" /> },
     { status: "completed", icon: <Check className="w-4 h-4" /> },
+  ];
+
+  const exceptions: Array<{
+    status: FileStatus;
+    icon: React.ReactNode;
+  }> = [
     { status: "error", icon: <AlertCircle className="w-4 h-4" /> },
     { status: "bypassed", icon: <Ban className="w-4 h-4" /> },
   ];
 
+  const StatusBox = ({ status, icon }: { status: FileStatus; icon: React.ReactNode }) => (
+    <div
+      key={status}
+      className="bg-[--background-primary] p-4 rounded text-center flex flex-col items-center"
+    >
+      <div className="text-sm capitalize">{status}</div>
+      <div className="font-semibold">{byStatus[status] || 0}</div>
+      <div className="mt-1 text-[--text-muted]">{icon}</div>
+    </div>
+  );
+
   return (
     <div className="bg-[--background-secondary] rounded-lg p-2">
-      <div className="grid grid-cols-2 md:grid-cols-5 gap-2">
-        {allStatuses.map(({ status, icon }) => (
-          <div
-            key={status}
-            className="bg-[--background-primary] p-2 rounded text-center flex flex-col items-center"
-          >
-            <div className="text-sm capitalize">{status}</div>
-            <div className="font-semibold">{byStatus[status] || 0}</div>
-            <div className="mt-1 text-[--text-muted]">{icon}</div>
-          </div>
-        ))}
+      <div className="space-y-2">
+        {/* Main flow row */}
+        <div className="grid grid-cols-3 gap-2">
+          {mainFlow.map(({ status, icon }) => (
+            <StatusBox key={status} status={status} icon={icon} />
+          ))}
+        </div>
+        
+        {/* Exceptions row */}
+        <div className="grid grid-cols-2 gap-2">
+          {exceptions.map(({ status, icon }) => (
+            <StatusBox key={status} status={status} icon={icon} />
+          ))}
+        </div>
       </div>
     </div>
   );
