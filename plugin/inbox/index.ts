@@ -234,6 +234,29 @@ export class Inbox {
     };
   }
 
+  public getAnalytics(): {
+    byStatus: Record<FileStatus, number>;
+    totalFiles: number;
+    mediaStats: {
+      active: number;
+      queued: number;
+    };
+    queueStats: QueueStatus;
+  } {
+    const records = this.getAllFiles();
+    const byStatus = records.reduce((acc, record) => {
+      acc[record.status] = (acc[record.status] || 0) + 1;
+      return acc;
+    }, {} as Record<FileStatus, number>);
+
+    return {
+      byStatus,
+      totalFiles: records.length,
+      mediaStats: this.getMediaProcessingStats(),
+      queueStats: this.getQueueStats(),
+    };
+  }
+
   // Refactored method using parallel processing where possible
   private async processInboxFile(
     inboxFile: TFile,

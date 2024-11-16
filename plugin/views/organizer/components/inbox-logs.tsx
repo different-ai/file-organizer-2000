@@ -3,6 +3,7 @@ import {
   FileRecord,
   LogEntry,
   Action,
+  FileStatus,
 } from "../../../inbox/services/record-manager";
 import moment from "moment";
 import { ChevronDown } from "lucide-react";
@@ -10,7 +11,10 @@ import { motion, AnimatePresence } from "framer-motion";
 import { usePlugin } from "../provider";
 
 // Simple log entry display component
-const LogEntryDisplay: React.FC<{ entry: LogEntry, completed?: boolean }> = ({ entry, completed }) => {
+const LogEntryDisplay: React.FC<{ entry: LogEntry; completed?: boolean }> = ({
+  entry,
+  completed,
+}) => {
   return (
     <div className="flex items-start gap-2 py-1">
       <span className="text-[--text-muted] w-20 text-xs">
@@ -142,7 +146,11 @@ function FileCard({ record }: { record: FileRecord }) {
                   return (
                     <div key={step} className="space-y-1">
                       {stepLogs.map((entry, i) => (
-                        <LogEntryDisplay key={i} entry={entry} completed={entry.completed} />
+                        <LogEntryDisplay
+                          key={i}
+                          entry={entry}
+                          completed={entry.completed}
+                        />
                       ))}
                     </div>
                   );
@@ -156,22 +164,60 @@ function FileCard({ record }: { record: FileRecord }) {
   );
 }
 
+// Analytics component
+const InboxAnalytics: React.FC<{
+  analytics: ReturnType<typeof Inbox.prototype.getAnalytics>;
+}> = ({ analytics }) => {
+  const { byStatus, totalFiles, mediaStats, queueStats } = analytics;
+
+  // Ensure all possible statuses are represented
+  const allStatuses: FileStatus[] = [
+    "queued",
+    "processing",
+    "completed",
+    "error",
+    "bypassed",
+  ];
+
+  return (
+    <div className="bg-[--background-secondary] rounded-lg mb-4">
+      <div className="mt-4">
+        <div className="grid grid-cols-2 md:grid-cols-5 gap-2">
+          {allStatuses.map(status => (
+            <div
+              key={status}
+              className="bg-[--background-primary] p-2 rounded text-center"
+            >
+              <div className="text-sm capitalize">{status}</div>
+              <div className="font-semibold">{byStatus[status] || 0}</div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+};
+
 // Main component
 export const InboxLogs: React.FC = () => {
   const plugin = usePlugin();
   const [records, setRecords] = React.useState<FileRecord[]>([]);
+  const [analytics, setAnalytics] =
+    React.useState<ReturnType<typeof Inbox.prototype.getAnalytics>>();
 
   React.useEffect(() => {
     // Initial fetch
-    const fetchRecords = () => {
+    const fetchData = () => {
       const files = plugin.inbox.getAllFiles();
+      const currentAnalytics = plugin.inbox.getAnalytics();
       setRecords(files);
+      setAnalytics(currentAnalytics);
     };
 
-    fetchRecords();
+    fetchData();
 
     // Set up interval
-    const intervalId = setInterval(fetchRecords, 1000);
+    const intervalId = setInterval(fetchData, 1000);
 
     // Cleanup function
     return () => clearInterval(intervalId);
@@ -179,6 +225,8 @@ export const InboxLogs: React.FC = () => {
 
   return (
     <div className="space-y-4">
+      {analytics && <InboxAnalytics analytics={analytics} />}
+
       {records?.map(record => (
         <FileCard key={record.id} record={record} />
       ))}
