@@ -103,7 +103,7 @@ function FileCard({ record }: { record: FileRecord }) {
         <div className="flex items-center justify-between mb-2 gap-3">
           <div className="flex items-center gap-2">
             <a
-              className="text-[--text-normal]"
+              className="text-[--text-accent] hover:underline"
               href="#"
               onClick={() =>
                 plugin.app.workspace.openLinkText(
@@ -114,7 +114,6 @@ function FileCard({ record }: { record: FileRecord }) {
             >
               {record.file ? record.file?.basename : "No file"}
             </a>
-            <span className="text-xs text-[--text-muted]">({record.id})</span>
             <StatusBadge status={record.status} />
           </div>
           <button
@@ -215,23 +214,23 @@ const StatusBadge: React.FC<{ status: FileStatus }> = ({ status }) => {
   const getStatusColor = () => {
     switch (status) {
       case "completed":
-        return "bg-[--text-success] bg-opacity-15 text-[--text-success]";
+        return "bg-[--text-success]";
       case "error":
-        return "bg-[--text-error] bg-opacity-15 text-[--text-error]";
+        return "bg-[--text-error]";
       case "processing":
-        return "bg-[--text-accent] bg-opacity-15 text-[--text-accent]";
+        return "bg-[--text-accent]";
       default:
-        return "bg-[--background-secondary] text-[--text-muted]";
+        return "bg-[--text-muted]";
     }
   };
 
   return (
-    // make this a small round dot
-    <span
-      className={`px-2 py-0.5 rounded-full text-xs capitalize ${getStatusColor()}`}
-    >
+    <span className="inline-flex items-center">
       <span className="sr-only">{status}</span>
-      <span aria-hidden="true">•</span>
+      <span
+        className={`w-2 h-2 rounded-full ${getStatusColor()}`}
+        aria-hidden="true"
+      />
     </span>
   );
 };
