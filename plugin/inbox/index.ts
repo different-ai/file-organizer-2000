@@ -264,6 +264,7 @@ export class Inbox {
       await recommendFolderStep(context);
       await recommendNameStep(context);
       await formatContentStep(context);
+      await appendAttachmentStep(context);
       await recommendTagsStep(context);
       await completeProcessing(context);
     } catch (error) {
@@ -277,6 +278,7 @@ async function moveAttachmentFile(
 ): Promise<ProcessingContext> {
   context.recordManager.addAction(context.hash, Action.MOVING_ATTACHEMENT);
   if (VALID_MEDIA_EXTENSIONS.includes(context.inboxFile.extension)) {
+    context.attachmentFile = context.inboxFile;
     await moveFile(
       context,
       context.inboxFile,
@@ -297,7 +299,7 @@ async function getContainerFileStep(
   if (VALID_MEDIA_EXTENSIONS.includes(context.inboxFile.extension)) {
     const containerFile = await context.plugin.app.vault.create(
       context.inboxFile.basename + ".md",
-      `![[${context.inboxFile.name}]]`
+      ``
     );
     context.containerFile = containerFile;
   } else {
@@ -533,6 +535,17 @@ async function recommendTagsStep(
   }
   context.recordManager.addAction(context.hash, Action.TAGGING, true);
   context.recordManager.setTags(context.hash, context.tags);
+  return context;
+}
+async function appendAttachmentStep(
+  context: ProcessingContext
+): Promise<ProcessingContext> {
+  if (context.attachmentFile) {
+    context.plugin.app.vault.append(
+      context.containerFile,
+      `\n\n![[${context.attachmentFile.name}]]`
+    );
+  }
   return context;
 }
 
