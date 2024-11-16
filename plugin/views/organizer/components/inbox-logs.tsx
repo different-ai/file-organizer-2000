@@ -6,7 +6,7 @@ import {
   FileStatus,
 } from "../../../inbox/services/record-manager";
 import moment from "moment";
-import { ChevronDown, Clock, Play, Check, AlertCircle, Ban } from "lucide-react";
+import { ChevronDown, Clock, Play, Check, AlertCircle, Ban, Search, Filter } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { usePlugin } from "../provider";
 import { Inbox } from "../../../inbox";
@@ -88,9 +88,7 @@ function FileCard({ record }: { record: FileRecord }) {
               {record.file ? record.file.basename : "No file"}
             </a>
             <span className="text-xs text-[--text-muted]">({record.id})</span>
-            <span className="px-2 py-0.5 bg-[--background-secondary] rounded-full text-xs capitalize">
-              {record.status}
-            </span>
+            <StatusBadge status={record.status} />
           </div>
           <button
             onClick={() => setIsExpanded(!isExpanded)}
@@ -183,7 +181,31 @@ function FileCard({ record }: { record: FileRecord }) {
       </div>
     </motion.div>
   );
-}
+};
+
+// Status badge component
+const StatusBadge: React.FC<{ status: FileStatus }> = ({ status }) => {
+  const getStatusColor = () => {
+    switch (status) {
+      case "completed":
+        return "bg-[--text-success] bg-opacity-15 text-[--text-success]";
+      case "error":
+        return "bg-[--text-error] bg-opacity-15 text-[--text-error]";
+      case "processing":
+        return "bg-[--text-accent] bg-opacity-15 text-[--text-accent]";
+      default:
+        return "bg-[--background-secondary] text-[--text-muted]";
+    }
+  };
+
+  return (
+    // make this a small round dot
+    <span className={`px-2 py-0.5 rounded-full text-xs capitalize ${getStatusColor()}`}>
+      <span className="sr-only">{status}</span>
+      <span aria-hidden="true">•</span>
+    </span>
+  );
+};
 
 // Analytics component
 const InboxAnalytics: React.FC<{
@@ -241,41 +263,118 @@ const InboxAnalytics: React.FC<{
   );
 };
 
+// Search component
+interface SearchBarProps {
+  onSearch: (query: string) => void;
+  onStatusFilter: (status: FileStatus | "") => void;
+  selectedStatus: FileStatus | "";
+}
+
+const SearchBar: React.FC<SearchBarProps> = ({ onSearch, onStatusFilter, selectedStatus }) => {
+  const [searchQuery, setSearchQuery] = React.useState("");
+  
+  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const query = e.target.value;
+    setSearchQuery(query);
+    onSearch(query);
+  };
+
+  const statuses: Array<FileStatus | ""> = ["", "queued", "processing", "completed", "error", "bypassed"];
+
+  return (
+    <div className="bg-[--background-primary] p-4 rounded-lg border border-[--background-modifier-border] space-y-2">
+      <div className="flex items-center gap-2">
+        <div className="relative flex-1">
+          <Search className="w-4 h-4 absolute left-3 top-1/2 transform -translate-y-1/2 text-[--text-muted]" />
+          <input
+            type="text"
+            placeholder="Search files, tags, or actions..."
+            value={searchQuery}
+            onChange={handleSearchChange}
+            className="w-full pl-9 pr-4 py-2 bg-[--background-secondary] rounded border border-[--background-modifier-border] text-sm"
+          />
+        </div>
+        <div className="relative">
+          <Filter className="w-4 h-4 absolute left-3 top-1/2 transform -translate-y-1/2 text-[--text-muted]" />
+          <select
+            value={selectedStatus}
+            onChange={(e) => onStatusFilter(e.target.value as FileStatus | "")}
+            className="pl-9 pr-4 py-2 bg-[--background-secondary] rounded border border-[--background-modifier-border] text-sm appearance-none"
+          >
+            {statuses.map((status) => (
+              <option key={status} value={status}>
+                {status ? status.charAt(0).toUpperCase() + status.slice(1) : "All Status"}
+              </option>
+            ))}
+          </select>
+        </div>
+      </div>
+    </div>
+  );
+};
+
 // Main component
 export const InboxLogs: React.FC = () => {
   const plugin = usePlugin();
   const [records, setRecords] = React.useState<FileRecord[]>([]);
-  const [analytics, setAnalytics] =
-    React.useState<ReturnType<typeof Inbox.prototype.getAnalytics>>();
+  const [filteredRecords, setFilteredRecords] = React.useState<FileRecord[]>([]);
+  const [analytics, setAnalytics] = React.useState<ReturnType<typeof Inbox.prototype.getAnalytics>>();
+  const [searchQuery, setSearchQuery] = React.useState("");
+  const [statusFilter, setStatusFilter] = React.useState<FileStatus | "">("");
+
+  const filterRecords = React.useCallback((records: FileRecord[]) => {
+    return records.filter((record) => {
+      const matchesSearch = searchQuery.toLowerCase().split(" ").every(term =>
+        record.file.basename.toLowerCase().includes(term) ||
+        record.tags.some(tag => tag.toLowerCase().includes(term)) ||
+        Object.keys(record.logs).some(action => action.toLowerCase().includes(term)) ||
+        record.classification?.toLowerCase().includes(term)
+      );
+
+      const matchesStatus = !statusFilter || record.status === statusFilter;
+
+      return matchesSearch && matchesStatus;
+    });
+  }, [searchQuery, statusFilter]);
 
   React.useEffect(() => {
-    // Initial fetch
     const fetchData = () => {
       const files = plugin.inbox.getAllFiles();
       const currentAnalytics = plugin.inbox.getAnalytics();
       setRecords(files);
+      setFilteredRecords(filterRecords(files));
       setAnalytics(currentAnalytics);
     };
 
     fetchData();
-
-    // Set up interval
     const intervalId = setInterval(fetchData, 1000);
-
-    // Cleanup function
     return () => clearInterval(intervalId);
-  }, [plugin.inbox]); // Only depend on plugin.inbox
+  }, [plugin.inbox, filterRecords]);
+
+  const handleSearch = (query: string) => {
+    setSearchQuery(query);
+  };
+
+  const handleStatusFilter = (status: FileStatus | "") => {
+    setStatusFilter(status);
+  };
 
   return (
     <div className="space-y-4">
       {analytics && <InboxAnalytics analytics={analytics} />}
+      
+      <SearchBar
+        onSearch={handleSearch}
+        onStatusFilter={handleStatusFilter}
+        selectedStatus={statusFilter}
+      />
 
-      {records?.map(record => (
+      {filteredRecords.map(record => (
         <FileCard key={record.id} record={record} />
       ))}
-      {records?.length === 0 && (
+      {filteredRecords.length === 0 && (
         <div className="text-center py-8 text-[--text-muted]">
-          No records found
+          {records.length === 0 ? "No records found" : "No matching records"}
         </div>
       )}
     </div>
