@@ -17,7 +17,6 @@ import { logMessage } from "../../someUtils";
 import { LicenseValidator } from "./components/license-validator";
 import { VALID_MEDIA_EXTENSIONS } from "../../constants";
 import { logger } from "../../services/logger";
-import { ConnectivityChecker } from "./components/connectivity-checker";
 
 interface AssistantViewProps {
   plugin: FileOrganizer;
@@ -127,15 +126,7 @@ export const AssistantView: React.FC<AssistantViewProps> = ({
     }
   }, [activeFile, plugin.app.vault]);
 
-  // First check connectivity
-  if (!isConnected) {
-    return (
-      <ConnectivityChecker
-        onConnectivityValid={() => setIsConnected(true)}
-        plugin={plugin}
-      />
-    );
-  }
+
 
   // Then check license
   if (!isLicenseValid) {
