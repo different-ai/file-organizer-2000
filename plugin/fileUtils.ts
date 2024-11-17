@@ -1,5 +1,6 @@
-import { App, TFolder, TFile, normalizePath } from "obsidian";
+import { App, TFolder, TFile, normalizePath, parseYaml } from "obsidian";
 import { FileOrganizerSettings } from "./settings";
+import { logger } from "./services/logger";
 
 export async function ensureFolderExists(app: App, folderPath: string) {
   if (!(await app.vault.adapter.exists(folderPath))) {
@@ -185,4 +186,107 @@ export async function safeMove(
   const desiredPath = `${destinationPath}/${file.name}`;
   const availablePath = await getAvailablePath(app, desiredPath);
   await app.fileManager.renameFile(file, availablePath);
+}
+/**
+ * Sanitizes content to ensure it's valid for Obsidian
+ * Handles frontmatter and content separately for safety
+ */
+async function sanitizeContent(content: string): Promise<string> {
+  try {
+    // If content is empty or not a string, return empty string
+    if (!content || typeof content !== "string") {
+      return "";
+    }
+
+    const lines = content.split("\n");
+    let inFrontmatter = false;
+    let validContent: string[] = [];
+
+    for (let i = 0; i < lines.length; i++) {
+      const line = lines[i];
+
+      // Handle frontmatter boundaries
+      if (line.trim() === "---") {
+        if (i === 0 || (i === 1 && !validContent.length)) {
+          // Start of frontmatter
+          inFrontmatter = true;
+          validContent.push(line);
+          continue;
+        } else if (inFrontmatter) {
+          // End of frontmatter
+          inFrontmatter = false;
+          validContent.push(line);
+          continue;
+        }
+      }
+
+      if (inFrontmatter) {
+        // Validate frontmatter line
+        try {
+          // Check if line is valid YAML key-value pair
+          const [key, ...valueParts] = line.split(":");
+          if (key && key.trim() && !key.includes(" ")) {
+            validContent.push(line);
+          }
+        } catch (e) {
+          logger.debug("Skipping invalid frontmatter line:", line);
+        }
+      } else {
+        // Regular content - remove null characters and other potentially problematic chars
+        const sanitizedLine = line
+          .replace(/\0/g, "") // Remove null characters
+          .replace(/\u202E/g, "") // Remove RTL override characters
+          .replace(/^\ufeff/g, "") // Remove BOM
+          .replace(/\r/g, ""); // Normalize line endings
+
+        validContent.push(sanitizedLine);
+      }
+    }
+
+    // Ensure frontmatter is properly closed
+    if (inFrontmatter) {
+      validContent.push("---");
+    }
+
+    return validContent.join("\n");
+  } catch (error) {
+    logger.error("Error sanitizing content:", error);
+    return content; // Return original content if sanitization fails
+  }
+}
+
+/**
+ * Safely modifies file content ensuring it's valid for Obsidian
+ */
+export async function safeModifyContent(
+  app: App,
+  file: TFile,
+  content: string
+): Promise<void> {
+  try {
+    const sanitizedContent = await sanitizeContent(content);
+
+    // Verify the content is valid before modifying
+    try {
+      if (sanitizedContent.includes("---\n")) {
+        // If content has frontmatter, validate it
+        const [_, frontmatter] = sanitizedContent.split(/^---\n/m);
+        if (frontmatter) {
+          parseYaml(frontmatter); // Will throw if invalid
+        }
+      }
+    } catch (e) {
+      logger.error("Invalid frontmatter detected:", e);
+      // If frontmatter is invalid, strip it and just use the content
+      const contentWithoutFrontmatter =
+        sanitizedContent.split(/^---\n[\s\S]*?\n---\n/m).pop() || "";
+      await app.vault.modify(file, contentWithoutFrontmatter);
+      return;
+    }
+
+    await app.vault.modify(file, sanitizedContent);
+  } catch (error) {
+    logger.error("Error in safeModifyContent:", error);
+    throw error;
+  }
 }

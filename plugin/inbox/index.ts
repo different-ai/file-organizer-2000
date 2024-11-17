@@ -17,12 +17,7 @@ import {
   cleanup,
 } from "../utils/token-counter";
 import { isValidExtension, VALID_MEDIA_EXTENSIONS } from "../constants";
-import { 
-  safeCreate,
-  safeRename,
-  safeCopy,
-  safeMove,
-} from "../fileUtils";
+import { safeCreate, safeRename, safeCopy, safeMove, safeModifyContent as safeModify } from "../fileUtils";
 
 // Move constants to the top level and ensure they're used consistently
 const MAX_CONCURRENT_TASKS = 5;
@@ -565,7 +560,8 @@ async function formatContentStep(
       context.plugin.settings.referencePath
     );
 
-    await context.plugin.app.vault.modify(
+    await safeModify(
+      context.plugin.app,
       context.containerFile,
       formattedContent
     );
