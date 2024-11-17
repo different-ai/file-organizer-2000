@@ -8,7 +8,7 @@ import {
   FileStatus,
 } from "./services/record-manager";
 import { QueueStatus } from "./types";
-import { cleanPath, logMessage } from "../someUtils";
+import { logMessage } from "../someUtils";
 import { IdService } from "./services/id-service";
 import { logger } from "../services/logger";
 import {
@@ -17,13 +17,16 @@ import {
   cleanup,
 } from "../utils/token-counter";
 import { isValidExtension, VALID_MEDIA_EXTENSIONS } from "../constants";
-import { ensureFolderExists } from "../fileUtils";
-import { log } from "console";
+import { 
+  safeCreate,
+  safeRename,
+  safeCopy,
+  safeMove,
+} from "../fileUtils";
 
 // Move constants to the top level and ensure they're used consistently
 const MAX_CONCURRENT_TASKS = 5;
 const MAX_CONCURRENT_MEDIA_TASKS = 2;
-const TOKEN_LIMIT = 50000; // 50k tokens limit for formatting
 
 export interface FolderSuggestion {
   isNewFolder: boolean;
@@ -309,7 +312,7 @@ async function moveAttachmentFile(
   if (VALID_MEDIA_EXTENSIONS.includes(context.inboxFile.extension)) {
     context.attachmentFile = context.inboxFile;
     await safeMove(
-      context,
+      context.plugin.app,
       context.inboxFile,
       context.plugin.settings.attachmentsPath
     );
@@ -328,7 +331,7 @@ async function getContainerFileStep(
   logger.info("Get container file step");
   if (VALID_MEDIA_EXTENSIONS.includes(context.inboxFile?.extension)) {
     const containerFile = await safeCreate(
-      context,
+      context.plugin.app,
       context.inboxFile.basename + ".md",
       ""
     );
@@ -368,7 +371,11 @@ async function recommendNameStep(
   }
   context.recordManager.setNewName(context.hash, context.newName);
   context.recordManager.addAction(context.hash, Action.RENAME);
-  await safeRename(context, context.containerFile, context.newName);
+  await safeRename(
+    context.plugin.app,
+    context.containerFile,
+    context.newName
+  );
   context.recordManager.addAction(context.hash, Action.RENAME, true);
   return context;
 }
@@ -384,7 +391,11 @@ async function recommendFolderStep(
   context.newPath = newPath[0]?.folder;
   console.log("new path", context.newPath, context.containerFile);
   context.recordManager.addAction(context.hash, Action.MOVING);
-  await safeMove(context, context.containerFile, context.newPath);
+  await safeMove(
+    context.plugin.app,
+    context.containerFile,
+    context.newPath
+  );
   context.recordManager.addAction(context.hash, Action.MOVING, true);
   console.log("moved file to", context.containerFile);
 
@@ -475,7 +486,11 @@ async function handleBypass(
 
     // Then move the file
     const bypassedFolderPath = context.plugin.settings.bypassedFilePath;
-    await safeMove(context, context.inboxFile, bypassedFolderPath);
+    await safeMove(
+      context.plugin.app,
+      context.inboxFile,
+      bypassedFolderPath
+    );
 
     context.queue.bypass(context.hash);
     context.recordManager.setStatus(context.hash, "bypassed");
@@ -545,7 +560,7 @@ async function formatContentStep(
     context.formattedContent = formattedContent;
 
     const referenceFile = await safeCopy(
-      context,
+      context.plugin.app,
       context.containerFile,
       context.plugin.settings.referencePath
     );
@@ -624,99 +639,22 @@ async function handleError(
 
 // moveToBackupFolder
 async function moveToBackupFolder(context: ProcessingContext): Promise<void> {
-  const backupFolderPath = context.plugin.settings.backupFolderPath;
-  await safeMove(context, context.inboxFile, backupFolderPath);
+  await safeMove(
+    context.plugin.app,
+    context.inboxFile,
+    context.plugin.settings.backupFolderPath
+  );
 }
 
 // Helper functions for file operations
 async function moveFileToErrorFolder(
   context: ProcessingContext
 ): Promise<void> {
-  const errorFolderPath = context.plugin.settings.errorFilePath;
-  await safeMove(context, context.inboxFile, errorFolderPath);
-}
-
-async function getAvailablePath(
-  desiredPath: string,
-  vault: Vault
-): Promise<string> {
-  let available = desiredPath;
-  let increment = 0;
-
-  // Split path into directory and filename
-  const lastDotIndex = desiredPath.lastIndexOf(".");
-  const lastSlashIndex = desiredPath.lastIndexOf("/");
-  const dir = desiredPath.substring(0, lastSlashIndex);
-  const nameWithoutExt = desiredPath.substring(
-    lastSlashIndex + 1,
-    lastDotIndex
+  await safeMove(
+    context.plugin.app,
+    context.inboxFile,
+    context.plugin.settings.errorFilePath
   );
-  const ext = desiredPath.substring(lastDotIndex);
-
-  // Keep incrementing until we find an available path
-  while (await vault.adapter.exists(available)) {
-    increment++;
-    available = `${dir}/${nameWithoutExt} ${increment}${ext}`;
-  }
-
-  return available;
-}
-async function safeCreate(
-  context: ProcessingContext,
-  desiredPath: string,
-  content?: string
-): Promise<TFile> {
-  await ensureFolderExists(context.plugin.app, desiredPath);
-  const availablePath = await getAvailablePath(
-    desiredPath,
-    context.plugin.app.vault
-  );
-  const createdFile = await context.plugin.app.vault.create(
-    availablePath,
-    content
-  );
-  return createdFile;
-}
-
-async function safeRename(
-  context: ProcessingContext,
-  file: TFile,
-  desiredNewName: string
-): Promise<void> {
-  const parentPath = file.parent.path;
-  const extension = file.extension;
-  const desiredPath = `${parentPath}/${desiredNewName}.${extension}`;
-  const availablePath = await getAvailablePath(
-    desiredPath,
-    context.plugin.app.vault
-  );
-  await context.plugin.app.fileManager.renameFile(file, availablePath);
-}
-async function safeCopy(
-  context: ProcessingContext,
-  file: TFile,
-  desiredFolderPath: string
-): Promise<TFile> {
-  await ensureFolderExists(context.plugin.app, desiredFolderPath);
-  const availablePath = await getAvailablePath(
-    `${desiredFolderPath}/${file.name}`,
-    context.plugin.app.vault
-  );
-  const copiedFile = await context.plugin.app.vault.copy(file, availablePath);
-  return copiedFile;
-}
-
-async function safeMove(
-  context: ProcessingContext,
-  file: TFile,
-  desiredFolderPath: string
-): Promise<void> {
-  await ensureFolderExists(context.plugin.app, desiredFolderPath);
-  const availablePath = await getAvailablePath(
-    `${desiredFolderPath}/${file.name}`,
-    context.plugin.app.vault
-  );
-  await context.plugin.app.fileManager.renameFile(file, availablePath);
 }
 
 // Helper functions for initialization and usage

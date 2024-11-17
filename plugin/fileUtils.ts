@@ -1,5 +1,6 @@
 import { App, TFolder, TFile, normalizePath } from "obsidian";
 import { FileOrganizerSettings } from "./settings";
+
 export async function ensureFolderExists(app: App, folderPath: string) {
   if (!(await app.vault.adapter.exists(folderPath))) {
     await app.vault.createFolder(folderPath);
@@ -29,56 +30,46 @@ export async function checkAndCreateTemplates(
   if (!(await app.vault.adapter.exists(meetingNoteTemplatePath))) {
     await app.vault.create(
       meetingNoteTemplatePath,
-      `## Meeting Details
+      `Contextual Extraction of Discussion Points and Action Items
 
-- Date: {{date}} in format YYYY-MM-DD
-- Participants: {{participants}}
+Instruction:
+Analyze the provided content, which includes:
+	•	Transcript 1: The first transcript of the discussion.
+	•	Transcript 2: The second transcript of the discussion.
+	•	Written Notes: Notes taken by a participant summarizing the discussion.
 
-## Audio Reference
+Task:
+Extract the following while prioritizing the notes written by the participant to infer emphasis and key takeaways:
+	1.	Discussion Points: Summarize the key topics, ideas, or issues discussed. Prioritize points that appear in the written notes and cross-reference with the transcripts for completeness.
+	2.	Action Items: Identify specific tasks, responsibilities, or decisions agreed upon. For each action item, include:
+	•	A brief description of the task.
+	•	The person(s) responsible, if mentioned.
+	•	Any deadlines, if stated.
 
-![[{{audio_file}}]]
+Output Format:
 
-## Key Points
+**Discussion Points:**  
+1. [Point 1]  
+2. [Point 2]  
+...  
 
-[Summarize the main points discussed in the meeting]
+**Action Items:**  
+1. [Task description] - [Responsible person(s)] - [Deadline]  
+2. [Task description] - [Responsible person(s)] - [Deadline]  
+...  
 
-## Action Items
-
-- [ ] Action item 1
-  - [ ] Sub-action 1.1
-  - [ ] Sub-action 1.2
-- [ ] Action item 2
-  - [ ] Sub-action 2.1
-  - [ ] Sub-action 2.2
-
-## Detailed Notes
-
-[Add your meeting notes here, maintaining a hierarchical structure]
-
-## Transcription
-
-[Insert the full transcription below]
-
----
-
-AI Instructions:
-1. Merge the transcription into the content, focusing on key points and action items.
-2. Summarize the main discussion points in the "Key Points" section, using bullet points for clarity.
-3. Extract and list any action items or tasks in the "Action Items" section:
-   - Use a hierarchical structure with main action items and sub-actions.
-   - Maintain the original level of detail from the transcript.
-   - Use indentation to show the relationship between main actions and sub-actions.
-4. In the "Detailed Notes" section, create a hierarchical structure that reflects the meeting's flow:
-   - Use headings (###, ####) for main topics.
-   - Use bullet points and sub-bullets for detailed points under each topic.
-   - Preserve the granularity of the discussion, including specific examples or minor points.
-5. Preserve the reference to the original audio file.
-6. Maintain the overall structure of the note, including all headers and sections.
-7. Delete transcription. Mention that it can be accessed in the Original file`
+**Supporting Context:**  
+- Key excerpts from Transcript 1: [Relevant excerpts related to discussion points and action items].  
+- Key excerpts from Transcript 2: [Relevant excerpts related to discussion points and action items].  
+- Key highlights from Written Notes: [Direct quotes or summaries from notes].  
+`
     );
   }
 }
 
+/**
+ * @deprecated use safeMove instead
+ */
 export async function moveFile(
   app: App,
   sourceFile: TFile,
@@ -110,7 +101,9 @@ export async function moveFile(
   await app.fileManager.renameFile(sourceFile, normalizedFinalPath);
 
   // Get the moved file object and return it
-  const movedFile = app.vault.getAbstractFileByPath(normalizedFinalPath) as TFile;
+  const movedFile = app.vault.getAbstractFileByPath(
+    normalizedFinalPath
+  ) as TFile;
   return movedFile;
 }
 
@@ -121,8 +114,75 @@ export function isTFolder(file: any): file is TFolder {
 export function getAllFolders(app: App): string[] {
   const allFiles = app.vault.getAllLoadedFiles();
   const folderPaths = allFiles
-    .filter((file) => isTFolder(file))
-    .map((folder) => folder.path);
+    .filter(file => isTFolder(file))
+    .map(folder => folder.path);
 
   return [...new Set(folderPaths)];
+}
+
+export async function getAvailablePath(
+  app: App,
+  desiredPath: string
+): Promise<string> {
+  let available = desiredPath;
+  let increment = 0;
+
+  while (await app.vault.adapter.exists(available)) {
+    increment++;
+    const lastDotIndex = available.lastIndexOf(".");
+    const withoutExt = available.slice(0, lastDotIndex);
+    const ext = available.slice(lastDotIndex);
+    available = `${withoutExt} ${increment}${ext}`;
+  }
+
+  return available;
+}
+
+export async function safeCreate(
+  app: App,
+  desiredPath: string,
+  content = ""
+): Promise<TFile> {
+  const parentPath = desiredPath.substring(0, desiredPath.lastIndexOf("/"));
+  await ensureFolderExists(app, parentPath);
+
+  const availablePath = await getAvailablePath(app, desiredPath);
+  return await app.vault.create(availablePath, content);
+}
+
+export async function safeRename(
+  app: App,
+  file: TFile,
+  newName: string
+): Promise<void> {
+  const parentPath = file.parent.path;
+  const extension = file.extension;
+  const desiredPath = `${parentPath}/${newName}.${extension}`;
+
+  const availablePath = await getAvailablePath(app, desiredPath);
+  await app.fileManager.renameFile(file, availablePath);
+}
+
+export async function safeCopy(
+  app: App,
+  file: TFile,
+  destinationPath: string
+): Promise<TFile> {
+  await ensureFolderExists(app, destinationPath);
+
+  const desiredPath = `${destinationPath}/${file.name}`;
+  const availablePath = await getAvailablePath(app, desiredPath);
+  return await app.vault.copy(file, availablePath);
+}
+
+export async function safeMove(
+  app: App,
+  file: TFile,
+  destinationPath: string
+): Promise<void> {
+  await ensureFolderExists(app, destinationPath);
+
+  const desiredPath = `${destinationPath}/${file.name}`;
+  const availablePath = await getAvailablePath(app, desiredPath);
+  await app.fileManager.renameFile(file, availablePath);
 }

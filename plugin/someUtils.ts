@@ -13,12 +13,8 @@ export function cleanPath(path: string) {
   return pathWithoutLeadingAndTrailingSlashes;
 }
 
-export const logMessage = (...args: any[]) => {
-  const message = args
-    .map(arg => (typeof arg === "object" ? JSON.stringify(arg) : arg))
-    .join(" ");
-
-  logger.debug(message);
+export const logMessage = (...messages: any[]) => {
+  logger.debug(...messages);
 };
 
 export const logError = (error: Error | string, details?: any) => {

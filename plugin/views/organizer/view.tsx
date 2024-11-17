@@ -6,7 +6,7 @@ import FileOrganizer from "../..";
 import { InboxLogs } from "./components/inbox-logs";
 import { SectionHeader } from "./components/section-header";
 import { AppContext } from "./provider";
-import AIChatSidebar from '../ai-chat/container';
+import AIChatSidebar from "../ai-chat/container";
 
 export const ORGANIZER_VIEW_TYPE = "fo2k.assistant.sidebar2";
 
@@ -29,7 +29,7 @@ function TabContent({
     return (
       <>
         <SectionHeader text="Inbox Processing" icon="📥 " />
-        <InboxLogs plugin={plugin as any} />
+        <InboxLogs />
       </>
     );
   }
@@ -102,7 +102,7 @@ function OrganizerContent({
       </div>
 
       <div className="pt-4 h-full">
-      <TabContent activeTab={activeTab} plugin={plugin} leaf={leaf} />
+        <TabContent activeTab={activeTab} plugin={plugin} leaf={leaf} />
       </div>
     </div>
   );
