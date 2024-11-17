@@ -1,6 +1,13 @@
 
 # File Organizer 2000 Lifetime Setup FAQ
 
+## If you need assistance 
+
+Please make sure your github repository is public before reaching out so we can help you troubleshoot. Here's how you can do that if it's not already done: 
+
+https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/managing-repository-settings/setting-repository-visibility#changing-a-repositorys-visibility
+
+
 ### If you are having issues with "License Key Invalid" 
 
 - Use the URL that you see after clicking on the page you deployed (as shown below)
@@ -30,7 +37,16 @@ If it includes "self-hosted" or "dashboard", you are also using the wrong url
 
 ---
 
-### How to set up auto updates with vercel? (Free)
+
+## Vercel Lifetime
+
+If you decided to use vercel as your deployment system, there is a chance that your server code end up out of dates with ours.
+
+Below you'll find some instructions on how to:
+- set up auto-updates
+- manually update your repo (requires auto-update to be setup)
+
+### Setting up auto update
 
 To set up your instance for auto-updates, you can follow these instructions: 
 
@@ -101,14 +117,9 @@ jobs:
 
 ---
 
-### If you need assistance 
-
-Please make sure your github repository is public before reaching out so we can help you troubleshoot. Here's how you can do that if it's not already done: 
-
-https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/managing-repository-settings/setting-repository-visibility#changing-a-repositorys-visibility
 
 
-### Updating your server to the latest
+## Manually triggering updates
 
 If you setup auto-updates via our instructions above you can go to actions, look for the worfklow, and click on run workflow.
 
@@ -116,6 +127,7 @@ And run the update action manually. If you don't we trigger updates every 24h.
 
 This might be useful if we just shipped a fix and you want to be up to date.
 
+<img width="1422" alt="Screenshot 2024-11-17 at 09 51 25" src="https://github.com/user-attachments/assets/e1a0ad92-c8e4-4a11-a0be-de0dccf99281">
 
 
 
