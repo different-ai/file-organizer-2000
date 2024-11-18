@@ -174,14 +174,14 @@ export class Inbox {
     // First enqueue regular files
     for (const file of regularFiles) {
       const hash = this.idService.generateFileHash(file);
-      this.recordManager.startTracking(hash);
+      this.recordManager.startTracking(hash, file.basename);
       this.queue.add(file, { metadata: { hash } });
     }
 
     // Then enqueue media files
     for (const file of mediaFiles) {
       const hash = this.idService.generateFileHash(file);
-      this.recordManager.startTracking(hash);
+      this.recordManager.startTracking(hash, file.basename);
       this.queue.add(file, { metadata: { hash } });
     }
 
@@ -502,7 +502,7 @@ async function recommendClassificationStep(
   if (context.plugin.settings.enableDocumentClassification) {
     const templateNames = await context.plugin.getTemplateNames();
     const result = await context.plugin.classifyContentV2(
-      context.content,
+      `${context.content}, ${context.containerFile.name}`,
       templateNames
     );
     logger.info("Classification result", result);

@@ -1562,10 +1562,7 @@ export default class FileOrganizer extends Plugin {
     const cutoff = this.settings.contentCutoffChars;
     const trimmedContent = content.slice(0, cutoff);
 
-    const customInstructions = this.settings.enableFileRenaming
-      ? this.settings.renameInstructions
-      : undefined;
-
+    const customInstructions = this.settings.renameInstructions;
     const response = await fetch(`${this.getServerUrl()}/api/title/v2`, {
       method: "POST",
       headers: {

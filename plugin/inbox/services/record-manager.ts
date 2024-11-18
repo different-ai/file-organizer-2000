@@ -10,47 +10,47 @@ export type FileStatus =
   | "bypassed";
 
 export enum Action {
-  CLEANUP = "cleaning up file",
-  CLEANUP_DONE = "file cleaned up",
-  RENAME = "renaming file",
-  RENAME_DONE = "file renamed",
-  EXTRACT = "extracting text",
-  EXTRACT_DONE = "text extracted",
-  MOVING_ATTACHMENT = "moving attachments",
-  MOVING_ATTACHEMENT_DONE = "attachments moved",
-  CLASSIFY = "classifying",
-  CLASSIFY_DONE = "classified",
-  TAGGING = "recommending tags",
-  TAGGING_DONE = "tags recommended",
-  APPLYING_TAGS = "applying tags",
-  APPLYING_TAGS_DONE = "tags applied",
-  RECOMMEND_NAME = "recommending name",
-  RECOMMEND_NAME_DONE = "name recommended",
-  CONTAINER = "creating container",
-  APPEND = "appending",
-  APPEND_DONE = "appended",
-  ERROR_APPEND = "error appending",
-  ERROR_COMPLETE = "error completing",
-  ERROR_VALIDATE = "error validating",
-  ERROR_CONTAINER = "error creating container",
-  CONTAINER_DONE = "container created",
-  APPLYING_NAME = "applying name",
-  APPLYING_NAME_DONE = "name applied",
-  FORMATTING = "formatting",
-  FORMATTING_DONE = "formatted",
-  MOVING = "moving",
-  MOVING_DONE = "moved",
-  COMPLETED = "completed",
-  VALIDATE = "validating",
-  VALIDATE_DONE = "validated",
-  ERROR_CLEANUP = "error during cleanup",
-  ERROR_RENAME = "error during rename",
-  ERROR_EXTRACT = "error during extraction",
-  ERROR_MOVING_ATTACHMENT = "error moving attachment",
-  ERROR_CLASSIFY = "error during classification",
-  ERROR_TAGGING = "error during tagging",
-  ERROR_FORMATTING = "error during formatting",
-  ERROR_MOVING = "error during moving",
+  CLEANUP = "Cleaning up file...",
+  CLEANUP_DONE = "File cleaned up",
+  RENAME = "Renaming file...",
+  RENAME_DONE = "File renamed",
+  EXTRACT = "Extracting content...",
+  EXTRACT_DONE = "Content extracted",
+  MOVING_ATTACHMENT = "Moving attachments...",
+  MOVING_ATTACHEMENT_DONE = "Attachments moved",
+  CLASSIFY = "Analyzing document type...",
+  CLASSIFY_DONE = "Document type identified",
+  TAGGING = "Generating tags...",
+  TAGGING_DONE = "Tags generated",
+  APPLYING_TAGS = "Applying tags...",
+  APPLYING_TAGS_DONE = "Tags applied",
+  RECOMMEND_NAME = "Generating file name...",
+  RECOMMEND_NAME_DONE = "File name generated",
+  CONTAINER = "Creating document container...",
+  APPEND = "Appending content...",
+  APPEND_DONE = "Content appended",
+  ERROR_APPEND = "Failed to append content",
+  ERROR_COMPLETE = "Processing failed",
+  ERROR_VALIDATE = "Failed to validate document",
+  ERROR_CONTAINER = "Failed to create container",
+  CONTAINER_DONE = "Container created",
+  APPLYING_NAME = "Applying new name...",
+  APPLYING_NAME_DONE = "New name applied",
+  FORMATTING = "Formatting content...",
+  FORMATTING_DONE = "Content formatted",
+  MOVING = "Moving to final location...",
+  MOVING_DONE = "File moved successfully",
+  COMPLETED = "Processing completed",
+  VALIDATE = "Validating document...",
+  VALIDATE_DONE = "Document validated",
+  ERROR_CLEANUP = "Failed to clean up file",
+  ERROR_RENAME = "Failed to rename file",
+  ERROR_EXTRACT = "Failed to extract content",
+  ERROR_MOVING_ATTACHMENT = "Failed to move attachments",
+  ERROR_CLASSIFY = "Failed to analyze document type",
+  ERROR_TAGGING = "Failed to generate tags",
+  ERROR_FORMATTING = "Failed to format content",
+  ERROR_MOVING = "Failed to move file",
 }
 
 export interface LogEntry {
@@ -70,6 +70,7 @@ export interface FileRecord {
   formatted: boolean;
   newPath?: string;
   newName?: string;
+  originalName: string;
   logs: Record<Action, LogEntry>;
   status: FileStatus;
   file: TFile | null;
@@ -91,7 +92,7 @@ export class RecordManager {
     return RecordManager.instance;
   }
 
-  public startTracking(hash: string): string {
+  public startTracking(hash: string, originalName: string): string {
     if (!this.records.has(hash)) {
       this.records.set(hash, {
         id: hash,
@@ -100,6 +101,7 @@ export class RecordManager {
         formatted: false,
         logs: {} as Record<Action, LogEntry>,
         status: "queued",
+        originalName,
       });
     }
     return hash;
