@@ -206,9 +206,20 @@ export class RecordManager {
       this.debounceSave();
     }
   }
-  
 
-  public addAction(hash: string, step: Action, completed = false, skipped = false): void {
+  public completeAction(hash: string, step: Action): void {
+    this.addAction(hash, step, true);
+  }
+  public skipAction(hash: string, step: Action): void {
+    this.addAction(hash, step, false, true);
+  }
+
+  public addAction(
+    hash: string,
+    step: Action,
+    completed = false,
+    skipped = false
+  ): void {
     const record = this.records.get(hash);
     if (record) {
       // For completed actions, find and update the corresponding in-progress action

@@ -795,13 +795,13 @@ async function executeStep(
 ): Promise<ProcessingContext> {
   try {
     if (shouldSkipAction(context, action)) {
-      context.recordManager.addAction(context.hash, action, false, true);
+      context.recordManager.skipAction(context.hash, action);
       return context;
     }
 
     context.recordManager.addAction(context.hash, action);
     const result = await step(context);
-    context.recordManager.addAction(context.hash, action, true);
+    context.recordManager.completeAction(context.hash, action);
     return result;
   } catch (error) {
     context.recordManager.addAction(context.hash, errorAction);
