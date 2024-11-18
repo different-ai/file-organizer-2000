@@ -20,7 +20,30 @@ import { motion, AnimatePresence } from "framer-motion";
 import { usePlugin } from "../provider";
 import { Inbox } from "../../../inbox";
 
-// Simple log entry display component
+// Add a tooltip component for error details
+const ErrorTooltip: React.FC<{ error: LogEntry["error"] }> = ({
+  error,
+  children,
+}) => {
+  return (
+    <div className="group relative inline-block">
+      {children}
+      <div className="absolute left-0 bottom-full mb-2 hidden group-hover:block z-50">
+        <div className="bg-[--background-modifier-error] text-[--text-on-accent] p-3 rounded-lg shadow-lg whitespace-pre-wrap max-w-md">
+          <div className="font-medium mb-1">Error Details</div>
+          <div className="text-sm">{error.message}</div>
+          {error.stack && (
+            <div className="mt-2 text-xs opacity-80 font-mono">
+              {error.stack}
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// Enhanced log entry display component
 const LogEntryDisplay: React.FC<{ entry: LogEntry; step: Action }> = ({
   entry,
   step,
@@ -34,7 +57,7 @@ const LogEntryDisplay: React.FC<{ entry: LogEntry; step: Action }> = ({
           return "file renamed";
         case Action.EXTRACT:
           return "text extracted";
-        case Action.MOVING_ATTACHEMENT:
+        case Action.MOVING_ATTACHMENT:
           return "attachments moved";
         case Action.CLASSIFY:
           return "classified";
@@ -59,23 +82,39 @@ const LogEntryDisplay: React.FC<{ entry: LogEntry; step: Action }> = ({
     return step;
   };
 
+  const isErrorStep = step.toString().startsWith("ERROR_");
+  const hasError = entry.error || isErrorStep;
+
   return (
     <div className="flex items-center gap-2 py-1">
       <div
         className={`w-2 h-2 rounded-full ${
-          entry.completed ? "bg-[--text-success]" : "bg-[--text-accent]"
+          hasError
+            ? "bg-[--text-error]"
+            : entry.completed
+            ? "bg-[--text-success]"
+            : "bg-[--text-accent]"
         }`}
       />
       <span className="text-[--text-muted] w-20 text-xs">
         {moment(entry.timestamp).format("HH:mm:ss")}
       </span>
-      <span className="text-sm text-[--text-muted]">
+      <span
+        className={`text-sm ${
+          hasError ? "text-[--text-error]" : "text-[--text-muted]"
+        }`}
+      >
         {getDisplayText(step, entry.completed)}
       </span>
       {entry.error && (
-        <span className="text-sm text-[--text-error]">
-          {entry.error.message}
-        </span>
+        <ErrorTooltip error={entry.error}>
+          <div className="flex items-center gap-1 text-[--text-error] text-sm">
+            <AlertCircle className="w-4 h-4" />
+            <span className="truncate max-w-[200px]">
+              {entry.error.message}
+            </span>
+          </div>
+        </ErrorTooltip>
       )}
     </div>
   );
@@ -86,11 +125,34 @@ function FileCard({ record }: { record: FileRecord }) {
   const plugin = usePlugin();
   const [isExpanded, setIsExpanded] = React.useState(false);
 
-  // Get sorted actions based on timestamp
-  const sortedActions = React.useMemo(() => {
-    return Object.entries(record.logs)
-      .sort(([, a], [, b]) => moment(b.timestamp).diff(moment(a.timestamp)))
-      .map(([action]) => action as Action);
+  // Group and sort logs by type and timestamp
+  const groupedLogs = React.useMemo(() => {
+    const groups = {
+      processing: [] as [Action, LogEntry][],
+      errors: [] as [Action, LogEntry][],
+      completed: [] as [Action, LogEntry][],
+    };
+
+    Object.entries(record.logs).forEach(([action, log]) => {
+      const entry: [Action, LogEntry] = [action as Action, log];
+      if (action.toString().startsWith("ERROR_") || log.error) {
+        groups.errors.push(entry);
+      } else if (log.completed) {
+        groups.completed.push(entry);
+      } else {
+        groups.processing.push(entry);
+      }
+    });
+
+    // Sort each group by timestamp
+    const sortByTimestamp = (a: [Action, LogEntry], b: [Action, LogEntry]) =>
+      moment(b[1].timestamp).diff(moment(a[1].timestamp));
+
+    return {
+      processing: groups.processing.sort(sortByTimestamp),
+      errors: groups.errors.sort(sortByTimestamp),
+      completed: groups.completed.sort(sortByTimestamp),
+    };
   }, [record.logs]);
 
   return (
@@ -157,50 +219,46 @@ function FileCard({ record }: { record: FileRecord }) {
               initial={{ height: 0, opacity: 0 }}
               animate={{ height: "auto", opacity: 1 }}
               exit={{ height: 0, opacity: 0 }}
-              className="mt-4 space-y-2 border-t border-[--background-modifier-border] pt-4"
+              className="mt-4 space-y-4 border-t border-[--background-modifier-border] pt-4"
             >
-              {/* Path info */}
-              {record.newPath && (
-                <div className="text-sm">
-                  New path:{" "}
-                  <span className="text-[--text-accent]">{record.newPath}</span>
-                </div>
-              )}
-              {record.newName && (
-                <div className="text-sm">
-                  New name:{" "}
-                  <span className="text-[--text-accent]">{record.newName}</span>
+              {/* Error Summary (if any) */}
+              {groupedLogs.errors.length > 0 && (
+                <div className="bg-[--background-modifier-error-rgb]/10 p-3 rounded-lg">
+                  <h4 className="text-[--text-error] font-medium mb-2 flex items-center gap-2">
+                    <AlertCircle className="w-4 h-4" />
+                    Errors Encountered
+                  </h4>
+                  <div className="space-y-1">
+                    {groupedLogs.errors.map(([action, log]) => (
+                      <LogEntryDisplay key={action} entry={log} step={action} />
+                    ))}
+                  </div>
                 </div>
               )}
 
-              {/* Actions line */}
-              <div className="flex items-center gap-2 text-sm border-b border-[--background-modifier-border] pb-4">
-                <span className="text-[--text-muted]">Actions:</span>
-                <div className="flex flex-wrap gap-1">
-                  {sortedActions.map(action => (
-                    <span
-                      key={action}
-                      className="px-2 py-0.5 bg-[--background-secondary] rounded-full text-xs capitalize"
-                    >
-                      {action}
-                    </span>
+              {/* Processing Steps */}
+              {groupedLogs.processing.length > 0 && (
+                <div className="space-y-1">
+                  <h4 className="text-sm font-medium text-[--text-muted] mb-2">
+                    Processing
+                  </h4>
+                  {groupedLogs.processing.map(([action, log]) => (
+                    <LogEntryDisplay key={action} entry={log} step={action} />
                   ))}
                 </div>
-              </div>
+              )}
 
-              {/* Logs grouped by step */}
-              <div className="space-y-4">
-                {Object.entries(Action).map(([, action]) => {
-                  const log = record.logs[action];
-                  if (!log) return null;
-
-                  return (
-                    <div key={action} className="space-y-1">
-                      <LogEntryDisplay entry={log} step={action} />
-                    </div>
-                  );
-                })}
-              </div>
+              {/* Completed Steps */}
+              {groupedLogs.completed.length > 0 && (
+                <div className="space-y-1">
+                  <h4 className="text-sm font-medium text-[--text-muted] mb-2">
+                    Completed
+                  </h4>
+                  {groupedLogs.completed.map(([action, log]) => (
+                    <LogEntryDisplay key={action} entry={log} step={action} />
+                  ))}
+                </div>
+              )}
             </motion.div>
           )}
         </AnimatePresence>

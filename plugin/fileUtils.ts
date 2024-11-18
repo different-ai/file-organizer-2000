@@ -266,22 +266,22 @@ export async function safeModifyContent(
   try {
     const sanitizedContent = await sanitizeContent(content);
 
-    // Verify the content is valid before modifying
-    try {
-      if (sanitizedContent.includes("---\n")) {
-        // If content has frontmatter, validate it
-        const [_, frontmatter] = sanitizedContent.split(/^---\n/m);
-        if (frontmatter) {
-          parseYaml(frontmatter); // Will throw if invalid
+    // Check if content has frontmatter
+    if (sanitizedContent.trim().startsWith("---")) {
+      const parts = sanitizedContent.split(/^---\s*$/m);
+      
+      // Valid frontmatter should create 3 parts: ["", yaml content, remaining content]
+      if (parts.length >= 3) {
+        try {
+          // Only try to parse the YAML part (index 1)
+          parseYaml(parts[1]);
+        } catch (e) {
+          logger.debug("Frontmatter parsing failed, preserving original content");
+          // Instead of stripping frontmatter, preserve the original content
+          await app.vault.modify(file, sanitizedContent);
+          return;
         }
       }
-    } catch (e) {
-      logger.error("Invalid frontmatter detected:", e);
-      // If frontmatter is invalid, strip it and just use the content
-      const contentWithoutFrontmatter =
-        sanitizedContent.split(/^---\n[\s\S]*?\n---\n/m).pop() || "";
-      await app.vault.modify(file, contentWithoutFrontmatter);
-      return;
     }
 
     await app.vault.modify(file, sanitizedContent);

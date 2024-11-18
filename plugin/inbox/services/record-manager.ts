@@ -2,6 +2,13 @@ import { TFile } from "obsidian";
 import { IdService } from "./id-service";
 import moment from "moment";
 
+export type FileStatus =
+  | "queued"
+  | "processing"
+  | "completed"
+  | "error"
+  | "bypassed";
+
 export enum Action {
   CLEANUP = "cleaning up file",
   CLEANUP_DONE = "file cleaned up",
@@ -9,7 +16,7 @@ export enum Action {
   RENAME_DONE = "file renamed",
   EXTRACT = "extracting text",
   EXTRACT_DONE = "text extracted",
-  MOVING_ATTACHEMENT = "moving attachments",
+  MOVING_ATTACHMENT = "moving attachments",
   MOVING_ATTACHEMENT_DONE = "attachments moved",
   CLASSIFY = "classifying",
   CLASSIFY_DONE = "classified",
@@ -19,6 +26,14 @@ export enum Action {
   APPLYING_TAGS_DONE = "tags applied",
   RECOMMEND_NAME = "recommending name",
   RECOMMEND_NAME_DONE = "name recommended",
+  CONTAINER = "creating container",
+  APPEND = "appending",
+  APPEND_DONE = "appended",
+  ERROR_APPEND = "error appending",
+  ERROR_COMPLETE = "error completing",
+  ERROR_VALIDATE = "error validating",
+  ERROR_CONTAINER = "error creating container",
+  CONTAINER_DONE = "container created",
   APPLYING_NAME = "applying name",
   APPLYING_NAME_DONE = "name applied",
   FORMATTING = "formatting",
@@ -26,6 +41,16 @@ export enum Action {
   MOVING = "moving",
   MOVING_DONE = "moved",
   COMPLETED = "completed",
+  VALIDATE = "validating",
+  VALIDATE_DONE = "validated",
+  ERROR_CLEANUP = "error during cleanup",
+  ERROR_RENAME = "error during rename",
+  ERROR_EXTRACT = "error during extraction",
+  ERROR_MOVING_ATTACHMENT = "error moving attachment",
+  ERROR_CLASSIFY = "error during classification",
+  ERROR_TAGGING = "error during tagging",
+  ERROR_FORMATTING = "error during formatting",
+  ERROR_MOVING = "error during moving",
 }
 
 export interface LogEntry {
@@ -34,15 +59,9 @@ export interface LogEntry {
   error?: {
     message: string;
     stack?: string;
+    action: Action;
   };
 }
-
-export type FileStatus =
-  | "queued"
-  | "processing"
-  | "completed"
-  | "error"
-  | "bypassed";
 
 export interface FileRecord {
   id: string;
@@ -111,7 +130,7 @@ export class RecordManager {
           return;
         }
       }
-      
+
       // For new actions, add them as in-progress
       record.logs[step] = {
         timestamp: moment().format("YYYY-MM-DD HH:mm:ss"),
@@ -125,7 +144,7 @@ export class RecordManager {
       [Action.CLEANUP_DONE]: Action.CLEANUP,
       [Action.RENAME_DONE]: Action.RENAME,
       [Action.EXTRACT_DONE]: Action.EXTRACT,
-      [Action.MOVING_ATTACHEMENT_DONE]: Action.MOVING_ATTACHEMENT,
+      [Action.MOVING_ATTACHEMENT_DONE]: Action.MOVING_ATTACHMENT,
       [Action.CLASSIFY_DONE]: Action.CLASSIFY,
       [Action.TAGGING_DONE]: Action.TAGGING,
       [Action.APPLYING_TAGS_DONE]: Action.APPLYING_TAGS,
@@ -211,7 +230,10 @@ export class RecordManager {
     if (steps.length === 0) return null;
 
     return steps.reduce((latest, [action, log]) => {
-      if (!latest || moment(log.timestamp).isAfter(moment(record.logs[latest].timestamp))) {
+      if (
+        !latest ||
+        moment(log.timestamp).isAfter(moment(record.logs[latest].timestamp))
+      ) {
         return action as Action;
       }
       return latest;
@@ -231,5 +253,44 @@ export class RecordManager {
 
   public getRecordsByStep(step: Action): FileRecord[] {
     return this.getAllRecords().filter(record => !!record.logs[step]);
+  }
+
+  public addError(
+    hash: string,
+    error: { action: Action; message: string; stack?: string }
+  ): void {
+    const record = this.records.get(hash);
+    if (record) {
+      record.logs[error.action] = {
+        timestamp: moment().format("YYYY-MM-DD HH:mm:ss"),
+        completed: false,
+        error: {
+          message: error.message,
+          stack: error.stack,
+          action: error.action,
+        },
+      };
+    }
+  }
+
+  public getStepErrors(
+    hash: string
+  ): Array<{ action: Action; error: LogEntry["error"] }> {
+    const record = this.records.get(hash);
+    if (!record) return [];
+
+    return Object.entries(record.logs)
+      .filter(([_, log]) => log.error)
+      .map(([action, log]) => ({
+        action: action as Action,
+        error: log.error,
+      }));
+  }
+
+  public getLastError(
+    hash: string
+  ): { action: Action; error: LogEntry["error"] } | null {
+    const errors = this.getStepErrors(hash);
+    return errors.length > 0 ? errors[errors.length - 1] : null;
   }
 }
