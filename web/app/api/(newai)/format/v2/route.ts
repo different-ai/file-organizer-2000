@@ -7,6 +7,7 @@ import { generateObject } from "ai";
 
 const formatSchema = z.object({
   markdown: z.string().min(1),
+  frontmatter: z.string().optional(),
 });
 
 export async function POST(request: NextRequest) {
