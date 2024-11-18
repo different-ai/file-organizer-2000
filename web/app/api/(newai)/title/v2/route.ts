@@ -24,14 +24,23 @@ export async function POST(request: NextRequest) {
     const shouldRename = await generateObject({
       model,
       schema: z.object({
+        score: z.number().min(0).max(100),
         shouldRename: z.boolean(),
+        reason: z.string(),
       }),
       prompt: `Given the content and file name: "${fileName}", should we rename the file? Content: "${content}", based on ${customInstructions}`,
     });
+    console.log("should rename", shouldRename.object, customInstructions);
     if (!shouldRename.object.shouldRename) {
       // remove extension from fileName if it exists
       return NextResponse.json({
-        titles: [{ score: 100, title: fileName, reason: "No need to rename" }],
+        titles: [
+          {
+            score: shouldRename.object.score,
+            title: fileName,
+            reason: shouldRename.object.reason,
+          },
+        ],
       });
     }
 
