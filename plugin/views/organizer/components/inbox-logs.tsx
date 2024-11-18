@@ -89,6 +89,8 @@ const LogEntryDisplay: React.FC<{ entry: LogEntry; step: Action }> = ({
         className={`w-2 h-2 rounded-full ${
           hasError
             ? "bg-[--text-error]"
+            : entry.skipped
+            ? "bg-[--text-muted]"
             : entry.completed
             ? "bg-[--text-success]"
             : "bg-[--text-accent] animate-pulse"
@@ -103,10 +105,15 @@ const LogEntryDisplay: React.FC<{ entry: LogEntry; step: Action }> = ({
       {/* Step name */}
       <span
         className={`text-sm ${
-          hasError ? "text-[--text-error]" : "text-[--text-muted]"
+          hasError 
+            ? "text-[--text-error]" 
+            : entry.skipped
+            ? "text-[--text-muted] line-through"
+            : "text-[--text-muted]"
         }`}
       >
         {getDisplayText(step)}
+        {entry.skipped && " (skipped)"}
       </span>
 
       {/* Error display */}

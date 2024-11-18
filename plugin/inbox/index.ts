@@ -124,7 +124,7 @@ export class Inbox {
   private constructor(plugin: FileOrganizer) {
     this.plugin = plugin;
     console.log("initializing inbox", plugin.settings, plugin.app);
-    this.recordManager = RecordManager.getInstance(plugin.app, plugin.settings);
+    this.recordManager = RecordManager.getInstance(plugin.app);
     this.idService = IdService.getInstance();
     this.initializeQueue();
   }
@@ -500,21 +500,18 @@ async function recommendClassificationStep(
     );
   }
 
-  if (context.plugin.settings.enableDocumentClassification) {
-    const templateNames = await context.plugin.getTemplateNames();
-    const result = await context.plugin.classifyContentV2(
-      `${context.content}, ${context.containerFile.name}`,
-      templateNames
-    );
-    logger.info("Classification result", result);
-    if (!result) return context;
-    await context.plugin.appendTag(context.containerFile, result);
-    context.classification = {
-      documentType: result,
-      confidence: 100,
-      reasoning: "N/A",
-    };
-  }
+  const templateNames = await context.plugin.getTemplateNames();
+  const result = await context.plugin.classifyContentV2(
+    `${context.content}, ${context.containerFile.name}`,
+    templateNames
+  );
+  logger.info("Classification result", result);
+  if (!result) return context;
+  context.classification = {
+    documentType: result,
+    confidence: 100,
+    reasoning: "N/A",
+  };
   return context;
 }
 
@@ -774,6 +771,21 @@ export function enqueueFiles(files: TFile[]): void {
 export function getInboxStatus(): QueueStatus {
   return Inbox.getInstance().getQueueStats();
 }
+// skip actions when settings below are false
+function shouldSkipAction(context: ProcessingContext, action: Action): boolean {
+  switch (action) {
+    case Action.CLASSIFY:
+      return !context.plugin.settings.enableDocumentClassification;
+    case Action.FORMATTING:
+      return !context.plugin.settings.enableDocumentClassification;
+    case Action.RENAME:
+      return !context.plugin.settings.enableFileRenaming;
+    case Action.TAGGING:
+      return !context.plugin.settings.useSimilarTags;
+    default:
+      return false;
+  }
+}
 
 async function executeStep(
   context: ProcessingContext,
@@ -782,18 +794,22 @@ async function executeStep(
   errorAction: Action
 ): Promise<ProcessingContext> {
   try {
+    if (shouldSkipAction(context, action)) {
+      context.recordManager.addAction(context.hash, action, false, true);
+      return context;
+    }
+
     context.recordManager.addAction(context.hash, action);
     const result = await step(context);
     context.recordManager.addAction(context.hash, action, true);
     return result;
   } catch (error) {
-    // Log the error with the specific action that failed
     context.recordManager.addAction(context.hash, errorAction);
     context.recordManager.addError(context.hash, {
       action: errorAction,
       message: error.message,
       stack: error.stack,
     });
-    throw error; // Re-throw to stop pipeline
+    throw error;
   }
 }

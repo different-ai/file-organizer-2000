@@ -58,6 +58,7 @@ export enum Action {
 export interface LogEntry {
   timestamp: string;
   completed?: boolean;
+  skipped?: boolean;
   error?: {
     message: string;
     stack?: string;
@@ -207,7 +208,7 @@ export class RecordManager {
   }
   
 
-  public addAction(hash: string, step: Action, completed = false): void {
+  public addAction(hash: string, step: Action, completed = false, skipped = false): void {
     const record = this.records.get(hash);
     if (record) {
       // For completed actions, find and update the corresponding in-progress action
@@ -220,10 +221,11 @@ export class RecordManager {
         }
       }
 
-      // For new actions, add them as in-progress
+      // For new actions, add them as in-progress or skipped
       record.logs[step] = {
         timestamp: moment().format("YYYY-MM-DD HH:mm:ss"),
         completed,
+        skipped,
       };
       this.debounceSave();
     }
