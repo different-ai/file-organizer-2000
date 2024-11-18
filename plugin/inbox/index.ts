@@ -123,7 +123,8 @@ export class Inbox {
 
   private constructor(plugin: FileOrganizer) {
     this.plugin = plugin;
-    this.recordManager = RecordManager.getInstance();
+    console.log("initializing inbox", plugin.settings, plugin.app);
+    this.recordManager = RecordManager.getInstance(plugin.app, plugin.settings);
     this.idService = IdService.getInstance();
     this.initializeQueue();
   }

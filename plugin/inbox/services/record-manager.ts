@@ -1,6 +1,8 @@
-import { TFile } from "obsidian";
+import { normalizePath, TFile } from "obsidian";
 import { IdService } from "./id-service";
 import moment from "moment";
+import { App, TAbstractFile } from "obsidian";
+import { FileOrganizerSettings } from "../../settings";
 
 export type FileStatus =
   | "queued"
@@ -80,16 +82,104 @@ export class RecordManager {
   private static instance: RecordManager;
   private records: Map<string, FileRecord> = new Map();
   private idService: IdService;
+  private app: App;
+  private debounceTimeout: NodeJS.Timeout | null = null;
+  // temp hack while using hardcoded path
+  private settings: { recordFilePath: string };
 
-  private constructor() {
+  private constructor(app: App) {
+    this.app = app;
     this.idService = IdService.getInstance();
+    this.settings = {
+      recordFilePath: normalizePath("_FileOrganizer2000/.records"),
+    };
+    this.loadRecords();
   }
 
-  public static getInstance(): RecordManager {
+  public static getInstance(app?: App): RecordManager {
     if (!RecordManager.instance) {
-      RecordManager.instance = new RecordManager();
+      if (!app) {
+        throw new Error(
+          "RecordManager needs app and settings for initialization"
+        );
+      }
+      RecordManager.instance = new RecordManager(app);
     }
     return RecordManager.instance;
+  }
+
+  private async loadRecords(): Promise<void> {
+    try {
+      const recordFileExists = await this.app.vault.adapter.exists(
+        this.settings.recordFilePath
+      );
+      if (recordFileExists) {
+        const content = await this.app.vault.adapter.read(
+          this.settings.recordFilePath
+        );
+        const data = JSON.parse(content);
+
+        // Convert the plain objects back to Map entries
+        this.records = new Map(
+          Object.entries(data).map(([hash, record]) => {
+            // Restore TFile reference as null since it can't be serialized
+            return [hash, { ...record, file: null }];
+          })
+        );
+      }
+    } catch (error) {
+      console.warn("Failed to load records:", error);
+      // Initialize with empty Map if loading fails
+      this.records = new Map();
+    }
+  }
+
+  private debounceSave(): void {
+    if (this.debounceTimeout) {
+      clearTimeout(this.debounceTimeout);
+    }
+
+    this.debounceTimeout = setTimeout(() => this.saveRecords(), 1000);
+  }
+
+  private async saveRecords(): Promise<void> {
+    try {
+      // Convert Map to a plain object for serialization
+      const recordsObj = Object.fromEntries(
+        Array.from(this.records.entries()).map(([hash, record]) => {
+          // Create a copy without the TFile reference
+          const { file, ...recordWithoutFile } = record;
+          return [hash, recordWithoutFile];
+        })
+      );
+
+      const content = JSON.stringify(recordsObj, null, 2);
+
+      // Ensure parent directory exists
+      const dirPath = this.settings.recordFilePath
+        .split("/")
+        .slice(0, -1)
+        .join("/");
+      if (dirPath) {
+        await this.app.vault.adapter.mkdir(dirPath);
+      }
+
+      // Write or create the file
+      const recordFileExists = await this.app.vault.adapter.exists(
+        this.settings.recordFilePath
+      );
+
+      if (recordFileExists) {
+        await this.app.vault.adapter.write(
+          this.settings.recordFilePath,
+          content
+        );
+      } else {
+        await this.app.vault.create(this.settings.recordFilePath, content);
+      }
+    } catch (error) {
+      console.error("Failed to save records:", error);
+    }
   }
 
   public startTracking(hash: string, originalName: string): string {
@@ -104,22 +194,18 @@ export class RecordManager {
         originalName,
       });
     }
+    this.debounceSave();
     return hash;
-  }
-
-  public setFile(hash: string, file: TFile): void {
-    const record = this.records.get(hash);
-    if (record) {
-      record.file = file;
-    }
   }
 
   public setStatus(hash: string, status: FileStatus): void {
     const record = this.records.get(hash);
     if (record) {
       record.status = status;
+      this.debounceSave();
     }
   }
+  
 
   public addAction(hash: string, step: Action, completed = false): void {
     const record = this.records.get(hash);
@@ -129,6 +215,7 @@ export class RecordManager {
         const baseAction = this.getBaseAction(step);
         if (baseAction && record.logs[baseAction]) {
           record.logs[baseAction].completed = true;
+          this.debounceSave();
           return;
         }
       }
@@ -138,38 +225,22 @@ export class RecordManager {
         timestamp: moment().format("YYYY-MM-DD HH:mm:ss"),
         completed,
       };
+      this.debounceSave();
     }
   }
 
-  private getBaseAction(completedStep: Action): Action | undefined {
-    const reverseMap: Partial<Record<Action, Action>> = {
-      [Action.CLEANUP_DONE]: Action.CLEANUP,
-      [Action.RENAME_DONE]: Action.RENAME,
-      [Action.EXTRACT_DONE]: Action.EXTRACT,
-      [Action.MOVING_ATTACHEMENT_DONE]: Action.MOVING_ATTACHMENT,
-      [Action.CLASSIFY_DONE]: Action.CLASSIFY,
-      [Action.TAGGING_DONE]: Action.TAGGING,
-      [Action.APPLYING_TAGS_DONE]: Action.APPLYING_TAGS,
-      [Action.RECOMMEND_NAME_DONE]: Action.RECOMMEND_NAME,
-      [Action.APPLYING_NAME_DONE]: Action.APPLYING_NAME,
-      [Action.FORMATTING_DONE]: Action.FORMATTING,
-      [Action.MOVING_DONE]: Action.MOVING,
-    };
-    return reverseMap[completedStep];
-  }
-
-  // Record update methods
   public addTag(hash: string, tag: string): void {
     const record = this.records.get(hash);
     if (record && !record.tags.includes(tag)) {
       record.tags.push(tag);
+      this.debounceSave();
     }
   }
 
-  public setTags(hash: string, tags: string[]): void {
+  public setFile(hash: string, file: TFile): void {
     const record = this.records.get(hash);
     if (record) {
-      record.tags = tags;
+      record.file = file;
     }
   }
 
@@ -177,6 +248,7 @@ export class RecordManager {
     const record = this.records.get(hash);
     if (record) {
       record.classification = classification;
+      this.debounceSave();
     }
   }
 
@@ -184,6 +256,7 @@ export class RecordManager {
     const record = this.records.get(hash);
     if (record) {
       record.formatted = formatted;
+      this.debounceSave();
     }
   }
 
@@ -191,6 +264,7 @@ export class RecordManager {
     const record = this.records.get(hash);
     if (record) {
       record.newPath = newPath;
+      this.debounceSave();
     }
   }
 
@@ -198,6 +272,15 @@ export class RecordManager {
     const record = this.records.get(hash);
     if (record) {
       record.newName = newName;
+      this.debounceSave();
+    }
+  }
+
+  public setTags(hash: string, tags: string[]): void {
+    const record = this.records.get(hash);
+    if (record) {
+      record.tags = tags;
+      this.debounceSave();
     }
   }
 
@@ -272,6 +355,7 @@ export class RecordManager {
           action: error.action,
         },
       };
+      this.debounceSave();
     }
   }
 
@@ -294,5 +378,25 @@ export class RecordManager {
   ): { action: Action; error: LogEntry["error"] } | null {
     const errors = this.getStepErrors(hash);
     return errors.length > 0 ? errors[errors.length - 1] : null;
+  }
+
+  private getBaseAction(completedStep: Action): Action | undefined {
+    const reverseMap: Partial<Record<Action, Action>> = {
+      [Action.CLEANUP_DONE]: Action.CLEANUP,
+      [Action.RENAME_DONE]: Action.RENAME,
+      [Action.EXTRACT_DONE]: Action.EXTRACT,
+      [Action.MOVING_ATTACHEMENT_DONE]: Action.MOVING_ATTACHMENT,
+      [Action.CLASSIFY_DONE]: Action.CLASSIFY,
+      [Action.TAGGING_DONE]: Action.TAGGING,
+      [Action.APPLYING_TAGS_DONE]: Action.APPLYING_TAGS,
+      [Action.RECOMMEND_NAME_DONE]: Action.RECOMMEND_NAME,
+      [Action.APPLYING_NAME_DONE]: Action.APPLYING_NAME,
+      [Action.FORMATTING_DONE]: Action.FORMATTING,
+      [Action.MOVING_DONE]: Action.MOVING,
+      [Action.VALIDATE_DONE]: Action.VALIDATE,
+      [Action.CONTAINER_DONE]: Action.CONTAINER,
+      [Action.APPEND_DONE]: Action.APPEND,
+    };
+    return reverseMap[completedStep];
   }
 }
