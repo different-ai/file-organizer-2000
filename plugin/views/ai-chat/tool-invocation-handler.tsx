@@ -9,7 +9,7 @@ import { moment } from "obsidian";
 import { logger } from "../../services/logger";
 import { getDailyInformation } from "./screenpipe-utils";
 import { usePlugin } from "../organizer/provider";
-import { SettingsUpdateHandler } from './settings-update-handler';
+import { SettingsUpdateHandler } from "./settings-update-handler";
 
 interface ToolInvocationHandlerProps {
   toolInvocation: any; // Replace 'any' with a more specific type if available
@@ -540,7 +540,7 @@ function ToolInvocationHandler({
 
   return (
     <motion.div
-      className="bg-white rounded-lg p-3 my-2 shadow-md"
+      className="card"
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.3 }}
