@@ -74,12 +74,12 @@ export const Mentions = forwardRef<
       {props.items.length ? (
         <ul className="py-1 list-none">
           {props.items.map((item, index) => (
-            <li key={item.path || item.title} className="list-none">
+            <li key={item.path || item.title} className="list-none bg-white">
               <button
                 className={`w-full text-left px-4 py-2 flex items-center space-x-2 ${
                   index === selectedIndex
                     ? "bg-[--background-modifier-active-hover] text-[--text-accent]"
-                    : "text-[--text-normal] hover:bg-[--background-modifier-hover]"
+                    : "text-[--text-normal] "
                 }`}
                 onClick={() => selectItem(index)}
               >

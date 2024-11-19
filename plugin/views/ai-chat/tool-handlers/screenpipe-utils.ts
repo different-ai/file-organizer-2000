@@ -1,6 +1,6 @@
-import { logger } from "../../services/logger";
-import { logMessage } from "../../someUtils";
-import FileOrganizer from "../..";
+import { logger } from "../../../services/logger";
+import { logMessage } from "../../../someUtils";
+import FileOrganizer from "../../..";
 
 interface ScreenpipeQueryParams {
   startTime: string;

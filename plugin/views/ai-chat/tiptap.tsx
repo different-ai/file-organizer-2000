@@ -3,6 +3,7 @@ import StarterKit from "@tiptap/starter-kit";
 import React, { useEffect, useCallback, useState } from "react";
 import { Mention } from '@tiptap/extension-mention';
 import suggestion from './suggestion';
+import { useContextItems } from './use-context-items';
 
 interface TiptapProps {
   value: string;
@@ -11,9 +12,6 @@ interface TiptapProps {
   files: { title: string; content: string }[];
   tags: string[];
   folders: string[];
-  onFileSelect: (selectedFiles: { title: string; content: string; reference: string; path: string }[]) => void;
-  onTagSelect: (selectedTags: string[]) => void;
-  onFolderSelect: (selectedFolders: string[]) => void;
   currentFileName: string;
   currentFileContent: string;
 }
@@ -34,15 +32,10 @@ const Tiptap: React.FC<TiptapProps> = ({
   files, 
   tags,
   folders,
-  onFileSelect, 
-  onTagSelect,
-  onFolderSelect,
   currentFileName, 
   currentFileContent 
 }) => {
-  const [selectedFiles, setSelectedFiles] = useState<{ title: string; content: string; reference: string; path: string }[]>([]);
-  const [selectedTags, setSelectedTags] = useState<string[]>([]);
-  const [selectedFolders, setSelectedFolders] = useState<string[]>([]);
+  const { addItem } = useContextItems();
 
   const handleUpdate = useCallback(
     ({ editor }: { editor: any }) => {
@@ -79,29 +72,29 @@ const Tiptap: React.FC<TiptapProps> = ({
               .run()
 
             if (props.type === 'file') {
-              const newSelectedFile = {
+              addItem({
+                id: props.path || props.title,
+                type: 'file',
                 title: props.title,
                 content: props.content,
-                reference: `@${props.title}`,
-                path: props.path || props.title
-              };
-              const newSelectedFiles = selectedFiles.some(file => file.title === props.title) 
-                ? selectedFiles 
-                : [...selectedFiles, newSelectedFile];
-              setSelectedFiles(newSelectedFiles);
-              onFileSelect(newSelectedFiles);
+                reference: `@${props.title}`
+              });
             } else if (props.type === 'tag') {
-              const newSelectedTags = selectedTags.includes(props.title)
-                ? selectedTags
-                : [...selectedTags, props.title];
-              setSelectedTags(newSelectedTags);
-              onTagSelect(newSelectedTags);
+              addItem({
+                id: props.title,
+                type: 'tag',
+                title: props.title,
+                content: `Tag: ${props.title}`,
+                reference: `#${props.title}`
+              });
             } else if (props.type === 'folder') {
-              const newSelectedFolders = selectedFolders.includes(props.path || props.title)
-                ? selectedFolders
-                : [...selectedFolders, props.path || props.title];
-              setSelectedFolders(newSelectedFolders);
-              onFolderSelect(newSelectedFolders);
+              addItem({
+                id: props.path || props.title,
+                type: 'folder',
+                title: props.title,
+                content: `Folder: ${props.path || props.title}`,
+                reference: `/${props.title}`
+              });
             }
           },
         },
