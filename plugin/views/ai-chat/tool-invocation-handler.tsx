@@ -9,6 +9,7 @@ import { moment } from "obsidian";
 import { logger } from "../../services/logger";
 import { getDailyInformation } from "./screenpipe-utils";
 import { usePlugin } from "../organizer/provider";
+import { SettingsUpdateHandler } from './settings-update-handler';
 
 interface ToolInvocationHandlerProps {
   toolInvocation: any; // Replace 'any' with a more specific type if available
@@ -439,6 +440,8 @@ function ToolInvocationHandler({
         return "Recent File Activity";
       case "getScreenpipeDailySummary":
         return "Querying Screenpipe Data";
+      case "generateSettings":
+        return "Settings Update";
       default:
         return "Tool Invocation";
     }
@@ -519,6 +522,14 @@ function ToolInvocationHandler({
             toolInvocation={toolInvocation}
             handleAddResult={handleAddResult}
             onScreenpipeResults={onScreenpipeResults}
+          />
+        );
+
+      case "generateSettings":
+        return (
+          <SettingsUpdateHandler
+            toolInvocation={toolInvocation}
+            handleAddResult={handleAddResult}
           />
         );
 

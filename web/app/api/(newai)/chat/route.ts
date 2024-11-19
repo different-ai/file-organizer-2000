@@ -11,6 +11,12 @@ import { getChatSystemPrompt } from "@/lib/prompts/chat-prompt";
 export const maxDuration = 60;
 const MODEL_NAME = process.env.MODEL_NAME;
 
+const settingsSchema = z.object({
+  renameInstructions: z.string().optional(),
+  customFolderInstructions: z.string().optional(),
+  imageInstructions: z.string().optional(),
+});
+
 export async function POST(req: NextRequest) {
   console.log("Chat using model:", MODEL_NAME);
   const model = getModel(MODEL_NAME);
@@ -77,6 +83,11 @@ export async function POST(req: NextRequest) {
               .describe("The number of last modified files to retrieve"),
           }),
         },
+        generateSettings: {
+          description:
+            "Generate vault organization settings based on user preferences",
+          parameters: settingsSchema,
+        },
         ...(enableScreenpipe && {
           getScreenpipeDailySummary: {
             description:
@@ -92,18 +103,6 @@ export async function POST(req: NextRequest) {
     });
 
     const response = result.toDataStreamResponse();
-
-    // Add CORS headers
-    response.headers.set("Access-Control-Allow-Origin", "*");
-    response.headers.set(
-      "Access-Control-Allow-Methods",
-      "GET, POST, PUT, DELETE, OPTIONS"
-    );
-    response.headers.set(
-      "Access-Control-Allow-Headers",
-      "Content-Type, Authorization"
-    );
-
     return response;
   } catch (error) {
     console.error("Error in POST request:", error);
