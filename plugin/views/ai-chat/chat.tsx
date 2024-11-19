@@ -25,6 +25,8 @@ import { ModelSelector } from "./model-selector";
 import { ModelType } from "./types";
 import { AudioRecorder } from "./audio-recorder";
 import { logger } from "../../services/logger";
+import { z } from "zod";
+import { safeCreate } from "../../fileUtils";
 
 interface ChatComponentProps {
   plugin: FileOrganizer;
@@ -61,8 +63,6 @@ export const ChatComponent: React.FC<ChatComponentProps> = ({
   inputRef,
   history,
   setHistory,
-  onDateRangeResults,
-  onLastModifiedResults,
 }) => {
   const plugin = usePlugin();
   const app = plugin.app;
@@ -160,7 +160,7 @@ export const ChatComponent: React.FC<ChatComponentProps> = ({
       // Default fetch behavior for remote API
       return fetch(url, options);
     },
-    onToolCall({ toolCall  }) {
+    onToolCall({ toolCall }) {
       logMessage("toolCall", toolCall);
     },
     keepLastMessageOnError: true,
@@ -574,6 +574,11 @@ export const ChatComponent: React.FC<ChatComponentProps> = ({
     } as React.ChangeEvent<HTMLInputElement>);
   };
 
+  const handleScreenpipeResults = (results: any) => {
+    console.log("Screenpipe results:", results);
+    setScreenpipeContext(results);
+  };
+
   return (
     <div className="flex flex-col h-full max-h-screen bg-[--background-primary]">
       <div className="flex-grow overflow-y-auto p-4">
@@ -591,6 +596,7 @@ export const ChatComponent: React.FC<ChatComponentProps> = ({
                       results={toolInvocation.state}
                       onYoutubeTranscript={handleYouTubeTranscript}
                       onSearchResults={handleSearchResults}
+                      onScreenpipeResults={handleScreenpipeResults}
                       onDateRangeResults={handleDateRangeResults}
                       onLastModifiedResults={handleLastModifiedResults}
                       app={app}

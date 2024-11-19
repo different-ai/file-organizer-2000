@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import {
   getYouTubeTranscript,
@@ -7,6 +7,8 @@ import {
 import { App } from "obsidian";
 import { moment } from "obsidian";
 import { logger } from "../../services/logger";
+import { getDailyInformation } from "./screenpipe-utils";
+import { usePlugin } from "../organizer/provider";
 
 interface ToolInvocationHandlerProps {
   toolInvocation: any; // Replace 'any' with a more specific type if available
@@ -27,6 +29,7 @@ interface ToolInvocationHandlerProps {
   ) => void;
   onDateRangeResults: (results: any[]) => void;
   onLastModifiedResults: (results: any[]) => void; // Add this
+  onScreenpipeResults: (results: any) => void;
   app: App;
 }
 
@@ -232,7 +235,10 @@ function DateRangeHandler({
         hasFetchedRef.current = true;
         const { startDate, endDate } = toolInvocation.args;
         try {
-          const searchResults = await filterNotesByDateRange(startDate, endDate);
+          const searchResults = await filterNotesByDateRange(
+            startDate,
+            endDate
+          );
           setResults(searchResults);
           onDateRangeResults(searchResults);
           handleAddResult(JSON.stringify(searchResults));
@@ -343,6 +349,64 @@ function LastModifiedHandler({
   );
 }
 
+// New Screenpipe Handler Component
+function ScreenpipeHandler({
+  toolInvocation,
+  handleAddResult,
+  onScreenpipeResults,
+}: {
+  toolInvocation: any;
+  handleAddResult: (result: string) => void;
+  onScreenpipeResults: (results: any) => void;
+}) {
+  const plugin = usePlugin();
+  const [results, setResults] = useState<any>(null);
+  const hasFetchedRef = React.useRef(false);
+
+  React.useEffect(() => {
+    const handleScreenpipeQuery = async () => {
+      if (!hasFetchedRef.current && !("result" in toolInvocation)) {
+        hasFetchedRef.current = true;
+        try {
+          const today = new Date().toISOString().split("T")[0];
+          const dailyInfo = await getDailyInformation(today, plugin);
+          setResults(dailyInfo);
+          onScreenpipeResults(dailyInfo);
+          handleAddResult(JSON.stringify(dailyInfo));
+        } catch (error) {
+          logger.error("Error querying Screenpipe:", error);
+          handleAddResult(JSON.stringify({ error: error.message }));
+        }
+      }
+    };
+
+    handleScreenpipeQuery();
+  }, [toolInvocation, handleAddResult, onScreenpipeResults]);
+
+  if (!("result" in toolInvocation)) {
+    return (
+      <div className="text-sm text-[--text-muted]">
+        Fetching Screenpipe data...
+      </div>
+    );
+  }
+
+  if (results && !results.error) {
+    return (
+      <div className="text-sm text-[--text-muted]">
+        Screenpipe data successfully retrieved and added in your context, you
+        can now ask questions about it.
+      </div>
+    );
+  }
+
+  return (
+    <div className="text-sm text-[--text-error]">
+      Failed to fetch Screenpipe data
+    </div>
+  );
+}
+
 // Main ToolInvocationHandler component
 function ToolInvocationHandler({
   toolInvocation,
@@ -352,6 +416,7 @@ function ToolInvocationHandler({
   onSearchResults,
   onDateRangeResults,
   onLastModifiedResults,
+  onScreenpipeResults,
   app,
 }: ToolInvocationHandlerProps) {
   const toolCallId = toolInvocation.toolCallId;
@@ -372,14 +437,8 @@ function ToolInvocationHandler({
         return "Note Modification";
       case "getLastModifiedFiles":
         return "Recent File Activity";
-      case "queryScreenpipe":
+      case "getScreenpipeDailySummary":
         return "Querying Screenpipe Data";
-      case "analyzeProductivity":
-        return "Analyzing Productivity";
-      case "summarizeMeeting":
-        return "Summarizing Meeting";
-      case "trackProjectTime":
-        return "Tracking Project Time";
       default:
         return "Tool Invocation";
     }
@@ -454,40 +513,13 @@ function ToolInvocationHandler({
           />
         );
 
-      case "queryScreenpipe":
+      case "getScreenpipeDailySummary":
         return (
-          <div className="text-sm text-[--text-muted]">
-            {"result" in toolInvocation
-              ? "Screenpipe data successfully queried and added to context"
-              : "Querying Screenpipe data..."}
-          </div>
-        );
-
-      case "analyzeProductivity":
-        return (
-          <div className="text-sm text-[--text-muted]">
-            {"result" in toolInvocation
-              ? `Productivity analysis completed for the last ${toolInvocation.args.days} days`
-              : `Analyzing productivity for the last ${toolInvocation.args.days} days...`}
-          </div>
-        );
-
-      case "summarizeMeeting":
-        return (
-          <div className="text-sm text-[--text-muted]">
-            {"result" in toolInvocation
-              ? "Meeting summary generated"
-              : "Summarizing meeting audio..."}
-          </div>
-        );
-
-      case "trackProjectTime":
-        return (
-          <div className="text-sm text-[--text-muted]">
-            {"result" in toolInvocation
-              ? `Project time tracked for "${toolInvocation.args.projectKeyword}" over the last ${toolInvocation.args.days} days`
-              : `Tracking time for project "${toolInvocation.args.projectKeyword}" over the last ${toolInvocation.args.days} days...`}
-          </div>
+          <ScreenpipeHandler
+            toolInvocation={toolInvocation}
+            handleAddResult={handleAddResult}
+            onScreenpipeResults={onScreenpipeResults}
+          />
         );
 
       default:

@@ -1,7 +1,6 @@
-import { groupBy } from "lodash";
 import { logger } from "../../services/logger";
 import { logMessage } from "../../someUtils";
-g
+import FileOrganizer from "../..";
 
 interface ScreenpipeQueryParams {
   startTime: string;
@@ -23,27 +22,29 @@ async function queryScreenpipe(params: ScreenpipeQueryParams) {
       end_time: params.endTime,
     });
 
-    if (params.query) queryParams.append('q', params.query);
-    if (params.appName) queryParams.append('app_name', params.appName);
+    if (params.query) queryParams.append("q", params.query);
+    if (params.appName) queryParams.append("app_name", params.appName);
 
     const url = `http://localhost:3030/search?${queryParams}`;
     logger.info("Querying Screenpipe with URL:", url);
 
     const response = await fetch(url, {
-      method: 'GET',
+      method: "GET",
       headers: {
-        'Accept': 'application/json',
+        Accept: "application/json",
       },
     });
 
-    logMessage('Response status:', response.status);
-    logMessage('Response headers:', response.headers);
+    logMessage("Response status:", response.status);
+    logMessage("Response headers:", response.headers);
 
     const responseText = await response.text();
-    logMessage('Response body:', responseText);
+    logMessage("Response body:", responseText);
 
     if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}, message: ${responseText}`);
+      throw new Error(
+        `HTTP error! status: ${response.status}, message: ${responseText}`
+      );
     }
 
     const data = JSON.parse(responseText);
@@ -54,83 +55,109 @@ async function queryScreenpipe(params: ScreenpipeQueryParams) {
   }
 }
 
-export async function summarizeMeeting(duration: number = 60) {
-  const endTime = new Date();
-  const startTime = new Date(endTime.getTime() - duration * 60000);
-
-  const result = await queryScreenpipe({
-    startTime: startTime.toISOString(),
-    endTime: endTime.toISOString(),
-    contentType: "audio",
-    limit: 1000,
-  });
-
-  if (!result || !result.data || result.data.length === 0) {
-    return { error: "No meeting data found for the specified duration." };
-  }
-
-  const transcripts = result.data.map(item => item.content.transcription).join(' ');
-  
-  // Perform more advanced analysis here, such as:
-  // 1. Extracting key topics using NLP
-  // 2. Identifying action items
-  // 3. Summarizing main discussion points
-  // 4. Detecting sentiment
-
-  return {
-    transcript: transcripts,
-    duration: duration,
-    wordCount: transcripts.split(/\s+/).length,
-    // Add more advanced analysis results here
-  };
+function removeNonPrintable(text: string) {
+  return text.replace(/[^\x20-\x7E]/g, '');
 }
 
-export async function getDailyInformation(date: string = new Date().toISOString().split('T')[0]) {
-  const startTime = new Date(date);
-  startTime.setHours(0, 0, 0, 0);
-  const endTime = new Date(startTime);
-  endTime.setHours(23, 59, 59, 999);
+function normalizeWhitespace(text: string) {
+  return text.replace(/\s+/g, ' ').trim();
+}
+
+function removeTimestamps(text: string) {
+  return text.replace(/\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z/g, '');
+}
+
+function removeURLsAndPaths(text: string) {
+  return text.replace(/(https?:\/\/[^\s]+)/g, '');
+}
+
+function removeTechnicalTerms(text: string) {
+  return text.replace(/[A-Z][A-Z0-9]+/g, '');
+}
+
+function removeUIWords(text: string) {
+  const uiWords = [
+    'click', 'tap', 'open', 'close', 'settings', 'create', 'cancel',
+    // ... rest of UI words ...
+  ];
+  return uiWords.reduce((acc, word) => acc.replace(new RegExp(`\\b${word}\\b`, 'gi'), ''), text);
+}
+
+function removeShortWords(text: string) {
+  return text.split(/\s+/).filter(word => word.length > 2).join(' ');
+}
+
+function removeRepeatedWords(text: string) {
+  return text.split(/\s+/).filter((word, index, arr) => arr.indexOf(word) === index).join(' ');
+}
+
+function extractRelevantInfo(text: string, app: string) {
+  // Implement relevant information extraction logic based on the app
+  return text;
+}
+
+
+function preprocessText(text: string, app: string): string {
+  // Basic cleaning
+  text = removeNonPrintable(text);
+  text = normalizeWhitespace(text);
+  text = removeTimestamps(text);
+  text = removeURLsAndPaths(text);
+  text = removeTechnicalTerms(text);
+  text = removeUIWords(text);
+  text = removeShortWords(text);
+  text = removeRepeatedWords(text);
+  text = extractRelevantInfo(text, app);
+  text = normalizeWhitespace(text);
+
+  return text.length < 10 ? '' : text;
+}
+
+export async function getDailyInformation(
+  date: string = new Date().toISOString().split("T")[0],
+  plugin: FileOrganizer
+) {
+  const endTime = new Date();
+  const startTime = new Date(endTime);
+  startTime.setHours(endTime.getHours() - plugin.settings.screenpipeTimeRange);
 
   const [ocrResult, audioResult] = await Promise.all([
     queryScreenpipe({
       startTime: startTime.toISOString(),
       endTime: endTime.toISOString(),
       contentType: "ocr",
-      limit: 1000,
+      limit: plugin.settings.queryScreenpipeLimit,
     }),
     queryScreenpipe({
       startTime: startTime.toISOString(),
       endTime: endTime.toISOString(),
       contentType: "audio",
-      limit: 1000,
+      limit: plugin.settings.queryScreenpipeLimit,
     }),
   ]);
 
-  if (!ocrResult || !audioResult) {
+  if (!ocrResult?.data || !audioResult?.data) {
     return { error: "Failed to fetch daily information." };
   }
 
-  const appUsage = groupBy(ocrResult.data, 'content.app_name');
-  const productivityData = Object.entries(appUsage).map(([app, usage]) => ({
-    app,
-    interactions: usage.length,
-    hours: usage.length / 60,
-  })).sort((a, b) => b.hours - a.hours);
+  const formatEntry = (entry: any): string => {
+    const type = entry.type;
+    const app = entry.content.app_name || 'Unknown';
+    const text = entry.content.text || '';
 
-  const totalHours = productivityData.reduce((sum, app) => sum + app.hours, 0);
-
-  const audioTranscripts = audioResult.data.map(item => item.content.transcription).join(' ');
-
-  return {
-    date,
-    totalActiveHours: totalHours,
-    topApps: productivityData.slice(0, 5),
-    meetingsCount: audioResult.data.length,
-    totalWordsSpoken: audioTranscripts.split(/\s+/).length,
-    // Add more insights here, such as:
-    // - Productivity score
-    // - Task completion rate
-    // - Focus time vs. distracted time
-    // - Sentiment analysis of audio transcripts
+    const cleanedText = preprocessText(text, app);
+    
+    if (!cleanedText) return '';
+    
+    return `[${type}][${app}] ${cleanedText}`;
   };
+
+  const temp = [...ocrResult.data, ...audioResult.data]
+    .map(formatEntry)
+    .filter(Boolean)
+    .join('\n');
+  
+  
+
+  return temp;
 }

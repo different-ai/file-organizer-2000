@@ -12,56 +12,77 @@ export const ContextLimitIndicator: React.FC<ContextLimitIndicatorProps> = ({
   maxContextSize,
 }) => {
   const [encoding, setEncoding] = React.useState<any>(null);
+  const [error, setError] = React.useState<string | null>(null);
 
   React.useEffect(() => {
     let isMounted = true;
 
     (async () => {
       try {
-        // Initialize the WASM module using the inlined binary
         await init((imports) => WebAssembly.instantiate(wasmBinary, imports));
-
         if (isMounted) {
-          // Get the encoding
           const enc = get_encoding("cl100k_base");
           setEncoding(enc);
         }
       } catch (error) {
         console.error("Error initializing tiktoken:", error);
+        setError("Failed to initialize token counter");
       }
     })();
 
     return () => {
       isMounted = false;
       if (encoding) {
-        encoding.free();
+        try {
+          encoding.free();
+        } catch (e) {
+          console.error("Error freeing encoder:", e);
+        }
       }
     };
   }, []);
 
   const { contextSize, percentUsed } = React.useMemo(() => {
-    if (!encoding) {
+    if (!encoding || error) {
       return { contextSize: 0, percentUsed: 0 };
     }
-    let totalTokens = 0;
-    unifiedContext.forEach((item) => {
-      totalTokens += encoding.encode(item.content).length;
-    });
 
-    return {
-      contextSize: totalTokens,
-      percentUsed: (totalTokens / maxContextSize) * 100,
-    };
-  }, [unifiedContext, maxContextSize, encoding]);
+    try {
+      let totalTokens = 0;
+      for (const item of unifiedContext) {
+        if (item?.content && typeof item.content === 'string') {
+          const safeContent = item.content.slice(0, 100000);
+          totalTokens += encoding.encode(safeContent).length;
+        }
+      }
+
+      return {
+        contextSize: totalTokens,
+        percentUsed: (totalTokens / maxContextSize) * 100,
+      };
+    } catch (e) {
+      console.error("Error counting tokens:", e);
+      setError("Failed to count tokens");
+      return { contextSize: 0, percentUsed: 0 };
+    }
+  }, [unifiedContext, maxContextSize, encoding, error]);
 
   const isOverLimit = contextSize > maxContextSize;
+
+  if (error) {
+    return (
+      <div className="mt-2 p-2 rounded text-xs text-[--text-error] border border-[--text-error]">
+        {error}
+      </div>
+    );
+  }
 
   return (
     <div
       className={`mt-2 p-2 rounded text-xs flex gap-1 items-center justify-between
         ${
           isOverLimit
-            ? "bg-[--background-modifier-error] border border-[--text-error] text-[--text-error]"
+            ? " border border-[--text-error] text-[--text-error]"
             : "bg-[--background-modifier-border] text-[--text-muted]"
         }`}
     >

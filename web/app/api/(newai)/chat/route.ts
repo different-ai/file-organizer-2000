@@ -29,7 +29,11 @@ export async function POST(req: NextRequest) {
 
     const result = await streamText({
       model,
-      system: getChatSystemPrompt(contextString, enableScreenpipe, currentDatetime),
+      system: getChatSystemPrompt(
+        contextString,
+        enableScreenpipe,
+        currentDatetime
+      ),
       messages: convertToCoreMessages(messages),
       tools: {
         getNotesForDateRange: {
@@ -73,44 +77,13 @@ export async function POST(req: NextRequest) {
               .describe("The number of last modified files to retrieve"),
           }),
         },
-        ...(enableScreenpipe
-          ? {
-              summarizeMeeting: {
-                description:
-                  "Summarize a recent meeting using Screenpipe audio data",
-                parameters: z.object({
-                  duration: z
-                    .number()
-                    .describe(
-                      "Duration of the meeting in minutes (default: 60)"
-                    )
-                    .default(60),
-                }),
-                execute: async ({ duration }) => {
-                  // This will be handled client-side
-                  return JSON.stringify({ duration });
-                },
-              },
-              getDailyInformation: {
-                description:
-                  "Get information about the user's day using Screenpipe data",
-                parameters: z.object({
-                  date: z
-                    .string()
-                    .describe(
-                      "The date to analyze (ISO format, default: today)"
-                    )
-                    .optional(),
-                }),
-                execute: async ({ date }) => {
-                  // This will be handled client-side
-                  return JSON.stringify({
-                    date: date || new Date().toISOString().split("T")[0],
-                  });
-                },
-              },
-            }
-          : {}),
+        ...(enableScreenpipe && {
+          getScreenpipeDailySummary: {
+            description:
+              "Get a summary of the user's day using Screenpipe data",
+            parameters: z.object({}),
+          },
+        }),
       },
       onFinish: async ({ usage }) => {
         console.log("Token usage:", usage);

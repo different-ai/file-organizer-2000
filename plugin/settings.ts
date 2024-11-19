@@ -43,8 +43,13 @@ export class FileOrganizerSettings {
     "Analyze the image and provide a clear, detailed description focusing on the main elements, context, and any text visible in the image. Include relevant details that would be useful for searching and organizing the image later.";
   debugMode = false;
   enableTitleSuggestions = false;
+  // use for sampling of the recommend fucntions
   contentCutoffChars = 1000;
+  // use to prevent formatting of big file
   maxFormattingTokens = 100 * 1000;
+  screenpipeTimeRange = 8; // Default to 8 hours
+  // used only in screenpipe right now
+  queryScreenpipeLimit = 250;
 }
 
 export const DEFAULT_SETTINGS = new FileOrganizerSettings();
