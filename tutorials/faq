@@ -1,3 +1,4 @@
+
 Q: Whad is meant by “Unlimited usage” included in the Lifetime Plan?
 A: If you purchase lifetime license. You'll use your own openAI API key, linked directly to your account and credits.
 
@@ -14,3 +15,6 @@ Q: What’s the process for upgrading from Hobby to Lifetime? The Stripe page on
 (e.g. Monthly to Yearly)
 A: It's possible via this link: https://app.fileorganizer2000.com/dashboard/pricing
 
+Q: Is File Organizer 2000 compatible with local LLMs?
+
+A: File Organizer 2000 can work with local LLMs, but the experience is currently not on par with GPT-4o in terms of performance and accuracy. Local models are generally adequate for simpler tasks like tag guessing and classification but require significant customization to match the quality of more advanced models. For instance, modifications like updating the "streamObject" function in the code may be necessary to ensure compatibility with tools like Ollama. While we aim to provide a fully local experience in the future, the current technology limits its practicality. We'd love to hear about your experiments to help improve support for local setups across the community!
