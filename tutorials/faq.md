@@ -26,7 +26,8 @@ A: Some channels in the FO2000 Discord server are reserved for premium users. If
 **Q: How can I use File Organizer 2000 to populate YAML frontmatter in Obsidian automatically?**
 A: You can create AI templates within FO2000 to generate YAML frontmatter. Below is an example template for generating properties:
 
-```extract or generate the following information and format it into frontmatter properties for obsidian:
+```
+extract or generate the following information and format it into frontmatter properties for obsidian:
 
 ---
 book title: [generate]
