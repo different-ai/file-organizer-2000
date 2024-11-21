@@ -1,19 +1,17 @@
 import React, { useRef } from "react";
-import { App } from "obsidian";
 import { logger } from "../../../services/logger";
 import { addSearchContext, useContextItems } from "../use-context-items";
+import { ToolHandlerProps } from "./types";
 
-interface SearchHandlerProps {
-  toolInvocation: any;
-  handleAddResult: (result: string) => void;
-  app: App;
+interface SearchArgs {
+  query: string;
 }
 
 export function SearchHandler({
   toolInvocation,
   handleAddResult,
   app,
-}: SearchHandlerProps) {
+}: ToolHandlerProps) {
   const hasFetchedRef = useRef(false);
 
   const searchNotes = async (query: string) => {
@@ -34,7 +32,6 @@ export function SearchHandler({
           return {
             title: file.basename,
             content: content,
-            reference: `Search query: ${query}`,
             path: file.path,
           };
         }
@@ -42,20 +39,23 @@ export function SearchHandler({
       })
     );
 
-    return searchResults.filter(result => result !== null);
+    return searchResults.filter((result): result is NonNullable<typeof result> => 
+      result !== null
+    );
   };
 
   React.useEffect(() => {
     const handleSearchNotes = async () => {
       if (!hasFetchedRef.current && !("result" in toolInvocation)) {
         hasFetchedRef.current = true;
-        const { query } = toolInvocation.args;
+        const { query } = toolInvocation.args as SearchArgs;
+        
         try {
           const searchResults = await searchNotes(query);
-
-          // Clear existing context and add new search results
+          
+          // Add search results to context
           addSearchContext(query, searchResults);
-
+          
           handleAddResult(JSON.stringify(searchResults));
         } catch (error) {
           logger.error("Error searching notes:", error);
@@ -69,25 +69,13 @@ export function SearchHandler({
 
   const searchResults = useContextItems(state => state.searchResults);
 
-  if (!("result" in toolInvocation)) {
-    return (
-      <div className="text-sm text-[--text-muted]">
-        Searching through your notes...
-      </div>
-    );
-  }
-
-  if (Object.keys(searchResults).length > 0) {
-    return (
-      <div className="text-sm text-[--text-muted]">
-        Found {Object.keys(searchResults).length} matching notes
-      </div>
-    );
-  }
-
   return (
     <div className="text-sm text-[--text-muted]">
-      No files matching that criteria were found
+      {!("result" in toolInvocation)
+        ? "Searching through your notes..."
+        : Object.keys(searchResults).length > 0
+        ? `Found ${Object.keys(searchResults).length} matching notes`
+        : "No files matching that criteria were found"}
     </div>
   );
 }

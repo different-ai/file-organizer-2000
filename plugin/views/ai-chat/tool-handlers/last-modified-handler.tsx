@@ -2,27 +2,34 @@ import React, { useRef } from "react";
 import { App } from "obsidian";
 import { logger } from "../../../services/logger";
 import { addFileContext, useContextItems } from "../use-context-items";
+import { ToolHandlerProps } from "./types";
 
-interface LastModifiedHandlerProps {
-  toolInvocation: any;
-  handleAddResult: (result: string) => void;
-  app: App;
+interface LastModifiedArgs {
+  count: number;
+}
+
+interface FileResult {
+  title: string;
+  content: string;
+  path: string;
+  reference: string;
 }
 
 export function LastModifiedHandler({
   toolInvocation,
   handleAddResult,
   app,
-}: LastModifiedHandlerProps) {
+}: ToolHandlerProps) {
   const hasFetchedRef = useRef(false);
   const clearAll = useContextItems(state => state.clearAll);
+  const files = useContextItems(state => state.files);
 
-  const getLastModifiedFiles = async (count: number) => {
+  const getLastModifiedFiles = async (count: number): Promise<FileResult[]> => {
     const files = app.vault.getMarkdownFiles();
     const sortedFiles = files.sort((a, b) => b.stat.mtime - a.stat.mtime);
     const lastModifiedFiles = sortedFiles.slice(0, count);
 
-    const fileContents = await Promise.all(
+    return Promise.all(
       lastModifiedFiles.map(async file => ({
         title: file.basename,
         content: await app.vault.read(file),
@@ -30,32 +37,40 @@ export function LastModifiedHandler({
         reference: `Last modified: ${new Date(file.stat.mtime).toLocaleString()}`
       }))
     );
-
-    return fileContents;
   };
 
   React.useEffect(() => {
     const handleLastModifiedSearch = async () => {
       if (!hasFetchedRef.current && !("result" in toolInvocation)) {
         hasFetchedRef.current = true;
-        const { count } = toolInvocation.args;
+        const { count } = toolInvocation.args as LastModifiedArgs;
+        
         try {
           const searchResults = await getLastModifiedFiles(count);
           
-          // Clear existing context and add new results
+          // Clear existing context before adding new results
           clearAll();
+          
+          // Add each file to context with proper typing
           searchResults.forEach(file => {
             addFileContext({
               path: file.path,
               title: file.title,
-              content: file.content
+              content: file.content,
             });
           });
           
-          handleAddResult(JSON.stringify(searchResults));
+          handleAddResult(JSON.stringify({
+            success: true,
+            files: searchResults,
+            count: searchResults.length
+          }));
         } catch (error) {
           logger.error("Error getting last modified files:", error);
-          handleAddResult(JSON.stringify({ error: error.message }));
+          handleAddResult(JSON.stringify({ 
+            success: false,
+            error: error.message 
+          }));
         }
       }
     };
@@ -63,15 +78,18 @@ export function LastModifiedHandler({
     handleLastModifiedSearch();
   }, [toolInvocation, handleAddResult, app, clearAll]);
 
-  const contextItems = useContextItems(state => state.items);
+  // Use the files object directly from context instead of items
+  const fileCount = Object.keys(files).length;
 
-  if (!("result" in toolInvocation)) {
-    return <div className="text-sm text-[--text-muted]">Fetching last modified files...</div>;
-  }
-
-  if (contextItems.length > 0) {
-    return <div className="text-sm text-[--text-muted]">Found {contextItems.length} recently modified files</div>;
-  }
-
-  return <div className="text-sm text-[--text-muted]">No recently modified files found</div>;
+  return (
+    <div className="text-sm text-[--text-muted]">
+      {!("result" in toolInvocation) ? (
+        "Fetching last modified files..."
+      ) : fileCount > 0 ? (
+        `Found ${fileCount} recently modified files`
+      ) : (
+        "No recently modified files found"
+      )}
+    </div>
+  );
 } 

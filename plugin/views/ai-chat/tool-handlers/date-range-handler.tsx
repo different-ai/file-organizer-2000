@@ -1,20 +1,19 @@
 import React, { useRef } from "react";
-import { App } from "obsidian";
 import { moment } from "obsidian";
 import { logger } from "../../../services/logger";
 import { addFileContext, useContextItems } from "../use-context-items";
+import { ToolHandlerProps } from "./types";
 
-interface DateRangeHandlerProps {
-  toolInvocation: any;
-  handleAddResult: (result: string) => void;
-  app: App;
+interface DateRangeArgs {
+  startDate: string;
+  endDate: string;
 }
 
 export function DateRangeHandler({
   toolInvocation,
   handleAddResult,
   app,
-}: DateRangeHandlerProps) {
+}: ToolHandlerProps) {
   const hasFetchedRef = useRef(false);
   const clearAll = useContextItems(state => state.clearAll);
 
@@ -26,16 +25,13 @@ export function DateRangeHandler({
     const filteredFiles = files.filter(file => {
       const fileDate = moment(file.stat.mtime);
       const isWithinDateRange = fileDate.isBetween(start, end, null, "[]");
-
-      const isSystemFolder =
-        file.path.startsWith(".") ||
-        file.path.includes("templates/") ||
-        file.path.includes("backup/");
-
+      const isSystemFolder = file.path.startsWith(".") || 
+                           file.path.includes("templates/") || 
+                           file.path.includes("backup/");
       return isWithinDateRange && !isSystemFolder;
     });
 
-    const fileContents = await Promise.all(
+    return Promise.all(
       filteredFiles.map(async file => ({
         title: file.basename,
         content: await app.vault.read(file),
@@ -43,25 +39,26 @@ export function DateRangeHandler({
         reference: `Date range: ${startDate} to ${endDate}`,
       }))
     );
-
-    return fileContents;
   };
 
   React.useEffect(() => {
     const handleDateRangeSearch = async () => {
       if (!hasFetchedRef.current && !("result" in toolInvocation)) {
         hasFetchedRef.current = true;
-        const { startDate, endDate } = toolInvocation.args;
+        const { startDate, endDate } = toolInvocation.args as DateRangeArgs;
+        
         try {
           const searchResults = await filterNotesByDateRange(startDate, endDate);
           
-          // Clear existing context and add new results
+          // Clear existing context before adding new results
           clearAll();
+          
+          // Add each file to context
           searchResults.forEach(file => {
             addFileContext({
               path: file.path,
               title: file.title,
-              content: file.content
+              content: file.content,
             });
           });
           
@@ -78,13 +75,13 @@ export function DateRangeHandler({
 
   const contextItems = useContextItems(state => state.items);
 
-  if (!("result" in toolInvocation)) {
-    return <div className="text-sm text-[--text-muted]">Filtering notes by date range...</div>;
-  }
-
-  if (contextItems.length > 0) {
-    return <div className="text-sm text-[--text-muted]">Found {contextItems.length} notes within the specified date range</div>;
-  }
-
-  return <div className="text-sm text-[--text-muted]">No files found within the specified date range</div>;
+  return (
+    <div className="text-sm text-[--text-muted]">
+      {!("result" in toolInvocation) 
+        ? "Filtering notes by date range..."
+        : contextItems.length > 0
+        ? `Found ${contextItems.length} notes within the specified date range`
+        : "No files found within the specified date range"}
+    </div>
+  );
 } 
