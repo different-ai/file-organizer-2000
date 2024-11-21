@@ -54,7 +54,7 @@ function TabButton({
     <button
       onClick={onClick}
       className={`
-        px-3 py-2 text-sm font-medium  shadow-none cursor-pointer
+                px-3 py-2 text-sm font-medium  shadow-none cursor-pointer bg-transparent
        ${
          isActive
            ? "bg[--interactive-accent] text[--text-on-accent] "
