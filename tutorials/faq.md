@@ -26,7 +26,7 @@ A: Some channels in the FO2000 Discord server are reserved for premium users. If
 **Q: How can I use File Organizer 2000 to populate YAML frontmatter in Obsidian automatically?**
 A: You can create AI templates within FO2000 to generate YAML frontmatter. Below is an example template for generating properties:
 
-extract or generate the following information and format it into frontmatter properties for obsidian:
+```extract or generate the following information and format it into frontmatter properties for obsidian:
 
 ---
 book title: [generate]
@@ -47,6 +47,7 @@ notes:  [empty string]
 do not use ``` ``` or markdown formatting
 make sure to get the correct book title. distinguish between a tagline/blurb and the actual title
 always include all 8 properties without exception! Very important!
+```
 
 <img width="525" alt="Screenshot 2024-11-21 at 12 18 55 PM" src="https://github.com/user-attachments/assets/12127836-16d2-42f7-a8da-432f3f635003">
 <img width="525" alt="Screenshot 2024-11-21 at 12 18 47 PM" src="https://github.com/user-attachments/assets/d9471cb7-695b-44d1-90d5-ee39bdff8244">
