@@ -46,11 +46,6 @@ export const ChatComponent: React.FC<ChatComponentProps> = ({
   const plugin = usePlugin();
   const app = plugin.app;
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
-  const [allFiles, setAllFiles] = useState<
-    { title: string; content: string; path: string }[]
-  >([]);
-  const [allTags, setAllTags] = useState<string[]>([]);
-  const [allFolders, setAllFolders] = useState<string[]>([]);
   const [unifiedContext, setUnifiedContext] = useState<
     { title: string; content: string; path: string; reference: string }[]
   >([]);
@@ -61,9 +56,11 @@ export const ChatComponent: React.FC<ChatComponentProps> = ({
     items
   } = useContextItems();
 
-  logMessage(items, "unifiedContext");
 
   const chatBody = React.useMemo(() => {
+    // get the file content from items  if it's a folder get all files in the folder content
+
+
     return {
       unifiedContext: items,
       enableScreenpipe: plugin.settings.enableScreenpipe,
@@ -199,35 +196,6 @@ export const ChatComponent: React.FC<ChatComponentProps> = ({
     }
   };
 
-  useEffect(() => {
-    const loadAllFiles = async () => {
-      const files = plugin.getAllUserMarkdownFiles();
-      const fileData = await Promise.all(
-        files.map(async file => ({
-          title: file.basename,
-          content: await plugin.app.vault.read(file),
-          path: file.path,
-        }))
-      );
-      setAllFiles(fileData);
-    };
-
-    loadAllFiles();
-  }, [plugin.app.vault]);
-
-  useEffect(() => {
-    const loadTagsAndFolders = async () => {
-      const tags = await plugin.getAllVaultTags();
-      setAllTags(tags);
-
-      const folders = plugin.getAllUserFolders();
-      setAllFolders(folders);
-    };
-
-    loadTagsAndFolders();
-  }, [plugin]);
-
-
 
   useEffect(() => {
     // Create a debounced version of the file change handler
@@ -346,11 +314,6 @@ export const ChatComponent: React.FC<ChatComponentProps> = ({
               value={input}
               onChange={handleTiptapChange}
               onKeyDown={handleKeyDown}
-              files={allFiles}
-              tags={allTags}
-              folders={allFolders}
-              currentFileName={fileName || ""}
-              currentFileContent={fileContent}
             />
 
             <div className="absolute bottom-0 right-0 h-full flex items-center">

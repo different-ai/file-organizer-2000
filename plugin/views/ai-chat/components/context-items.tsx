@@ -1,6 +1,7 @@
 import React from 'react';
 import { SelectedItem } from '../selected-item';
-import { useContextItems } from '../use-context-items';
+import { ContextItemType, useContextItems } from '../use-context-items';
+
 
 interface ContextItemsProps {
   onOpenFile: (fileTitle: string) => void;
@@ -14,17 +15,14 @@ export const ContextItems: React.FC<ContextItemsProps> = ({
   const {
     currentFile,
     includeCurrentFile,
-    items,
-    toggleCurrentFile,
-    removeItem
+    files,
+    folders,
+    youtubeVideos,
+    tags,
+    screenpipe,
+    removeItem,
+    toggleCurrentFile
   } = useContextItems();
-
-  // Group items by type
-  const groupedItems = items.reduce((acc, item) => {
-    acc[item.type] = acc[item.type] || [];
-    acc[item.type].push(item);
-    return acc;
-  }, {} as Record<string, typeof items>);
 
   const prefixMap = {
     file: '📄',
@@ -32,18 +30,25 @@ export const ContextItems: React.FC<ContextItemsProps> = ({
     tag: '🏷️',
     youtube: '🎥',
     screenpipe: '📊'
-  };
+  } as const;
 
-  const handleItemClick = (item: any) => {
-    switch (item.type) {
+  const handleItemClick = (type: ContextItemType, id: string, title: string) => {
+    switch (type) {
       case 'file':
-        onOpenFile(item.title);
+        onOpenFile(title);
         break;
       case 'folder':
-        onOpenFolder(item.title);
+        onOpenFolder(title);
         break;
       case 'youtube':
-        window.open(`https://www.youtube.com/watch?v=${item.id.replace('youtube-', '')}`, "_blank");
+        const videoId = id.replace('youtube-', '');
+        window.open(`https://www.youtube.com/watch?v=${videoId}`, "_blank");
+        break;
+      case 'tag':
+        // Add tag handling if needed
+        break;
+      case 'screenpipe':
+        // Add screenpipe handling if needed
         break;
     }
   };
@@ -56,69 +61,80 @@ export const ContextItems: React.FC<ContextItemsProps> = ({
           <div className="flex space-x-2">
             <SelectedItem
               key="current-file"
-              item={currentFile.name}
-              onClick={() => onOpenFile(currentFile.name)}
+              item={currentFile.title}
+              onClick={() => onOpenFile(currentFile.title)}
               onRemove={toggleCurrentFile}
-              prefix="📄 "
+              prefix={`${prefixMap.file} `}
             />
           </div>
         )}
 
         {/* Files section */}
-        {groupedItems.file?.length > 0 && (
+        {Object.values(files).length > 0 && (
           <div className="flex space-x-2">
-            {groupedItems.file.map(item => (
+            {Object.values(files).map(file => (
               <SelectedItem
-                key={item.id}
-                item={item.title}
-                onClick={() => handleItemClick(item)}
-                onRemove={() => removeItem(item.id)}
-                prefix={`${prefixMap[item.type]} `}
+                key={file.id}
+                item={file.title}
+                onClick={() => handleItemClick('file', file.id, file.title)}
+                onRemove={() => removeItem('file', file.id)}
+                prefix={`${prefixMap.file} `}
               />
             ))}
           </div>
         )}
 
         {/* Folders section */}
-        {groupedItems.folder?.length > 0 && (
+        {Object.values(folders).length > 0 && (
           <div className="flex space-x-2">
-            {groupedItems.folder.map(item => (
+            {Object.values(folders).map(folder => (
               <SelectedItem
-                key={item.id}
-                item={item.title}
-                onClick={() => handleItemClick(item)}
-                onRemove={() => removeItem(item.id)}
-                prefix={`${prefixMap[item.type]} `}
+                key={folder.id}
+                item={folder.name}
+                onClick={() => handleItemClick('folder', folder.id, folder.name)}
+                onRemove={() => removeItem('folder', folder.id)}
+                prefix={`${prefixMap.folder} `}
               />
             ))}
           </div>
         )}
 
         {/* Tags section */}
-        {groupedItems.tag?.length > 0 && (
+        {Object.values(tags).length > 0 && (
           <div className="flex space-x-2">
-            {groupedItems.tag.map(item => (
+            {Object.values(tags).map(tag => (
               <SelectedItem
-                key={item.id}
-                item={item.title}
-                onClick={() => handleItemClick(item)}
-                onRemove={() => removeItem(item.id)}
-                prefix={`${prefixMap[item.type]} `}
+                key={tag.id}
+                item={tag.name}
+                onClick={() => handleItemClick('tag', tag.id, tag.name)}
+                onRemove={() => removeItem('tag', tag.id)}
+                prefix={`${prefixMap.tag} `}
               />
             ))}
           </div>
         )}
 
-        {/* Media section */}
-        {(groupedItems.youtube?.length > 0 || groupedItems.screenpipe?.length > 0) && (
+        {/* Media section (YouTube and Screenpipe) */}
+        {(Object.values(youtubeVideos).length > 0 || Object.values(screenpipe).length > 0) && (
           <div className="flex space-x-2">
-            {[...groupedItems.youtube || [], ...groupedItems.screenpipe || []].map(item => (
+            {/* YouTube items */}
+            {Object.values(youtubeVideos).map(video => (
+              <SelectedItem
+                key={video.id}
+                item={video.title}
+                onClick={() => handleItemClick('youtube', video.id, video.title)}
+                onRemove={() => removeItem('youtube', video.id)}
+                prefix={`${prefixMap.youtube} `}
+              />
+            ))}
+            {/* Screenpipe items */}
+            {Object.values(screenpipe).map(item => (
               <SelectedItem
                 key={item.id}
-                item={item.title}
-                onClick={() => handleItemClick(item)}
-                onRemove={() => removeItem(item.id)}
-                prefix={`${prefixMap[item.type]} `}
+                item={item.reference}
+                onClick={() => handleItemClick('screenpipe', item.id, item.reference)}
+                onRemove={() => removeItem('screenpipe', item.id)}
+                prefix={`${prefixMap.screenpipe} `}
               />
             ))}
           </div>

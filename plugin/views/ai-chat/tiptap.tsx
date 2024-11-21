@@ -1,19 +1,20 @@
 import { useEditor, EditorContent } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
-import React, { useEffect, useCallback, useState } from "react";
+import React, { useEffect, useCallback } from "react";
 import { Mention } from '@tiptap/extension-mention';
 import suggestion from './suggestion';
-import { useContextItems } from './use-context-items';
+import { 
+  addFileContext, 
+  addTagContext, 
+  addFolderContext 
+} from './use-context-items';
+import { useVaultItems } from './use-vault-items';
 
 interface TiptapProps {
   value: string;
   onChange: (value: string) => void;
   onKeyDown?: (event: React.KeyboardEvent) => void;
-  files: { title: string; content: string }[];
-  tags: string[];
-  folders: string[];
-  currentFileName: string;
-  currentFileContent: string;
+
 }
 
 interface MentionNodeAttrs {
@@ -28,14 +29,9 @@ interface MentionNodeAttrs {
 const Tiptap: React.FC<TiptapProps> = ({ 
   value, 
   onChange, 
-  onKeyDown, 
-  files, 
-  tags,
-  folders,
-  currentFileName, 
-  currentFileContent 
+  onKeyDown 
 }) => {
-  const { addItem } = useContextItems();
+  const { files, folders, tags, loadFileContent } = useVaultItems();
 
   const handleUpdate = useCallback(
     ({ editor }: { editor: any }) => {
@@ -44,6 +40,53 @@ const Tiptap: React.FC<TiptapProps> = ({
     },
     [onChange]
   );
+
+  const handleMentionCommand = async ({ editor, range, props }: { 
+    editor: any; 
+    range: any; 
+    props: MentionNodeAttrs 
+  }) => {
+    // Load file content if it's a file mention
+    if (props.type === 'file') {
+      const content = await loadFileContent(props.path);
+      props.content = content || '';
+    }
+
+    // Insert mention in editor
+    editor
+      .chain()
+      .focus()
+      .insertContentAt(range, [
+        {
+          type: 'mention',
+          attrs: props
+        },
+        {
+          type: 'text',
+          text: ' '
+        },
+      ])
+      .run();
+
+    // Add to context based on type
+    switch (props.type) {
+      case 'file':
+        addFileContext({
+          path: props.path,
+          title: props.title,
+          content: props.content
+        });
+        break;
+      
+      case 'tag':
+        addTagContext(props.title);
+        break;
+      
+      case 'folder':
+        addFolderContext(props.path);
+        break;
+    }
+  };
 
   const editor = useEditor({
     extensions: [
@@ -54,49 +97,9 @@ const Tiptap: React.FC<TiptapProps> = ({
         },
         suggestion: {
           ...suggestion,
+          decorationClass: 'bg-red-500',
           items: ({ query, editor }) => suggestion.items({ query, editor }),
-          command: ({ editor, range, props }: { editor: any; range: any; props: MentionNodeAttrs }) => {
-            editor
-              .chain()
-              .focus()
-              .insertContentAt(range, [
-                {
-                  type: 'mention',
-                  attrs: props
-                },
-                {
-                  type: 'text',
-                  text: ' '
-                },
-              ])
-              .run()
-
-            if (props.type === 'file') {
-              addItem({
-                id: props.path || props.title,
-                type: 'file',
-                title: props.title,
-                content: props.content,
-                reference: `@${props.title}`
-              });
-            } else if (props.type === 'tag') {
-              addItem({
-                id: props.title,
-                type: 'tag',
-                title: props.title,
-                content: `Tag: ${props.title}`,
-                reference: `#${props.title}`
-              });
-            } else if (props.type === 'folder') {
-              addItem({
-                id: props.path || props.title,
-                type: 'folder',
-                title: props.title,
-                content: `Folder: ${props.path || props.title}`,
-                reference: `/${props.title}`
-              });
-            }
-          },
+          command: handleMentionCommand,
         },
       }),
     ],
@@ -109,19 +112,18 @@ const Tiptap: React.FC<TiptapProps> = ({
     },
   });
 
+  // Update editor storage with available mentions
   useEffect(() => {
     if (editor) {
       editor.storage.mention = {
-        files: [
-          { title: currentFileName, content: currentFileContent, path: currentFileName },
-          ...files.map(file => ({ ...file, path: file.title }))
-        ],
-        tags,
-        folders: folders.map(folder => ({ title: folder, path: folder })),
+        files,
+        folders,
+        tags
       };
     }
-  }, [editor, files, tags, folders, currentFileName, currentFileContent]);
+  }, [editor, files, folders, tags]);
 
+  // Sync editor content with value prop
   useEffect(() => {
     if (editor && editor.getText() !== value) {
       editor.commands.setContent(value);
