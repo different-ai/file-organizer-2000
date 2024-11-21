@@ -50,6 +50,7 @@ export class FileOrganizerSettings {
   screenpipeTimeRange = 8; // Default to 8 hours
   // used only in screenpipe right now
   queryScreenpipeLimit = 250;
+  maxChatTokens = 100 * 1000;
 }
 
 export const DEFAULT_SETTINGS = new FileOrganizerSettings();

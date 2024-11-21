@@ -1,35 +1,78 @@
-import { useEffect } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { FileContextItem } from '../use-context-items';
 import { logger } from '../../../services/logger';
+import { App, TFile } from 'obsidian';
 
 interface UseCurrentFileProps {
-  fileName: string | null;
-  fileContent: string;
+  app: App;
   setCurrentFile: (file: FileContextItem | null) => void;
 }
 
 export function useCurrentFile({ 
-  fileName, 
-  fileContent, 
+  app,
   setCurrentFile 
 }: UseCurrentFileProps) {
-  useEffect(() => {
-    if (fileName && fileContent) {
-      const currentFile: FileContextItem = {
-        id: fileName,
+  const [error, setError] = useState<string | null>(null);
+  const currentFile = useRef<FileContextItem | null>(null);
+
+  const updateActiveFile = async () => {
+    logger.debug('Updating active file');
+    
+    try {
+      const file = app.workspace.getActiveFile();
+      
+      if (!file) {
+        logger.debug('No active file');
+        setCurrentFile(null);
+        currentFile.current = null;
+        return;
+      }
+
+      const content = await app.vault.cachedRead(file);
+      console.log(content, 'content')
+      
+      const fileContextItem: FileContextItem = {
+        id: file.path,
         type: 'file',
-        path: fileName,
-        title: fileName,
-        content: fileContent,
+        path: file.path,
+        title: file.basename,
+        content,
         reference: 'Current File',
-        createdAt: Date.now()
+        createdAt: file.stat.ctime
       };
 
-      logger.debug('Setting current file:', currentFile);
-      setCurrentFile(currentFile);
-    } else {
-      // Clear current file if no file is selected
+      logger.debug('Setting current file:', fileContextItem);
+      setCurrentFile(fileContextItem);
+      currentFile.current = fileContextItem;
+      setError(null);
+
+    } catch (error) {
+      logger.error('Error reading file:', error);
+      setError('Failed to load file content');
       setCurrentFile(null);
+      currentFile.current = null;
     }
-  }, [fileName, fileContent, setCurrentFile]);
+  };
+
+  useEffect(() => {
+    // Initial load
+    updateActiveFile();
+
+    // Register event handlers
+    const eventRefs = [
+      app.workspace.on('file-open', updateActiveFile),
+      app.workspace.on('active-leaf-change', updateActiveFile)
+    ];
+
+    // Cleanup
+    return () => {
+      eventRefs.forEach(ref => app.workspace.offref(ref));
+    };
+  }, [app]);
+
+  return {
+    currentFile,
+    error,
+    refresh: updateActiveFile
+  };
 } 

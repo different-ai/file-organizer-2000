@@ -1,6 +1,7 @@
 import React from "react";
 import { init, get_encoding } from "tiktoken/init";
 import wasmBinary from "tiktoken/tiktoken_bg.wasm"; // This is now an ArrayBuffer
+import { usePlugin } from "../organizer/provider";
 
 interface ContextLimitIndicatorProps {
   unifiedContext: string;
@@ -11,6 +12,7 @@ export const ContextLimitIndicator: React.FC<ContextLimitIndicatorProps> = ({
   unifiedContext,
   maxContextSize,
 }) => {
+  const plugin = usePlugin();
   const [encoding, setEncoding] = React.useState<any>(null);
   const [error, setError] = React.useState<string | null>(null);
 
@@ -48,9 +50,8 @@ export const ContextLimitIndicator: React.FC<ContextLimitIndicatorProps> = ({
     }
 
     try {
-      let totalTokens = 0;
-      const safeContent = unifiedContext.slice(0, 100000);
-      totalTokens += encoding.encode(safeContent).length;
+      const tokens = encoding.encode(unifiedContext);
+      const totalTokens = tokens.length;
 
       return {
         contextSize: totalTokens,

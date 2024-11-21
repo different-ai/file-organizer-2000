@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
 import { useChat, UseChatOptions } from "@ai-sdk/react";
-import { moment, } from "obsidian";
+import { moment } from "obsidian";
 
 import FileOrganizer from "../..";
 import Tiptap from "./tiptap";
@@ -55,6 +55,8 @@ export const ChatComponent: React.FC<ChatComponentProps> = ({
     searchResults,
     currentFile,
   } = useContextItems();
+  console.log("currentFile", currentFile);
+
   const { generateContext } = useContextGenerator({
     currentFile: currentFile,
     files: files,
@@ -62,17 +64,17 @@ export const ChatComponent: React.FC<ChatComponentProps> = ({
     tags: tags,
     searchResults: searchResults,
   });
-
+  // change api return current file instead and pass it in useContext generator
+  // skip the use context items entirely
   useCurrentFile({
-    fileName,
-    fileContent,
+    app,
     setCurrentFile,
   });
 
   const contextString = React.useMemo(() => {
     const contextString = generateContext();
     return contextString;
-  }, [files, folders, tags]);
+  }, [files, folders, tags, currentFile]);
   logger.debug("contextString", contextString);
 
   const chatBody = {

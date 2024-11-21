@@ -29,7 +29,17 @@ const createSeparator = () => `---\n\n`;
 
 const createCurrentFileSection = (currentFile: FileContextItem | null): string => {
   if (!currentFile) return '';
-  return `## Current File\n\n📄 ${currentFile.path}\n\n### Content\n\n${currentFile.content}\n\n${createSeparator()}`;
+  
+  // Format the metadata section
+  const metadata = [
+    `id: ${currentFile.id}`,
+    `type: ${currentFile.type}`,
+    `path: ${currentFile.path}`,
+    `title: ${currentFile.title}`,
+    `createdAt: ${currentFile.createdAt}`,
+  ].join('\n');
+
+  return `## Current File\n\n### Metadata\n\`\`\`yaml\n${metadata}\n\`\`\`\n\n### Content\n\n${currentFile.content}\n\n${createSeparator()}`;
 };
 
 const createSearchSection = (searches: SearchContextItem[]): string => {
