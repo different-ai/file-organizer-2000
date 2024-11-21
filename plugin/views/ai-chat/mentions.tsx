@@ -89,14 +89,14 @@ export const Mentions = forwardRef<
   return (
       props.items.length ? (
         // do not indent list
-        <ul className="max-h-[300px] overflow-y-auto bg-white list-none p-0">
+        <ul className="max-h-[300px] overflow-y-auto bg-[--background-secondary] list-none p-0">
           {props.items.map((item, index) => (
             <li 
               key={item.path || item.title} 
               className="list-none"
             >
               <button
-                className={`w-full text-left flex items-center gap-2 hover:bg-[--background-modifier-hover] ${
+                className={`w-full text-left flex items-center gap-2 hover:bg-[--background-modifier-active-hover] ${
                   index === selectedIndex
                     ? "bg-[--background-modifier-active-hover] text-[--text-accent]"
                     : "text-[--text-normal]"

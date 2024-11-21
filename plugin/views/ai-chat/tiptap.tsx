@@ -97,7 +97,7 @@ const Tiptap: React.FC<TiptapProps> = ({
         },
         suggestion: {
           ...suggestion,
-          decorationClass: 'bg-[--background-modifier-active-hover] text-[--text-accent]',
+          decorationClass: 'bg-[--background-modifier-active-hover] text-[--text-accent] rounded-md px-1 py-0.5',
           items: ({ query, editor }) => suggestion.items({ query, editor }),
           command: handleMentionCommand,
         },

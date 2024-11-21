@@ -44,7 +44,7 @@ export const AIMarkdown: React.FC<{ content: string }> = ({ content }) => {
           {copied ? 'Copied!' : 'Copy'}
         </button>
       </div>
-      <div className="prose dark:prose-invert max-w-none select-text">
+      <div className="prose dark:prose-invert max-w-none select-text w-full">
         <AnimatePresence mode="popLayout">
           {chunks.map((chunk, i) => (
             <motion.div

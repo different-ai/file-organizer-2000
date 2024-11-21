@@ -269,7 +269,7 @@ export const ChatComponent: React.FC<ChatComponentProps> = ({
   }, [fileName, fileContent, setCurrentFile]);
 
   return (
-    <div className="flex flex-col h-full max-h-screen bg-[--background-primary]">
+    <div className="flex flex-col h-full max-h-screen ">
       <div className="flex-grow overflow-y-auto p-4">
         <div className="flex flex-col min-h-min-content">
           {messages.map(message => (
