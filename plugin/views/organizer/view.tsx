@@ -70,11 +70,19 @@ function TabButton({
 function OrganizerContent({
   plugin,
   leaf,
+  initialTab,
+  onTabChange,
 }: {
   plugin: FileOrganizer;
   leaf: WorkspaceLeaf;
+  initialTab: Tab;
+  onTabChange: (setTab: (tab: Tab) => void) => void;
 }) {
-  const [activeTab, setActiveTab] = React.useState<Tab>("organizer");
+  const [activeTab, setActiveTab] = React.useState<Tab>(initialTab);
+
+  React.useEffect(() => {
+    onTabChange(setActiveTab);
+  }, [onTabChange]);
 
   return (
     <div className="flex flex-col h-full ">
@@ -111,10 +119,40 @@ function OrganizerContent({
 export class AssistantViewWrapper extends ItemView {
   root: Root | null = null;
   plugin: FileOrganizer;
+  private activeTab: Tab = "organizer";
+  private setActiveTab: (tab: Tab) => void = () => {};
 
   constructor(leaf: WorkspaceLeaf, plugin: FileOrganizer) {
     super(leaf);
     this.plugin = plugin;
+    
+    // Register commands
+    this.plugin.addCommand({
+      id: 'open-organizer-tab',
+      name: 'Open Organizer Tab',
+      callback: () => this.activateTab("organizer"),
+    });
+
+    this.plugin.addCommand({
+      id: 'open-inbox-tab',
+      name: 'Open Inbox Tab',
+      callback: () => this.activateTab("inbox"),
+    });
+
+    this.plugin.addCommand({
+      id: 'open-chat-tab',
+      name: 'Open Chat Tab',
+      callback: () => this.activateTab("chat"),
+    });
+  }
+
+  activateTab(tab: Tab) {
+    // Ensure view is open
+    this.plugin.app.workspace.revealLeaf(this.leaf);
+    
+    // Update tab
+    this.activeTab = tab;
+    this.setActiveTab(tab);
   }
 
   getViewType(): string {
@@ -139,7 +177,14 @@ export class AssistantViewWrapper extends ItemView {
       <AppContext.Provider value={{ plugin: this.plugin, root: this.root }}>
         <React.StrictMode>
           <div className="h-full ">
-            <OrganizerContent plugin={this.plugin} leaf={this.leaf} />
+            <OrganizerContent 
+              plugin={this.plugin} 
+              leaf={this.leaf}
+              initialTab={this.activeTab}
+              onTabChange={(setTab) => {
+                this.setActiveTab = setTab;
+              }} 
+            />
           </div>
         </React.StrictMode>
       </AppContext.Provider>

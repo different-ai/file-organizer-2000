@@ -35,18 +35,7 @@ const ItemIcon = ({ type }: { type?: string }) => {
   }
 };
 
-const getItemPreview = (item: MentionItem) => {
-  switch (item.type) {
-    case 'file':
-      return item.path?.split('/').slice(-2).join('/');
-    case 'tag':
-      return `#${item.title}`;
-    case 'folder':
-      return item.path;
-    default:
-      return item.title;
-  }
-};
+
 
 export const Mentions = forwardRef<
   { onKeyDown: (args: { event: KeyboardEvent }) => boolean },

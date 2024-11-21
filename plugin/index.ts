@@ -14,7 +14,7 @@ import {
 } from "obsidian";
 import { logMessage, formatToSafeName, sanitizeTag } from "./someUtils";
 import { FileOrganizerSettingTab } from "./views/settings/view";
-import { ORGANIZER_VIEW_TYPE } from "./views/organizer/view";
+import { AssistantViewWrapper, ORGANIZER_VIEW_TYPE } from "./views/organizer/view";
 import Jimp from "jimp/es/index";
 
 import { FileOrganizerSettings, DEFAULT_SETTINGS } from "./settings";
@@ -1444,6 +1444,29 @@ export default class FileOrganizer extends Plugin {
     await this.app.vault.append(file, `\n${formattedTag}`);
   }
 
+  async ensureAssistantView(): Promise<AssistantViewWrapper | null> {
+    // Try to find existing view
+    let view = this.app.workspace.getLeavesOfType(ORGANIZER_VIEW_TYPE)[0]?.view as AssistantViewWrapper;
+    
+    // If view doesn't exist, create it
+    if (!view) {
+      await this.app.workspace.getRightLeaf(false).setViewState({
+        type: ORGANIZER_VIEW_TYPE,
+        active: true,
+      });
+      
+      // Get the newly created view
+      view = this.app.workspace.getLeavesOfType(ORGANIZER_VIEW_TYPE)[0]?.view as AssistantViewWrapper;
+    }
+
+    // Reveal and focus the leaf
+    if (view) {
+      this.app.workspace.revealLeaf(view.leaf);
+    }
+
+    return view;
+  }
+
   async onload() {
     this.inbox = Inbox.initialize(this);
     await this.initializePlugin();
@@ -1460,6 +1483,33 @@ export default class FileOrganizer extends Plugin {
 
     this.app.workspace.onLayoutReady(() => registerEventHandlers(this));
     this.processBacklog();
+
+    this.addCommand({
+      id: 'open-organizer-tab',
+      name: 'Open Organizer Tab',
+      callback: async () => {
+        const view = await this.ensureAssistantView();
+        view?.activateTab("organizer");
+      },
+    });
+
+    this.addCommand({
+      id: 'open-inbox-tab',
+      name: 'Open Inbox Tab',
+      callback: async () => {
+        const view = await this.ensureAssistantView();
+        view?.activateTab("inbox");
+      },
+    });
+
+    this.addCommand({
+      id: 'open-chat-tab',
+      name: 'Open Chat Tab',
+      callback: async () => {
+        const view = await this.ensureAssistantView();
+        view?.activateTab("chat");
+      },
+    });
   }
   async saveSettings() {
     await this.saveData(this.settings);

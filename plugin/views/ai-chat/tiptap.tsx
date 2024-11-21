@@ -93,11 +93,11 @@ const Tiptap: React.FC<TiptapProps> = ({
       StarterKit,
       Mention.configure({
         HTMLAttributes: {
-          class: 'mention',
+          class: 'bg-[--background-modifier-active-hover] text-[--text-accent] rounded-md px-1 py-0.5',
         },
         suggestion: {
           ...suggestion,
-          decorationClass: 'bg-red-500',
+          decorationClass: 'bg-[--background-modifier-active-hover] text-[--text-accent]',
           items: ({ query, editor }) => suggestion.items({ query, editor }),
           command: handleMentionCommand,
         },
