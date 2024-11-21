@@ -21,11 +21,11 @@ export function SearchHandler({
     const searchTerms = query.toLowerCase().split(/\s+/);
 
     const searchResults = await Promise.all(
-      files.map(async (file) => {
+      files.map(async file => {
         const content = await app.vault.read(file);
         const lowerContent = content.toLowerCase();
 
-        const allTermsPresent = searchTerms.every((term) => {
+        const allTermsPresent = searchTerms.every(term => {
           const regex = new RegExp(`(^|\\W)${term}(\\W|$)`, "i");
           return regex.test(lowerContent);
         });
@@ -42,7 +42,7 @@ export function SearchHandler({
       })
     );
 
-    return searchResults.filter((result) => result !== null);
+    return searchResults.filter(result => result !== null);
   };
 
   React.useEffect(() => {
@@ -52,10 +52,10 @@ export function SearchHandler({
         const { query } = toolInvocation.args;
         try {
           const searchResults = await searchNotes(query);
-          
+
           // Clear existing context and add new search results
           addSearchContext(query, searchResults);
-          
+
           handleAddResult(JSON.stringify(searchResults));
         } catch (error) {
           logger.error("Error searching notes:", error);
@@ -65,17 +65,29 @@ export function SearchHandler({
     };
 
     handleSearchNotes();
-  }, [toolInvocation, handleAddResult, app, clearAll]);
+  }, [toolInvocation, handleAddResult, app]);
 
-  const contextItems = useContextItems(state => state.items);
+  const searchResults = useContextItems(state => state.searchResults);
 
   if (!("result" in toolInvocation)) {
-    return <div className="text-sm text-[--text-muted]">Searching through your notes...</div>;
+    return (
+      <div className="text-sm text-[--text-muted]">
+        Searching through your notes...
+      </div>
+    );
   }
 
-  if (contextItems.length > 0) {
-    return <div className="text-sm text-[--text-muted]">Found {contextItems.length} matching notes</div>;
+  if (Object.keys(searchResults).length > 0) {
+    return (
+      <div className="text-sm text-[--text-muted]">
+        Found {Object.keys(searchResults).length} matching notes
+      </div>
+    );
   }
 
-  return <div className="text-sm text-[--text-muted]">No files matching that criteria were found</div>;
-} 
+  return (
+    <div className="text-sm text-[--text-muted]">
+      No files matching that criteria were found
+    </div>
+  );
+}

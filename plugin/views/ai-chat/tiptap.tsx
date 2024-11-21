@@ -9,6 +9,7 @@ import {
   addFolderContext,
 } from "./use-context-items";
 import { useVaultItems } from "./use-vault-items";
+import { usePlugin } from "../organizer/provider";
 
 interface TiptapProps {
   value: string;
@@ -26,6 +27,7 @@ interface MentionNodeAttrs {
 }
 
 const Tiptap: React.FC<TiptapProps> = ({ value, onChange, onKeyDown }) => {
+  const plugin = usePlugin();
   const { files, folders, tags, loadFileContent } = useVaultItems();
 
   const handleUpdate = useCallback(
@@ -74,15 +76,15 @@ const Tiptap: React.FC<TiptapProps> = ({ value, onChange, onKeyDown }) => {
           path: props.path,
           title: props.title,
           content: props.content,
-        });
+          });
         break;
 
       case "tag":
-        addTagContext(props.title);
+        addTagContext(props.title, plugin.app);
         break;
 
       case "folder":
-        addFolderContext(props.path,);
+        addFolderContext(props.path, plugin.app);
         break;
     }
   };

@@ -1,5 +1,7 @@
 import { create } from 'zustand';
 import FileOrganizer from '../..';
+import { App, TFile } from 'obsidian';
+import { Vault } from 'obsidian';
 
 // Base types
 interface BaseContextItem {
@@ -16,10 +18,16 @@ interface FileContextItem extends BaseContextItem {
   content: string;
 }
 
+interface ProcessedFile {
+  path: string;
+  content: string;
+}
+
 interface FolderContextItem extends BaseContextItem {
   type: 'folder';
   path: string;
   name: string;
+  files: ProcessedFile[];
 }
 
 interface YouTubeContextItem extends BaseContextItem {
@@ -32,6 +40,7 @@ interface YouTubeContextItem extends BaseContextItem {
 interface TagContextItem extends BaseContextItem {
   type: 'tag';
   name: string;
+  files: ProcessedFile[];
 }
 
 interface ScreenpipeContextItem extends BaseContextItem {
@@ -80,6 +89,10 @@ interface ContextItemsState extends ContextCollections {
   // Getters
   getUnifiedContext: () => BaseContextItem[];
   getItemsByType: (type: ContextItemType) => BaseContextItem[];
+
+  // Processing methods
+  processFolderFiles: (app: App, folderPath: string) => Promise<ProcessedFile[]>;
+  processTaggedFiles: (app: App, tagName: string) => Promise<ProcessedFile[]>;
 }
 
 export const useContextItems = create<ContextItemsState>((set, get) => ({
@@ -183,7 +196,42 @@ export const useContextItems = create<ContextItemsState>((set, get) => ({
     };
 
     return Object.values(state[collectionMap[type]]);
-  }
+  },
+
+  // Add new processing methods
+  processFolderFiles: async (app, folderPath) => {
+    const folderRef = app.vault.getFolderByPath(folderPath);
+    if (!folderRef) return [];
+
+    const files: TFile[] = [];
+    Vault.recurseChildren(folderRef, file => {
+      if (file instanceof TFile) {
+        files.push(file);
+      }
+    });
+
+    return Promise.all(
+      files.map(async file => ({
+        path: file.path,
+        content: await app.vault.cachedRead(file),
+      }))
+    );
+  },
+
+  processTaggedFiles: async (app, tagName) => {
+    const taggedFiles = app.vault.getFiles()
+      .filter(file => {
+        const cache = app.metadataCache.getFileCache(file);
+        return cache?.tags?.some(t => t.tag === `#${tagName}`);
+      });
+
+    return Promise.all(
+      taggedFiles.map(async file => ({
+        path: file.path,
+        content: await app.vault.cachedRead(file),
+      }))
+    );
+  },
 }));
 
 // Helper functions with timestamps
@@ -211,26 +259,32 @@ export const addYouTubeContext = (video: { videoId: string; title: string; trans
   });
 };
 
-export const addFolderContext = (folderPath: string, plugin: FileOrganizer) => {
-  // get all files from the folder
-
-  useContextItems.getState().addFolder({
+export const addFolderContext = async (folderPath: string, app: App): Promise<void> => {
+  const store = useContextItems.getState();
+  const files = await store.processFolderFiles(app, folderPath);
+  
+  store.addFolder({
     id: folderPath,
     type: 'folder',
     path: folderPath,
     name: folderPath.split('/').pop() || folderPath,
     reference: 'Folder',
-    createdAt: Date.now()
+    createdAt: Date.now(),
+    files // Store processed files with the folder
   });
 };
 
-export const addTagContext = (tagName: string) => {
-  useContextItems.getState().addTag({
+export const addTagContext = async (tagName: string, app: App): Promise<void> => {
+  const store = useContextItems.getState();
+  const files = await store.processTaggedFiles(app, tagName);
+
+  store.addTag({
     id: `tag-${tagName}`,
     type: 'tag',
     name: tagName,
     reference: 'Tag',
-    createdAt: Date.now()
+    createdAt: Date.now(),
+    files // Store processed files with the tag
   });
 };
 
@@ -264,5 +318,6 @@ export type {
   TagContextItem,
   ScreenpipeContextItem,
   BaseContextItem,
-  SearchContextItem
+  SearchContextItem,
+  ProcessedFile
 }; 

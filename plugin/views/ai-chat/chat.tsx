@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
 import { useChat, UseChatOptions } from "@ai-sdk/react";
-import { TFolder, TFile, moment, debounce, Vault } from "obsidian";
+import { moment, } from "obsidian";
 
 import FileOrganizer from "../..";
 import Tiptap from "./tiptap";
@@ -19,9 +19,11 @@ import { AudioRecorder } from "./audio-recorder";
 import { logger } from "../../services/logger";
 import { SubmitButton } from "./submit-button";
 import { AddCurrentFileButton } from "./components/add-current-file-button";
-import { useContextItems, addFileContext, addTagContext } from "./use-context-items";
+import { useContextItems } from "./use-context-items";
 import { ContextItems } from "./components/context-items";
 import { ClearAllButton } from "./components/clear-all-button";
+import { useContextGenerator } from "./hooks/use-context-generator";
+import { useCurrentFile } from "./hooks/use-current-file";
 
 interface ChatComponentProps {
   plugin: FileOrganizer;
@@ -44,151 +46,40 @@ export const ChatComponent: React.FC<ChatComponentProps> = ({
     { title: string; content: string; path: string; reference: string }[]
   >([]);
 
-  const { toggleCurrentFile, setCurrentFile, files, folders, tags } =
-    useContextItems();
+  const {
+    toggleCurrentFile,
+    setCurrentFile,
+    files,
+    folders,
+    tags,
+    searchResults,
+    currentFile,
+  } = useContextItems();
+  const { generateContext } = useContextGenerator({
+    currentFile: currentFile,
+    files: files,
+    folders: folders,
+    tags: tags,
+    searchResults: searchResults,
+  });
 
-  const getFolderFiles = async (folderRef: TFolder) => {
-    const files: TFile[] = [];
-    Vault.recurseChildren(folderRef, file => {
-      if (file instanceof TFile) {
-        files.push(file);
-      }
-    });
+  useCurrentFile({
+    fileName,
+    fileContent,
+    setCurrentFile,
+  });
 
-    return Promise.all(
-      files.map(async file => ({
-        path: file.path,
-        content: await plugin.app.vault.cachedRead(file),
-      }))
-    );
-  };
-
-  const processFolder = async (folder: any) => {
-    const folderRef = plugin.app.vault.getFolderByPath(folder.path);
-    if (!folderRef) return folder;
-
-    const folderFiles = await getFolderFiles(folderRef);
-
-    return {
-      ...folder,
-      children: folderFiles,
-    };
-  };
-
-  const processTag = async (tag: TagContextItem) => {
-    // Get all files with this tag
-    const taggedFiles = app.vault.getFiles()
-      .filter(file => {
-        const cache = app.metadataCache.getFileCache(file);
-        return cache?.tags?.some(t => t.tag === `#${tag.name}`);
-      });
-
-    // Get content for all tagged files
-    const tagFiles = await Promise.all(
-      taggedFiles.map(async file => ({
-        path: file.path,
-        content: await app.vault.cachedRead(file),
-      }))
-    );
-
-    return {
-      ...tag,
-      children: tagFiles,
-    };
-  };
-
-  const createContextString = (
-    folders: any[], 
-    files: any[], 
-    tags: Array<TagContextItem & { children: Array<{ path: string; content: string }> }>
-  ) => {
-    let contextString = "# Available Content\n\n";
-
-    // First list all tags and their associated files
-    if (tags.length > 0) {
-      contextString += "## Tags and Tagged Files\n\n";
-      tags.forEach(tag => {
-        contextString += `#${tag.name}\n`;
-        if (tag.children && tag.children.length > 0) {
-          tag.children.forEach(file => {
-            contextString += `  └── 📄 ${file.path}\n`;
-          });
-        }
-        contextString += "\n";
-      });
-    }
-
-    // Then list all folders and their contents
-    if (folders.length > 0) {
-      contextString += "## Folders\n\n";
-      folders.forEach(folder => {
-        contextString += `📁 Folder: ${folder.path}\n`;
-        if (folder.children && folder.children.length > 0) {
-          folder.children.forEach((file: any) => {
-            contextString += `  └── 📄 ${file.path}\n`;
-          });
-        }
-        contextString += "\n";
-      });
-    }
-
-    // Then list all individual files
-    if (files.length > 0) {
-      contextString += "## Individual Files\n\n";
-      files.forEach(file => {
-        contextString += `📄 ${file.path}\n`;
-      });
-      contextString += "\n";
-    }
-
-    // Finally, add the full content of all files
-    contextString += "## File Contents\n\n";
-    
-    // Add tagged files first
-    tags.forEach(tag => {
-      if (tag.children && tag.children.length > 0) {
-        tag.children.forEach(file => {
-          contextString += `### 📄 ${file.path} (tagged with #${tag.name})\n\n${file.content}\n\n---\n\n`;
-        });
-      }
-    });
-    
-    // Add folder files
-    folders.forEach(folder => {
-      if (folder.children && folder.children.length > 0) {
-        folder.children.forEach((file: any) => {
-          contextString += `### 📄 ${file.path}\n\n${file.content}\n\n---\n\n`;
-        });
-      }
-    });
-    
-    // Add individual files
-    files.forEach(file => {
-      contextString += `### 📄 ${file.path}\n\n${file.content}\n\n---\n\n`;
-    });
-
+  const contextString = React.useMemo(() => {
+    const contextString = generateContext();
     return contextString;
+  }, [files, folders, tags]);
+  logger.debug("contextString", contextString);
+
+  const chatBody = {
+    currentDatetime: moment().format("YYYY-MM-DDTHH:mm:ssZ"),
+    enableScreenpipe: plugin.settings.enableScreenpipe,
+    newUnifiedContext: contextString,
   };
-
-  const chatBody = React.useMemo(async () => {
-    // Process both folders and tags
-    const processedFolders = await Promise.all(
-      Object.values(folders).map(processFolder)
-    );
-    const processedTags = await Promise.all(
-      Object.values(tags).map(processTag)
-    );
-    const processedFiles = Object.values(files);
-
-    const contextString = createContextString(processedFolders, processedFiles, processedTags);
-    console.log("contextString", contextString);
-
-    return {
-      unifiedContext: contextString,
-      enableScreenpipe: plugin.settings.enableScreenpipe,
-      currentDatetime: moment().format("YYYY-MM-DDTHH:mm:ssZ"),
-    };
-  }, [files, folders, tags, plugin.settings.enableScreenpipe]);
 
   const {
     isLoading: isGenerating,
@@ -219,21 +110,14 @@ export const ChatComponent: React.FC<ChatComponentProps> = ({
       }
 
       if (selectedModel === "llama3.2") {
-        const { messages, unifiedContext } = JSON.parse(options.body as string);
-
-        const contextString = unifiedContext
-          .map(file => {
-            // this should be better formatted Start with path, title, reference, content
-            return `Path: ${file.path}\nTitle: ${file.title}\nReference: ${file.reference}\nContent:\n${file.content}`;
-          })
-          .join("\n\n-------\n\n");
-
+        const { messages, unifiedContext, currentDatetime, enableScreenpipe } =
+          JSON.parse(options.body as string);
         const result = await streamText({
           model: ollama("llama3.2"),
           system: getChatSystemPrompt(
-            contextString,
-            plugin.settings.enableScreenpipe,
-            moment().format("YYYY-MM-DDTHH:mm:ssZ")
+            unifiedContext,
+            enableScreenpipe,
+            currentDatetime
           ),
           messages: convertToCoreMessages(messages),
         });
@@ -287,31 +171,6 @@ export const ChatComponent: React.FC<ChatComponentProps> = ({
     }
   };
 
-  const handleOpenFile = async (fileTitle: string) => {
-    const file = app.vault.getFiles().find(f => f.basename === fileTitle);
-    if (file) {
-      await app.workspace.openLinkText(file.path, "", true);
-    }
-  };
-  const handleOpenFolder = (folderPath: string) => {
-    const folder = app.vault.getAbstractFileByPath(folderPath);
-    if (folder && folder instanceof TFolder) {
-      // Reveal the folder in the file explorer
-      const fileExplorerLeaf =
-        app.workspace.getLeavesOfType("file-explorer")[0];
-      if (fileExplorerLeaf) {
-        app.workspace.revealLeaf(fileExplorerLeaf);
-        // Focus on the folder in the file explorer
-        app.workspace.setActiveLeaf(fileExplorerLeaf);
-        // Expand the folder in the file explorer
-        const fileExplorer = fileExplorerLeaf.view as any;
-        if (fileExplorer && typeof fileExplorer.expandFolder === "function") {
-          fileExplorer.expandFolder(folder);
-        }
-      }
-    }
-  };
-
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const scrollToBottom = () => {
@@ -332,17 +191,6 @@ export const ChatComponent: React.FC<ChatComponentProps> = ({
       target: { value: text },
     } as React.ChangeEvent<HTMLInputElement>);
   };
-  // Update current file when it changes
-  useEffect(() => {
-    if (fileName && fileContent) {
-      setCurrentFile({
-        id: fileName,
-        title: fileName,
-        content: fileContent,
-        name: fileName,
-      });
-    }
-  }, [fileName, fileContent, setCurrentFile]);
 
   return (
     <div className="flex flex-col h-full max-h-screen ">
@@ -373,10 +221,7 @@ export const ChatComponent: React.FC<ChatComponentProps> = ({
         <div className="flex items-center space-x-2 mb-4">
           <AddCurrentFileButton onAddCurrentFile={() => toggleCurrentFile()} />
 
-          <ContextItems
-            onOpenFile={handleOpenFile}
-            onOpenFolder={handleOpenFolder}
-          />
+          <ContextItems />
 
           <ClearAllButton />
         </div>
@@ -403,7 +248,7 @@ export const ChatComponent: React.FC<ChatComponentProps> = ({
 
         <div className="flex items-center justify-between">
           <ContextLimitIndicator
-            unifiedContext={unifiedContext}
+            unifiedContext={contextString}
             maxContextSize={maxContextSize}
           />
           <ModelSelector

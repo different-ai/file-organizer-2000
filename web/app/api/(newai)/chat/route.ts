@@ -21,16 +21,24 @@ export async function POST(req: NextRequest) {
   const model = getModel(MODEL_NAME);
   try {
     const { userId } = await handleAuthorization(req);
-    const { messages, unifiedContext, enableScreenpipe, currentDatetime } =
-      await req.json();
+    const {
+      messages,
+      newUnifiedContext,
+      enableScreenpipe,
+      currentDatetime,
+      unifiedContext: oldUnifiedContext,
+    } = await req.json();
     console.log(enableScreenpipe, "enableScreenpipe");
     console.log(currentDatetime, "currentDatetime");
 
-    const contextString = unifiedContext
-      ?.map((file) => {
-        return `File: ${file.title}\n\nContent:\n${file.content}\nPath: ${file.path} Reference: ${file.reference}`;
-      })
-      .join("\n\n");
+    // if oldunified context do what is below if not just return newunified context
+    const contextString =
+      newUnifiedContext ||
+      oldUnifiedContext
+        ?.map((file) => {
+          return `File: ${file.title}\n\nContent:\n${file.content}\nPath: ${file.path} Reference: ${file.reference}`;
+        })
+        .join("\n\n");
 
     const result = await streamText({
       model,
