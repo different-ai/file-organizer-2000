@@ -126,6 +126,8 @@ export default class FileOrganizer extends Plugin {
     return serverUrl;
   }
 
+  
+
   /**
    * Processes a file by organizing it and logging the actions.
    * @param originalFile - The file to process.
@@ -1312,6 +1314,7 @@ export default class FileOrganizer extends Plugin {
     // Fetch all tags from the vault
     // @ts-ignore
     const tags: TagCounts = this.app.metadataCache.getTags();
+    console.log("tags", tags);
 
     // If no tags are found, return an empty array
     if (Object.keys(tags).length === 0) {

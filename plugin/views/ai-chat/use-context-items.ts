@@ -1,4 +1,5 @@
 import { create } from 'zustand';
+import FileOrganizer from '../..';
 
 // Base types
 interface BaseContextItem {
@@ -38,12 +39,24 @@ interface ScreenpipeContextItem extends BaseContextItem {
   data: any;
 }
 
+// Add new search result type
+interface SearchContextItem extends BaseContextItem {
+  type: 'search';
+  query: string;
+  results: Array<{
+    path: string;
+    title: string;
+    content: string;
+  }>;
+}
+
 type ContextCollections = {
   files: Record<string, FileContextItem>;
   folders: Record<string, FolderContextItem>;
   youtubeVideos: Record<string, YouTubeContextItem>;
   tags: Record<string, TagContextItem>;
   screenpipe: Record<string, ScreenpipeContextItem>;
+  searchResults: Record<string, SearchContextItem>;
 };
 
 interface ContextItemsState extends ContextCollections {
@@ -56,6 +69,7 @@ interface ContextItemsState extends ContextCollections {
   addYouTubeVideo: (video: YouTubeContextItem) => void;
   addTag: (tag: TagContextItem) => void;
   addScreenpipe: (data: ScreenpipeContextItem) => void;
+  addSearchResults: (search: SearchContextItem) => void;
   
   // Generic actions
   removeItem: (type: ContextItemType, id: string) => void;
@@ -75,6 +89,7 @@ export const useContextItems = create<ContextItemsState>((set, get) => ({
   youtubeVideos: {},
   tags: {},
   screenpipe: {},
+  searchResults: {},
   currentFile: null,
   includeCurrentFile: true,
 
@@ -99,6 +114,10 @@ export const useContextItems = create<ContextItemsState>((set, get) => ({
     screenpipe: { ...state.screenpipe, [data.id]: data }
   })),
 
+  addSearchResults: (search) => set((state) => ({
+    searchResults: { ...state.searchResults, [search.id]: search }
+  })),
+
   // Remove action
   removeItem: (type, id) => set((state) => {
     const collectionMap: Record<ContextItemType, keyof ContextCollections> = {
@@ -106,7 +125,8 @@ export const useContextItems = create<ContextItemsState>((set, get) => ({
       folder: 'folders',
       youtube: 'youtubeVideos',
       tag: 'tags',
-      screenpipe: 'screenpipe'
+      screenpipe: 'screenpipe',
+      search: 'searchResults',
     };
 
     const collectionKey = collectionMap[type];
@@ -128,6 +148,7 @@ export const useContextItems = create<ContextItemsState>((set, get) => ({
     youtubeVideos: {},
     tags: {},
     screenpipe: {},
+    searchResults: {},
     includeCurrentFile: false,
     currentFile: null
   }),
@@ -139,7 +160,8 @@ export const useContextItems = create<ContextItemsState>((set, get) => ({
       ...Object.values(state.folders),
       ...Object.values(state.youtubeVideos),
       ...Object.values(state.tags),
-      ...Object.values(state.screenpipe)
+      ...Object.values(state.screenpipe),
+      ...Object.values(state.searchResults),
     ].sort((a, b) => b.createdAt - a.createdAt);
 
     if (state.includeCurrentFile && state.currentFile) {
@@ -156,7 +178,8 @@ export const useContextItems = create<ContextItemsState>((set, get) => ({
       folder: 'folders',
       youtube: 'youtubeVideos',
       tag: 'tags',
-      screenpipe: 'screenpipe'
+      screenpipe: 'screenpipe',
+      search: 'searchResults',
     };
 
     return Object.values(state[collectionMap[type]]);
@@ -188,7 +211,9 @@ export const addYouTubeContext = (video: { videoId: string; title: string; trans
   });
 };
 
-export const addFolderContext = (folderPath: string) => {
+export const addFolderContext = (folderPath: string, plugin: FileOrganizer) => {
+  // get all files from the folder
+
   useContextItems.getState().addFolder({
     id: folderPath,
     type: 'folder',
@@ -219,13 +244,25 @@ export const addScreenpipeContext = (data: any) => {
   });
 };
 
+export const addSearchContext = (query: string, results: Array<{ path: string; title: string; content: string }>) => {
+  useContextItems.getState().addSearchResults({
+    id: `search-${Date.now()}`,
+    type: 'search',
+    query,
+    results,
+    reference: `Search: "${query}"`,
+    createdAt: Date.now()
+  });
+};
+
 // Add export for types
-export type ContextItemType = 'file' | 'folder' | 'youtube' | 'tag' | 'screenpipe';
+export type ContextItemType = 'file' | 'folder' | 'youtube' | 'tag' | 'screenpipe' | 'search';
 export type { 
   FileContextItem,
   FolderContextItem,
   YouTubeContextItem,
   TagContextItem,
   ScreenpipeContextItem,
-  BaseContextItem
+  BaseContextItem,
+  SearchContextItem
 }; 

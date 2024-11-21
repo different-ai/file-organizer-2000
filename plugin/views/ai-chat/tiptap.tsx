@@ -1,20 +1,19 @@
-import { useEditor, EditorContent } from "@tiptap/react";
+import { useEditor, EditorContent, Editor, Range } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
 import React, { useEffect, useCallback } from "react";
-import { Mention } from '@tiptap/extension-mention';
-import suggestion from './suggestion';
-import { 
-  addFileContext, 
-  addTagContext, 
-  addFolderContext 
-} from './use-context-items';
-import { useVaultItems } from './use-vault-items';
+import { Mention } from "@tiptap/extension-mention";
+import suggestion from "./suggestion";
+import {
+  addFileContext,
+  addTagContext,
+  addFolderContext,
+} from "./use-context-items";
+import { useVaultItems } from "./use-vault-items";
 
 interface TiptapProps {
   value: string;
   onChange: (value: string) => void;
   onKeyDown?: (event: React.KeyboardEvent) => void;
-
 }
 
 interface MentionNodeAttrs {
@@ -22,15 +21,11 @@ interface MentionNodeAttrs {
   label: string;
   title: string;
   content: string;
-  type: 'file' | 'tag' | 'folder';
+  type: "file" | "tag" | "folder";
   path?: string;
 }
 
-const Tiptap: React.FC<TiptapProps> = ({ 
-  value, 
-  onChange, 
-  onKeyDown 
-}) => {
+const Tiptap: React.FC<TiptapProps> = ({ value, onChange, onKeyDown }) => {
   const { files, folders, tags, loadFileContent } = useVaultItems();
 
   const handleUpdate = useCallback(
@@ -41,15 +36,19 @@ const Tiptap: React.FC<TiptapProps> = ({
     [onChange]
   );
 
-  const handleMentionCommand = async ({ editor, range, props }: { 
-    editor: any; 
-    range: any; 
-    props: MentionNodeAttrs 
+  const handleMentionCommand = async ({
+    editor,
+    range,
+    props,
+  }: {
+    editor: Editor;
+    range: Range;
+    props: MentionNodeAttrs;
   }) => {
     // Load file content if it's a file mention
-    if (props.type === 'file') {
+    if (props.type === "file") {
       const content = await loadFileContent(props.path);
-      props.content = content || '';
+      props.content = content || "";
     }
 
     // Insert mention in editor
@@ -58,32 +57,32 @@ const Tiptap: React.FC<TiptapProps> = ({
       .focus()
       .insertContentAt(range, [
         {
-          type: 'mention',
-          attrs: props
+          type: "mention",
+          attrs: props,
         },
         {
-          type: 'text',
-          text: ' '
+          type: "text",
+          text: " ",
         },
       ])
       .run();
 
     // Add to context based on type
     switch (props.type) {
-      case 'file':
+      case "file":
         addFileContext({
           path: props.path,
           title: props.title,
-          content: props.content
+          content: props.content,
         });
         break;
-      
-      case 'tag':
+
+      case "tag":
         addTagContext(props.title);
         break;
-      
-      case 'folder':
-        addFolderContext(props.path);
+
+      case "folder":
+        addFolderContext(props.path,);
         break;
     }
   };
@@ -93,11 +92,13 @@ const Tiptap: React.FC<TiptapProps> = ({
       StarterKit,
       Mention.configure({
         HTMLAttributes: {
-          class: 'bg-[--background-modifier-active-hover] text-[--text-accent] rounded-md px-1 py-0.5',
+          class:
+            "bg-[--background-modifier-active-hover] text-[--text-accent] rounded-md px-1 py-0.5",
         },
         suggestion: {
           ...suggestion,
-          decorationClass: 'bg-[--background-modifier-active-hover] text-[--text-accent] rounded-md px-1 py-0.5',
+          decorationClass:
+            "bg-[--background-modifier-active-hover] text-[--text-accent] rounded-md px-1 py-0.5",
           items: ({ query, editor }) => suggestion.items({ query, editor }),
           command: handleMentionCommand,
         },
@@ -107,7 +108,8 @@ const Tiptap: React.FC<TiptapProps> = ({
     onUpdate: handleUpdate,
     editorProps: {
       attributes: {
-        class: 'prose prose-sm sm:prose lg:prose-lg xl:prose-2xl mx-auto focus:outline-none',
+        class:
+          "prose prose-sm sm:prose lg:prose-lg xl:prose-2xl mx-auto focus:outline-none",
       },
     },
   });
@@ -118,7 +120,7 @@ const Tiptap: React.FC<TiptapProps> = ({
       editor.storage.mention = {
         files,
         folders,
-        tags
+        tags,
       };
     }
   }, [editor, files, folders, tags]);

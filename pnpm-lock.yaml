@@ -134,7 +134,7 @@ devDependencies:
     specifier: ^0.0.4
     version: 0.0.4(esbuild@0.17.3)(postcss@8.4.47)(ts-node@10.9.2)
   obsidian:
-    specifier: latest
+    specifier: ^1.7.2
     version: 1.7.2(@codemirror/state@6.4.1)(@codemirror/view@6.34.1)
   postcss:
     specifier: ^8.4.31

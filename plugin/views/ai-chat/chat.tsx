@@ -1,10 +1,6 @@
-import React, {
-  useState,
-  useEffect,
-  useRef,
-} from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useChat, UseChatOptions } from "@ai-sdk/react";
-import { TFolder, TFile, moment, debounce } from "obsidian";
+import { TFolder, TFile, moment, debounce, Vault } from "obsidian";
 
 import FileOrganizer from "../..";
 import Tiptap from "./tiptap";
@@ -23,9 +19,9 @@ import { AudioRecorder } from "./audio-recorder";
 import { logger } from "../../services/logger";
 import { SubmitButton } from "./submit-button";
 import { AddCurrentFileButton } from "./components/add-current-file-button";
-import { useContextItems } from './use-context-items';
-import { ContextItems } from './components/context-items';
-import { ClearAllButton } from './components/clear-all-button';
+import { useContextItems, addFileContext, addTagContext } from "./use-context-items";
+import { ContextItems } from "./components/context-items";
+import { ClearAllButton } from "./components/clear-all-button";
 
 interface ChatComponentProps {
   plugin: FileOrganizer;
@@ -33,8 +29,6 @@ interface ChatComponentProps {
   fileName: string | null;
   apiKey: string;
   inputRef: React.RefObject<HTMLDivElement>;
-
-
 }
 
 export const ChatComponent: React.FC<ChatComponentProps> = ({
@@ -50,24 +44,151 @@ export const ChatComponent: React.FC<ChatComponentProps> = ({
     { title: string; content: string; path: string; reference: string }[]
   >([]);
 
-  const { 
-    toggleCurrentFile,
-    setCurrentFile,
-    items
-  } = useContextItems();
+  const { toggleCurrentFile, setCurrentFile, files, folders, tags } =
+    useContextItems();
 
+  const getFolderFiles = async (folderRef: TFolder) => {
+    const files: TFile[] = [];
+    Vault.recurseChildren(folderRef, file => {
+      if (file instanceof TFile) {
+        files.push(file);
+      }
+    });
 
-  const chatBody = React.useMemo(() => {
-    // get the file content from items  if it's a folder get all files in the folder content
+    return Promise.all(
+      files.map(async file => ({
+        path: file.path,
+        content: await plugin.app.vault.cachedRead(file),
+      }))
+    );
+  };
 
+  const processFolder = async (folder: any) => {
+    const folderRef = plugin.app.vault.getFolderByPath(folder.path);
+    if (!folderRef) return folder;
+
+    const folderFiles = await getFolderFiles(folderRef);
 
     return {
-      unifiedContext: items,
+      ...folder,
+      children: folderFiles,
+    };
+  };
+
+  const processTag = async (tag: TagContextItem) => {
+    // Get all files with this tag
+    const taggedFiles = app.vault.getFiles()
+      .filter(file => {
+        const cache = app.metadataCache.getFileCache(file);
+        return cache?.tags?.some(t => t.tag === `#${tag.name}`);
+      });
+
+    // Get content for all tagged files
+    const tagFiles = await Promise.all(
+      taggedFiles.map(async file => ({
+        path: file.path,
+        content: await app.vault.cachedRead(file),
+      }))
+    );
+
+    return {
+      ...tag,
+      children: tagFiles,
+    };
+  };
+
+  const createContextString = (
+    folders: any[], 
+    files: any[], 
+    tags: Array<TagContextItem & { children: Array<{ path: string; content: string }> }>
+  ) => {
+    let contextString = "# Available Content\n\n";
+
+    // First list all tags and their associated files
+    if (tags.length > 0) {
+      contextString += "## Tags and Tagged Files\n\n";
+      tags.forEach(tag => {
+        contextString += `#${tag.name}\n`;
+        if (tag.children && tag.children.length > 0) {
+          tag.children.forEach(file => {
+            contextString += `  └── 📄 ${file.path}\n`;
+          });
+        }
+        contextString += "\n";
+      });
+    }
+
+    // Then list all folders and their contents
+    if (folders.length > 0) {
+      contextString += "## Folders\n\n";
+      folders.forEach(folder => {
+        contextString += `📁 Folder: ${folder.path}\n`;
+        if (folder.children && folder.children.length > 0) {
+          folder.children.forEach((file: any) => {
+            contextString += `  └── 📄 ${file.path}\n`;
+          });
+        }
+        contextString += "\n";
+      });
+    }
+
+    // Then list all individual files
+    if (files.length > 0) {
+      contextString += "## Individual Files\n\n";
+      files.forEach(file => {
+        contextString += `📄 ${file.path}\n`;
+      });
+      contextString += "\n";
+    }
+
+    // Finally, add the full content of all files
+    contextString += "## File Contents\n\n";
+    
+    // Add tagged files first
+    tags.forEach(tag => {
+      if (tag.children && tag.children.length > 0) {
+        tag.children.forEach(file => {
+          contextString += `### 📄 ${file.path} (tagged with #${tag.name})\n\n${file.content}\n\n---\n\n`;
+        });
+      }
+    });
+    
+    // Add folder files
+    folders.forEach(folder => {
+      if (folder.children && folder.children.length > 0) {
+        folder.children.forEach((file: any) => {
+          contextString += `### 📄 ${file.path}\n\n${file.content}\n\n---\n\n`;
+        });
+      }
+    });
+    
+    // Add individual files
+    files.forEach(file => {
+      contextString += `### 📄 ${file.path}\n\n${file.content}\n\n---\n\n`;
+    });
+
+    return contextString;
+  };
+
+  const chatBody = React.useMemo(async () => {
+    // Process both folders and tags
+    const processedFolders = await Promise.all(
+      Object.values(folders).map(processFolder)
+    );
+    const processedTags = await Promise.all(
+      Object.values(tags).map(processTag)
+    );
+    const processedFiles = Object.values(files);
+
+    const contextString = createContextString(processedFolders, processedFiles, processedTags);
+    console.log("contextString", contextString);
+
+    return {
+      unifiedContext: contextString,
       enableScreenpipe: plugin.settings.enableScreenpipe,
       currentDatetime: moment().format("YYYY-MM-DDTHH:mm:ssZ"),
     };
-  }, [items, plugin.settings.enableScreenpipe]);
-
+  }, [files, folders, tags, plugin.settings.enableScreenpipe]);
 
   const {
     isLoading: isGenerating,
@@ -138,7 +259,6 @@ export const ChatComponent: React.FC<ChatComponentProps> = ({
     },
   } as UseChatOptions);
 
-
   const handleSendMessage = (e: React.FormEvent<HTMLFormElement>) => {
     logger.debug("handleSendMessage", e, input);
     e.preventDefault();
@@ -147,14 +267,12 @@ export const ChatComponent: React.FC<ChatComponentProps> = ({
       return;
     }
 
-    handleSubmit(e, {body: chatBody});
+    handleSubmit(e, { body: chatBody });
   };
 
   const handleCancelGeneration = () => {
     stop();
   };
-
-
 
   const handleTiptapChange = async (newContent: string) => {
     handleInputChange({
@@ -168,8 +286,6 @@ export const ChatComponent: React.FC<ChatComponentProps> = ({
       handleSendMessage(event as unknown as React.FormEvent<HTMLFormElement>);
     }
   };
-
-
 
   const handleOpenFile = async (fileTitle: string) => {
     const file = app.vault.getFiles().find(f => f.basename === fileTitle);
@@ -196,40 +312,6 @@ export const ChatComponent: React.FC<ChatComponentProps> = ({
     }
   };
 
-
-  useEffect(() => {
-    // Create a debounced version of the file change handler
-    const debouncedFileChange = debounce(async (file: TFile) => {
-      const content = await app.vault.read(file);
-      setUnifiedContext(prev => {
-        const filtered = prev.filter(item => item.path !== file.path);
-        return [
-          ...filtered,
-          {
-            title: file.basename,
-            content: content,
-            path: file.path,
-            reference: `Current File: ${file.basename}`,
-          },
-        ];
-      });
-    }, 1000); // 1 second delay
-
-    // Set up the event listener
-    const onActiveFileChange = (file: TFile) => {
-      debouncedFileChange(file);
-    };
-
-    app.vault.on("modify", onActiveFileChange);
-
-    // Cleanup
-    return () => {
-      app.vault.off("modify", onActiveFileChange);
-      debouncedFileChange.cancel();
-    };
-  }, [fileName, app.vault]);
-
-
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const scrollToBottom = () => {
@@ -240,13 +322,7 @@ export const ChatComponent: React.FC<ChatComponentProps> = ({
     scrollToBottom();
   }, [messages, history]);
 
-
-
   const [maxContextSize] = useState(80 * 1000); // Keep this one
-
-
-
-  
 
   // Update state to default to gpt-4
   const [selectedModel, setSelectedModel] = useState<ModelType>("gpt-4o");

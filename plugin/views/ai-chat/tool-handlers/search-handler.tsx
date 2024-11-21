@@ -1,7 +1,7 @@
 import React, { useRef } from "react";
 import { App } from "obsidian";
 import { logger } from "../../../services/logger";
-import { addFileContext, useContextItems } from "../use-context-items";
+import { addSearchContext, useContextItems } from "../use-context-items";
 
 interface SearchHandlerProps {
   toolInvocation: any;
@@ -15,7 +15,6 @@ export function SearchHandler({
   app,
 }: SearchHandlerProps) {
   const hasFetchedRef = useRef(false);
-  const clearAll = useContextItems(state => state.clearAll);
 
   const searchNotes = async (query: string) => {
     const files = app.vault.getMarkdownFiles();
@@ -55,14 +54,7 @@ export function SearchHandler({
           const searchResults = await searchNotes(query);
           
           // Clear existing context and add new search results
-          clearAll();
-          searchResults.forEach(result => {
-            addFileContext({
-              path: result.path,
-              title: result.title,
-              content: result.content
-            });
-          });
+          addSearchContext(query, searchResults);
           
           handleAddResult(JSON.stringify(searchResults));
         } catch (error) {

@@ -22,7 +22,7 @@
     "builtin-modules": "3.3.0",
     "esbuild": "0.17.3",
     "esbuild-postcss": "^0.0.4",
-    "obsidian": "latest",
+    "obsidian": "^1.7.2",
     "postcss": "^8.4.31",
     "tailwindcss": "^3.4.14",
     "tslib": "2.4.0",
