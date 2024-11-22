@@ -8,35 +8,42 @@ interface ContextLimitIndicatorProps {
   maxContextSize: number;
 }
 
+const MAX_CHUNK_SIZE = 1024 * 1024; // 1MB chunk size
+
 export const ContextLimitIndicator: React.FC<ContextLimitIndicatorProps> = ({
   unifiedContext,
   maxContextSize,
 }) => {
-  const plugin = usePlugin();
   const [encoding, setEncoding] = React.useState<any>(null);
   const [error, setError] = React.useState<string | null>(null);
 
   React.useEffect(() => {
     let isMounted = true;
+    let encoder: any = null;
 
     (async () => {
       try {
-        await init((imports) => WebAssembly.instantiate(wasmBinary, imports));
+        if (!globalThis.tiktokenInitialized) {
+          await init((imports) => WebAssembly.instantiate(wasmBinary, imports));
+          globalThis.tiktokenInitialized = true;
+        }
+
         if (isMounted) {
-          const enc = get_encoding("cl100k_base");
-          setEncoding(enc);
+          encoder = get_encoding("cl100k_base");
+          setEncoding(encoder);
+          setError(null);
         }
       } catch (error) {
         console.error("Error initializing tiktoken:", error);
-        setError("Failed to initialize token counter");
+        setError("Failed to initialize token counter. Please reload the app.");
       }
     })();
 
     return () => {
       isMounted = false;
-      if (encoding) {
+      if (encoder) {
         try {
-          encoding.free();
+          encoder.free();
         } catch (e) {
           console.error("Error freeing encoder:", e);
         }
@@ -50,8 +57,26 @@ export const ContextLimitIndicator: React.FC<ContextLimitIndicatorProps> = ({
     }
 
     try {
-      const tokens = encoding.encode(unifiedContext);
-      const totalTokens = tokens.length;
+      if (!unifiedContext || typeof unifiedContext !== 'string') {
+        throw new Error('Invalid input: context must be a non-empty string');
+      }
+
+      // Process text in chunks if it's too large
+      let totalTokens = 0;
+      for (let i = 0; i < unifiedContext.length; i += MAX_CHUNK_SIZE) {
+        const chunk = unifiedContext.slice(i, i + MAX_CHUNK_SIZE);
+        const tokens = encoding.encode(chunk);
+        totalTokens += tokens.length;
+
+        if (tokens && Array.isArray(tokens)) {
+          encoding.free_tokens(tokens);
+        }
+
+        // Early exit if already over limit
+        if (totalTokens > maxContextSize) {
+          break;
+        }
+      }
 
       return {
         contextSize: totalTokens,
@@ -59,7 +84,7 @@ export const ContextLimitIndicator: React.FC<ContextLimitIndicatorProps> = ({
       };
     } catch (e) {
       console.error("Error counting tokens:", e);
-      setError("Failed to count tokens");
+      setError('Token counting failed. Context may be too large.');
       return { contextSize: 0, percentUsed: 0 };
     }
   }, [unifiedContext, maxContextSize, encoding, error]);

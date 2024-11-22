@@ -19,7 +19,7 @@ import { AudioRecorder } from "./audio-recorder";
 import { logger } from "../../services/logger";
 import { SubmitButton } from "./submit-button";
 import { AddCurrentFileButton } from "./components/add-current-file-button";
-import { useContextItems } from "./use-context-items";
+import { getUniqueReferences, useContextItems } from "./use-context-items";
 import { ContextItems } from "./components/context-items";
 import { ClearAllButton } from "./components/clear-all-button";
 import { useContextGenerator } from "./hooks/use-context-generator";
@@ -34,17 +34,12 @@ interface ChatComponentProps {
 }
 
 export const ChatComponent: React.FC<ChatComponentProps> = ({
-  fileContent,
-  fileName,
   apiKey,
   inputRef,
 }) => {
   const plugin = usePlugin();
   const app = plugin.app;
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
-  const [unifiedContext, setUnifiedContext] = useState<
-    { title: string; content: string; path: string; reference: string }[]
-  >([]);
 
   const {
     toggleCurrentFile,
@@ -55,16 +50,18 @@ export const ChatComponent: React.FC<ChatComponentProps> = ({
     searchResults,
     currentFile,
   } = useContextItems();
-  console.log("currentFile", currentFile);
 
-  const { generateContext } = useContextGenerator({
-    currentFile: currentFile,
-    files: files,
-    folders: folders,
-    tags: tags,
-    searchResults: searchResults,
-  });
-  // change api return current file instead and pass it in useContext generator
+  const uniqueReferences = getUniqueReferences();
+  logger.debug("uniqueReferences", uniqueReferences);
+
+  const contextItems = {
+    files,
+    folders,
+    tags,
+    currentFile,
+    searchResults,
+  };
+
   // skip the use context items entirely
   useCurrentFile({
     app,
@@ -72,9 +69,9 @@ export const ChatComponent: React.FC<ChatComponentProps> = ({
   });
 
   const contextString = React.useMemo(() => {
-    const contextString = generateContext();
+    const contextString = JSON.stringify(contextItems);
     return contextString;
-  }, [files, folders, tags, currentFile]);
+  }, [contextItems]);
   logger.debug("contextString", contextString);
 
   const chatBody = {
