@@ -9,7 +9,7 @@ export const UserMarkdown: React.FC<UserMarkdownProps> = ({ content }) => {
   return (
     <MarkdownContent 
       content={content} 
-      className="simple-obsidian-renderer"
+      className="simple-obsidian-renderer p-3"
     />
   );
 };

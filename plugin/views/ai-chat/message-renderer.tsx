@@ -29,7 +29,7 @@ export const MessageRenderer: React.FC<MessageRendererProps> = ({
       transition={{ duration: 0.3 }}
     >
       <Avatar role={message.role as "user" | "assistant"} />
-      <motion.div className="ml-2 p-2 rounded-lg text-[--text-normal] w-full">
+      <motion.div className="rounded-lg text-[--text-normal] w-full">
         {message.role === "user" ? (
           <UserMarkdown content={message.content} />
         ) : (

@@ -27,8 +27,6 @@ import { useCurrentFile } from "./hooks/use-current-file";
 
 interface ChatComponentProps {
   plugin: FileOrganizer;
-  fileContent: string;
-  fileName: string | null;
   apiKey: string;
   inputRef: React.RefObject<HTMLDivElement>;
 }

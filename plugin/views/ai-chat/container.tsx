@@ -10,8 +10,6 @@ interface AIChatSidebarProps {
 }
 
 const AIChatSidebar: React.FC<AIChatSidebarProps> = ({ plugin, apiKey }) => {
-  const [fileContent, setFileContent] = useState<string>("");
-  const [fileName, setFileName] = useState<string | null>(null);
   const inputRef = useRef<HTMLDivElement>(null);
   const [conversations, setConversations] = useState<
     { id: string; role: string; content: string }[][]
@@ -23,35 +21,6 @@ const AIChatSidebar: React.FC<AIChatSidebarProps> = ({ plugin, apiKey }) => {
     setConversations([...conversations, []]);
     setCurrentConversationIndex(conversations.length);
   };
-
-  useEffect(() => {
-    const loadFileContent = async () => {
-      const activeFile = plugin.app.workspace.getActiveFile();
-      if (activeFile) {
-        try {
-          const content = await plugin.app.vault.read(activeFile);
-          setFileContent(content);
-          setFileName(activeFile.basename);
-        } catch (error) {
-          logger.error(`Error reading file: ${error}`);
-          setFileContent("");
-          setFileName(null);
-        }
-      } else {
-        setFileContent("");
-        setFileName(null);
-      }
-    };
-
-    loadFileContent();
-
-    // Set up event listener for file changes
-    const onFileOpen = plugin.app.workspace.on("file-open", loadFileContent);
-
-    return () => {
-      plugin.app.workspace.offref(onFileOpen);
-    };
-  }, [plugin.app.workspace, plugin.app.vault]);
 
   return (
     <Card className="flex flex-col h-full max-h-screen bg-[--ai-chat-background] text-[--ai-chat-text]">
@@ -80,17 +49,8 @@ const AIChatSidebar: React.FC<AIChatSidebarProps> = ({ plugin, apiKey }) => {
       <ChatComponent
         key={currentConversationIndex}
         plugin={plugin}
-        fileContent={fileContent}
-        fileName={fileName}
         apiKey={apiKey}
         inputRef={inputRef}
-        history={conversations[currentConversationIndex]}
-        setHistory={newHistory => {
-          const updatedConversations = [...conversations];
-          updatedConversations[currentConversationIndex] = newHistory;
-          setConversations(updatedConversations);
-        }}
-        className="flex-grow overflow-hidden"
       />
     </Card>
   );

@@ -26,7 +26,8 @@ export const AIMarkdown: React.FC<AIMarkdownProps> = ({ content, app }) => {
   };
 
   return (
-    <div className="markdown-preview-view" onClick={handleClick}>
+    <div className="card">
+    <div className="markdown-preview-view " onClick={handleClick}>
       {content.split(/(\[\[.*?\]\])/g).map((part, i) => {
         if (part.startsWith("[[") && part.endsWith("]]")) {
           const inner = part.slice(2, -2);
@@ -34,7 +35,8 @@ export const AIMarkdown: React.FC<AIMarkdownProps> = ({ content, app }) => {
 
           const linkpath = getLinkpath(target.trim());
           // get rid of extension if present for display text
-          const displayText = alias?.trim() || target.trim().replace(/\.(md|markdown)$/, "");
+          const displayText =
+            alias?.trim() || target.trim().replace(/\.(md|markdown)$/, "");
 
           return (
             <a
@@ -69,7 +71,8 @@ export const AIMarkdown: React.FC<AIMarkdownProps> = ({ content, app }) => {
             {part}
           </ReactMarkdown>
         );
-      })}
+        })}
+      </div>
     </div>
   );
 };
