@@ -3,7 +3,6 @@ import { ChatComponent } from "./chat";
 import FileOrganizer from "../..";
 import { Card } from "./card";
 import { Button } from "./button";
-import { logger } from "../../services/logger";
 interface AIChatSidebarProps {
   plugin: FileOrganizer;
   apiKey: string;
@@ -23,7 +22,7 @@ const AIChatSidebar: React.FC<AIChatSidebarProps> = ({ plugin, apiKey }) => {
   };
 
   return (
-    <Card className="flex flex-col h-full max-h-screen bg-[--ai-chat-background] text-[--ai-chat-text]">
+    <Card className="flex flex-col h-full max-h-screen bg-[--ai-chat-background] text-[--ai-chat-text] p-0 m-0">
       <div className="flex justify-end">
         <Button
           onClick={startNewConversation}
