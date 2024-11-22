@@ -16,7 +16,8 @@ export const ContextItems: React.FC = () => {
     youtubeVideos,
     tags,
     screenpipe,
-    removeItem,
+    searchResults,
+    removeByReference,
     toggleCurrentFile,
   } = useContextItems();
 
@@ -26,6 +27,7 @@ export const ContextItems: React.FC = () => {
     tag: "🏷️",
     youtube: "🎥",
     screenpipe: "📊",
+    search: "🔍",
   } as const;
 
   const handleItemClick = (
@@ -49,6 +51,9 @@ export const ContextItems: React.FC = () => {
         break;
       case "screenpipe":
         // Add screenpipe handling if needed
+        break;
+      case "search":
+        // Optionally handle search click - could show results in a modal
         break;
     }
   };
@@ -103,7 +108,7 @@ export const ContextItems: React.FC = () => {
                 key={file.id}
                 item={file.title}
                 onClick={() => handleItemClick("file", file.id, file.title)}
-                onRemove={() => removeItem("file", file.id)}
+                onRemove={() => removeByReference(file)}
                 prefix={`${prefixMap.file} `}
               />
             ))}
@@ -120,7 +125,7 @@ export const ContextItems: React.FC = () => {
                 onClick={() =>
                   handleItemClick("folder", folder.id, folder.name)
                 }
-                onRemove={() => removeItem("folder", folder.id)}
+                onRemove={() => removeByReference(folder.reference)}
                 prefix={`${prefixMap.folder} `}
               />
             ))}
@@ -135,7 +140,7 @@ export const ContextItems: React.FC = () => {
                 key={tag.id}
                 item={tag.name}
                 onClick={() => handleItemClick("tag", tag.id, tag.name)}
-                onRemove={() => removeItem("tag", tag.id)}
+                onRemove={() => removeByReference(tag.reference)}
                 prefix={`${prefixMap.tag} `}
               />
             ))}
@@ -154,7 +159,7 @@ export const ContextItems: React.FC = () => {
                 onClick={() =>
                   handleItemClick("youtube", video.id, video.title)
                 }
-                onRemove={() => removeItem("youtube", video.id)}
+                onRemove={() => removeByReference(video.reference)}
                 prefix={`${prefixMap.youtube} `}
               />
             ))}
@@ -166,8 +171,25 @@ export const ContextItems: React.FC = () => {
                 onClick={() =>
                   handleItemClick("screenpipe", item.id, item.reference)
                 }
-                onRemove={() => removeItem("screenpipe", item.id)}
+                onRemove={() => removeByReference(item.reference)}
                 prefix={`${prefixMap.screenpipe} `}
+              />
+            ))}
+          </div>
+        )}
+
+        {/* Search Results section */}
+        {Object.values(searchResults).length > 0 && (
+          <div className="flex space-x-2">
+            {Object.values(searchResults).map(search => (
+              <SelectedItem
+                key={search.id}
+                item={`"${search.query}" (${search.results.length} results)`}
+                onClick={() => 
+                  handleItemClick("search", search.id, search.query)
+                }
+                onRemove={() => removeByReference(search.reference)}
+                prefix={`${prefixMap.search} `}
               />
             ))}
           </div>

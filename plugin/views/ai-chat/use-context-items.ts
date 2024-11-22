@@ -194,7 +194,7 @@ export const useContextItems = create<ContextItemsState>((set, get) => ({
 
   toggleCurrentFile: () =>
     set(state => ({
-      includeCurrentFile: !state.includeCurrentFile,
+      currentFile: null,
     })),
 
   clearAll: () =>

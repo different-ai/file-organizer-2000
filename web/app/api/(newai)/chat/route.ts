@@ -28,8 +28,6 @@ export async function POST(req: NextRequest) {
       currentDatetime,
       unifiedContext: oldUnifiedContext,
     } = await req.json();
-    console.log(enableScreenpipe, "enableScreenpipe");
-    console.log(currentDatetime, "currentDatetime");
 
     // if oldunified context do what is below if not just return newunified context
     const contextString =
@@ -47,7 +45,7 @@ export async function POST(req: NextRequest) {
         enableScreenpipe,
         currentDatetime
       ),
-      // maxSteps: 3,
+      maxSteps: 3,
       messages: convertToCoreMessages(messages),
       tools: {
         getSearchQuery: {

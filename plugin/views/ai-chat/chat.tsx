@@ -47,6 +47,7 @@ export const ChatComponent: React.FC<ChatComponentProps> = ({
     tags,
     searchResults,
     currentFile,
+    screenpipe,
   } = useContextItems();
 
   const uniqueReferences = getUniqueReferences();
@@ -57,6 +58,7 @@ export const ChatComponent: React.FC<ChatComponentProps> = ({
     folders,
     tags,
     currentFile,
+    screenpipe,
     searchResults,
   };
 
