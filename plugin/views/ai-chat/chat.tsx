@@ -216,7 +216,6 @@ export const ChatComponent: React.FC<ChatComponentProps> = ({
 
       <div className="border-t border-[--background-modifier-border] p-4">
         <div className="flex items-center space-x-2 mb-4">
-          <AddCurrentFileButton onAddCurrentFile={() => toggleCurrentFile()} />
 
           <ContextItems />
 
