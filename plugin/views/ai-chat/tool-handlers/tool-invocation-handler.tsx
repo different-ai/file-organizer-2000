@@ -8,6 +8,7 @@ import { LastModifiedHandler } from "./last-modified-handler";
 import { ScreenpipeHandler } from "./screenpipe-handler";
 import { SettingsUpdateHandler } from "./settings-update-handler";
 import { AppendContentHandler } from "./append-content-handler";
+import { OnboardHandler } from "./onboard-handler";
 
 interface ToolInvocationHandlerProps {
   toolInvocation: any;
@@ -35,6 +36,7 @@ function ToolInvocationHandler({
       getScreenpipeDailySummary: "Querying Screenpipe Data",
       generateSettings: "Settings Update",
       appendContentToFile: "Append Content",
+      analyzeVaultStructure: "Vault Analysis",
     };
     return toolTitles[toolName] || "Tool Invocation";
   };
@@ -84,6 +86,13 @@ function ToolInvocationHandler({
         <AppendContentHandler
           toolInvocation={toolInvocation}
           handleAddResult={handleAddResult}
+        />
+      ),
+      analyzeVaultStructure: () => (
+        <OnboardHandler
+          toolInvocation={toolInvocation}
+          handleAddResult={handleAddResult}
+          app={app}
         />
       ),
     };

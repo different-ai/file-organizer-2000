@@ -70,6 +70,10 @@ export async function POST(req: NextRequest) {
               .describe("The number of last modified files to retrieve"),
           }),
         },
+        onboardUser: {
+          description: "Onboard the user to the vault",
+          parameters: z.object({}),
+        },
         appendContentToFile: {
           description: "Append content to a file with user confirmation",
           parameters: z.object({
@@ -87,6 +91,12 @@ export async function POST(req: NextRequest) {
           description:
             "Generate vault organization settings based on user preferences",
           parameters: settingsSchema,
+        },
+        analyzeVaultStructure: {
+          description: "Analyze vault structure to suggest organization improvements",
+          parameters: z.object({
+            maxDepth: z.number().optional().describe("Maximum depth to analyze"),
+          }),
         },
         ...(enableScreenpipe && {
           getScreenpipeDailySummary: {
