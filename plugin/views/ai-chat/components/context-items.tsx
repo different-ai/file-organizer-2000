@@ -19,6 +19,7 @@ export const ContextItems: React.FC = () => {
     searchResults,
     removeByReference,
     toggleCurrentFile,
+    textSelections,
   } = useContextItems();
 
   const prefixMap = {
@@ -28,6 +29,7 @@ export const ContextItems: React.FC = () => {
     youtube: "🎥",
     screenpipe: "📊",
     search: "🔍",
+    "text-selection": "✂️",
   } as const;
 
   const handleItemClick = (
@@ -54,6 +56,9 @@ export const ContextItems: React.FC = () => {
         break;
       case "search":
         // Optionally handle search click - could show results in a modal
+        break;
+      case "text-selection":
+        // Handle text selection click
         break;
     }
   };
@@ -190,6 +195,23 @@ export const ContextItems: React.FC = () => {
                 }
                 onRemove={() => removeByReference(search.reference)}
                 prefix={`${prefixMap.search} `}
+              />
+            ))}
+          </div>
+        )}
+
+        {/* Text Selections section */}
+        {Object.values(textSelections).length > 0 && (
+          <div className="flex space-x-2">
+            {Object.values(textSelections).map(selection => (
+              <SelectedItem
+                key={selection.id}
+                item={`${selection.content.slice(0, 30)}...`}
+                onClick={() => 
+                  handleItemClick("text-selection", selection.id, selection.content)
+                }
+                onRemove={() => removeByReference(selection.reference)}
+                prefix={`${prefixMap["text-selection"]} `}
               />
             ))}
           </div>

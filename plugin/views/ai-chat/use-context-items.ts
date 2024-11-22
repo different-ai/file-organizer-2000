@@ -1,5 +1,4 @@
 import { create } from "zustand";
-import FileOrganizer from "../..";
 import { App, TFile } from "obsidian";
 import { Vault } from "obsidian";
 
@@ -59,6 +58,13 @@ interface SearchContextItem extends BaseContextItem {
   }>;
 }
 
+// Add new type for text selection
+interface TextSelectionContextItem extends BaseContextItem {
+  type: "text-selection";
+  content: string;
+  sourceFile?: string;
+}
+
 type ContextCollections = {
   files: Record<string, FileContextItem>;
   folders: Record<string, FolderContextItem>;
@@ -66,6 +72,7 @@ type ContextCollections = {
   tags: Record<string, TagContextItem>;
   screenpipe: Record<string, ScreenpipeContextItem>;
   searchResults: Record<string, SearchContextItem>;
+  textSelections: Record<string, TextSelectionContextItem>;
 };
 
 interface ContextItemsState extends ContextCollections {
@@ -79,6 +86,7 @@ interface ContextItemsState extends ContextCollections {
   addTag: (tag: TagContextItem) => void;
   addScreenpipe: (data: ScreenpipeContextItem) => void;
   addSearchResults: (search: SearchContextItem) => void;
+  addTextSelection: (selection: TextSelectionContextItem) => void;
 
   // Generic actions
   removeItem: (type: ContextItemType, id: string) => void;
@@ -105,6 +113,7 @@ export const useContextItems = create<ContextItemsState>((set, get) => ({
   tags: {},
   screenpipe: {},
   searchResults: {},
+  textSelections: {},
   currentFile: null,
   includeCurrentFile: true,
 
@@ -170,6 +179,20 @@ export const useContextItems = create<ContextItemsState>((set, get) => ({
       searchResults: { ...state.searchResults, [search.id]: search },
     })),
 
+  addTextSelection: selection =>
+    set(state => {
+      const reference = selection.reference;
+      // Remove any existing items with same reference first
+      get().removeByReference(reference);
+      
+      return {
+        textSelections: { 
+          ...state.textSelections, 
+          [selection.id]: selection 
+        },
+      };
+    }),
+
   // Remove action
   removeItem: (type, id) =>
     set(state => {
@@ -180,6 +203,7 @@ export const useContextItems = create<ContextItemsState>((set, get) => ({
         tag: "tags",
         screenpipe: "screenpipe",
         search: "searchResults",
+        "text-selection": "textSelections",
       };
 
       const collectionKey = collectionMap[type];
@@ -205,6 +229,7 @@ export const useContextItems = create<ContextItemsState>((set, get) => ({
       tags: {},
       screenpipe: {},
       searchResults: {},
+      textSelections: {},
       includeCurrentFile: false,
       currentFile: null,
     }),
@@ -253,6 +278,7 @@ export const useContextItems = create<ContextItemsState>((set, get) => ({
         "tags",
         "screenpipe",
         "searchResults",
+        "textSelections",
       ];
 
       const newState = { ...state };
@@ -372,6 +398,23 @@ export const addSearchContext = (
   });
 };
 
+export const addTextSelectionContext = (params: {
+  content: string;
+  sourceFile?: string;
+}) => {
+  const store = useContextItems.getState();
+  const reference = `Selection: ${params.content.slice(0, 30)}...`;
+
+  store.addTextSelection({
+    id: `text-selection-${Date.now()}`,
+    type: "text-selection",
+    content: params.content,
+    sourceFile: params.sourceFile,
+    reference,
+    createdAt: Date.now(),
+  });
+};
+
 // Add export for types
 export type ContextItemType =
   | "file"
@@ -379,7 +422,8 @@ export type ContextItemType =
   | "youtube"
   | "tag"
   | "screenpipe"
-  | "search";
+  | "search"
+  | "text-selection";
 export type {
   FileContextItem,
   FolderContextItem,
@@ -389,6 +433,7 @@ export type {
   BaseContextItem,
   SearchContextItem,
   ProcessedFile,
+  TextSelectionContextItem,
 };
 
 // Add this helper function
@@ -401,6 +446,7 @@ export const getUniqueReferences = () => {
     tags: store.tags,
     screenpipe: store.screenpipe,
     searchResults: store.searchResults,
+    textSelections: store.textSelections,
   };
 
   const references = new Set<string>();

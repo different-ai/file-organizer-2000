@@ -45,6 +45,7 @@ export const ChatComponent: React.FC<ChatComponentProps> = ({
     searchResults,
     currentFile,
     screenpipe,
+    textSelections,
   } = useContextItems();
 
   const uniqueReferences = getUniqueReferences();
@@ -57,6 +58,7 @@ export const ChatComponent: React.FC<ChatComponentProps> = ({
     currentFile,
     screenpipe,
     searchResults,
+    textSelections,
   };
 
   // skip the use context items entirely

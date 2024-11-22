@@ -42,6 +42,7 @@ import {
 import { initializeInboxQueue, Inbox } from "./inbox";
 import { validateFile } from "./utils";
 import { logger } from "./services/logger";
+import { addTextSelectionContext } from "./views/ai-chat/use-context-items";
 
 type TagCounts = {
   [key: string]: number;
@@ -1314,7 +1315,6 @@ export default class FileOrganizer extends Plugin {
     // Fetch all tags from the vault
     // @ts-ignore
     const tags: TagCounts = this.app.metadataCache.getTags();
-    console.log("tags", tags);
 
     // If no tags are found, return an empty array
     if (Object.keys(tags).length === 0) {
@@ -1512,6 +1512,28 @@ export default class FileOrganizer extends Plugin {
         const view = await this.ensureAssistantView();
         view?.activateTab("chat");
       },
+    });
+    this.addCommand({
+      id: 'add-selection-to-chat',
+      name: 'Add Selection to Chat',
+      editorCallback: async (editor) => {
+        const selection = editor.getSelection();
+        if (selection) {
+          const activeFile = this.app.workspace.getActiveFile();
+          const view = await this.ensureAssistantView();
+          
+          // Add the selection to context
+          addTextSelectionContext({
+            content: selection,
+            sourceFile: activeFile?.path
+          });
+          
+          // Open chat tab
+          view?.activateTab("chat");
+        } else {
+          new Notice("No text selected");
+        }
+      }
     });
   }
   async saveSettings() {
