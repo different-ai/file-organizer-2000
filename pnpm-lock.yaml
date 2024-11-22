@@ -38,6 +38,9 @@ dependencies:
   chokidar:
     specifier: ^3.6.0
     version: 3.6.0
+  clsx:
+    specifier: ^2.1.1
+    version: 2.1.1
   compromise:
     specifier: ^14.14.2
     version: 14.14.2
@@ -83,6 +86,9 @@ dependencies:
   react-markdown:
     specifier: ^9.0.1
     version: 9.0.1(@types/react@18.3.1)(react@18.3.1)
+  tailwind-merge:
+    specifier: ^2.5.4
+    version: 2.5.4
   tiktoken:
     specifier: ^1.0.15
     version: 1.0.15
@@ -2344,6 +2350,11 @@ packages:
 
   /client-only@0.0.1:
     resolution: {integrity: sha512-IV3Ou0jSMzZrd3pZ48nLkT9DA7Ag1pnPzaiQhpW7c3RbcqqzvzzVu+L8gfqMp/8IM2MQtSiqaCxrrcfu8I8rMA==}
+    dev: false
+
+  /clsx@2.1.1:
+    resolution: {integrity: sha512-eYm0QWBtUrBWZWG0d386OGAw16Z995PiOVo2B7bjWSbHedGl5e0ZWaq65kOGgUSNesEIDkB9ISbTg/JK9dhCZA==}
+    engines: {node: '>=6'}
     dev: false
 
   /cluster-key-slot@1.1.2:
@@ -5108,6 +5119,10 @@ packages:
   /sylvester@0.0.12:
     resolution: {integrity: sha512-SzRP5LQ6Ts2G5NyAa/jg16s8e3R7rfdFjizy1zeoecYWw+nGL+YA1xZvW/+iJmidBGSdLkuvdwTYEyJEb+EiUw==}
     engines: {node: '>=0.2.6'}
+    dev: false
+
+  /tailwind-merge@2.5.4:
+    resolution: {integrity: sha512-0q8cfZHMu9nuYP/b5Shb7Y7Sh1B7Nnl5GqNr1U+n2p6+mybvRtayrQ+0042Z5byvTA8ihjlP8Odo8/VnHbZu4Q==}
     dev: false
 
   /tailwindcss@3.4.14(ts-node@10.9.2):

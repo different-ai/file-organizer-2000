@@ -1,8 +1,10 @@
 import React, { useRef, useState, useEffect } from "react";
 import { Button } from "./button";
-import { Loader2, MicIcon, StopCircle } from "lucide-react";
+import { Loader, Loader2, MicIcon, StopCircle } from "lucide-react";
 import { logger } from "../../services/logger";
 import { usePlugin } from "../organizer/provider";
+import { cn } from "../../lib/utils";
+
 interface AudioRecorderProps {
   onTranscriptionComplete: (text: string) => void;
   debug?: boolean;
@@ -139,9 +141,14 @@ export const AudioRecorder: React.FC<AudioRecorderProps> = ({
     <div className="flex flex-col gap-4">
       <button
         onClick={isRecording ? stopRecording : startRecording}
-        className={`${isRecording ? "bg-[--text-error]" : ""} ${
-          isProcessing ? "opacity-50 cursor-wait" : ""
-        }bg-transparent shadow-none opacity-50 hover:opacity-100 hover:shadow-none cursor-pointer`}
+        className={cn(
+          "bg-transparent opacity-50 cursor-pointer",
+          "hover:opacity-100 hover:shadow-none",
+          "shadow-none disabled:shadow-none disabled:cursor-not-allowed",
+          {
+            "cursor-wait": isProcessing
+          }
+        )}
         title={
           isProcessing
             ? "Processing audio..."
@@ -149,14 +156,14 @@ export const AudioRecorder: React.FC<AudioRecorderProps> = ({
             ? "Stop Recording"
             : "Start Recording"
         }
-        disabled={isProcessing}
+        disabled={isProcessing }
       >
         {isProcessing ? (
-          <span className="animate-spin"><Loader2 /></span>
+          <Loader2 className="w-4 h-4 animate-spin" />
         ) : isRecording ? (
-          <StopCircle />
+          <StopCircle className="w-4 h-4" />
         ) : (
-          <MicIcon />
+          <MicIcon className="w-4 h-4" />
         )}
       </button>
 
