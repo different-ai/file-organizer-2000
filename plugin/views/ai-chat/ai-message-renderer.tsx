@@ -27,7 +27,7 @@ export const AIMarkdown: React.FC<AIMarkdownProps> = ({ content, app }) => {
 
   return (
     <div className="card">
-    <div className="markdown-preview-view " onClick={handleClick}>
+    <div className="markdown-preview-view p-0" onClick={handleClick}>
       {content.split(/(\[\[.*?\]\])/g).map((part, i) => {
         if (part.startsWith("[[") && part.endsWith("]]")) {
           const inner = part.slice(2, -2);
