@@ -18,11 +18,9 @@ import { ModelType } from "./types";
 import { AudioRecorder } from "./audio-recorder";
 import { logger } from "../../services/logger";
 import { SubmitButton } from "./submit-button";
-import { AddCurrentFileButton } from "./components/add-current-file-button";
 import { getUniqueReferences, useContextItems } from "./use-context-items";
 import { ContextItems } from "./components/context-items";
 import { ClearAllButton } from "./components/clear-all-button";
-import { useContextGenerator } from "./hooks/use-context-generator";
 import { useCurrentFile } from "./hooks/use-current-file";
 
 interface ChatComponentProps {
@@ -40,7 +38,6 @@ export const ChatComponent: React.FC<ChatComponentProps> = ({
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   const {
-    toggleCurrentFile,
     setCurrentFile,
     files,
     folders,
