@@ -21,24 +21,22 @@ function TabContent({
   plugin: FileOrganizer;
   leaf: WorkspaceLeaf;
 }) {
-  if (activeTab === "organizer") {
-    return <AssistantView plugin={plugin} leaf={leaf} />;
-  }
+  return (
+    <div className="relative h-full">
+      <div className={`absolute inset-0 ${activeTab === "organizer" ? "block" : "hidden"}`}>
+        <AssistantView plugin={plugin} leaf={leaf} />
+      </div>
 
-  if (activeTab === "inbox") {
-    return (
-      <>
+      <div className={`absolute inset-0 ${activeTab === "inbox" ? "block" : "hidden"}`}>
         <SectionHeader text="Inbox Processing" icon="📥 " />
         <InboxLogs />
-      </>
-    );
-  }
+      </div>
 
-  if (activeTab === "chat") {
-    return <AIChatSidebar plugin={plugin} apiKey={plugin.settings.API_KEY} />;
-  }
-
-  return null;
+      <div className={`absolute inset-0 ${activeTab === "chat" ? "block" : "hidden"}`}>
+        <AIChatSidebar plugin={plugin} apiKey={plugin.settings.API_KEY} />
+      </div>
+    </div>
+  );
 }
 
 function TabButton({
