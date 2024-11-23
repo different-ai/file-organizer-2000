@@ -6,6 +6,31 @@
 
 # File Organizer 2000
 
+Automate the most painful part of your Obsidian worfklow.
+
+
+
+### What do people do with it
+
+- **Organize all their handwritten notes** digitized and automatically organized (diagrams work too!)
+- **Generating action items from their meetings**. Record an audio with voice memo app put it in File Organizer "Inbox" and it will automatically be transcribed and have action items extracted.
+
+## How can I get it 
+The plugin is self-hostable and or available with cloud subscription.
+
+### Features
+
+- **Automatic Organization:** Automatically suggests file names, tags and folders for your notes & more.
+
+-  **Handwritten notes &**: AI-class text extraction from images, including handwritten notes and PDFs.
+
+- **Cursor-like AI Chat**: The most powerful chat for Obsidian 🦾 Select folders, files, tags to add to context. Get files by date range, search by key terms. Can even get Youtube transcripts.
+
+- **Save Custom Prompts and Reuse later**: Create templates to format your notes with custom prompts.
+
+-  **Audio transcription**: Transcribe audio + dedicated Meeting Notes formatting.
+
+
 <p>
   <a href="https://fileorganizer2000.com/"><img src="https://img.shields.io/badge/Try-File%20Organizer%202000-7852ee?style=flat&logoColor=white" alt="Try File Organizer 2000"></a>
   <a href="https://discord.gg/UWH53WqFuE"><img src="https://img.shields.io/discord/1231880202259533865?label=Discord&logo=discord&logoColor=white&color=5865F2&style=flat" alt="Join Discord"></a>
@@ -14,36 +39,8 @@
   <a href="https://console.algora.io/org/different-ai/bounties?status=open"><img src="https://img.shields.io/endpoint?url=https%3A%2F%2Fconsole.algora.io%2Fapi%2Fshields%2Fdifferent-ai%2Fbounties%3Fstatus%3Dopen" alt="Open Bounties"></a>
 </p>
 
-An Obsidian plugin to quickly find your notes, make connections between ideas, and keep everything organized.
+An Obsid
 
-Self-hostable and or available with cloud subscription.
-
-🆕 Now includes the most powerful AI Chat for Obsidian.
-
-
-
-### Features
-
-- **Organization:** Automatically suggests file names, tags and folders for your notes & more.
-
-- **AI Chat**: The most powerful chat for Obsidian 🦾 Select folders, files, tags to add to context. Get files by date range, search by key terms. Can even get Youtube transcripts.
-
-- **AI Formatting**: Create templates to format your notes with custom prompts.
-
--  **OCR**: AI-class text extraction from images, including handwritten notes and PDFs.
-
--  **Audio transcription**: Transcribe audio + dedicated Meeting Notes formatting.
-
-<img width="600" alt="Screenshot 2024-08-22 at 6 18 28 PM" src="https://github.com/user-attachments/assets/218f6541-9da1-4d9b-aa1b-a32dc0920cbb">
-
-
-<img width="600" alt="Screenshot 2024-08-22 at 5 27 13 PM" src="https://github.com/user-attachments/assets/94725f2d-22c4-4727-845b-921a3d9d8707">
-
-[Chat with Multiple Files in Context demo video](https://youtu.be/agEdoNG7mpE)
-
-<img width="600" alt="Screenshot 2024-08-22 at 5 25 03 PM" src="https://github.com/user-attachments/assets/692d40aa-450d-434f-b4a5-4c38110405b0">
-
-[Chat with Youtube demo video](https://youtu.be/2CNZq_6jQoQ)
 
 ## Tips and Tricks
 
