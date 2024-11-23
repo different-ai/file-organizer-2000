@@ -484,6 +484,7 @@ async function recommendFolderStep(
   context.newPath = newPath[0]?.folder;
   console.log("new path", context.newPath, context.containerFile);
   await safeMove(context.plugin.app, context.containerFile, context.newPath);
+  context.recordManager.setFolder(context.hash, context.newPath);
   console.log("moved file to", context.containerFile);
 
   return context;

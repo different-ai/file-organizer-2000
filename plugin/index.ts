@@ -14,7 +14,7 @@ import {
 } from "obsidian";
 import { logMessage, formatToSafeName, sanitizeTag } from "./someUtils";
 import { FileOrganizerSettingTab } from "./views/settings/view";
-import { ORGANIZER_VIEW_TYPE } from "./views/organizer/view";
+import { AssistantViewWrapper, ORGANIZER_VIEW_TYPE } from "./views/organizer/view";
 import Jimp from "jimp/es/index";
 
 import { FileOrganizerSettings, DEFAULT_SETTINGS } from "./settings";
@@ -42,6 +42,7 @@ import {
 import { initializeInboxQueue, Inbox } from "./inbox";
 import { validateFile } from "./utils";
 import { logger } from "./services/logger";
+import { addTextSelectionContext } from "./views/ai-chat/use-context-items";
 
 type TagCounts = {
   [key: string]: number;
@@ -125,6 +126,8 @@ export default class FileOrganizer extends Plugin {
 
     return serverUrl;
   }
+
+  
 
   /**
    * Processes a file by organizing it and logging the actions.
@@ -639,13 +642,11 @@ export default class FileOrganizer extends Plugin {
     }
   }
 
-  async createFileInInbox(content: string): Promise<void> {
-    const fileName = `chunk_${Date.now()}.md`;
+
+  async createFileInInbox(title: string, content: string): Promise<void> {
+    const fileName = `${title}.md`;
     const filePath = `${this.settings.pathToWatch}/${fileName}`;
     await this.app.vault.create(filePath, content);
-    await this.processFileV2(
-      this.app.vault.getAbstractFileByPath(filePath) as TFile
-    );
   }
 
   async _experimentalIdentifyConcepts(content: string): Promise<string[]> {
@@ -1444,6 +1445,29 @@ export default class FileOrganizer extends Plugin {
     await this.app.vault.append(file, `\n${formattedTag}`);
   }
 
+  async ensureAssistantView(): Promise<AssistantViewWrapper | null> {
+    // Try to find existing view
+    let view = this.app.workspace.getLeavesOfType(ORGANIZER_VIEW_TYPE)[0]?.view as AssistantViewWrapper;
+    
+    // If view doesn't exist, create it
+    if (!view) {
+      await this.app.workspace.getRightLeaf(false).setViewState({
+        type: ORGANIZER_VIEW_TYPE,
+        active: true,
+      });
+      
+      // Get the newly created view
+      view = this.app.workspace.getLeavesOfType(ORGANIZER_VIEW_TYPE)[0]?.view as AssistantViewWrapper;
+    }
+
+    // Reveal and focus the leaf
+    if (view) {
+      this.app.workspace.revealLeaf(view.leaf);
+    }
+
+    return view;
+  }
+
   async onload() {
     this.inbox = Inbox.initialize(this);
     await this.initializePlugin();
@@ -1460,6 +1484,55 @@ export default class FileOrganizer extends Plugin {
 
     this.app.workspace.onLayoutReady(() => registerEventHandlers(this));
     this.processBacklog();
+
+    this.addCommand({
+      id: 'open-organizer-tab',
+      name: 'Open Organizer Tab',
+      callback: async () => {
+        const view = await this.ensureAssistantView();
+        view?.activateTab("organizer");
+      },
+    });
+
+    this.addCommand({
+      id: 'open-inbox-tab',
+      name: 'Open Inbox Tab',
+      callback: async () => {
+        const view = await this.ensureAssistantView();
+        view?.activateTab("inbox");
+      },
+    });
+
+    this.addCommand({
+      id: 'open-chat-tab',
+      name: 'Open Chat Tab',
+      callback: async () => {
+        const view = await this.ensureAssistantView();
+        view?.activateTab("chat");
+      },
+    });
+    this.addCommand({
+      id: 'add-selection-to-chat',
+      name: 'Add Selection to Chat',
+      editorCallback: async (editor) => {
+        const selection = editor.getSelection();
+        if (selection) {
+          const activeFile = this.app.workspace.getActiveFile();
+          const view = await this.ensureAssistantView();
+          
+          // Add the selection to context
+          addTextSelectionContext({
+            content: selection,
+            sourceFile: activeFile?.path
+          });
+          
+          // Open chat tab
+          view?.activateTab("chat");
+        } else {
+          new Notice("No text selected");
+        }
+      }
+    });
   }
   async saveSettings() {
     await this.saveData(this.settings);

@@ -3,17 +3,17 @@ import { motion } from "framer-motion";
 
 interface SelectedItemProps {
   item: string;
-  onRemove: () => void;
-  prefix?: string;
+  prefix: string;
   onClick: () => void;
+  onRemove: () => void;
 }
 
-export const SelectedItem = ({
+export const SelectedItem: React.FC<SelectedItemProps> = ({
   item,
-  onRemove,
-  prefix = "",
+  prefix,
   onClick,
-}: SelectedItemProps) => (
+  onRemove,
+}) => (
   <motion.div
     className="bg-[--background-secondary] text-[--text-normal] rounded px-2 py-1 text-sm m-1 flex gap-1 min-w-fit h-fit"
     initial={{ opacity: 0, scale: 0.8 }}

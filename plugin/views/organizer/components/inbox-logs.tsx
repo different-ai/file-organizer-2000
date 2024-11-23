@@ -15,6 +15,7 @@ import {
   Ban,
   Search,
   Filter,
+  Calendar,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { usePlugin } from "../provider";
@@ -154,6 +155,18 @@ const FileNameDisplay: React.FC<{ record: FileRecord }> = ({ record }) => {
   );
 };
 
+// Add this helper component for the path display
+const PathDisplay: React.FC<{ record: FileRecord }> = ({ record }) => {
+  if (!record.newPath) return null;
+
+  return (
+    <div className="flex items-center gap-2 text-sm">
+      <span className="text-[--text-muted]">→</span>
+      <span className="text-[--text-accent]">{record.newPath}</span>
+    </div>
+  );
+};
+
 // Main file card component
 function FileCard({ record }: { record: FileRecord }) {
   const plugin = usePlugin();
@@ -168,62 +181,91 @@ function FileCard({ record }: { record: FileRecord }) {
       .map(([action, log]) => [action as Action, log] as [Action, LogEntry]);
   }, [JSON.stringify(record.logs)]);
 
+  // Add status indicators - only show when present
+  const StatusIndicators = () => {
+    const hasStatus = record.classification || record.tags.length > 0;
+    if (!hasStatus) return null;
+
+    return (
+      <div className="flex items-center gap-2">
+        {record.classification && (
+          <span className="px-2 py-0.5 rounded-full text-xs bg-[--background-modifier-success] text-[--text-on-accent]">
+            Classified
+          </span>
+        )}
+        {record.tags.length > 0 && (
+          <span className="px-2 py-0.5 rounded-full text-xs bg-[--background-modifier-success] text-[--text-on-accent]">
+            Tagged
+          </span>
+        )}
+      </div>
+    );
+  };
+
   return (
     <motion.div
       layout
       className="bg-[--background-primary] border border-[--background-modifier-border] rounded-lg"
     >
       <div className="p-4">
-        {/* Updated File header */}
-        <div className="flex items-center justify-between mb-2 gap-3">
-          <div className="flex items-center gap-2">
-            <div
-              className="cursor-pointer"
-              onClick={() =>
-                plugin.app.workspace.openLinkText(
-                  record.file?.basename,
-                  record.file?.parent.path
-                )
-              }
-            >
-              <FileNameDisplay record={record} />
-            </div>
-            <StatusBadge status={record.status} />
-          </div>
-          <button
-            onClick={() => setIsExpanded(!isExpanded)}
-            className="flex items-center gap-2 text-[--text-muted]"
-          >
-            <ChevronDown
-              className={`w-4 h-4 transition-transform ${
-                isExpanded ? "rotate-180" : ""
-              }`}
-            />
-          </button>
-        </div>
-
-        {/* Always visible info */}
+        {/* File header with status indicators */}
         <div className="space-y-2">
-          {record.classification && (
-            <div className="text-sm">
-              Classification:{" "}
-              <span className="text-[--text-accent]">
-                {record.classification}
-              </span>
+          <div className="flex items-center justify-between gap-3">
+            <div className="flex items-center gap-2">
+              <div
+                className="cursor-pointer"
+                onClick={() =>
+                  plugin.app.workspace.openLinkText(
+                    record.file?.basename,
+                    record.file?.parent.path
+                  )
+                }
+              >
+                <FileNameDisplay record={record} />
+              </div>
+              <StatusBadge status={record.status} />
             </div>
-          )}
-          {record.tags.length > 0 && (
-            <div className="flex gap-1 flex-wrap">
-              {record.tags.map((tag, i) => (
-                <span
-                  key={i}
-                  className="px-2 py-0.5 bg-[--background-secondary] rounded-full text-xs"
-                >
-                  {tag}
+            <button
+              onClick={() => setIsExpanded(!isExpanded)}
+              className="flex items-center gap-2 text-[--text-muted]"
+            >
+              <ChevronDown
+                className={`w-4 h-4 transition-transform ${
+                  isExpanded ? "rotate-180" : ""
+                }`}
+              />
+            </button>
+          </div>
+
+          {/* Status indicators - only shown when present */}
+          <StatusIndicators />
+
+          {/* Path display */}
+          <PathDisplay record={record} />
+
+          {/* Always visible info - only when present */}
+          <div className="space-y-2">
+            {record.classification && (
+              <div className="text-sm">
+                Classification:{" "}
+                <span className="text-[--text-accent]">
+                  {record.classification}
                 </span>
-              ))}
-            </div>
-          )}
+              </div>
+            )}
+            {record.tags.length > 0 && (
+              <div className="flex gap-1 flex-wrap">
+                {record.tags.map((tag, i) => (
+                  <span
+                    key={i}
+                    className="px-2 py-0.5 bg-[--background-secondary] rounded-full text-xs"
+                  >
+                    {tag}
+                  </span>
+                ))}
+              </div>
+            )}
+          </div>
         </div>
 
         {/* Expanded logs */}
@@ -314,7 +356,7 @@ const InboxAnalytics: React.FC<{
   );
 
   return (
-    <div className="bg-[--background-secondary] rounded-lg p-2">
+    <div className="bg-[--background-secondary] rounded-lg ">
       <div className="space-y-2">
         {/* Main flow row */}
         <div className="grid grid-cols-3 gap-2">
@@ -334,17 +376,126 @@ const InboxAnalytics: React.FC<{
   );
 };
 
-// Search component
+// Update types
+type DateRange = 'today' | 'yesterday' | 'last7days' | 'last30days' | 'all' | 'custom';
+
+interface DateFilter {
+  range: DateRange;
+  startDate: string;
+  endDate: string;
+}
+
+// Enhanced date filter component
+const DateFilterSelect: React.FC<{
+  value: DateFilter;
+  onChange: (filter: DateFilter) => void;
+}> = ({ value, onChange }) => {
+  const ranges: Array<{ value: DateRange; label: string }> = [
+    { value: 'today', label: 'Today' },
+    { value: 'yesterday', label: 'Yesterday' },
+    { value: 'last7days', label: 'Last 7 days' },
+    { value: 'last30days', label: 'Last 30 days' },
+    { value: 'custom', label: 'Pick date' },
+    { value: 'all', label: 'All time' },
+  ];
+
+  const getDateRange = (range: DateRange, customDate?: string): { startDate: string; endDate: string } => {
+    let end = moment().endOf('day');
+    let start = moment().startOf('day');
+
+    switch (range) {
+      case 'today':
+        break;
+      case 'yesterday':
+        start = start.subtract(1, 'day');
+        end.subtract(1, 'day');
+        break;
+      case 'last7days':
+        start = start.subtract(6, 'days');
+        break;
+      case 'last30days':
+        start = start.subtract(29, 'days');
+        break;
+      case 'custom':
+        if (customDate) {
+          start = moment(customDate).startOf('day');
+          end = moment(customDate).endOf('day');
+        }
+        break;
+      case 'all':
+        start = moment(0);
+        break;
+    }
+
+    return {
+      startDate: start.format('YYYY-MM-DD'),
+      endDate: end.format('YYYY-MM-DD'),
+    };
+  };
+
+  const handleRangeChange = (range: DateRange) => {
+    const dates = getDateRange(range);
+    onChange({
+      range,
+      ...dates,
+    });
+  };
+
+  const handleDateChange = (date: string) => {
+    const dates = getDateRange('custom', date);
+    onChange({
+      range: 'custom',
+      ...dates,
+    });
+  };
+
+  return (
+    <div className="flex items-center gap-2">
+      <div className="relative flex items-center gap-2">
+        <Calendar className="w-4 h-4 text-[--text-muted]" />
+        <select
+          value={value.range}
+          onChange={(e) => handleRangeChange(e.target.value as DateRange)}
+          className="pl-2 pr-8 h-min py-2 bg-[--background-secondary] rounded-l border border-[--background-modifier-border] text-sm appearance-none"
+        >
+          {ranges.map(({ value, label }) => (
+            <option key={value} value={value}>
+              {label}
+            </option>
+          ))}
+        </select>
+      </div>
+      
+      {/* Calendar picker - only shown when 'custom' is selected */}
+      {value.range === 'custom' && (
+        <input
+          type="date"
+          value={value.startDate}
+          onChange={(e) => handleDateChange(e.target.value)}
+          className="py-2 pl-6 pr-2 bg-[--background-secondary] rounded-r border border-[--background-modifier-border] text-sm w-min"
+          max={moment().format('YYYY-MM-DD')}
+        />
+      )}
+    </div>
+  );
+};
+
+// Update SearchBar props
 interface SearchBarProps {
   onSearch: (query: string) => void;
   onStatusFilter: (status: FileStatus | "") => void;
+  onDateFilter: (filter: DateFilter) => void;
   selectedStatus: FileStatus | "";
+  dateFilter: DateFilter;
 }
 
+// Update SearchBar component
 const SearchBar: React.FC<SearchBarProps> = ({
   onSearch,
   onStatusFilter,
+  onDateFilter,
   selectedStatus,
+  dateFilter,
 }) => {
   const [searchQuery, setSearchQuery] = React.useState("");
 
@@ -364,24 +515,27 @@ const SearchBar: React.FC<SearchBarProps> = ({
   ];
 
   return (
-    <div className="bg-[--background-primary] p-4 rounded-lg border border-[--background-modifier-border] space-y-2">
-      <div className="flex items-center gap-2">
-        <div className="relative flex-1">
-          <Search className="w-4 h-4 absolute left-3 top-1/2 transform -translate-y-1/2 text-[--text-muted]" />
-          <input
-            type="text"
-            placeholder="Search files, tags, or actions..."
-            value={searchQuery}
-            onChange={handleSearchChange}
-            className="w-full pl-9 pr-4 py-2 bg-[--background-secondary] rounded border border-[--background-modifier-border] text-sm"
-          />
-        </div>
-        <div className="relative">
+    <div className="bg-[--background-primary] p-4 rounded-lg border border-[--background-modifier-border] space-y-3">
+      {/* Search input row */}
+      <div className="relative flex-1">
+        <Search className="w-4 h-4 absolute left-3 top-1/2 transform -translate-y-1/2 text-[--text-muted]" />
+        <input
+          type="text"
+          placeholder="Search files, tags, or actions..."
+          value={searchQuery}
+          onChange={handleSearchChange}
+          className="w-full pl-9 pr-4 h-min py-2 bg-[--background-secondary] rounded border border-[--background-modifier-border] text-sm"
+        />
+      </div>
+
+      {/* Filters row */}
+      <div className="flex items-center gap-3">
+        <div className="relative w-[200px]">
           <Filter className="w-4 h-4 absolute left-3 top-1/2 transform -translate-y-1/2 text-[--text-muted]" />
           <select
             value={selectedStatus}
             onChange={e => onStatusFilter(e.target.value as FileStatus | "")}
-            className="pl-9 pr-4 py-2 bg-[--background-secondary] rounded border border-[--background-modifier-border] text-sm appearance-none"
+            className="w-full pl-9 pr-4 h-min py-2 bg-[--background-secondary] rounded border border-[--background-modifier-border] text-sm appearance-none"
           >
             {statuses.map(status => (
               <option key={status} value={status}>
@@ -392,6 +546,10 @@ const SearchBar: React.FC<SearchBarProps> = ({
             ))}
           </select>
         </div>
+        <DateFilterSelect 
+          value={dateFilter}
+          onChange={onDateFilter}
+        />
       </div>
     </div>
   );
@@ -408,6 +566,11 @@ export const InboxLogs: React.FC = () => {
     React.useState<ReturnType<typeof Inbox.prototype.getAnalytics>>();
   const [searchQuery, setSearchQuery] = React.useState("");
   const [statusFilter, setStatusFilter] = React.useState<FileStatus | "">("");
+  const [dateFilter, setDateFilter] = React.useState<DateFilter>({
+    range: 'today',
+    startDate: moment().format('YYYY-MM-DD'),
+    endDate: moment().format('YYYY-MM-DD'),
+  });
 
   const filterRecords = React.useCallback(
     (records: FileRecord[]) => {
@@ -427,10 +590,21 @@ export const InboxLogs: React.FC = () => {
 
         const matchesStatus = !statusFilter || record.status === statusFilter;
 
-        return matchesSearch && matchesStatus;
+        // Enhanced date filtering
+        const matchesDate = dateFilter.range === 'all' || Object.values(record.logs).some(log => {
+          const logDate = moment(log.timestamp);
+          return logDate.isBetween(
+            moment(dateFilter.startDate).startOf('day'),
+            moment(dateFilter.endDate).endOf('day'),
+            'day',
+            '[]'
+          );
+        });
+
+        return matchesSearch && matchesStatus && matchesDate;
       });
     },
-    [searchQuery, statusFilter]
+    [searchQuery, statusFilter, dateFilter]
   );
 
   React.useEffect(() => {
@@ -455,6 +629,10 @@ export const InboxLogs: React.FC = () => {
     setStatusFilter(status);
   };
 
+  const handleDateFilter = (filter: DateFilter) => {
+    setDateFilter(filter);
+  };
+
   return (
     <div className="space-y-4">
       {analytics && <InboxAnalytics analytics={analytics} />}
@@ -462,8 +640,26 @@ export const InboxLogs: React.FC = () => {
       <SearchBar
         onSearch={handleSearch}
         onStatusFilter={handleStatusFilter}
+        onDateFilter={handleDateFilter}
         selectedStatus={statusFilter}
+        dateFilter={dateFilter}
       />
+
+      {/* Enhanced date range indicator */}
+      {dateFilter.range !== 'all' && (
+        <div className="text-sm text-[--text-muted]">
+          {dateFilter.range === 'custom' ? (
+            <>Showing records for {moment(dateFilter.startDate).format('MMMM D, YYYY')}</>
+          ) : (
+            <>
+              Showing records from{' '}
+              {moment(dateFilter.startDate).format('MMM D, YYYY')}
+              {dateFilter.startDate !== dateFilter.endDate && 
+                ` to ${moment(dateFilter.endDate).format('MMM D, YYYY')}`}
+            </>
+          )}
+        </div>
+      )}
 
       {filteredRecords.map(record => (
         <FileCard key={record.id} record={record} />

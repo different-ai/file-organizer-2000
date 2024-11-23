@@ -3,7 +3,6 @@ import { NextResponse, NextRequest } from "next/server";
 import { incrementAndLogTokenUsage } from "@/lib/incrementAndLogTokenUsage";
 import { handleAuthorization } from "@/lib/handleAuthorization";
 import { z } from "zod";
-import { parseISO, isValid } from "date-fns";
 
 import { getModel } from "@/lib/models";
 import { getChatSystemPrompt } from "@/lib/prompts/chat-prompt";
@@ -22,16 +21,22 @@ export async function POST(req: NextRequest) {
   const model = getModel(MODEL_NAME);
   try {
     const { userId } = await handleAuthorization(req);
-    const { messages, unifiedContext, enableScreenpipe, currentDatetime } =
-      await req.json();
-    console.log(enableScreenpipe, "enableScreenpipe");
-    console.log(currentDatetime, "currentDatetime");
+    const {
+      messages,
+      newUnifiedContext,
+      enableScreenpipe,
+      currentDatetime,
+      unifiedContext: oldUnifiedContext,
+    } = await req.json();
 
-    const contextString = unifiedContext
-      .map((file) => {
-        return `File: ${file.title}\n\nContent:\n${file.content}\nPath: ${file.path} Reference: ${file.reference}`;
-      })
-      .join("\n\n");
+    // if oldunified context do what is below if not just return newunified context
+    const contextString =
+      newUnifiedContext ||
+      oldUnifiedContext
+        ?.map((file) => {
+          return `File: ${file.title}\n\nContent:\n${file.content}\nPath: ${file.path} Reference: ${file.reference}`;
+        })
+        .join("\n\n");
 
     const result = await streamText({
       model,
@@ -40,27 +45,9 @@ export async function POST(req: NextRequest) {
         enableScreenpipe,
         currentDatetime
       ),
+      maxSteps: 3,
       messages: convertToCoreMessages(messages),
       tools: {
-        getNotesForDateRange: {
-          description: `If user asks for notes related to a date, get notes within a specified date range. Today is ${
-            new Date().toISOString().split("T")[0]
-          }`,
-          parameters: z.object({
-            startDate: z
-              .string()
-              .describe("Start date of the range (ISO format)")
-              .refine((date) => isValid(parseISO(date)), {
-                message: "Invalid start date format",
-              }),
-            endDate: z
-              .string()
-              .describe("End date of the range (ISO format)")
-              .refine((date) => isValid(parseISO(date)), {
-                message: "Invalid end date format",
-              }),
-          }),
-        },
         getSearchQuery: {
           description: "Extract queries to search for notes",
           parameters: z.object({
@@ -83,10 +70,33 @@ export async function POST(req: NextRequest) {
               .describe("The number of last modified files to retrieve"),
           }),
         },
+        onboardUser: {
+          description: "Onboard the user to the vault",
+          parameters: z.object({}),
+        },
+        appendContentToFile: {
+          description: "Append content to a file with user confirmation",
+          parameters: z.object({
+            content: z.string().describe("The content to append to the file"),
+            message: z
+              .string()
+              .describe("Message to show to the user for confirmation"),
+            fileName: z
+              .string()
+              .optional()
+              .describe("Optional specific file to append to"),
+          }),
+        },
         generateSettings: {
           description:
             "Generate vault organization settings based on user preferences",
           parameters: settingsSchema,
+        },
+        analyzeVaultStructure: {
+          description: "Analyze vault structure to suggest organization improvements",
+          parameters: z.object({
+            maxDepth: z.number().optional().describe("Maximum depth to analyze"),
+          }),
         },
         ...(enableScreenpipe && {
           getScreenpipeDailySummary: {

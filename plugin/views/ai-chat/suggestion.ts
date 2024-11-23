@@ -11,16 +11,16 @@ const suggestion = {
     
     if (query.length === 0) {
       return [
-        ...allFiles.slice(0, 5).map(file => ({ ...file, type: 'file', id: file.title, label: file.title, path: file.path })),
-        ...allTags.slice(0, 3).map(tag => ({ title: tag, type: 'tag', id: tag, label: tag })),
-        ...allFolders.slice(0, 2).map(folder => ({ ...folder, type: 'folder', id: folder.title, label: folder.title, path: folder.path }))
+        ...allFiles.slice(0, 5),
+        ...allTags.slice(0, 3),
+        ...allFolders.slice(0, 2)
       ]
     }
 
     const fuse = new Fuse([
-      ...allFiles.map(file => ({ ...file, type: 'file', id: file.title, label: file.title, path: file.path })),
-      ...allTags.map(tag => ({ title: tag, type: 'tag', id: tag, label: tag })),
-      ...allFolders.map(folder => ({ ...folder, type: 'folder', id: folder.title, label: folder.title, path: folder.path }))
+      ...allFiles,
+      ...allTags.slice(0, 3),
+      ...allFolders
     ], {
       keys: ['title'],
       threshold: 0.3,

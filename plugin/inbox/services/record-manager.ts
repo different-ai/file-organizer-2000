@@ -77,6 +77,7 @@ export interface FileRecord {
   logs: Record<Action, LogEntry>;
   status: FileStatus;
   file: TFile | null;
+  folder?: string;
 }
 
 export class RecordManager {
@@ -293,6 +294,14 @@ export class RecordManager {
     const record = this.records.get(hash);
     if (record) {
       record.tags = tags;
+      this.debounceSave();
+    }
+  }
+
+  public setFolder(hash: string, folder: string): void {
+    const record = this.records.get(hash);
+    if (record) {
+      record.newPath = folder;
       this.debounceSave();
     }
   }

@@ -1,4 +1,4 @@
-import { TFile } from "obsidian";
+import { Notice, TFile } from "obsidian";
 import FileOrganizer from "..";
 import { Inbox } from "../inbox";
 
@@ -9,6 +9,7 @@ export function registerEventHandlers(plugin: FileOrganizer) {
       await new Promise(resolve => setTimeout(resolve, 1000));
       if (!file.path.includes(plugin.settings.pathToWatch)) return;
       if (file instanceof TFile) {
+        new Notice("Inbox is looking at new file: " + file.basename);
         if (plugin.settings.useInbox) {
           Inbox.getInstance().enqueueFiles([file]);
         } else {
@@ -25,6 +26,7 @@ export function registerEventHandlers(plugin: FileOrganizer) {
 
       if (!file.path.includes(plugin.settings.pathToWatch)) return;
       if (file instanceof TFile) {
+        new Notice("Inbox is looking at new file: " + file.basename);
         if (plugin.settings.useInbox) {
           Inbox.getInstance().enqueueFiles([file]);
         } else {

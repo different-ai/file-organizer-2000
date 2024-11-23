@@ -38,6 +38,9 @@ dependencies:
   chokidar:
     specifier: ^3.6.0
     version: 3.6.0
+  clsx:
+    specifier: ^2.1.1
+    version: 2.1.1
   compromise:
     specifier: ^14.14.2
     version: 14.14.2
@@ -83,6 +86,9 @@ dependencies:
   react-markdown:
     specifier: ^9.0.1
     version: 9.0.1(@types/react@18.3.1)(react@18.3.1)
+  tailwind-merge:
+    specifier: ^2.5.4
+    version: 2.5.4
   tiktoken:
     specifier: ^1.0.15
     version: 1.0.15
@@ -95,6 +101,9 @@ dependencies:
   ts-node:
     specifier: ^10.9.2
     version: 10.9.2(@types/node@16.18.50)(typescript@5.6.2)
+  use-debounce:
+    specifier: ^10.0.4
+    version: 10.0.4(react@18.3.1)
   youtube-transcript:
     specifier: ^1.2.1
     version: 1.2.1
@@ -134,7 +143,7 @@ devDependencies:
     specifier: ^0.0.4
     version: 0.0.4(esbuild@0.17.3)(postcss@8.4.47)(ts-node@10.9.2)
   obsidian:
-    specifier: latest
+    specifier: ^1.7.2
     version: 1.7.2(@codemirror/state@6.4.1)(@codemirror/view@6.34.1)
   postcss:
     specifier: ^8.4.31
@@ -2344,6 +2353,11 @@ packages:
 
   /client-only@0.0.1:
     resolution: {integrity: sha512-IV3Ou0jSMzZrd3pZ48nLkT9DA7Ag1pnPzaiQhpW7c3RbcqqzvzzVu+L8gfqMp/8IM2MQtSiqaCxrrcfu8I8rMA==}
+    dev: false
+
+  /clsx@2.1.1:
+    resolution: {integrity: sha512-eYm0QWBtUrBWZWG0d386OGAw16Z995PiOVo2B7bjWSbHedGl5e0ZWaq65kOGgUSNesEIDkB9ISbTg/JK9dhCZA==}
+    engines: {node: '>=6'}
     dev: false
 
   /cluster-key-slot@1.1.2:
@@ -5110,6 +5124,10 @@ packages:
     engines: {node: '>=0.2.6'}
     dev: false
 
+  /tailwind-merge@2.5.4:
+    resolution: {integrity: sha512-0q8cfZHMu9nuYP/b5Shb7Y7Sh1B7Nnl5GqNr1U+n2p6+mybvRtayrQ+0042Z5byvTA8ihjlP8Odo8/VnHbZu4Q==}
+    dev: false
+
   /tailwindcss@3.4.14(ts-node@10.9.2):
     resolution: {integrity: sha512-IcSvOcTRcUtQQ7ILQL5quRDg7Xs93PdJEk1ZLbhhvJc7uj/OAhYOnruEiwnGgBvUtaUAJ8/mhSw1o8L2jCiENA==}
     engines: {node: '>=14.0.0'}
@@ -5389,6 +5407,15 @@ packages:
 
   /url-join@4.0.1:
     resolution: {integrity: sha512-jk1+QP6ZJqyOiuEI9AEWQfju/nB2Pw466kbA0LEZljHwKeMgd9WrAEgEGxjPDD2+TNbbb37rTyhEfrCXfuKXnA==}
+    dev: false
+
+  /use-debounce@10.0.4(react@18.3.1):
+    resolution: {integrity: sha512-6Cf7Yr7Wk7Kdv77nnJMf6de4HuDE4dTxKij+RqE9rufDsI6zsbjyAxcH5y2ueJCQAnfgKbzXbZHYlkFwmBlWkw==}
+    engines: {node: '>= 16.0.0'}
+    peerDependencies:
+      react: '*'
+    dependencies:
+      react: 18.3.1
     dev: false
 
   /use-sync-external-store@1.2.2(react@18.3.1):

@@ -8,7 +8,7 @@ interface DocumentChunksProps {
   activeFile: TFile;
 }
 
-export const DocumentChunks: React.FC<DocumentChunksProps> = ({ plugin, activeFile }) => {
+export const AtomicNotes: React.FC<DocumentChunksProps> = ({ plugin, activeFile }) => {
   const [concepts, setConcepts] = React.useState<string[]>([]);
   const [chunks, setChunks] = React.useState<{ concept: string; content: string }[]>([]);
   const [loading, setLoading] = React.useState(false);
@@ -27,9 +27,9 @@ export const DocumentChunks: React.FC<DocumentChunksProps> = ({ plugin, activeFi
     }
   };
 
-  const addToInbox = async (chunkContent: string) => {
+  const addToInbox = async (title: string, chunkContent: string) => {
     try {
-      await plugin.createFileInInbox(chunkContent);
+      await plugin.createFileInInbox(title, chunkContent);
     } catch (error) {
       logger.error("Error adding to inbox:", error);
     }
@@ -48,7 +48,7 @@ export const DocumentChunks: React.FC<DocumentChunksProps> = ({ plugin, activeFi
             .map((chunk, chunkIndex) => (
               <div key={chunkIndex} className="chunk-container">
                 <p>{chunk.content}</p>
-                <button onClick={() => addToInbox(chunk.content)}>Add to Inbox</button>
+                <button onClick={() => addToInbox(concept, chunk.content)}>Add to Inbox</button>
               </div>
             ))}
         </div>

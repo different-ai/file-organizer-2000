@@ -15,33 +15,37 @@ export const TranscriptionButton: React.FC<TranscriptionButtonProps> = ({ plugin
   const handleTranscribe = async () => {
     setTranscribing(true);
     try {
-      const audioRegex = /!\[\[(.*\.(mp3|wav|m4a|ogg|webm))]]/i;
-      const match = content.match(audioRegex);
-      if (match) {
-        const audioFileName = match[1];
+      const audioRegex = /!\[\[(.*?\.(mp3|wav|m4a|ogg|webm))]]/gi;
+      const matches = Array.from(content.matchAll(audioRegex));
 
+      if (matches.length === 0) {
+        new Notice("No audio files found");
+        return;
+      }
+
+      for (const match of matches) {
+        const audioFileName = match[1];
         const audioFile = plugin.app.metadataCache.getFirstLinkpathDest(
           audioFileName,
           "."
         );
 
         if (!(audioFile instanceof TFile)) {
-          logger.error("Audio file not found");
-          new Notice("Audio file not found");
-          return;
+          logger.error(`Audio file not found: ${audioFileName}`);
+          new Notice(`Audio file not found: ${audioFileName}`);
+          continue;
         }
-        if (audioFile instanceof TFile) {
-          const transcript = await plugin.generateTranscriptFromAudio(
-            audioFile
-          );
-          await plugin.appendTranscriptToActiveFile(
-            file,
-            audioFileName,
-            transcript
-          );
-          new Notice("Transcript added to the file");
-        }
+
+        const transcript = await plugin.generateTranscriptFromAudio(audioFile);
+        await plugin.appendTranscriptToActiveFile(
+          file,
+          audioFileName,
+          transcript
+        );
+        new Notice(`Transcript added for: ${audioFileName}`);
       }
+      
+      new Notice(`Completed transcribing ${matches.length} audio files`);
     } catch (error) {
       logger.error("Error transcribing audio:", error);
       new Notice("Error transcribing audio");
@@ -52,11 +56,18 @@ export const TranscriptionButton: React.FC<TranscriptionButtonProps> = ({ plugin
 
   return (
     <button
-      className="transcribe-button"
+      className="flex items-center gap-2 bg-[--interactive-accent] text-[--text-on-accent] px-4 py-2 rounded-md hover:bg-[--interactive-accent-hover] disabled:opacity-50"
       onClick={handleTranscribe}
       disabled={transcribing}
     >
-      {transcribing ? "Transcribing..." : "Transcribe Audio"}
+      {transcribing ? (
+        <>
+          <span className="animate-spin">⟳</span>
+          <span>Transcribing...</span>
+        </>
+      ) : (
+        "Transcribe Audio"
+      )}
     </button>
   );
 };

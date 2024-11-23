@@ -1,5 +1,5 @@
 import React from 'react';
-import { usePlugin } from '../organizer/provider';
+import { usePlugin } from '../../organizer/provider';
 
 interface SettingUpdateProps {
   setting: string;

@@ -12,15 +12,20 @@ export async function getYouTubeTranscript(videoId: string): Promise<string> {
       throw new Error('Transcript not available');
     }
 
+    logger.info("captionsJson", captionsJson);
     const captions = JSON.parse(captionsJson);
     const transcriptUrl = captions.playerCaptionsTracklistRenderer.captionTracks[0].baseUrl;
 
     const transcriptResponse = await requestUrl(transcriptUrl);
     const transcriptBody = transcriptResponse.text;
+    logger.info("transcriptBody", transcriptBody);
 
     const transcript = transcriptBody.match(/<text[^>]*>(.*?)<\/text>/g)
       ?.map(line => line.replace(/<[^>]*>/g, ''))
       .join(' ');
+
+    logger.info("transcript", transcript);
+
 
     return transcript || '';
   } catch (error) {

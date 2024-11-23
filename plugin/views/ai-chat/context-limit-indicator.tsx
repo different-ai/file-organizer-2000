@@ -1,97 +1,80 @@
 import React from "react";
 import { init, get_encoding } from "tiktoken/init";
-import wasmBinary from "tiktoken/tiktoken_bg.wasm"; // This is now an ArrayBuffer
+import wasmBinary from "tiktoken/tiktoken_bg.wasm";
+import { useDebouncedCallback } from 'use-debounce';
+import { logger } from "../../services/logger";
 
-interface ContextLimitIndicatorProps {
-  unifiedContext: Array<{ content: string }>;
-  maxContextSize: number;
+interface TokenStats {
+  contextSize: number;
+  percentUsed: number;
 }
 
-export const ContextLimitIndicator: React.FC<ContextLimitIndicatorProps> = ({
-  unifiedContext,
-  maxContextSize,
-}) => {
-  const [encoding, setEncoding] = React.useState<any>(null);
-  const [error, setError] = React.useState<string | null>(null);
+export function ContextLimitIndicator({ 
+  unifiedContext, 
+  maxContextSize 
+}: { 
+  unifiedContext: string;
+  maxContextSize: number;
+}) {
+  const [stats, setStats] = React.useState<TokenStats>({ contextSize: 0, percentUsed: 0 });
+  const [error, setError] = React.useState<string>();
+  const [tiktokenInitialized, setTiktokenInitialized] = React.useState(false);
 
+  // Initialize encoder once on mount
   React.useEffect(() => {
-    let isMounted = true;
-
-    (async () => {
+    
+    async function setup() {
       try {
-        await init((imports) => WebAssembly.instantiate(wasmBinary, imports));
-        if (isMounted) {
-          const enc = get_encoding("cl100k_base");
-          setEncoding(enc);
+        if (!tiktokenInitialized) {
+          await init((imports) => WebAssembly.instantiate(wasmBinary, imports));
+          setTiktokenInitialized(true);
         }
-      } catch (error) {
-        console.error("Error initializing tiktoken:", error);
-        setError("Failed to initialize token counter");
+      } catch (e) {
+        setError('Failed to initialize token counter');
       }
-    })();
+    }
 
-    return () => {
-      isMounted = false;
-      if (encoding) {
-        try {
-          encoding.free();
-        } catch (e) {
-          console.error("Error freeing encoder:", e);
-        }
-      }
-    };
+    setup();
   }, []);
 
-  const { contextSize, percentUsed } = React.useMemo(() => {
-    if (!encoding || error) {
-      return { contextSize: 0, percentUsed: 0 };
-    }
-
+  // Debounced token calculation
+  const calculateTokens = useDebouncedCallback((text: string) => {
+    console.log("calculateTokens", { text, tiktokenInitialized });
+    if (!text || !tiktokenInitialized) return;
+    const encoder = get_encoding("cl100k_base");
+    
     try {
-      let totalTokens = 0;
-      for (const item of unifiedContext) {
-        if (item?.content && typeof item.content === 'string') {
-          const safeContent = item.content.slice(0, 100000);
-          totalTokens += encoding.encode(safeContent).length;
-        }
-      }
-
-      return {
-        contextSize: totalTokens,
-        percentUsed: (totalTokens / maxContextSize) * 100,
-      };
-    } catch (e) {
-      console.error("Error counting tokens:", e);
-      setError("Failed to count tokens");
-      return { contextSize: 0, percentUsed: 0 };
+      const tokens = encoder.encode(text);
+      logger.debug("tokens", { tokens });
+      setStats({
+        contextSize: tokens.length,
+        percentUsed: (tokens.length / maxContextSize) * 100
+      });
+    } catch {
+      setError('Token counting failed');
+    } finally {
+      encoder.free();
     }
-  }, [unifiedContext, maxContextSize, encoding, error]);
+  }, 300);
 
-  const isOverLimit = contextSize > maxContextSize;
+  // Update tokens when context changes
+  React.useEffect(() => {
+    calculateTokens(unifiedContext);
+  }, [unifiedContext]);
 
   if (error) {
-    return (
-      <div className="mt-2 p-2 rounded text-xs text-[--text-error] border border-[--text-error]">
-        {error}
-      </div>
-    );
+    return <div className="mt-2 p-2 rounded text-xs text-[--text-error] border border-[--text-error]">{error}</div>;
   }
 
+  const isOverLimit = stats.contextSize > maxContextSize;
+  
   return (
-    <div
-      className={`mt-2 p-2 rounded text-xs flex gap-1 items-center justify-between
-        ${
-          isOverLimit
-            ? " border border-[--text-error] text-[--text-error]"
-            : "bg-[--background-modifier-border] text-[--text-muted]"
-        }`}
-    >
+    <div className={`mt-2 p-2 rounded text-xs flex gap-1 items-center justify-between
+      ${isOverLimit ? "border border-[--text-error] text-[--text-error]" : "bg-[--background-modifier-border] text-[--text-muted]"}`}>
       <span>
-        {isOverLimit
-          ? "Context size exceeds maximum. Please remove some context to continue."
-          : "Context used"}
+        {isOverLimit ? "Context size exceeds maximum" : "Context used"}
       </span>
-      <span className="font-mono">{percentUsed.toFixed(0)}%</span>
+      <span className="font-mono">{stats.percentUsed.toFixed(0)}%</span>
     </div>
   );
-};
+}

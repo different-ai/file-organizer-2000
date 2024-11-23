@@ -4,21 +4,38 @@ import React, {
   useImperativeHandle,
   useState,
 } from "react";
+import { FileText, Hash, Folder } from 'lucide-react';
 
 interface MentionItem {
   id?: string;
   title: string;
   content?: string;
-  type?: string;
+  type?: 'file' | 'tag' | 'folder';
   label?: string;
   path?: string;
-  icon?: string; // New property for item icons
 }
 
 interface MentionsProps {
   items: MentionItem[];
   command: (item: MentionItem) => void;
 }
+
+const ItemIcon = ({ type }: { type?: string }) => {
+  const className = "w-4 h-4";
+  
+  switch (type) {
+    case 'file':
+      return <FileText className={className} />;
+    case 'tag':
+      return <Hash className={className} />;
+    case 'folder':
+      return <Folder className={className} />;
+    default:
+      return null;
+  }
+};
+
+
 
 export const Mentions = forwardRef<
   { onKeyDown: (args: { event: KeyboardEvent }) => boolean },
@@ -70,25 +87,34 @@ export const Mentions = forwardRef<
   }));
 
   return (
-    <div className="">
-      {props.items.length ? (
-        <ul className="py-1 list-none">
+      props.items.length ? (
+        // do not indent list
+        <ul className="max-h-[300px] overflow-y-auto bg-[--background-secondary] list-none p-0">
           {props.items.map((item, index) => (
-            <li key={item.path || item.title} className="list-none">
+            <li 
+              key={item.path || item.title} 
+              className="list-none"
+            >
               <button
-                className={`w-full text-left px-4 py-2 flex items-center space-x-2 ${
+                className={`w-full text-left flex items-center gap-2 hover:bg-[--background-modifier-active-hover] ${
                   index === selectedIndex
                     ? "bg-[--background-modifier-active-hover] text-[--text-accent]"
-                    : "text-[--text-normal] hover:bg-[--background-modifier-hover]"
+                    : "text-[--text-normal]"
                 }`}
                 onClick={() => selectItem(index)}
               >
-                {item.icon && (
-                  <span className="text-[--text-muted]">{item.icon}</span>
-                )}
-                <span className="flex-grow truncate">{item.title}</span>
+                <span className="text-[--text-muted] flex-shrink-0">
+                  <ItemIcon type={item.type} />
+                </span>
+                
+                <div className="flex-grow min-w-0">
+                  <div className="font-medium truncate">
+                    {item.title}
+                  </div>
+               </div>
+
                 {item.type && (
-                  <span className="text-xs text-[--text-muted] bg-[--background-secondary] px-1.5 py-0.5 rounded-full">
+                  <span className="text-xs text-[--text-muted] bg-[--background-secondary] px-1.5 py-0.5 rounded-full flex-shrink-0">
                     {item.type}
                   </span>
                 )}
@@ -97,11 +123,10 @@ export const Mentions = forwardRef<
           ))}
         </ul>
       ) : (
-        <div className="px-4 py-2 text-sm text-[--text-muted]">
-          No results found
-        </div>
-      )}
-    </div>
+        <div className="px-4 py-3 text-sm text-[--text-muted] text-center">
+        No matching items found
+      </div>
+    )
   );
 });
 

@@ -1,42 +1,31 @@
-export interface LogEntry {
-  timestamp: string;
-  level: 'info' | 'error' | 'warn' | 'debug';
-  message: string;
-  details?: any;
-}
-
 class LoggerService {
-  private logs: LogEntry[] = [];
   private isEnabled = false;
 
   configure(enabled: boolean) {
     this.isEnabled = enabled;
   }
 
-
   info(...messages: any[]) {
+    if (!this.isEnabled) return;
     console.info(...messages);
   }
 
   error(...messages: any[]) {
+    if (!this.isEnabled) return;
     console.error(...messages);
   }
 
   warn(...messages: any[]) {
+    if (!this.isEnabled) return;
     console.warn(...messages);
   }
 
   debug(...messages: any[]) {
+    if (!this.isEnabled) return;
     console.debug(...messages);
   }
 
-  getLogs(): LogEntry[] {
-    return this.logs;
-  }
 
-  clearLogs() {
-    this.logs = [];
-  }
 }
 
 export const logger = new LoggerService(); 
