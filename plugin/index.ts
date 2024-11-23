@@ -642,13 +642,11 @@ export default class FileOrganizer extends Plugin {
     }
   }
 
-  async createFileInInbox(content: string): Promise<void> {
-    const fileName = `chunk_${Date.now()}.md`;
+
+  async createFileInInbox(title: string, content: string): Promise<void> {
+    const fileName = `${title}.md`;
     const filePath = `${this.settings.pathToWatch}/${fileName}`;
     await this.app.vault.create(filePath, content);
-    await this.processFileV2(
-      this.app.vault.getAbstractFileByPath(filePath) as TFile
-    );
   }
 
   async _experimentalIdentifyConcepts(content: string): Promise<string[]> {

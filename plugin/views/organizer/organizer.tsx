@@ -5,7 +5,7 @@ import { debounce } from "lodash";
 
 import { SectionHeader } from "./components/section-header";
 import { SimilarTags } from "./tags";
-import { DocumentChunks } from "./chunks";
+import { AtomicNotes } from "./chunks";
 import { RenameSuggestion } from "./titles/box";
 import { SimilarFolderBox } from "./folders/box";
 import { RefreshButton } from "./components/refresh-button";
@@ -241,7 +241,7 @@ export const AssistantView: React.FC<AssistantViewProps> = ({
         <>
           <SectionHeader text="Atomic notes" icon="✂️ " />
           {renderSection(
-            <DocumentChunks plugin={plugin} activeFile={activeFile} />,
+            <AtomicNotes plugin={plugin} activeFile={activeFile} />,
             "Error loading atomic notes"
           )}
         </>
