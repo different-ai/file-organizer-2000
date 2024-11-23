@@ -224,7 +224,7 @@ export const ChatComponent: React.FC<ChatComponentProps> = ({
         </div>
 
         <form
-          // onSubmit={handleSendMessage}
+          onSubmit={handleSendMessage}
           className="flex items-end"
         >
           <div className="flex-grow overflow-y-auto relative" ref={inputRef}>
