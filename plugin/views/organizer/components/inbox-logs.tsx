@@ -431,7 +431,7 @@ const DateFilterSelect: React.FC<{
           type="date"
           value={value.startDate}
           onChange={(e) => handleDateChange(e.target.value)}
-          className="py-2 px-3 bg-[--background-secondary] rounded-r border border-l-0 border-[--background-modifier-border] text-sm"
+          className="py-2 pl-6 pr-2 bg-[--background-secondary] rounded-r border border-[--background-modifier-border] text-sm w-min"
           max={moment().format('YYYY-MM-DD')}
         />
       )}
@@ -474,24 +474,27 @@ const SearchBar: React.FC<SearchBarProps> = ({
   ];
 
   return (
-    <div className="bg-[--background-primary] p-4 rounded-lg border border-[--background-modifier-border] space-y-2">
-      <div className="flex items-center gap-2">
-        <div className="relative flex-1">
-          <Search className="w-4 h-4 absolute left-3 top-1/2 transform -translate-y-1/2 text-[--text-muted]" />
-          <input
-            type="text"
-            placeholder="Search files, tags, or actions..."
-            value={searchQuery}
-            onChange={handleSearchChange}
-            className="w-full pl-9 pr-4 h-min py-2 bg-[--background-secondary] rounded border border-[--background-modifier-border] text-sm"
-          />
-        </div>
-        <div className="relative">
+    <div className="bg-[--background-primary] p-4 rounded-lg border border-[--background-modifier-border] space-y-3">
+      {/* Search input row */}
+      <div className="relative flex-1">
+        <Search className="w-4 h-4 absolute left-3 top-1/2 transform -translate-y-1/2 text-[--text-muted]" />
+        <input
+          type="text"
+          placeholder="Search files, tags, or actions..."
+          value={searchQuery}
+          onChange={handleSearchChange}
+          className="w-full pl-9 pr-4 h-min py-2 bg-[--background-secondary] rounded border border-[--background-modifier-border] text-sm"
+        />
+      </div>
+
+      {/* Filters row */}
+      <div className="flex items-center gap-3">
+        <div className="relative w-[200px]">
           <Filter className="w-4 h-4 absolute left-3 top-1/2 transform -translate-y-1/2 text-[--text-muted]" />
           <select
             value={selectedStatus}
             onChange={e => onStatusFilter(e.target.value as FileStatus | "")}
-            className="pl-9 pr-4 h-min py-2 bg-[--background-secondary] rounded border border-[--background-modifier-border] text-sm appearance-none"
+            className="w-full pl-9 pr-4 h-min py-2 bg-[--background-secondary] rounded border border-[--background-modifier-border] text-sm appearance-none"
           >
             {statuses.map(status => (
               <option key={status} value={status}>
