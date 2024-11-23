@@ -155,6 +155,18 @@ const FileNameDisplay: React.FC<{ record: FileRecord }> = ({ record }) => {
   );
 };
 
+// Add this helper component for the path display
+const PathDisplay: React.FC<{ record: FileRecord }> = ({ record }) => {
+  if (!record.newPath) return null;
+
+  return (
+    <div className="flex items-center gap-2 text-sm">
+      <span className="text-[--text-muted]">→</span>
+      <span className="text-[--text-accent]">{record.newPath}</span>
+    </div>
+  );
+};
+
 // Main file card component
 function FileCard({ record }: { record: FileRecord }) {
   const plugin = usePlugin();
@@ -169,62 +181,91 @@ function FileCard({ record }: { record: FileRecord }) {
       .map(([action, log]) => [action as Action, log] as [Action, LogEntry]);
   }, [JSON.stringify(record.logs)]);
 
+  // Add status indicators - only show when present
+  const StatusIndicators = () => {
+    const hasStatus = record.classification || record.tags.length > 0;
+    if (!hasStatus) return null;
+
+    return (
+      <div className="flex items-center gap-2">
+        {record.classification && (
+          <span className="px-2 py-0.5 rounded-full text-xs bg-[--background-modifier-success] text-[--text-on-accent]">
+            Classified
+          </span>
+        )}
+        {record.tags.length > 0 && (
+          <span className="px-2 py-0.5 rounded-full text-xs bg-[--background-modifier-success] text-[--text-on-accent]">
+            Tagged
+          </span>
+        )}
+      </div>
+    );
+  };
+
   return (
     <motion.div
       layout
       className="bg-[--background-primary] border border-[--background-modifier-border] rounded-lg"
     >
       <div className="p-4">
-        {/* Updated File header */}
-        <div className="flex items-center justify-between mb-2 gap-3">
-          <div className="flex items-center gap-2">
-            <div
-              className="cursor-pointer"
-              onClick={() =>
-                plugin.app.workspace.openLinkText(
-                  record.file?.basename,
-                  record.file?.parent.path
-                )
-              }
-            >
-              <FileNameDisplay record={record} />
-            </div>
-            <StatusBadge status={record.status} />
-          </div>
-          <button
-            onClick={() => setIsExpanded(!isExpanded)}
-            className="flex items-center gap-2 text-[--text-muted]"
-          >
-            <ChevronDown
-              className={`w-4 h-4 transition-transform ${
-                isExpanded ? "rotate-180" : ""
-              }`}
-            />
-          </button>
-        </div>
-
-        {/* Always visible info */}
+        {/* File header with status indicators */}
         <div className="space-y-2">
-          {record.classification && (
-            <div className="text-sm">
-              Classification:{" "}
-              <span className="text-[--text-accent]">
-                {record.classification}
-              </span>
+          <div className="flex items-center justify-between gap-3">
+            <div className="flex items-center gap-2">
+              <div
+                className="cursor-pointer"
+                onClick={() =>
+                  plugin.app.workspace.openLinkText(
+                    record.file?.basename,
+                    record.file?.parent.path
+                  )
+                }
+              >
+                <FileNameDisplay record={record} />
+              </div>
+              <StatusBadge status={record.status} />
             </div>
-          )}
-          {record.tags.length > 0 && (
-            <div className="flex gap-1 flex-wrap">
-              {record.tags.map((tag, i) => (
-                <span
-                  key={i}
-                  className="px-2 py-0.5 bg-[--background-secondary] rounded-full text-xs"
-                >
-                  {tag}
+            <button
+              onClick={() => setIsExpanded(!isExpanded)}
+              className="flex items-center gap-2 text-[--text-muted]"
+            >
+              <ChevronDown
+                className={`w-4 h-4 transition-transform ${
+                  isExpanded ? "rotate-180" : ""
+                }`}
+              />
+            </button>
+          </div>
+
+          {/* Status indicators - only shown when present */}
+          <StatusIndicators />
+
+          {/* Path display */}
+          <PathDisplay record={record} />
+
+          {/* Always visible info - only when present */}
+          <div className="space-y-2">
+            {record.classification && (
+              <div className="text-sm">
+                Classification:{" "}
+                <span className="text-[--text-accent]">
+                  {record.classification}
                 </span>
-              ))}
-            </div>
-          )}
+              </div>
+            )}
+            {record.tags.length > 0 && (
+              <div className="flex gap-1 flex-wrap">
+                {record.tags.map((tag, i) => (
+                  <span
+                    key={i}
+                    className="px-2 py-0.5 bg-[--background-secondary] rounded-full text-xs"
+                  >
+                    {tag}
+                  </span>
+                ))}
+              </div>
+            )}
+          </div>
         </div>
 
         {/* Expanded logs */}
