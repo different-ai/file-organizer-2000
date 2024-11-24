@@ -13,8 +13,8 @@ const models = {
 export const getModel = (name: string) => {
   if (!models[name]) {
     console.log(`Model ${name} not found`);
-    console.log(`Defaulting to gpt-4o-2024-08-06`);
-    return models["gpt-4o-2024-08-06"];
+    console.log(`Defaulting to gpt-4o`);
+    return models["gpt-4o"];
   }
   console.log(`Using model ${name}`);
 
