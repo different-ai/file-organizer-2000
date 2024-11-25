@@ -13,6 +13,7 @@ async function resetUserUsageAndSetLastPayment(userId: string) {
     .update(UserUsageTable)
     .set({
       tokenUsage: 0,
+      maxTokenUsage: 5000 * 1000,
       lastPayment: new Date(),
     })
     .where(eq(UserUsageTable.userId, userId));

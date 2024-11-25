@@ -2,9 +2,13 @@ import React, { useState, useEffect } from "react";
 import { Notice } from "obsidian";
 import FileOrganizer from "../../index";
 import { logger } from "../../services/logger";
+import { UsageStats } from "../../components/usage-stats";
+import { TopUpCredits } from '../../views/settings/top-up-credits';
 
 interface GeneralTabProps {
   plugin: FileOrganizer;
+  userId: string;
+  email: string;
 }
 
 interface UsageData {
@@ -14,7 +18,7 @@ interface UsageData {
   currentPlan: string;
 }
 
-export const GeneralTab: React.FC<GeneralTabProps> = ({ plugin }) => {
+export const GeneralTab: React.FC<GeneralTabProps> = ({ plugin, userId, email }) => {
   const [licenseKey, setLicenseKey] = useState(plugin.settings.API_KEY);
   const [usageData, setUsageData] = useState<UsageData | null>(null);
   const [loading, setLoading] = useState(true);
@@ -55,10 +59,6 @@ export const GeneralTab: React.FC<GeneralTabProps> = ({ plugin }) => {
     } else {
       new Notice("Invalid license key. Please try again.");
     }
-  };
-
-  const formatNumber = (num: number) => {
-    return new Intl.NumberFormat().format(num);
   };
 
   return (
@@ -134,37 +134,12 @@ export const GeneralTab: React.FC<GeneralTabProps> = ({ plugin }) => {
         </p>
       </div>
 
-      {usageData && (
-        <div className="setting-item">
-          <div className="setting-item-info">
-            <div className="setting-item-name">Token Usage</div>
-            <div className="setting-item-description">
-              Your current token usage and limits
-            </div>
-          </div>
-          <div className="setting-item-control">
-            <div className="token-usage-stats">
-              <div className="usage-bar">
-                <div 
-                  className="usage-progress"
-                  style={{
-                    width: `${(usageData.tokenUsage / usageData.maxTokenUsage) * 100}%`,
-                    backgroundColor: 'var(--interactive-accent)',
-                    height: '8px',
-                    borderRadius: '4px'
-                  }}
-                />
-              </div>
-              <div className="usage-numbers">
-                {formatNumber(usageData.tokenUsage)} / {formatNumber(usageData.maxTokenUsage)} tokens
-              </div>
-              <div className="usage-plan">
-                Current Plan: {usageData.currentPlan || 'Free'}
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
+      {usageData && <UsageStats usageData={usageData} />}
+
+      <div className="border-t pt-6">
+        <h3 className="text-lg font-medium mb-4">Get started with a top-up</h3>
+        <TopUpCredits plugin={plugin} onLicenseKeyChange={handleLicenseKeyChange} />
+      </div>
     </div>
   );
 };

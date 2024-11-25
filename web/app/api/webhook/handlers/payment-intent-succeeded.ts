@@ -1,12 +1,12 @@
 import { CustomerData, WebhookEvent, WebhookHandlerResponse } from "../types";
 import { db, UserUsageTable } from "@/drizzle/schema";
-import { eq } from "drizzle-orm";
+import { eq, sql } from "drizzle-orm";
 import { updateUserSubscriptionData } from "../utils";
 import Stripe from "stripe";
 import { trackLoopsEvent } from '@/lib/services/loops';
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY as string, {
-  apiVersion: '2022-11-15',
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
+  apiVersion: "2022-11-15",
 });
 
 async function resetUserUsageAndSetLastPayment(userId: string) {
@@ -19,11 +19,29 @@ async function resetUserUsageAndSetLastPayment(userId: string) {
     .where(eq(UserUsageTable.userId, userId));
 }
 
+async function handleTopUp(userId: string, tokens: number) {
+  console.log("Handling top-up for user", userId, "with", tokens, "tokens");
+
+  await db
+    .update(UserUsageTable)
+    .set({
+      maxTokenUsage: sql`${UserUsageTable.maxTokenUsage} + ${tokens}`,
+      lastPayment: new Date(),
+      subscriptionStatus: 'active',
+      paymentStatus: 'succeeded',
+      currentProduct: 'top_up',
+      currentPlan: 'top_up',
+    })
+    .where(eq(UserUsageTable.userId, userId));
+}
+
 export async function handlePaymentIntentSucceeded(
   event: WebhookEvent
 ): Promise<WebhookHandlerResponse> {
   const paymentIntent = event.data.object as Stripe.PaymentIntent;
   const userId = paymentIntent.metadata?.userId;
+  const type = paymentIntent.metadata?.type;
+  const tokens = parseInt(paymentIntent.metadata?.tokens || "0");
 
   if (!userId) {
     return {
@@ -32,46 +50,57 @@ export async function handlePaymentIntentSucceeded(
     };
   }
 
-  const customerData: CustomerData = {
-    userId,
-    customerId: paymentIntent.customer?.toString() || "none",
-    status: paymentIntent.status,
-    billingCycle: "lifetime", // Payment intents are typically for one-time payments
-    paymentStatus: paymentIntent.status,
-    // this is the name of the product
-    // should be a key of srm.products
-    product: "Lifetime",
-    // use key of srm.products.Lifetime
-    plan: "lifetime",
-
-    lastPayment: new Date(),
-  };
-
   try {
+    if (type === "top_up") {
+      await handleTopUp(userId, tokens);
+      
+      if (paymentIntent.customer) {
+        try {
+          const customer = await stripe.customers.retrieve(paymentIntent.customer as string);
+          
+          if (customer && !customer.deleted) {
+            await trackLoopsEvent({
+              email: 'object' in customer ? customer.email || '' : '',
+              userId,
+              eventName: 'top_up_succeeded',
+              data: {
+                amount: paymentIntent.amount,
+                tokens,
+              },
+            });
+          }
+        } catch (error) {
+          console.error("Error tracking customer event:", error);
+        }
+      }
+
+      return {
+        success: true,
+        message: `Successfully processed top-up for ${userId}`,
+      };
+    }
+
+    // Handle regular subscription payment
+    const customerData: CustomerData = {
+      userId,
+      customerId: paymentIntent.customer?.toString() || "none",
+      status: paymentIntent.status,
+      billingCycle: "lifetime",
+      paymentStatus: paymentIntent.status,
+      product: "Lifetime",
+      plan: "lifetime",
+      lastPayment: new Date(),
+    };
+
     await updateUserSubscriptionData(customerData);
     await resetUserUsageAndSetLastPayment(userId);
-
-
-    // Get customer details from Stripe
-    const customer = await stripe.customers.retrieve(paymentIntent.customer.toString()) as Stripe.Customer;
-
-    // Add Loops tracking
-    await trackLoopsEvent({
-      email: typeof customer === 'string' ? '' : customer?.email || '',
-      userId: customerData.userId,
-      eventName: 'payment_succeeded',
-      data: {
-        amount: paymentIntent.amount,
-        product: customerData.product,
-        plan: customerData.plan,
-      },
-    });
 
     return {
       success: true,
       message: `Successfully processed payment intent for ${userId}`,
     };
   } catch (error) {
+    console.error("Payment intent handler error:", error);
     return {
       success: false,
       message: "Failed to process payment intent",
