@@ -56,19 +56,19 @@ export async function handlePaymentIntentSucceeded(
       
       if (paymentIntent.customer) {
         try {
-          const customer = await stripe.customers.retrieve(paymentIntent.customer as string);
+          // Get customer email from Stripe
+          const customer = await stripe.customers.retrieve(paymentIntent.customer.toString()) as Stripe.Customer;
           
-          if (customer && !customer.deleted) {
-            await trackLoopsEvent({
-              email: 'object' in customer ? customer.email || '' : '',
-              userId,
-              eventName: 'top_up_succeeded',
-              data: {
+          // Add Loops tracking
+          await trackLoopsEvent({
+            email: typeof customer === 'string' ? '' : customer.email || '',
+            userId,
+            eventName: 'top_up_succeeded',
+            data: {
                 amount: paymentIntent.amount,
                 tokens,
               },
-            });
-          }
+          });
         } catch (error) {
           console.error("Error tracking customer event:", error);
         }
