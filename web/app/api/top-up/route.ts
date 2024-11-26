@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import Stripe from "stripe";
-import { handleAuthorization } from "@/lib/handleAuthorization";
+import {  handleAuthorizationV2 } from "@/lib/handleAuthorization";
 import { createAnonymousUser } from "../anon";
 import { createLicenseKeyFromUserId } from "@/app/actions";
 import { createEmptyUserUsage } from "@/drizzle/schema";
@@ -14,7 +14,7 @@ export async function POST(req: NextRequest) {
   // check fi there ir a user id if not create it
   let userId = "";
   try {
-    ({ userId } = await handleAuthorization(req));
+    ({ userId } = await handleAuthorizationV2(req));
   } catch (error) {
     console.log("Error getting user id", error);
     userId = (await createAnonymousUser()).id;
