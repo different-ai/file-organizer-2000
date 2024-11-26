@@ -19,6 +19,7 @@ export async function POST(req: NextRequest) {
     userId = (await createAnonymousUser()).id;
     await createEmptyUserUsage(userId);
   }
+  console.log(userId)
   const licenseKey = await createLicenseKeyFromUserId(userId);
 
   const session = await stripe.checkout.sessions.create({
@@ -39,10 +40,10 @@ export async function POST(req: NextRequest) {
     mode: "payment",
     success_url: `${
       process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"
-    }/success`,
+    }/top-up-success`,
     cancel_url: `${
       process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"
-    }/cancel`,
+    }/top-up-cancelled`,
     metadata: {
       userId,
       type: "top_up",

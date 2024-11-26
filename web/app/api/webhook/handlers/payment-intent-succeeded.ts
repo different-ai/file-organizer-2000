@@ -1,3 +1,4 @@
+import { createWebhookHandler } from '../handler-factory';
 import { CustomerData, WebhookEvent, WebhookHandlerResponse } from "../types";
 import { db, UserUsageTable } from "@/drizzle/schema";
 import { eq, sql } from "drizzle-orm";
@@ -35,45 +36,51 @@ async function handleTopUp(userId: string, tokens: number) {
     .where(eq(UserUsageTable.userId, userId));
 }
 
-export async function handlePaymentIntentSucceeded(
-  event: WebhookEvent
-): Promise<WebhookHandlerResponse> {
-  const paymentIntent = event.data.object as Stripe.PaymentIntent;
-  const userId = paymentIntent.metadata?.userId;
-  const type = paymentIntent.metadata?.type;
-  const tokens = parseInt(paymentIntent.metadata?.tokens || "0");
-
-  if (!userId) {
-    return {
-      success: false,
-      message: "No userId found in payment intent metadata",
-    };
+async function trackCustomerEvent(paymentIntent: Stripe.PaymentIntent) {
+  if (paymentIntent.customer) {
+    try {
+      const customer = await stripe.customers.retrieve(
+        paymentIntent.customer.toString()
+      ) as Stripe.Customer;
+      
+      await trackLoopsEvent({
+        email: typeof customer === 'string' ? '' : customer.email || '',
+        userId: paymentIntent.metadata?.userId,
+        eventName: 'top_up_succeeded',
+        data: {
+          amount: paymentIntent.amount,
+          tokens: parseInt(paymentIntent.metadata?.tokens || "0"),
+        },
+      });
+    } catch (error) {
+      console.error("Error tracking customer event:", error);
+    }
   }
+}
 
-  try {
+function createCustomerData(paymentIntent: Stripe.PaymentIntent): CustomerData {
+  return {
+    userId: paymentIntent.metadata?.userId,
+    customerId: paymentIntent.customer?.toString() || "none",
+    status: paymentIntent.status,
+    billingCycle: "lifetime",
+    paymentStatus: paymentIntent.status,
+    product: "Lifetime",
+    plan: "lifetime",
+    lastPayment: new Date(),
+  };
+}
+
+export const handlePaymentIntentSucceeded = createWebhookHandler(
+  async (event) => {
+    const paymentIntent = event.data.object as Stripe.PaymentIntent;
+    const userId = paymentIntent.metadata?.userId;
+    const type = paymentIntent.metadata?.type;
+    const tokens = parseInt(paymentIntent.metadata?.tokens || "0");
+
     if (type === "top_up") {
       await handleTopUp(userId, tokens);
-      
-      if (paymentIntent.customer) {
-        try {
-          // Get customer email from Stripe
-          const customer = await stripe.customers.retrieve(paymentIntent.customer.toString()) as Stripe.Customer;
-          
-          // Add Loops tracking
-          await trackLoopsEvent({
-            email: typeof customer === 'string' ? '' : customer.email || '',
-            userId,
-            eventName: 'top_up_succeeded',
-            data: {
-                amount: paymentIntent.amount,
-                tokens,
-              },
-          });
-        } catch (error) {
-          console.error("Error tracking customer event:", error);
-        }
-      }
-
+      await trackCustomerEvent(paymentIntent);
       return {
         success: true,
         message: `Successfully processed top-up for ${userId}`,
@@ -81,30 +88,15 @@ export async function handlePaymentIntentSucceeded(
     }
 
     // Handle regular subscription payment
-    const customerData: CustomerData = {
-      userId,
-      customerId: paymentIntent.customer?.toString() || "none",
-      status: paymentIntent.status,
-      billingCycle: "lifetime",
-      paymentStatus: paymentIntent.status,
-      product: "Lifetime",
-      plan: "lifetime",
-      lastPayment: new Date(),
-    };
-
+    const customerData = createCustomerData(paymentIntent);
     await updateUserSubscriptionData(customerData);
-    await resetUserUsageAndSetLastPayment(userId);
 
     return {
       success: true,
       message: `Successfully processed payment intent for ${userId}`,
     };
-  } catch (error) {
-    console.error("Payment intent handler error:", error);
-    return {
-      success: false,
-      message: "Failed to process payment intent",
-      error,
-    };
+  },
+  {
+    requiredMetadata: ['userId'],
   }
-} 
+); 

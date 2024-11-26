@@ -33,11 +33,6 @@ export async function createLicenseKeyFromUserId(userId: string) {
   const name = "my api key";
   const unkey = new Unkey({ token });
 
-  if (!isPaidUser) {
-    console.log("Error: User not subscribed to a paid plan");
-    throw new Error("User is not subscribed to a paid plan");
-  }
-
 
   console.log("Creating Unkey license key");
   const key = await unkey.keys.create({

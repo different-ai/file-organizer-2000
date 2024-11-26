@@ -7,6 +7,7 @@ export async function GET(request: NextRequest) {
   try {
     const token = request.headers.get("authorization")?.replace("Bearer ", "");
     const { result } = await verifyKey(token || "");
+    console.log(result)
     const userId = result?.ownerId;
 
     const userUsage = await db

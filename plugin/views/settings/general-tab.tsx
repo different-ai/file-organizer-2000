@@ -31,7 +31,7 @@ export const GeneralTab: React.FC<GeneralTabProps> = ({ plugin, userId, email })
     try {
       const response = await fetch(`${plugin.getServerUrl()}/api/usage`, {
         headers: {
-          Authorization: `Bearer ${plugin.settings.API_KEY}`,
+          Authorization: `Bearer ${licenseKey}`,
         },
       });
       
@@ -51,6 +51,13 @@ export const GeneralTab: React.FC<GeneralTabProps> = ({ plugin, userId, email })
     plugin.settings.API_KEY = value;
     await plugin.saveSettings();
   };
+
+  // add a use effect to save the license key
+  useEffect(() => {
+    plugin.settings.API_KEY = licenseKey;
+    plugin.saveSettings();
+  }, [licenseKey]);
+
 
   const handleActivate = async () => {
     const isValid = await plugin.isLicenseKeyValid(licenseKey);
