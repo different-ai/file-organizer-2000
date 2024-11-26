@@ -7,7 +7,16 @@ import { handleInvoicePaid } from "./handlers/invoice-paid";
 import { handlePaymentIntentSucceeded } from "./handlers/payment-intent-succeeded";
 
 const HANDLERS = {
-  "checkout.session.completed": handleCheckoutComplete,
+  "checkout.session.completed": async (event) => {
+    const session = event.data.object;
+    if (session.metadata?.type === 'top_up') {
+      return {
+        success: true,
+        message: "Skipped checkout handler for top-up",
+      };
+    }
+    return handleCheckoutComplete(event);
+  },
   "customer.subscription.deleted": handleSubscriptionCanceled,
   "invoice.paid": handleInvoicePaid,
   "payment_intent.succeeded": handlePaymentIntentSucceeded,

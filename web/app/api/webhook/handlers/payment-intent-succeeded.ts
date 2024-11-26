@@ -10,30 +10,36 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
   apiVersion: "2022-11-15",
 });
 
-async function resetUserUsageAndSetLastPayment(userId: string) {
-  await db
-    .update(UserUsageTable)
-    .set({
-      tokenUsage: 0,
-      lastPayment: new Date(),
-    })
-    .where(eq(UserUsageTable.userId, userId));
-}
+
 
 async function handleTopUp(userId: string, tokens: number) {
   console.log("Handling top-up for user", userId, "with", tokens, "tokens");
 
   await db
-    .update(UserUsageTable)
-    .set({
-      maxTokenUsage: sql`${UserUsageTable.maxTokenUsage} + ${tokens}`,
-      lastPayment: new Date(),
+    .insert(UserUsageTable)
+    .values({
+      userId,
+      maxTokenUsage: tokens,
+      tokenUsage: 0,
       subscriptionStatus: 'active',
       paymentStatus: 'succeeded',
       currentProduct: 'top_up',
       currentPlan: 'top_up',
+      billingCycle: 'top-up',
+      lastPayment: new Date(),
     })
-    .where(eq(UserUsageTable.userId, userId));
+    .onConflictDoUpdate({
+      target: [UserUsageTable.userId],
+      set: {
+        maxTokenUsage: sql`COALESCE(${UserUsageTable.maxTokenUsage}, 0) + ${tokens}`,
+        lastPayment: new Date(),
+        subscriptionStatus: 'active',
+        paymentStatus: 'succeeded',
+        currentProduct: 'top_up',
+        currentPlan: 'top_up',
+        billingCycle: 'top-up',
+      },
+    });
 }
 
 async function trackCustomerEvent(paymentIntent: Stripe.PaymentIntent) {
