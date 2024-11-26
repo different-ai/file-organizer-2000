@@ -17,7 +17,7 @@ const features = {
 };
 
 // Simplified environment-based target URL configuration
-const getTargetUrl = () => {
+export const getTargetUrl = () => {
   if (process.env.VERCEL_ENV === "production") {
     return process.env.VERCEL_PROJECT_PRODUCTION_URL;
   }
