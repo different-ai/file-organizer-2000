@@ -5,14 +5,23 @@ import { eq, sql } from "drizzle-orm";
 import { updateUserSubscriptionData } from "../utils";
 import Stripe from "stripe";
 import { trackLoopsEvent } from '@/lib/services/loops';
+import { updateAnonymousUserEmail } from "../anon";
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
   apiVersion: "2022-11-15",
 });
 
+async function getCustomerEmail(customerId: string): Promise<string> {
+  try {
+    const customer = await stripe.customers.retrieve(customerId) as Stripe.Customer;
+    return typeof customer === 'string' ? '' : customer.email || '';
+  } catch (error) {
+    console.error("Error retrieving customer email:", error);
+    return '';
+  }
+}
 
-
-async function handleTopUp(userId: string, tokens: number) {
+async function handleTopUp(userId: string, tokens: number,) {
   console.log("Handling top-up for user", userId, "with", tokens, "tokens");
 
   await db
@@ -45,12 +54,10 @@ async function handleTopUp(userId: string, tokens: number) {
 async function trackCustomerEvent(paymentIntent: Stripe.PaymentIntent) {
   if (paymentIntent.customer) {
     try {
-      const customer = await stripe.customers.retrieve(
-        paymentIntent.customer.toString()
-      ) as Stripe.Customer;
+      const email = await getCustomerEmail(paymentIntent.customer.toString());
       
       await trackLoopsEvent({
-        email: typeof customer === 'string' ? '' : customer.email || '',
+        email,
         userId: paymentIntent.metadata?.userId,
         eventName: 'top_up_succeeded',
         data: {
@@ -77,12 +84,16 @@ function createCustomerData(paymentIntent: Stripe.PaymentIntent): CustomerData {
   };
 }
 
+
+
 export const handlePaymentIntentSucceeded = createWebhookHandler(
   async (event) => {
     const paymentIntent = event.data.object as Stripe.PaymentIntent;
     const userId = paymentIntent.metadata?.userId;
     const type = paymentIntent.metadata?.type;
     const tokens = parseInt(paymentIntent.metadata?.tokens || "0");
+    const email = await getCustomerEmail(paymentIntent.customer?.toString() || "");
+    await updateAnonymousUserEmail(userId, email);
 
     if (type === "top_up") {
       await handleTopUp(userId, tokens);
