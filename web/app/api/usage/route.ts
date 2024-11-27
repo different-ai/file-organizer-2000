@@ -21,7 +21,6 @@ export async function GET(request: NextRequest) {
       .where(
         and(
           eq(UserUsageTable.userId, userId),
-          not(eq(UserUsageTable.currentPlan, "lifetime"))
         )
       )
       .limit(1);

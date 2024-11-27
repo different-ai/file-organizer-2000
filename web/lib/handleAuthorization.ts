@@ -58,7 +58,7 @@ class AuthorizationError extends Error {
   }
 }
 
-const getToken = (req: NextRequest) => {
+export const getToken = (req: NextRequest) => {
   const header = req.headers.get("authorization");
   const token = header?.replace("Bearer ", "");
   return token;
@@ -76,6 +76,7 @@ export async function handleAuthorizationV2(req: NextRequest) {
     console.error(result);
     throw new AuthorizationError(`Unauthorized: ${result.code}`, 401);
   }
+  console.log(result)
   // might require await
   handleLoggingV2(req, result.ownerId);
   return { userId: result.ownerId };

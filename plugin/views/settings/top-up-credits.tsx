@@ -25,7 +25,7 @@ export function TopUpCredits({
       if (data.url) {
         window.location.href = data.url;
       }
-      onLicenseKeyChange(data.licenseKey.key.key);
+      onLicenseKeyChange(data.licenseKey);
     } catch (error) {
       console.error("Top-up error:", error);
     } finally {
@@ -34,11 +34,7 @@ export function TopUpCredits({
   };
 
   return (
-    <Button
-      onClick={handleTopUp}
-      disabled={loading}
-      className="w-full"
-    >
+    <Button onClick={handleTopUp} disabled={loading} className="w-full">
       {loading ? "Processing..." : "Top Up Credits (€15 for 5M)"}
     </Button>
   );

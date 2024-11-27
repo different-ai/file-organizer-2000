@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import Stripe from "stripe";
-import {  handleAuthorizationV2 } from "@/lib/handleAuthorization";
+import { getToken, handleAuthorizationV2 } from "@/lib/handleAuthorization";
 import { createAnonymousUser } from "../anon";
 import { createLicenseKeyFromUserId } from "@/app/actions";
 import { createEmptyUserUsage } from "@/drizzle/schema";
@@ -10,23 +10,45 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
   apiVersion: "2022-11-15",
 });
 
-export async function POST(req: NextRequest) {
-  // check fi there ir a user id if not create it
-  let userId = "";
+async function createFallbackUser() {
   try {
-    ({ userId } = await handleAuthorizationV2(req));
+    const user = await createAnonymousUser();
+    await createEmptyUserUsage(user.id);
+    const { key } = await createLicenseKeyFromUserId(user.id);
+    return { userId: user.id, licenseKey: key.key };
   } catch (error) {
-    console.log("Error getting user id", error);
-    userId = (await createAnonymousUser()).id;
-    await createEmptyUserUsage(userId);
+    console.error("Failed to create fallback user:", error);
+    throw new Error("Unable to create or authorize user");
   }
-  console.log(userId)
-  const licenseKey = await createLicenseKeyFromUserId(userId);
+}
 
+async function ensureAuthorizedUser(req: NextRequest) {
+  const initialLicenseKey = getToken(req);
+  
+  try {
+    const { userId } = await handleAuthorizationV2(req);
+    return { userId, licenseKey: initialLicenseKey };
+  } catch (error) {
+    console.log("Authorization failed, creating anonymous user:", error);
+    return createFallbackUser();
+  }
+}
+
+export async function POST(req: NextRequest) {
+  let userId, licenseKey;
+  
+  try {
+    ({ userId, licenseKey } = await ensureAuthorizedUser(req));
+  } catch (error) {
+    return NextResponse.json(
+      { error: "Authentication failed" },
+      { status: 401 }
+    );
+  }
+  
   const baseUrl = getTargetUrl();
-  const targetUrl = baseUrl === "localhost:3000" 
-    ? `http://${baseUrl}`
-    : `https://${baseUrl}`;
+  const targetUrl =
+    baseUrl === "localhost:3000" ? `http://${baseUrl}` : `https://${baseUrl}`;
 
   const session = await stripe.checkout.sessions.create({
     payment_method_types: ["card"],
@@ -35,7 +57,7 @@ export async function POST(req: NextRequest) {
         userId,
         type: "top_up",
         tokens: "5000000", // 5M tokens
-      }
+      },
     },
     line_items: [
       {

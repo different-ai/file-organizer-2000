@@ -29,6 +29,7 @@ export const UserUsageTable = pgTable(
       .default("inactive"),
     paymentStatus: text("paymentStatus").notNull().default("unpaid"),
     lastPayment: timestamp("lastPayment"),
+    // get rid of this
     currentProduct: text("currentProduct"),
     currentPlan: text("currentPlan"),
   },
