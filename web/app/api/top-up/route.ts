@@ -57,6 +57,8 @@ export async function POST(req: NextRequest) {
         userId,
         type: "top_up",
         tokens: "5000000", // 5M tokens
+        price_key: "top_up_5m",
+        product_key: "top_up_5m",
       },
     },
     line_items: [
@@ -79,6 +81,8 @@ export async function POST(req: NextRequest) {
       userId,
       type: "top_up",
       tokens: "5000000", // 5M tokens
+      price_key: "top_up_5m",
+      product_key: "top_up_5m",
     },
   });
 

@@ -74,8 +74,6 @@ export const handlePaymentIntentSucceeded = createWebhookHandler(
     const userId = paymentIntent.metadata?.userId;
     const type = paymentIntent.metadata?.type;
     const tokens = parseInt(paymentIntent.metadata?.tokens || "0");
-    const email = await getCustomerEmail(paymentIntent.customer?.toString() || "");
-    await updateAnonymousUserEmail(userId, email);
 
     if (type === "top_up") {
       await handleTopUp(userId, tokens);
