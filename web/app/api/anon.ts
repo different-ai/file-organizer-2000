@@ -20,6 +20,7 @@ export const createAnonymousUser = async () => {
 
 // Update anonymous user's email address
 export const updateAnonymousUserEmail = async (userId: string, newEmail: string) => {
+  console.log("updateAnonymousUserEmail", userId, newEmail);
   try {
     const user = await clerkClient().users.getUser(userId);
     
@@ -27,6 +28,7 @@ export const updateAnonymousUserEmail = async (userId: string, newEmail: string)
     const isAnonymous = user.emailAddresses.some(email => 
       email.emailAddress.startsWith('anonymous-') && email.emailAddress.endsWith('@example.com')
     );
+    console.log("isAnonymous", isAnonymous);
 
     if (isAnonymous) {
       // First create the new email address
@@ -36,13 +38,14 @@ export const updateAnonymousUserEmail = async (userId: string, newEmail: string)
         primary: true,
         verified: true,
       });
+      console.log("created new email", newEmail);
 
       // Delete the old anonymous email address
       const anonymousEmail = user.emailAddresses.find(email => 
         email.emailAddress.startsWith('anonymous-') && 
         email.emailAddress.endsWith('@example.com')
       );
-      
+      console.log("anonymousEmail", anonymousEmail);
       if (anonymousEmail) {
         await clerkClient().emailAddresses.deleteEmailAddress(anonymousEmail.id);
       }
