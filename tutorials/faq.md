@@ -21,9 +21,11 @@ A: File Organizer 2000 can work with local LLMs, but the experience is currently
 
 
 **Q: Why can’t I send messages in FO2000 Discord channels?**
+
 A: Some channels in the FO2000 Discord server are reserved for premium users. If you’ve purchased a license and still cannot access these channels, it’s likely your permissions have not yet been updated. Contact support with your Discord username, and the team will grant you access to the premium channels.
 
 **Q: How can I use File Organizer 2000 to populate YAML frontmatter in Obsidian automatically?**
+
 A: You can create AI templates within FO2000 to generate YAML frontmatter. Below is an example template for generating properties:
 
 ```
