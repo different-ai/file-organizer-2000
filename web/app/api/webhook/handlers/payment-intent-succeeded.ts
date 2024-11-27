@@ -51,25 +51,7 @@ async function handleTopUp(userId: string, tokens: number,) {
     });
 }
 
-async function trackCustomerEvent(paymentIntent: Stripe.PaymentIntent) {
-  if (paymentIntent.customer) {
-    try {
-      const email = await getCustomerEmail(paymentIntent.customer.toString());
-      
-      await trackLoopsEvent({
-        email,
-        userId: paymentIntent.metadata?.userId,
-        eventName: 'top_up_succeeded',
-        data: {
-          amount: paymentIntent.amount,
-          tokens: parseInt(paymentIntent.metadata?.tokens || "0"),
-        },
-      });
-    } catch (error) {
-      console.error("Error tracking customer event:", error);
-    }
-  }
-}
+
 
 function createCustomerData(paymentIntent: Stripe.PaymentIntent): CustomerData {
   return {
@@ -97,7 +79,6 @@ export const handlePaymentIntentSucceeded = createWebhookHandler(
 
     if (type === "top_up") {
       await handleTopUp(userId, tokens);
-      await trackCustomerEvent(paymentIntent);
       return {
         success: true,
         message: `Successfully processed top-up for ${userId}`,

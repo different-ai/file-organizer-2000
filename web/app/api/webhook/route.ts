@@ -7,16 +7,7 @@ import { handleInvoicePaid } from "./handlers/invoice-paid";
 import { handlePaymentIntentSucceeded } from "./handlers/payment-intent-succeeded";
 
 const HANDLERS = {
-  "checkout.session.completed": async (event) => {
-    const session = event.data.object;
-    if (session.metadata?.type === 'top_up') {
-      return {
-        success: true,
-        message: "Skipped checkout handler for top-up",
-      };
-    }
-    return handleCheckoutComplete(event);
-  },
+  "checkout.session.completed": handleCheckoutComplete,
   "customer.subscription.deleted": handleSubscriptionCanceled,
   "invoice.paid": handleInvoicePaid,
   "payment_intent.succeeded": handlePaymentIntentSucceeded,
@@ -25,7 +16,7 @@ const HANDLERS = {
 
 export async function POST(req: NextRequest) {
   const startTime = Date.now();
-  
+
   try {
     const event = await verifyStripeWebhook(req);
     const handler = HANDLERS[event.type as keyof typeof HANDLERS];
@@ -35,7 +26,7 @@ export async function POST(req: NextRequest) {
         message: `Unhandled webhook event type: ${event.type}`,
         eventId: event.data.object.id,
       });
-      
+
       return NextResponse.json({
         status: 200,
         message: `Unhandled event type: ${event.type}`,
@@ -51,11 +42,8 @@ export async function POST(req: NextRequest) {
         eventId: event.data.object.id,
         duration: Date.now() - startTime,
       });
-      
-      return NextResponse.json(
-        { error: result.message },
-        { status: 400 }
-      );
+
+      return NextResponse.json({ error: result.message }, { status: 400 });
     }
 
     return NextResponse.json({
@@ -69,10 +57,7 @@ export async function POST(req: NextRequest) {
       error,
       duration: Date.now() - startTime,
     });
-    
-    return NextResponse.json(
-      { error: error.message },
-      { status: 400 }
-    );
+
+    return NextResponse.json({ error: error.message }, { status: 400 });
   }
 }
