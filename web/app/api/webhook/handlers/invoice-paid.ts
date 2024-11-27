@@ -83,6 +83,6 @@ export const handleInvoicePaid = createWebhookHandler(
     };
   },
   {
-    requiredMetadata: [''],
+    requiredMetadata: [],
   }
 );
