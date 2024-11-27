@@ -5,7 +5,7 @@ import { eq, sql } from "drizzle-orm";
 import { updateUserSubscriptionData } from "../utils";
 import Stripe from "stripe";
 import { trackLoopsEvent } from '@/lib/services/loops';
-import { updateAnonymousUserEmail } from "../anon";
+import { updateAnonymousUserEmail } from '../../anon';
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
   apiVersion: "2022-11-15",
