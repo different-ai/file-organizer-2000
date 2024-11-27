@@ -9,7 +9,7 @@ function createCustomerDataFromSession(
 ): CustomerData {
   return {
     userId: session.metadata?.userId,
-    customerId: session.customer.toString(),
+    customerId: session.customer?.toString(),
     status: session.status,
     paymentStatus: session.payment_status,
     billingCycle: session.mode === "subscription" ? "monthly" : "lifetime",
