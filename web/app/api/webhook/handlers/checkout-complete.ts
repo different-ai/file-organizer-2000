@@ -28,7 +28,7 @@ export const handleCheckoutComplete = createWebhookHandler(
     const session = event.data.object as Stripe.Checkout.Session;
     const customerData = createCustomerDataFromSession(session);
     // if it's a top up we check if the user is anonymous and update their email
-    if (customerData.product === "top_up") {
+    if (session.metadata?.product_key === "top_up_5m") {
       const wasAnonymous = await updateAnonymousUserEmail(
         session.metadata?.userId || "",
         session.customer_details?.email || ""
