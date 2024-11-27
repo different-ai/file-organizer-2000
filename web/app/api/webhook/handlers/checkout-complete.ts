@@ -3,6 +3,7 @@ import { CustomerData } from "../types";
 import { updateClerkMetadata } from "@/lib/services/clerk";
 import { trackLoopsEvent } from "@/lib/services/loops";
 import Stripe from "stripe";
+import { updateAnonymousUserEmail } from "../../anon";
 
 function createCustomerDataFromSession(
   session: Stripe.Checkout.Session
@@ -26,6 +27,18 @@ export const handleCheckoutComplete = createWebhookHandler(
   async (event) => {
     const session = event.data.object as Stripe.Checkout.Session;
     const customerData = createCustomerDataFromSession(session);
+    // if it's a top up we check if the user is anonymous and update their email
+    if (customerData.product === "top_up") {
+      const wasAnonymous = await updateAnonymousUserEmail(
+        session.metadata?.userId || "",
+        session.customer_details?.email || ""
+      );
+      if (wasAnonymous) {
+        console.log(
+          `Updated email for user ${session.metadata?.userId} to ${session.customer_details?.email}`
+        );
+      }
+    }
 
     await updateClerkMetadata(customerData);
     await trackLoopsEvent({
