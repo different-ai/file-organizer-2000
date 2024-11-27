@@ -18,6 +18,7 @@ export function TopUpCredits({
         method: "POST",
         headers: {
           "Content-Type": "application/json",
+          "Authorization": `Bearer ${plugin.settings.API_KEY}`
         },
       });
 
