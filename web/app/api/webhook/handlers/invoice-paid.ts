@@ -11,6 +11,7 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
 });
 
 async function resetUserUsageAndSetLastPayment(userId: string) {
+  console.log("resetUserUsageAndSetLastPayment", userId);
   await db
     .update(UserUsageTable)
     .set({
@@ -82,6 +83,6 @@ export const handleInvoicePaid = createWebhookHandler(
     };
   },
   {
-    requiredMetadata: ['userId'],
+    requiredMetadata: [''],
   }
 );
