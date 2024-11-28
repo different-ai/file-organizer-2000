@@ -21,19 +21,67 @@ interface UsageData {
 
 export const GeneralTab: React.FC<GeneralTabProps> = ({ plugin, userId, email }) => {
   const [licenseKey, setLicenseKey] = useState(plugin.settings.API_KEY);
+  const [keyStatus, setKeyStatus] = useState<'valid' | 'invalid' | 'checking' | 'idle'>(
+    plugin.settings.API_KEY ? 'checking' : 'idle'
+  );
+
+  // Check key status on mount if we have a key
+  useEffect(() => {
+    if (plugin.settings.API_KEY) {
+      checkLicenseStatus();
+    }
+  }, []);
+
+  const checkLicenseStatus = async () => {
+    if (!licenseKey) return;
+    setKeyStatus('checking');
+    const isValid = await plugin.isLicenseKeyValid(licenseKey);
+    setKeyStatus(isValid ? 'valid' : 'invalid');
+  };
 
   const handleLicenseKeyChange = async (value: string) => {
     setLicenseKey(value);
+    setKeyStatus('idle');
     plugin.settings.API_KEY = value;
     await plugin.saveSettings();
   };
 
   const handleActivate = async () => {
-    const isValid = await plugin.isLicenseKeyValid(licenseKey);
-    if (isValid) {
-      new Notice("License key activated successfully!", 5000);
-    } else {
-      new Notice("Invalid license key. Please try again.");
+    await checkLicenseStatus();
+  };
+
+  const getStatusIndicator = () => {
+    switch (keyStatus) {
+      case 'valid':
+        return (
+          <div className="flex items-center text-[--text-success] text-sm">
+            <svg className="w-4 h-4 mr-1.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+            </svg>
+            License key activated
+          </div>
+        );
+      case 'invalid':
+        return (
+          <div className="flex items-center text-[--text-error] text-sm">
+            <svg className="w-4 h-4 mr-1.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+            </svg>
+            Invalid license key
+          </div>
+        );
+      case 'checking':
+        return (
+          <div className="flex items-center text-[--text-muted] text-sm">
+            <svg className="w-4 h-4 mr-1.5 animate-spin" fill="none" viewBox="0 0 24 24">
+              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+            </svg>
+            Checking license key...
+          </div>
+        );
+      default:
+        return null;
     }
   };
 
@@ -48,20 +96,25 @@ export const GeneralTab: React.FC<GeneralTabProps> = ({ plugin, userId, email })
             </p>
           </div>
           
-          <div className="flex gap-2">
-            <input
-              type="text"
-              className="flex-1 bg-[--background-primary] border border-[--background-modifier-border] rounded px-3 py-1.5"
-              placeholder="Enter your File Organizer License Key"
-              value={licenseKey}
-              onChange={e => handleLicenseKeyChange(e.target.value)}
-            />
-            <button 
-              onClick={handleActivate}
-              className="bg-[--interactive-accent] text-[--text-on-accent] px-4 py-1.5 rounded hover:bg-[--interactive-accent-hover] transition-colors"
-            >
-              Activate
-            </button>
+          <div className="space-y-2">
+            <div className="flex gap-2">
+              <input
+                type="text"
+                className={`flex-1 bg-[--background-primary] border rounded px-3 py-1.5 ${keyStatus === 'valid' ? 'border-[--text-success]' : 
+                  keyStatus === 'invalid' ? 'border-[--text-error]' : 
+                  'border-[--background-modifier-border]'}`}
+                placeholder="Enter your File Organizer License Key"
+                value={licenseKey}
+                onChange={e => handleLicenseKeyChange(e.target.value)}
+              />
+              <button 
+                onClick={handleActivate}
+                className="bg-[--interactive-accent] text-[--text-on-accent] px-4 py-1.5 rounded hover:bg-[--interactive-accent-hover] transition-colors"
+              >
+                Activate
+              </button>
+            </div>
+            {getStatusIndicator()}
           </div>
         </div>
       </div>
