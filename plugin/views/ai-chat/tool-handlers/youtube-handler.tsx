@@ -1,7 +1,7 @@
-import React, { useRef } from "react";
+import React, { useRef, useState } from "react";
 import { getYouTubeTranscript, getYouTubeVideoTitle } from "../youtube-transcript";
 import { logger } from "../../../services/logger";
-import { addYouTubeContext, useContextItems } from "../use-context-items";
+import { addYouTubeContext } from "../use-context-items";
 
 interface YouTubeHandlerProps {
   toolInvocation: any;
@@ -13,7 +13,7 @@ export function YouTubeHandler({
   handleAddResult,
 }: YouTubeHandlerProps) {
   const hasFetchedRef = useRef(false);
-  const clearAll = useContextItems(state => state.clearAll);
+  const [fetchSuccess, setFetchSuccess] = useState<boolean | null>(null);
 
   React.useEffect(() => {
     const handleYouTubeTranscript = async () => {
@@ -31,23 +31,23 @@ export function YouTubeHandler({
           });
           
           handleAddResult(JSON.stringify({ transcript, title, videoId }));
+          setFetchSuccess(true);
         } catch (error) {
           logger.error("Error fetching YouTube transcript:", error);
           handleAddResult(JSON.stringify({ error: error.message }));
+          setFetchSuccess(false);
         }
       }
     };
 
     handleYouTubeTranscript();
-  }, [toolInvocation, handleAddResult, clearAll]);
+  }, [toolInvocation, handleAddResult]);
 
-  const contextItems = useContextItems(state => state.items);
-
-  if (!("result" in toolInvocation)) {
+  if (fetchSuccess === null) {
     return <div className="text-sm text-[--text-muted]">Fetching the video transcript...</div>;
   }
 
-  if (contextItems.length > 0) {
+  if (fetchSuccess) {
     return <div className="text-sm text-[--text-muted]">YouTube transcript successfully retrieved</div>;
   }
 
