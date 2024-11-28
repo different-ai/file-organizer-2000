@@ -5,7 +5,7 @@
   "scripts": {
     "dev": "pnpm next dev",
     "build:self-host": "pnpm next build",
-    "build": "pnpm run db:migrate && npx migrate-top-up && npx @u22n/srm deploy && pnpm next build",
+    "build": "pnpm run db:migrate && pnpm run migrate-top-up && npx @u22n/srm deploy && pnpm next build",
     "start": "pnpm next start",
     "lint": "pnpm next lint",
     "pricing:deploy": "pnpm srm deploy --env .env.local",
