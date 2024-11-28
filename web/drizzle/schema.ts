@@ -21,9 +21,7 @@ export const UserUsageTable = pgTable(
     createdAt: timestamp("createdAt").defaultNow().notNull(),
     billingCycle: text("billingCycle").notNull(),
     tokenUsage: integer("tokenUsage").notNull().default(0),
-    maxTokenUsage: integer("maxTokenUsage")
-      .notNull()
-      .default(5000 * 1000),
+    maxTokenUsage: integer("maxTokenUsage").notNull().default(0),
     subscriptionStatus: text("subscriptionStatus")
       .notNull()
       .default("inactive"),
@@ -67,7 +65,6 @@ export async function incrementApiUsage(userId: string): Promise<void> {
 export const checkApiUsage = async (userId: string) => {
   console.log("Checking API Usage for User ID:", userId);
   try {
-
     return {
       remaining: 1000 - 0,
 
@@ -153,7 +150,10 @@ export const checkUserSubscriptionStatus = async (userId: string) => {
     if (!userUsage[0]) {
       return false;
     }
-    if (userUsage[0].paymentStatus === "paid" || userUsage[0].paymentStatus === "succeeded") {
+    if (
+      userUsage[0].paymentStatus === "paid" ||
+      userUsage[0].paymentStatus === "succeeded"
+    ) {
       return true;
     }
 

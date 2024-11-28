@@ -50,6 +50,13 @@
       "when": 1730484003932,
       "tag": "0006_smart_brother_voodoo",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1732810973145,
+      "tag": "0007_slow_dracula",
+      "breakpoints": true
     }
   ]
 }
