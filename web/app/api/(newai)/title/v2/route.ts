@@ -5,12 +5,6 @@ import { getModel } from "@/lib/models";
 import { z } from "zod";
 import { generateObject } from "ai";
 
-function sanitizeFileName(fileName: string) {
-  // Allow alphanumeric characters and spaces
-  // Replace all other characters with underscores
-  return fileName.replace(/[^a-zA-Z0-9\s]/g, "_");
-}
-
 export async function POST(request: NextRequest) {
   try {
     const { userId } = await handleAuthorization(request);
@@ -71,7 +65,7 @@ export async function POST(request: NextRequest) {
     // make sure all titles are file system safe
     console.log("sanitizing titles", response.object.suggestedTitles);
     const safeTitles = response.object.suggestedTitles.map((title) => {
-      return { ...title, title: sanitizeFileName(title.title) };
+      return { ...title, title: title.title };
     });
 
     return NextResponse.json({

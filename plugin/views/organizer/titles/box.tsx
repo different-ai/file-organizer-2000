@@ -1,5 +1,5 @@
 import * as React from "react";
-import { normalizePath, Notice, TFile } from "obsidian";
+import { Notice, TFile } from "obsidian";
 import FileOrganizer from "../../../index";
 import { z } from "zod";
 import { motion, AnimatePresence } from "framer-motion";

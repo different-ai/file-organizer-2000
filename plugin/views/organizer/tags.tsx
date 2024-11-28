@@ -4,7 +4,10 @@ import FileOrganizer from "../../index";
 import { sanitizeTag } from "../../someUtils";
 import { SkeletonLoader } from "./components/skeleton-loader";
 import { motion, AnimatePresence } from "framer-motion";
-import { ExistingFolderButton, NewFolderButton } from "./components/suggestion-buttons";
+import {
+  ExistingFolderButton,
+  NewFolderButton,
+} from "./components/suggestion-buttons";
 import { logger } from "../../services/logger";
 
 // Rename the button components for tags
