@@ -38,8 +38,8 @@ export const GeneralTab: React.FC<GeneralTabProps> = ({ plugin, userId, email })
   };
 
   return (
-    <div className="file-organizer-settings">
-      <div className="bg-[--background-primary-alt] p-4 rounded-lg mb-6">
+    <div className="file-organizer-settings space-y-6">
+      <div className="bg-[--background-primary-alt] p-4 rounded-lg">
         <div className="space-y-4">
           <div>
             <h3 className="text-lg font-medium mb-2 mt-0">File Organizer License Key</h3>
@@ -66,27 +66,34 @@ export const GeneralTab: React.FC<GeneralTabProps> = ({ plugin, userId, email })
         </div>
       </div>
 
+      <div className="bg-[--background-primary-alt] p-4 rounded-lg">
+        <h3 className="text-lg font-medium mb-4 mt-0">Quick Tutorial</h3>
+        <div className="youtube-embed">
+          <iframe
+            width="100%"
+            height="315"
+            src="https://www.youtube.com/embed/dRtLCBFzTAo?si=eo0h8dxTW-AIsNpp"
+            frameBorder="0"
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+            allowFullScreen
+          ></iframe>
+        </div>
+      </div>
+
       <AccountData 
         plugin={plugin} 
         onLicenseKeyChange={handleLicenseKeyChange}
       />
 
-      <div className="youtube-embed mt-6">
-        <iframe
-          width="100%"
-          height="315"
-          src="https://www.youtube.com/embed/dRtLCBFzTAo?si=eo0h8dxTW-AIsNpp"
-          frameBorder="0"
-          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-          allowFullScreen
-        ></iframe>
-        <p className="file-organizer-support-text mt-4">
+      <div className="bg-[--background-primary-alt] p-4 rounded-lg">
+        <p className="file-organizer-support-text mb-4">
           File Organizer 2000 is an open-source initiative developed by two
           brothers. If you find it valuable, please{" "}
           <a
             href="https://fileorganizer2000.com/?utm_source=obsidian&utm_medium=in-app&utm_campaign=support-us"
             target="_blank"
             rel="noopener noreferrer"
+            className="text-[--text-accent] hover:text-[--text-accent-hover]"
           >
             consider supporting us
           </a>{" "}
