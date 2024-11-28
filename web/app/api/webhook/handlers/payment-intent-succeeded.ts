@@ -43,9 +43,6 @@ async function handleTopUp(userId: string, tokens: number,) {
         lastPayment: new Date(),
         subscriptionStatus: 'active',
         paymentStatus: 'succeeded',
-        currentProduct: 'top_up',
-        currentPlan: 'top_up',
-        billingCycle: 'top-up',
       },
     });
 }

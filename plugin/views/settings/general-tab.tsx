@@ -4,6 +4,7 @@ import FileOrganizer from "../../index";
 import { logger } from "../../services/logger";
 import { UsageStats } from "../../components/usage-stats";
 import { TopUpCredits } from '../../views/settings/top-up-credits';
+import { AccountData } from './account-data';
 
 interface GeneralTabProps {
   plugin: FileOrganizer;
@@ -20,44 +21,12 @@ interface UsageData {
 
 export const GeneralTab: React.FC<GeneralTabProps> = ({ plugin, userId, email }) => {
   const [licenseKey, setLicenseKey] = useState(plugin.settings.API_KEY);
-  const [usageData, setUsageData] = useState<UsageData | null>(null);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    fetchUsageData();
-  }, []);
-
-  const fetchUsageData = async () => {
-    try {
-      const response = await fetch(`${plugin.getServerUrl()}/api/usage`, {
-        headers: {
-          Authorization: `Bearer ${licenseKey}`,
-        },
-      });
-      
-      if (!response.ok) throw new Error('Failed to fetch usage data');
-      
-      const data = await response.json();
-      setUsageData(data);
-    } catch (error) {
-      logger.error('Error fetching usage data:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
 
   const handleLicenseKeyChange = async (value: string) => {
     setLicenseKey(value);
     plugin.settings.API_KEY = value;
     await plugin.saveSettings();
   };
-
-  // add a use effect to save the license key
-  useEffect(() => {
-    plugin.settings.API_KEY = licenseKey;
-    plugin.saveSettings();
-  }, [licenseKey]);
-
 
   const handleActivate = async () => {
     const isValid = await plugin.isLicenseKeyValid(licenseKey);
@@ -70,45 +39,39 @@ export const GeneralTab: React.FC<GeneralTabProps> = ({ plugin, userId, email })
 
   return (
     <div className="file-organizer-settings">
-      <div className="setting">
-        <div className="setting-item">
-          <div className="setting-item-info">
-            <div className="setting-item-name">File Organizer License Key</div>
-            <div className="setting-item-description">
-              Get a license key to activate File Organizer 2000.
-            </div>
+      <div className="bg-[--background-primary-alt] p-4 rounded-lg mb-6">
+        <div className="space-y-4">
+          <div>
+            <h3 className="text-lg font-medium mb-2 mt-0">File Organizer License Key</h3>
+            <p className="text-[--text-muted] mb-4">
+              Enter your license key to activate File Organizer 2000.
+            </p>
           </div>
-          <div className="setting-item-control">
+          
+          <div className="flex gap-2">
             <input
               type="text"
+              className="flex-1 bg-[--background-primary] border border-[--background-modifier-border] rounded px-3 py-1.5"
               placeholder="Enter your File Organizer License Key"
               value={licenseKey}
               onChange={e => handleLicenseKeyChange(e.target.value)}
             />
-            <button onClick={handleActivate}>Activate</button>
+            <button 
+              onClick={handleActivate}
+              className="bg-[--interactive-accent] text-[--text-on-accent] px-4 py-1.5 rounded hover:bg-[--interactive-accent-hover] transition-colors"
+            >
+              Activate
+            </button>
           </div>
         </div>
       </div>
 
-      {plugin.settings.isLicenseValid && (
-        <p className="license-status activated">License Status: Activated</p>
-      )}
+      <AccountData 
+        plugin={plugin} 
+        onLicenseKeyChange={handleLicenseKeyChange}
+      />
 
-      <div className="flex items-center gap-2 mb-4">
-        <button
-          className="file-organizer-login-button"
-          onClick={() =>
-            window.open(
-              "https://fileorganizer2000.com/?utm_source=obsidian&utm_medium=in-app&utm_campaign=get-license",
-              "_blank"
-            )
-          }
-        >
-          Get License
-        </button>
-      </div>
-
-      <div className="youtube-embed">
+      <div className="youtube-embed mt-6">
         <iframe
           width="100%"
           height="315"
@@ -117,7 +80,7 @@ export const GeneralTab: React.FC<GeneralTabProps> = ({ plugin, userId, email })
           allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
           allowFullScreen
         ></iframe>
-        <p className="file-organizer-support-text">
+        <p className="file-organizer-support-text mt-4">
           File Organizer 2000 is an open-source initiative developed by two
           brothers. If you find it valuable, please{" "}
           <a
@@ -139,13 +102,6 @@ export const GeneralTab: React.FC<GeneralTabProps> = ({ plugin, userId, email })
             Need help? Ask me on Discord.
           </a>
         </p>
-      </div>
-
-      {usageData && <UsageStats usageData={usageData} />}
-
-      <div className="border-t pt-6">
-        <h3 className="text-lg font-medium mb-4">Get started with a top-up</h3>
-        <TopUpCredits plugin={plugin} onLicenseKeyChange={handleLicenseKeyChange} />
       </div>
     </div>
   );
