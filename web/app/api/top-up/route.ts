@@ -77,6 +77,7 @@ export async function POST(req: NextRequest) {
     mode: "payment",
     success_url: `${targetUrl}/top-up-success`,
     cancel_url: `${targetUrl}/top-up-cancelled`,
+    allow_promotion_codes: true,
     metadata: {
       userId,
       type: "top_up",
