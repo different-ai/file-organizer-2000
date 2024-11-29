@@ -59,7 +59,7 @@ const LicenseForm = () => {
     <div className="mt-8 flex flex-col ">
       {isPaid ? (
         <>
-          <Card className="w-[350px] bg-transparent">
+          <Card className="w-full bg-transparent">
             <CardHeader></CardHeader>
             <form action={onCreate} onSubmit={handleSubmit}>
               <CardFooter className="flex justify-center">
@@ -71,7 +71,7 @@ const LicenseForm = () => {
                   {loading ? "Generating Key..." : "Create Key"}{" "}
                 </Button>{" "}
               </CardFooter>
-              <CardDescription>
+              <CardDescription className="text-center">
                 You'll need it to unlock File Organizer 2000 in your plugin
                 settings.
               </CardDescription>
@@ -79,7 +79,7 @@ const LicenseForm = () => {
           </Card>
           {licenseKey && licenseKey.length > 0 && (
             <>
-              <Card className="w-[350px] mt-8 rounded-lg">
+              <Card className="w-full mt-8 rounded-lg">
                 <CardContent>
                   <div className="grid items-center w-full gap-4">
                     <div className="flex flex-col space-y-1.5">

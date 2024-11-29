@@ -1,21 +1,28 @@
 import { NextResponse, NextRequest } from "next/server";
-import { handleAuthorization } from "@/lib/handleAuthorization";
 import { db, UserUsageTable } from "@/drizzle/schema";
-import { eq } from "drizzle-orm";
+import { and, eq, not } from "drizzle-orm";
+import { verifyKey } from "@unkey/api";
 
 export async function GET(request: NextRequest) {
   try {
-    const { userId } = await handleAuthorization(request);
-    
+    const token = request.headers.get("authorization")?.replace("Bearer ", "");
+    const { result } = await verifyKey(token || "");
+    console.log(result)
+    const userId = result?.ownerId;
+
     const userUsage = await db
       .select({
         tokenUsage: UserUsageTable.tokenUsage,
         maxTokenUsage: UserUsageTable.maxTokenUsage,
         subscriptionStatus: UserUsageTable.subscriptionStatus,
-        currentPlan: UserUsageTable.currentPlan
+        currentPlan: UserUsageTable.currentPlan,
       })
       .from(UserUsageTable)
-      .where(eq(UserUsageTable.userId, userId))
+      .where(
+        and(
+          eq(UserUsageTable.userId, userId),
+        )
+      )
       .limit(1);
 
     if (!userUsage.length) {
@@ -29,4 +36,4 @@ export async function GET(request: NextRequest) {
       { status: error.status || 500 }
     );
   }
-} 
+}

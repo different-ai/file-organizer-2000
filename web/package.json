@@ -5,14 +5,16 @@
   "scripts": {
     "dev": "pnpm next dev",
     "build:self-host": "pnpm next build",
-    "build": "pnpm run db:migrate && npx @u22n/srm deploy && pnpm next build",
+    "build": "pnpm run db:migrate && pnpm run migrate:top-up && npx @u22n/srm deploy && pnpm next build",
     "start": "pnpm next start",
     "lint": "pnpm next lint",
     "pricing:deploy": "pnpm srm deploy --env .env.local",
     "db:generate": "pnpm drizzle-kit generate",
     "db:migrate": "pnpm dotenv -c -- drizzle-kit migrate",
     "db:studio": "pnpm dotenv -c -- drizzle-kit studio",
-    "db:studio:prod": "pnpm dotenv -e .env.production.local -- drizzle-kit studio"
+    "db:studio:prod": "pnpm dotenv -e .env.production.local -- drizzle-kit studio",
+    "migrate:top-up": "tsx scripts/migrate.ts",
+    "migrate:rollback-top-up": "tsx scripts/rollback.ts"
   },
   "dependencies": {
     "@ai-sdk/anthropic": "^0.0.9",
@@ -64,5 +66,8 @@
     "youtube-transcript": "^1.2.1",
     "zod": "^3.23.8"
   },
-  "packageManager": "pnpm@8.15.4"
+  "packageManager": "pnpm@8.15.4",
+  "devDependencies": {
+    "tsx": "^4.19.2"
+  }
 }

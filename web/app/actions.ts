@@ -1,5 +1,4 @@
 "use server";
-import {  createOrUpdateUserUsage } from "@/drizzle/schema";
 import { auth, clerkClient } from "@clerk/nextjs/server";
 import { Unkey } from "@unkey/api";
 import { db, UserUsageTable as UserUsageTableImport } from "@/drizzle/schema";
@@ -17,17 +16,15 @@ export async function isPaidUser(userId: string) {
   }
 }
 
-export async function createLicenseKey() {
-  "use server";
-  const { userId } = auth();
-  console.log("Creating license key - User authenticated:", !!userId);
-  if (!userId) {
-    return null;
-  }
-
+export async function createLicenseKeyFromUserId(userId: string) {
   const token = process.env.UNKEY_ROOT_KEY;
   const apiId = process.env.UNKEY_API_ID;
-  console.log("Unkey configuration - Token exists:", !!token, "API ID exists:", !!apiId);
+  console.log(
+    "Unkey configuration - Token exists:",
+    !!token,
+    "API ID exists:",
+    !!apiId
+  );
 
   if (!token || !apiId) {
     return null;
@@ -37,30 +34,25 @@ export async function createLicenseKey() {
   const unkey = new Unkey({ token });
 
 
-  if (!isPaidUser) {
-    console.log("Error: User not subscribed to a paid plan");
-    throw new Error("User is not subscribed to a paid plan");
-  }
-
-  console.log("Fetching user billing cycle");
-  const billingCycle = await getUserBillingCycle(userId);
-  console.log("User billing cycle:", billingCycle);
-
-  console.log("Updating user usage");
-  await createOrUpdateUserUsage(userId, billingCycle);
-
   console.log("Creating Unkey license key");
   const key = await unkey.keys.create({
     name: name,
     ownerId: userId,
-    meta: {
-      billingCycle,
-    },
     apiId,
   });
 
   console.log("License key created successfully", key.result);
   return { key: key.result };
+}
+
+export async function createLicenseKey() {
+  "use server";
+  const { userId } = auth();
+  console.log("Creating license key - User authenticated:", !!userId);
+  if (!userId) {
+    return null;
+  }
+  return createLicenseKeyFromUserId(userId);
 }
 
 export async function getUserBillingCycle(userId: string) {

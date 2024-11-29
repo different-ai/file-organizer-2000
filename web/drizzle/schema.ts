@@ -29,6 +29,7 @@ export const UserUsageTable = pgTable(
       .default("inactive"),
     paymentStatus: text("paymentStatus").notNull().default("unpaid"),
     lastPayment: timestamp("lastPayment"),
+    // get rid of this
     currentProduct: text("currentProduct"),
     currentPlan: text("currentPlan"),
   },
@@ -39,27 +40,14 @@ export const UserUsageTable = pgTable(
   }
 );
 
-// createOrUpdateUserUsage will create a new record if one does not exist for the user
-// or update the existing record if one does exist
-export async function createOrUpdateUserUsage(
-  userId: string,
-  billingCycle: string
-): Promise<void> {
-  const result = await db
-    .insert(UserUsageTable)
-    .values({
-      userId,
-      billingCycle,
-    })
-    .onConflictDoUpdate({
-      target: [UserUsageTable.userId],
-      set: {
-        billingCycle,
-      },
-    });
-  console.log("User Usage Results for User ID:", userId);
-  // Record created or updated, exit the retry loop
-}
+export const createEmptyUserUsage = async (userId: string) => {
+  await db.insert(UserUsageTable).values({
+    userId,
+    billingCycle: "",
+    tokenUsage: 0,
+    maxTokenUsage: 0,
+  });
+};
 
 // delete me
 export async function incrementApiUsage(userId: string): Promise<void> {
@@ -99,9 +87,6 @@ export async function incrementTokenUsage(
   userId: string,
   tokens: number
 ): Promise<{ remaining: number; usageError: boolean }> {
-  console.log("Incrementing API Usage for User ID:", userId);
-  // get current apiUsage
-
   try {
     const userUsage = await db
       .update(UserUsageTable)
@@ -113,43 +98,40 @@ export async function incrementTokenUsage(
         remaining: sql<number>`${UserUsageTable.maxTokenUsage} - ${UserUsageTable.tokenUsage}`,
       });
 
-    console.log("Incremented tokens Usage for User ID:", userId, tokens);
     return {
       remaining: userUsage[0].remaining,
       usageError: false,
     };
   } catch (error) {
-    console.error("Error incrementing tokens Usage for User ID:", userId);
-    console.error(error);
+    console.error("Error incrementing token usage:", error);
+    return {
+      remaining: 0,
+      usageError: true,
+    };
   }
 }
+
 export const checkTokenUsage = async (userId: string) => {
-  console.log("Checking token usage for User ID:", userId);
   try {
     const userUsage = await db
       .select()
       .from(UserUsageTable)
       .where(eq(UserUsageTable.userId, userId))
-      .limit(1)
-      .execute();
-
-    console.log("User Usage Results for User ID:", userId, userUsage);
+      .limit(1);
 
     if (userUsage[0].tokenUsage >= userUsage[0].maxTokenUsage) {
-      console.log("User has exceeded their token usage limit");
       return {
         remaining: 0,
         usageError: false,
       };
     }
-    console.log("User has not exceeded their token usage limit");
+
     return {
       remaining: userUsage[0].maxTokenUsage - userUsage[0].tokenUsage,
       usageError: false,
     };
   } catch (error) {
-    console.error("Error checking token usage for User ID:", userId);
-    console.error(error);
+    console.error("Error checking token usage:", error);
     return {
       remaining: 0,
       usageError: true,

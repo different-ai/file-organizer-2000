@@ -1,3 +1,4 @@
+import { createWebhookHandler } from '../handler-factory';
 import { WebhookEvent, WebhookHandlerResponse, CustomerData } from '../types';
 import { updateClerkMetadata } from '@/lib/services/clerk';
 import { db,  UserUsageTable } from '@/drizzle/schema';
@@ -20,41 +21,32 @@ async function deleteUserSubscriptionData(userId: string) {
   }).where(eq(UserUsageTable.userId, userId));
 }
 
-export async function handleSubscriptionCanceled(event: WebhookEvent): Promise<WebhookHandlerResponse> {
-  const subscription = event.data.object;
-  const userId = subscription.metadata?.userId;
-  
-  if (!userId) {
-    return {
-      success: false,
-      message: 'No userId found in subscription metadata',
+export const handleSubscriptionCanceled = createWebhookHandler(
+  async (event) => {
+    const subscription = event.data.object;
+    const userId = subscription.metadata?.userId;
+    
+    await deleteUserSubscriptionData(userId);
+
+    const customerData: CustomerData = {
+      userId,
+      customerId: subscription.customer,
+      status: 'canceled',
+      paymentStatus: 'canceled',
+      product: getSubscriptionProduct(subscription) || 'none',
+      plan: getSubscriptionPrice(subscription) || 'none',
+      lastPayment: new Date(),
     };
-  }
 
-  await deleteUserSubscriptionData(userId);
-
-  const customerData: CustomerData = {
-    userId,
-    customerId: subscription.customer,
-    status: 'canceled',
-    paymentStatus: 'canceled',
-    product: getSubscriptionProduct(subscription) || 'none',
-    plan: getSubscriptionPrice(subscription) || 'none',
-    lastPayment: new Date(),
-  };
-
-  try {
     await updateUserSubscriptionData(customerData);
     await updateClerkMetadata(customerData);
+
     return {
       success: true,
       message: `Successfully processed cancellation for ${userId}`,
     };
-  } catch (error) {
-    return {
-      success: false,
-      message: 'Failed to process cancellation',
-      error,
-    };
+  },
+  {
+    requiredMetadata: ['userId'],
   }
-} 
+); 
