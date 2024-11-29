@@ -1,9 +1,8 @@
-import React, { useState } from 'react';
-import FileOrganizer from '../../index';
-import { useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
+import type FileOrganizer from '../../index';
 
 interface CustomizationTabProps {
-  plugin: FileOrganizer;
+  plugin: InstanceType<typeof FileOrganizer>;
 }
 
 export const CustomizationTab: React.FC<CustomizationTabProps> = ({ plugin }) => {
@@ -15,6 +14,7 @@ export const CustomizationTab: React.FC<CustomizationTabProps> = ({ plugin }) =>
   const [customFolderInstructions, setCustomFolderInstructions] = useState(plugin.settings.customFolderInstructions);
   const [enableDocumentClassification, setEnableDocumentClassification] = useState(plugin.settings.enableDocumentClassification);
   const [imageInstructions, setImageInstructions] = useState(plugin.settings.imageInstructions);
+  const [customTagInstructions, setCustomTagInstructions] = useState(plugin.settings.customTagInstructions);
 
   // force set user embeddings to false
   useEffect(() => {
@@ -36,99 +36,123 @@ export const CustomizationTab: React.FC<CustomizationTabProps> = ({ plugin }) =>
 
   return (
     <div className="p-4 space-y-8">
-      {/* Renaming Section */}
+      {/* Inbox Processing Section */}
       <section>
-        <h3 className="text-lg font-semibold mb-4 text-[--text-normal]">File Renaming</h3>
+        <h3 className="text-lg font-semibold mb-4 text-[--text-normal]">Inbox Processing</h3>
+        <div className="bg-[--background-secondary] p-4 rounded-lg mb-4">
+          <div className="text-sm text-[--text-muted]">
+            These settings control how new files are automatically handled when they enter your vault through the inbox. 
+            Enable or disable automatic processing features and configure how the AI should handle your incoming documents.
+          </div>
+        </div>
         <div className="space-y-4">
           <ToggleSetting
-            name="File Renaming"
-            description="Enable file renaming when a file goes through the inbox."
+            name="Inbox Auto-Renaming"
+            description="Automatically rename new files when they are processed through the inbox."
             value={enableFileRenaming}
             onChange={(value) => handleToggleChange(value, setEnableFileRenaming, 'enableFileRenaming')}
           />
-          <TextAreaSetting
-            name="Rename Instructions"
-            description="Provide instructions for renaming the document based on its content."
-            value={renameInstructions}
-            onChange={(value) => handleTextChange(value, setRenameInstructions, 'renameInstructions')}
-          />
           <ToggleSetting
-            name="Personalized Titles"
-            description="Use random titles from your vault to improve AI-generated titles. This feature feeds 20 random vault titles to the AI for better context."
-            value={useVaultTitles}
-            onChange={(value) => handleToggleChange(value, setUseVaultTitles, 'useVaultTitles')}
-          />
-        </div>
-      </section>
-
-      {/* Tags Section */}
-      <section>
-        <h3 className="text-lg font-semibold mb-4 text-[--text-normal]">Tags Management</h3>
-        <div className="space-y-4">
-          <ToggleSetting
-            name="Similar tags"
-            description="Append similar tags to processed files."
-            value={useSimilarTags}
-            onChange={(value) => handleToggleChange(value, setUseSimilarTags, 'useSimilarTags')}
-          />
-          <ToggleSetting
-            name="Add similar tags in frontmatter"
-            description="Use frontmatter to add similar tags to processed files."
-            value={useSimilarTagsInFrontmatter}
-            onChange={(value) => handleToggleChange(value, setUseSimilarTagsInFrontmatter, 'useSimilarTagsInFrontmatter')}
-          />
-        </div>
-      </section>
-
-      {/* Folder Section */}
-      <section>
-        <h3 className="text-lg font-semibold mb-4 text-[--text-normal]">Folder Organization</h3>
-        <div className="space-y-4">
-          <TextAreaSetting
-            name="Custom Folder Determination Instructions"
-            description="Provide custom instructions for determining which folders to place your notes in."
-            value={customFolderInstructions}
-            onChange={(value) => handleTextChange(value, setCustomFolderInstructions, 'customFolderInstructions')}
-          />
-        </div>
-      </section>
-
-      {/* Formatting Section */}
-      <section>
-        <h3 className="text-lg font-semibold mb-4 text-[--text-normal]">Document Formatting</h3>
-        <div className="space-y-4">
-          <ToggleSetting
-            name="Document Auto-Formatting"
-            description="Automatically format documents processed through the inbox when content matches a category of your AI templates."
+            name="Inbox Auto-Formatting"
+            description="Automatically format new documents when they match a template category during inbox processing."
             value={enableDocumentClassification}
             onChange={(value) => handleToggleChange(value, setEnableDocumentClassification, 'enableDocumentClassification')}
           />
-          <div className="bg-[--background-secondary] p-4 rounded-lg">
-            <div className="font-medium text-[--text-normal] mb-2">Document Type Configuration</div>
+          <div className="bg-[--background-secondary] p-4 rounded-lg mt-2">
+            <div className="font-medium text-[--text-normal] mb-2">Document Type Templates</div>
             <div className="text-sm text-[--text-muted]">
-              To specify the document type for AI formatting, please add a file inside the template folder of File Organizer. 
-              Each file should be named according to the document type it represents (e.g., 'workout'). 
-              The content of each file should be the prompt that will be applied to the formatting. 
-              Additionally, you can access and manage these document types directly through the AI sidebar in the application.
+              To enable auto-formatting, create template files in the File Organizer template folder. 
+              Name each file according to its document type (e.g., 'workout.md', 'meeting-notes.md'). 
+              The content of each file should contain the formatting instructions.
+              You can manage these templates through the AI sidebar.
             </div>
           </div>
+          <ToggleSetting
+            name="Inbox Similar Tags"
+            description="Automatically append similar tags to new files during inbox processing."
+            value={useSimilarTags}
+            onChange={(value) => handleToggleChange(value, setUseSimilarTags, 'useSimilarTags')}
+          />
         </div>
       </section>
 
-      {/* Image Processing Section */}
+      {/* General Settings Section */}
       <section>
-        <h3 className="text-lg font-semibold mb-4 text-[--text-normal]">Image Processing</h3>
-        <div className="space-y-4">
-          <TextAreaSetting
-            name="Image Instructions"
-            description="Provide instructions for how to process and describe images in your documents."
-            value={imageInstructions}
-            onChange={(value) => handleTextChange(value, setImageInstructions, 'imageInstructions')}
-          />
-          <div className="bg-[--background-secondary] p-4 rounded-lg">
-            <div className="text-sm text-[--text-muted]">
-              These instructions will be used to generate descriptions for images in your documents. 
-              The AI will analyze the image content and create descriptions based on your specifications.
+        <h3 className="text-lg font-semibold mb-4 text-[--text-normal]">General Settings</h3>
+        <div className="bg-[--background-secondary] p-4 rounded-lg mb-4">
+          <div className="text-sm text-[--text-muted]">
+            Configure how File Organizer behaves across your vault. These settings affect both manual operations 
+            and provide the base configuration for inbox processing. Customize naming conventions, tagging behavior, 
+            and folder organization to match your workflow.
+          </div>
+        </div>
+        
+        {/* File Naming subsection */}
+        <div className="mb-6">
+          <h4 className="font-medium text-[--text-normal] mb-2">File Naming</h4>
+          <div className="space-y-4">
+            <TextAreaSetting
+              name="Rename Instructions"
+              description="Instructions for how files should be renamed based on their content."
+              value={renameInstructions}
+              onChange={(value) => handleTextChange(value, setRenameInstructions, 'renameInstructions')}
+            />
+            <ToggleSetting
+              name="Use Vault Context"
+              description="Improve AI-generated titles by providing examples from your vault (uses 20 random titles)."
+              value={useVaultTitles}
+              onChange={(value) => handleToggleChange(value, setUseVaultTitles, 'useVaultTitles')}
+            />
+          </div>
+        </div>
+
+        {/* Tags subsection */}
+        <div className="mb-6">
+          <h4 className="font-medium text-[--text-normal] mb-2">Tags</h4>
+          <div className="space-y-4">
+            <ToggleSetting
+              name="Use Frontmatter"
+              description="Add similar tags in frontmatter instead of inline."
+              value={useSimilarTagsInFrontmatter}
+              onChange={(value) => handleToggleChange(value, setUseSimilarTagsInFrontmatter, 'useSimilarTagsInFrontmatter')}
+            />
+            <TextAreaSetting
+              name="Tag Generation Instructions"
+              description="Custom instructions for generating tags for your notes."
+              value={customTagInstructions}
+              onChange={(value) => handleTextChange(value, setCustomTagInstructions, 'customTagInstructions')}
+            />
+          </div>
+        </div>
+
+        {/* Folder Section */}
+        <div className="mb-6">
+          <h4 className="font-medium text-[--text-normal] mb-2">Folder Organization</h4>
+          <div className="space-y-4">
+            <TextAreaSetting
+              name="Custom Folder Determination Instructions"
+              description="Provide custom instructions for determining which folders to place your notes in."
+              value={customFolderInstructions}
+              onChange={(value) => handleTextChange(value, setCustomFolderInstructions, 'customFolderInstructions')}
+            />
+          </div>
+        </div>
+
+        {/* Image Processing Section */}
+        <div className="mb-6">
+          <h4 className="font-medium text-[--text-normal] mb-2">Image Processing</h4>
+          <div className="space-y-4">
+            <TextAreaSetting
+              name="Image Instructions"
+              description="Provide instructions for how to process and describe images in your documents."
+              value={imageInstructions}
+              onChange={(value) => handleTextChange(value, setImageInstructions, 'imageInstructions')}
+            />
+            <div className="bg-[--background-secondary] p-4 rounded-lg">
+              <div className="text-sm text-[--text-muted]">
+                These instructions will be used to generate descriptions for images in your documents. 
+                The AI will analyze the image content and create descriptions based on your specifications.
+              </div>
             </div>
           </div>
         </div>

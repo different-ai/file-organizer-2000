@@ -51,6 +51,7 @@ export class FileOrganizerSettings {
   // used only in screenpipe right now
   queryScreenpipeLimit = 250;
   maxChatTokens = 100 * 1000;
+  customTagInstructions = "Generate tags that capture the main topics, themes, and type of content in the document. Focus on specific, meaningful tags that will help with organization and retrieval.";
 }
 
 export const DEFAULT_SETTINGS = new FileOrganizerSettings();

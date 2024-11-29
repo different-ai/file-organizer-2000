@@ -1,6 +1,7 @@
 This works like this
 
-./web - nextjs app router 
+./web - nextjs app router includes everything to related to user accounts 
+./web/app/api/(new-ai) containts all the ai related functions
 ./plugin - obsidian plugin 
 
 

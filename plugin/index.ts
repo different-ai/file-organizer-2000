@@ -14,7 +14,10 @@ import {
 } from "obsidian";
 import { logMessage, formatToSafeName, sanitizeTag } from "./someUtils";
 import { FileOrganizerSettingTab } from "./views/settings/view";
-import { AssistantViewWrapper, ORGANIZER_VIEW_TYPE } from "./views/organizer/view";
+import {
+  AssistantViewWrapper,
+  ORGANIZER_VIEW_TYPE,
+} from "./views/organizer/view";
 import Jimp from "jimp/es/index";
 
 import { FileOrganizerSettings, DEFAULT_SETTINGS } from "./settings";
@@ -126,8 +129,6 @@ export default class FileOrganizer extends Plugin {
 
     return serverUrl;
   }
-
-  
 
   /**
    * Processes a file by organizing it and logging the actions.
@@ -642,7 +643,6 @@ export default class FileOrganizer extends Plugin {
     }
   }
 
-
   async createFileInInbox(title: string, content: string): Promise<void> {
     const fileName = `${title}.md`;
     const filePath = `${this.settings.pathToWatch}/${fileName}`;
@@ -940,27 +940,7 @@ export default class FileOrganizer extends Plugin {
       this.app.workspace.getLeavesOfType(ORGANIZER_VIEW_TYPE)[0]
     );
   }
-  async showAIChatView() {
-    // Detach any existing leaves of the AI Chat View type to ensure a fresh instance
-    this.app.workspace.detachLeavesOfType(CHAT_VIEW_TYPE);
 
-    // Create or get a new leaf on the right sidebar
-    const leaf = this.app.workspace.getRightLeaf(false);
-    if (!leaf) {
-      logger.error("Failed to obtain a workspace leaf for AI Chat View.");
-      new Notice("Unable to open AI Chat View.", 3000);
-      return;
-    }
-
-    // Set the view state to the AI Chat View
-    await leaf.setViewState({
-      type: CHAT_VIEW_TYPE,
-      active: true,
-    });
-
-    // Reveal the leaf to focus it
-    this.app.workspace.revealLeaf(leaf);
-  }
 
   async getTextFromFile(file: TFile): Promise<string> {
     switch (true) {
@@ -1354,11 +1334,13 @@ export default class FileOrganizer extends Plugin {
   async recommendTags(
     content: string,
     filePath: string,
-    existingTags: string[] // Add this parameter to match the expected request body
-  ): Promise<{ score: number; tag: string; reason: string; isNew: boolean }[]> {
-    // trimmed content
+    existingTags: string[]
+  ): Promise<
+    Array<{ score: number; tag: string; reason: string; isNew: boolean }>
+  > {
     const cutoff = this.settings.contentCutoffChars;
     const trimmedContent = content.slice(0, cutoff);
+
     const response = await fetch(`${this.getServerUrl()}/api/tags/v2`, {
       method: "POST",
       headers: {
@@ -1368,7 +1350,8 @@ export default class FileOrganizer extends Plugin {
       body: JSON.stringify({
         content: trimmedContent,
         fileName: filePath,
-        existingTags, // Include existingTags in the request body
+        existingTags,
+        customInstructions: this.settings.customTagInstructions,
       }),
     });
 
@@ -1376,7 +1359,7 @@ export default class FileOrganizer extends Plugin {
       throw new Error(`HTTP error! status: ${response.status}`);
     }
 
-    const { tags: suggestedTags } = await response.json(); // Ensure the response structure matches
+    const { tags: suggestedTags } = await response.json();
     return suggestedTags;
   }
 
@@ -1447,17 +1430,19 @@ export default class FileOrganizer extends Plugin {
 
   async ensureAssistantView(): Promise<AssistantViewWrapper | null> {
     // Try to find existing view
-    let view = this.app.workspace.getLeavesOfType(ORGANIZER_VIEW_TYPE)[0]?.view as AssistantViewWrapper;
-    
+    let view = this.app.workspace.getLeavesOfType(ORGANIZER_VIEW_TYPE)[0]
+      ?.view as AssistantViewWrapper;
+
     // If view doesn't exist, create it
     if (!view) {
       await this.app.workspace.getRightLeaf(false).setViewState({
         type: ORGANIZER_VIEW_TYPE,
         active: true,
       });
-      
+
       // Get the newly created view
-      view = this.app.workspace.getLeavesOfType(ORGANIZER_VIEW_TYPE)[0]?.view as AssistantViewWrapper;
+      view = this.app.workspace.getLeavesOfType(ORGANIZER_VIEW_TYPE)[0]
+        ?.view as AssistantViewWrapper;
     }
 
     // Reveal and focus the leaf
@@ -1486,8 +1471,8 @@ export default class FileOrganizer extends Plugin {
     this.processBacklog();
 
     this.addCommand({
-      id: 'open-organizer-tab',
-      name: 'Open Organizer Tab',
+      id: "open-organizer-tab",
+      name: "Open Organizer Tab",
       callback: async () => {
         const view = await this.ensureAssistantView();
         view?.activateTab("organizer");
@@ -1495,8 +1480,8 @@ export default class FileOrganizer extends Plugin {
     });
 
     this.addCommand({
-      id: 'open-inbox-tab',
-      name: 'Open Inbox Tab',
+      id: "open-inbox-tab",
+      name: "Open Inbox Tab",
       callback: async () => {
         const view = await this.ensureAssistantView();
         view?.activateTab("inbox");
@@ -1504,34 +1489,34 @@ export default class FileOrganizer extends Plugin {
     });
 
     this.addCommand({
-      id: 'open-chat-tab',
-      name: 'Open Chat Tab',
+      id: "open-chat-tab",
+      name: "Open Chat Tab",
       callback: async () => {
         const view = await this.ensureAssistantView();
         view?.activateTab("chat");
       },
     });
     this.addCommand({
-      id: 'add-selection-to-chat',
-      name: 'Add Selection to Chat',
-      editorCallback: async (editor) => {
+      id: "add-selection-to-chat",
+      name: "Add Selection to Chat",
+      editorCallback: async editor => {
         const selection = editor.getSelection();
         if (selection) {
           const activeFile = this.app.workspace.getActiveFile();
           const view = await this.ensureAssistantView();
-          
+
           // Add the selection to context
           addTextSelectionContext({
             content: selection,
-            sourceFile: activeFile?.path
+            sourceFile: activeFile?.path,
           });
-          
+
           // Open chat tab
           view?.activateTab("chat");
         } else {
           new Notice("No text selected");
         }
-      }
+      },
     });
   }
   async saveSettings() {
