@@ -18,7 +18,7 @@ export function TopUpCredits({
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          "Authorization": `Bearer ${plugin.settings.API_KEY}`
+          Authorization: `Bearer ${plugin.settings.API_KEY}`,
         },
       });
 
@@ -36,7 +36,9 @@ export function TopUpCredits({
 
   return (
     <Button onClick={handleTopUp} disabled={loading} className="w-full">
-      {loading ? "Processing..." : "Top Up Credits (€15 for 5M)"}
+      {loading
+        ? "Processing..."
+        : "Top Up $15 worth of credits"}
     </Button>
   );
 }
