@@ -172,14 +172,21 @@ function FileCard({ record }: { record: FileRecord }) {
   const plugin = usePlugin();
   const [isExpanded, setIsExpanded] = React.useState(false);
 
-  // Add JSON.stringify to ensure deep comparison of logs
+  // Create a stable key for memoization
+  const logsKey = React.useMemo(() => {
+    return Object.entries(record.logs)
+      .map(([action, log]) => `${action}-${log.timestamp}`)
+      .join('|');
+  }, [record.logs]);
+
+  // Memoize sorted logs using the stable key
   const sortedLogs = React.useMemo(() => {
     return Object.entries(record.logs)
       .sort(([_, a], [__, b]) => 
         moment(b.timestamp).diff(moment(a.timestamp))
       )
       .map(([action, log]) => [action as Action, log] as [Action, LogEntry]);
-  }, [JSON.stringify(record.logs)]);
+  }, [logsKey]);
 
   // Add status indicators - only show when present
   const StatusIndicators = () => {
@@ -559,11 +566,8 @@ const SearchBar: React.FC<SearchBarProps> = ({
 export const InboxLogs: React.FC = () => {
   const plugin = usePlugin();
   const [records, setRecords] = React.useState<FileRecord[]>([]);
-  const [filteredRecords, setFilteredRecords] = React.useState<FileRecord[]>(
-    []
-  );
-  const [analytics, setAnalytics] =
-    React.useState<ReturnType<typeof Inbox.prototype.getAnalytics>>();
+  const [filteredRecords, setFilteredRecords] = React.useState<FileRecord[]>([]);
+  const [analytics, setAnalytics] = React.useState<ReturnType<typeof Inbox.prototype.getAnalytics>>();
   const [searchQuery, setSearchQuery] = React.useState("");
   const [statusFilter, setStatusFilter] = React.useState<FileStatus | "">("");
   const [dateFilter, setDateFilter] = React.useState<DateFilter>({
@@ -572,6 +576,7 @@ export const InboxLogs: React.FC = () => {
     endDate: moment().format('YYYY-MM-DD'),
   });
 
+  // Memoize filterRecords to prevent recreation on every render
   const filterRecords = React.useCallback(
     (records: FileRecord[]) => {
       return records.filter(record => {
@@ -590,7 +595,6 @@ export const InboxLogs: React.FC = () => {
 
         const matchesStatus = !statusFilter || record.status === statusFilter;
 
-        // Enhanced date filtering
         const matchesDate = dateFilter.range === 'all' || Object.values(record.logs).some(log => {
           const logDate = moment(log.timestamp);
           return logDate.isBetween(
@@ -604,22 +608,51 @@ export const InboxLogs: React.FC = () => {
         return matchesSearch && matchesStatus && matchesDate;
       });
     },
-    [searchQuery, statusFilter, dateFilter]
+    [searchQuery, statusFilter, dateFilter.range, dateFilter.startDate, dateFilter.endDate]
   );
 
+  // Add a function to check if records have changed
+  const haveRecordsChanged = (oldRecords: FileRecord[], newRecords: FileRecord[]) => {
+    if (oldRecords.length !== newRecords.length) return true;
+    
+    return newRecords.some((newRecord, index) => {
+      const oldRecord = oldRecords[index];
+      return (
+        newRecord.status !== oldRecord.status ||
+        newRecord.tags.length !== oldRecord.tags.length ||
+        Object.keys(newRecord.logs).length !== Object.keys(oldRecord.logs).length ||
+        newRecord.newName !== oldRecord.newName ||
+        newRecord.newPath !== oldRecord.newPath
+      );
+    });
+  };
+
+  // Update filtered records when filters change
+  React.useEffect(() => {
+    setFilteredRecords(filterRecords(records));
+  }, [filterRecords, records]);
+
+  // Fetch data periodically
   React.useEffect(() => {
     const fetchData = () => {
-      const files = plugin.inbox.getAllFiles();
-      const currentAnalytics = plugin.inbox.getAnalytics();
-      setRecords(files);
-      setFilteredRecords(filterRecords(files));
-      setAnalytics(currentAnalytics);
+      const newFiles = plugin.inbox.getAllFiles();
+      const newAnalytics = plugin.inbox.getAnalytics();
+      
+      // Only update if something has changed
+      if (haveRecordsChanged(records, newFiles)) {
+        setRecords(newFiles);
+      }
+      
+      // Update analytics only if they've changed
+      if (JSON.stringify(analytics) !== JSON.stringify(newAnalytics)) {
+        setAnalytics(newAnalytics);
+      }
     };
 
     fetchData();
     const intervalId = setInterval(fetchData, 1000);
     return () => clearInterval(intervalId);
-  }, [plugin.inbox, filterRecords]);
+  }, [plugin.inbox, records, analytics]);
 
   const handleSearch = (query: string) => {
     setSearchQuery(query);
