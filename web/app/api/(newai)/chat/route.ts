@@ -98,13 +98,13 @@ export async function POST(req: NextRequest) {
             maxDepth: z.number().optional().describe("Maximum depth to analyze"),
           }),
         },
-        ...(enableScreenpipe && {
-          getScreenpipeDailySummary: {
-            description:
-              "Get a summary of the user's day using Screenpipe data",
-            parameters: z.object({}),
-          },
-        }),
+        getScreenpipeDailySummary: {
+          description: "Get a summary of the user's day using Screenpipe data",
+          parameters: z.object({
+            startTime: z.string().optional().describe("Start time in ISO format"),
+            endTime: z.string().optional().describe("End time in ISO format"),
+          }),
+        },
       },
       onFinish: async ({ usage }) => {
         console.log("Token usage:", usage);

@@ -113,13 +113,21 @@ function preprocessText(text: string, app: string): string {
   return text.length < 10 ? '' : text;
 }
 
-export async function getDailyInformation(
-  date: string = new Date().toISOString().split("T")[0],
-  plugin: FileOrganizer
-) {
-  const endTime = new Date();
-  const startTime = new Date(endTime);
-  startTime.setHours(endTime.getHours() - plugin.settings.screenpipeTimeRange);
+interface TimeframeParams {
+  startTime?: string;
+  endTime?: string;
+  plugin: FileOrganizer;
+}
+
+export async function getDailyInformation({ 
+  startTime: providedStartTime,
+  endTime: providedEndTime,
+  plugin 
+}: TimeframeParams) {
+  const endTime = providedEndTime ? new Date(providedEndTime) : new Date();
+  const startTime = providedStartTime 
+    ? new Date(providedStartTime)
+    : new Date(endTime.getTime() - (plugin.settings.screenpipeTimeRange * 60 * 60 * 1000));
 
   const [ocrResult, audioResult] = await Promise.all([
     queryScreenpipe({
@@ -148,7 +156,7 @@ export async function getDailyInformation(
     const cleanedText = preprocessText(text, app);
     
     if (!cleanedText) return '';
-    
+  
     return `[${type}][${app}] ${cleanedText}`;
   };
 
@@ -156,7 +164,7 @@ export async function getDailyInformation(
     .map(formatEntry)
     .filter(Boolean)
     .join('\n');
-  
+
   
 
   return temp;

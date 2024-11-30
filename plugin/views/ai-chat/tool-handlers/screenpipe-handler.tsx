@@ -6,13 +6,18 @@ import { addScreenpipeContext, useContextItems } from "../use-context-items";
 import { ToolHandlerProps } from "./types";
 
 interface ScreenpipeArgs {
-  date?: string;
+  startTime?: string;
+  endTime?: string;
 }
 
 interface ScreenpipeResult {
   success: boolean;
   data?: any;
   error?: string;
+  timeframe?: {
+    startTime: string;
+    endTime: string;
+  };
 }
 
 export function ScreenpipeHandler({
@@ -29,10 +34,13 @@ export function ScreenpipeHandler({
       if (!hasFetchedRef.current && !("result" in toolInvocation)) {
         hasFetchedRef.current = true;
         try {
-          const { date = new Date().toISOString().split("T")[0] } = 
-            toolInvocation.args as ScreenpipeArgs;
-            
-          const dailyInfo = await getDailyInformation(date, plugin);
+          const { startTime, endTime } = toolInvocation.args as ScreenpipeArgs;
+          
+          const dailyInfo = await getDailyInformation({
+            startTime,
+            endTime,
+            plugin
+          });
           
           // Clear existing context before adding new data
           clearAll();
@@ -42,7 +50,8 @@ export function ScreenpipeHandler({
           
           const result: ScreenpipeResult = {
             success: true,
-            data: dailyInfo
+            data: dailyInfo,
+            timeframe: { startTime, endTime }
           };
           
           handleAddResult(JSON.stringify(result));
