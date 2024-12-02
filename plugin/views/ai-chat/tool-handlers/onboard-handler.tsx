@@ -1,6 +1,7 @@
 import React, { useState } from "react";
-import { TFolder } from "obsidian";
+import { TFile, TFolder } from "obsidian";
 import { ToolHandlerProps } from "./types";
+import { addFileContext } from "../use-context-items";
 
 interface FolderStructure {
   name: string;
@@ -23,35 +24,74 @@ export function OnboardHandler({
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [isValidated, setIsValidated] = useState(false);
 
-  const analyzeFolderStructure = (
-    folder: TFolder,
-    depth = 0,
-    maxDepth = 3
-  ): FolderStructure => {
-    if (depth >= maxDepth) return null;
+  const getFilesFromPath = (path: string): TFile[] => {
+    if (path === "/") {
+      return app.vault.getMarkdownFiles();
+    }
+    
+    const folder = app.vault.getAbstractFileByPath(path);
+    if (!folder || !(folder instanceof TFolder)) {
+      return [];
+    }
 
-    const structure: FolderStructure = {
-      name: folder.name,
-      type: "folder",
-      children: [],
+    const files: TFile[] = [];
+    folder.children.forEach(child => {
+      if (child instanceof TFile) {
+        files.push(child);
+      }
+    });
+    return files;
+  };
+
+  const analyzeFolderStructure = async (
+    path: string,
+    depth = 0,
+    maxDepth = 3,
+    shouldAddToContext = false
+  ) => {
+    const files = getFilesFromPath(path);
+    const structure = {
+      path,
+      files: await Promise.all(files.map(async file => {
+        const fileData = {
+          name: file.name,
+          path: file.path,
+          content: await app.vault.read(file),
+          type: "file" as const,
+          depth: depth + 1,
+        };
+
+        // Add to context if requested
+        if (shouldAddToContext) {
+          addFileContext({
+            path: file.path,
+            title: file.basename,
+            content: fileData.content,
+          });
+        }
+
+        return fileData;
+      })),
+      subfolders: [],
       depth,
     };
 
-    // Get immediate children
-    folder.children.forEach((child) => {
-      if (child instanceof TFolder) {
-        const subStructure = analyzeFolderStructure(child, depth + 1, maxDepth);
-        if (subStructure) {
-          structure.children.push(subStructure);
+    if (depth < maxDepth && path !== "/") {
+      const folder = app.vault.getAbstractFileByPath(path) as TFolder;
+      if (folder && folder instanceof TFolder) {
+        for (const child of folder.children) {
+          if (child instanceof TFolder) {
+            const subStructure = await analyzeFolderStructure(
+              child.path,
+              depth + 1,
+              maxDepth,
+              shouldAddToContext
+            );
+            structure.subfolders.push(subStructure);
+          }
         }
-      } else {
-        structure.children.push({
-          name: child.name,
-          type: "file",
-          depth: depth + 1,
-        });
       }
-    });
+    }
 
     return structure;
   };
@@ -59,23 +99,16 @@ export function OnboardHandler({
   const handleAnalyze = async () => {
     setIsAnalyzing(true);
     try {
-      const rootFolder = app.vault.getRoot();
-      const structure = analyzeFolderStructure(rootFolder);
+      const { path = "/", maxDepth = 3, addToContext = false } = toolInvocation.args;
+      const structure = await analyzeFolderStructure(path, 0, maxDepth, addToContext);
       
-      // Filter out system folders and files
-      const filteredStructure = {
-        ...structure,
-        children: structure.children.filter(
-          (child) => !child.name.startsWith(".")
-        ),
-      };
-
       setIsValidated(true);
       handleAddResult(
         JSON.stringify({
           success: true,
-          structure: filteredStructure,
-          message: "Vault structure analyzed successfully",
+          structure,
+          analyzedPath: path,
+          message: `Vault structure analyzed successfully for path: ${path}`,
         })
       );
     } catch (error) {

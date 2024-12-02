@@ -9,6 +9,7 @@ import { ScreenpipeHandler } from "./screenpipe-handler";
 import { SettingsUpdateHandler } from "./settings-update-handler";
 import { AppendContentHandler } from "./append-content-handler";
 import { OnboardHandler } from "./onboard-handler";
+import { MoveFilesHandler } from "./move-files-handler";
 
 interface ToolInvocationHandlerProps {
   toolInvocation: any;
@@ -37,6 +38,7 @@ function ToolInvocationHandler({
       generateSettings: "Settings Update",
       appendContentToFile: "Append Content",
       analyzeVaultStructure: "Vault Analysis",
+      moveFiles: "Moving Files",
     };
     return toolTitles[toolName] || "Tool Invocation";
   };
@@ -90,6 +92,13 @@ function ToolInvocationHandler({
       ),
       analyzeVaultStructure: () => (
         <OnboardHandler
+          toolInvocation={toolInvocation}
+          handleAddResult={handleAddResult}
+          app={app}
+        />
+      ),
+      moveFiles: () => (
+        <MoveFilesHandler
           toolInvocation={toolInvocation}
           handleAddResult={handleAddResult}
           app={app}

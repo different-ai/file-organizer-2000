@@ -95,7 +95,9 @@ export async function POST(req: NextRequest) {
         analyzeVaultStructure: {
           description: "Analyze vault structure to suggest organization improvements",
           parameters: z.object({
+            path: z.string().describe("Path to analyze. Use '/' for all files or specific folder path"),
             maxDepth: z.number().optional().describe("Maximum depth to analyze"),
+            addToContext: z.boolean().optional().describe("Whether to add analyzed files to context")
           }),
         },
         getScreenpipeDailySummary: {
@@ -103,6 +105,20 @@ export async function POST(req: NextRequest) {
           parameters: z.object({
             startTime: z.string().optional().describe("Start time in ISO format"),
             endTime: z.string().optional().describe("End time in ISO format"),
+          }),
+        },
+        moveFiles: {
+          description: "Move files to their designated folders",
+          parameters: z.object({
+            moves: z.array(z.object({
+              sourcePath: z.string().describe("Source path (e.g., '/' for root, or specific folder path)"),
+              destinationPath: z.string().describe("Destination folder path"),
+              pattern: z.object({
+                namePattern: z.string().optional().describe("File name pattern to match (e.g., 'untitled-*')"),
+                extension: z.string().optional().describe("File extension to match")
+              }).optional()
+            })),
+            message: z.string().describe("Confirmation message to show user")
           }),
         },
       },

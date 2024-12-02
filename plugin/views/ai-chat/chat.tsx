@@ -74,7 +74,7 @@ export const ChatComponent: React.FC<ChatComponentProps> = ({
   logger.debug("contextString", contextString);
 
   const chatBody = {
-    currentDatetime: moment().format("YYYY-MM-DDTHH:mm:ssZ"),
+    currentDatetime: window.moment().format("YYYY-MM-DDTHH:mm:ssZ"),
     enableScreenpipe: plugin.settings.enableScreenpipe,
     newUnifiedContext: contextString,
   };
