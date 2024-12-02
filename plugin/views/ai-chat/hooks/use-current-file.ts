@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { FileContextItem } from '../use-context-items';
 import { logger } from '../../../services/logger';
 import { App, TFile } from 'obsidian';
+import { VALID_MEDIA_EXTENSIONS } from '../../../constants';
 
 interface UseCurrentFileProps {
   app: App;
@@ -14,6 +15,11 @@ export function useCurrentFile({
 }: UseCurrentFileProps) {
   const [error, setError] = useState<string | null>(null);
   const currentFile = useRef<FileContextItem | null>(null);
+
+  const isMediaFile = (file: TFile): boolean => {
+    const extension = file.extension.toLowerCase();
+    return VALID_MEDIA_EXTENSIONS.includes(extension);
+  };
 
   const updateActiveFile = async () => {
     logger.debug('Updating active file');
@@ -28,8 +34,15 @@ export function useCurrentFile({
         return;
       }
 
+      // Skip media files
+      if (isMediaFile(file)) {
+        logger.debug('Skipping media file:', file.path);
+        setCurrentFile(null);
+        currentFile.current = null;
+        return;
+      }
+
       const content = await app.vault.cachedRead(file);
-      console.log(content, 'content')
       
       const fileContextItem: FileContextItem = {
         id: file.path,
