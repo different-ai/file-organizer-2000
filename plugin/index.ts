@@ -97,9 +97,22 @@ export default class FileOrganizer extends Plugin {
     this.settings = Object.assign({}, DEFAULT_SETTINGS, await this.loadData());
   }
 
+  async checkCatalystAccess(): Promise<boolean> {
+    // fetch the file organizer premium status
+    // if process env prod then point to prod server if not to localhost
+    const serverUrl =
+      process.env.NODE_ENV === "production"
+        ? "https://app.fileorganizer2000.com"
+        : this.getServerUrl();
+    const premiumStatus = await fetch(`${serverUrl}/api/check-premium`);
+    const { hasCatalystAccess } = await premiumStatus.json();
+    return hasCatalystAccess;
+  }
+
   async isLicenseKeyValid(key: string): Promise<boolean> {
     try {
       const isValid = await checkLicenseKey(this.getServerUrl(), key);
+
       this.settings.isLicenseValid = isValid;
       this.settings.API_KEY = key;
       await this.saveSettings();
@@ -111,13 +124,6 @@ export default class FileOrganizer extends Plugin {
       return false;
     }
   }
-
-  async checkLicenseOnLoad() {
-    if (this.settings.isLicenseValid && this.settings.API_KEY) {
-      await this.isLicenseKeyValid(this.settings.API_KEY);
-    }
-  }
-
   getServerUrl(): string {
     let serverUrl = this.settings.enableSelfHosting
       ? this.settings.selfHostingURL
@@ -940,7 +946,6 @@ export default class FileOrganizer extends Plugin {
       this.app.workspace.getLeavesOfType(ORGANIZER_VIEW_TYPE)[0]
     );
   }
-
 
   async getTextFromFile(file: TFile): Promise<string> {
     switch (true) {

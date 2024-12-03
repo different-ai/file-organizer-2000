@@ -12,6 +12,13 @@ example:
 text[--text-error]
 
 
+- three plans
+  - self-hosted (no license key)
+  - lifetime (license key that also acts as api key with selfhostingurl)
+  - subscription (license key that also acts as api key)
+
+
+
 here's the list of variables you can use:
     --accent-h: 258;
     --accent-s: 88%;
@@ -149,6 +156,7 @@ export async function POST(req: Request) {
 import { ToolInvocation } from 'ai';
 import { Message, useChat } from 'ai/react';
 import { pipeline } from 'stream'
+import { PlaySquareIcon } from 'lucide-react'
 
 export default function Chat() {
   const {
