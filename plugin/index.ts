@@ -104,7 +104,11 @@ export default class FileOrganizer extends Plugin {
       process.env.NODE_ENV === "production"
         ? "https://app.fileorganizer2000.com"
         : this.getServerUrl();
-    const premiumStatus = await fetch(`${serverUrl}/api/check-premium`);
+    const premiumStatus = await fetch(`${serverUrl}/api/check-premium`, {
+      headers: {
+        Authorization: `Bearer ${this.settings.API_KEY}`,
+      },
+    });
     const { hasCatalystAccess } = await premiumStatus.json();
     return hasCatalystAccess;
   }
