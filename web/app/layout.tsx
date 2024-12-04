@@ -26,7 +26,7 @@ export default function RootLayout({
     <ClerkProvider>
       <html lang="en">
         <PHProvider>
-          <body className="bg-stone-100">
+          <body className="">
             <PostHogPageView />
             <header className="p-4 border-b border-stone-300">
               <nav className="max-w-9xl mx-auto flex items-center space-x-6 justify-between w-full">
@@ -38,7 +38,7 @@ export default function RootLayout({
                   <UserManagement />
               </nav>
             </header>
-            <main className="min-h-screen bg-stone-100 text-stone-900 font-sans">
+            <main className="min-h-screen text-stone-900 font-sans">
               {children}
             </main>
           </body>

@@ -7,40 +7,50 @@ import Stripe from "stripe";
 function createCustomerDataFromSession(
   session: Stripe.Checkout.Session
 ): CustomerData {
+  const { type = "subscription", plan = "monthly" } = session.metadata || {};
+  
   return {
     userId: session.metadata?.userId,
     customerId: session.customer?.toString(),
     status: session.status,
     paymentStatus: session.payment_status,
-    billingCycle: session.mode === "subscription" ? "monthly" : "lifetime",
-    product: session.metadata?.product_key || "default",
-    plan: session.metadata?.price_key || "default",
+    billingCycle: type === "lifetime" ? "lifetime" : plan as "monthly" | "yearly",
+    product: type,
+    plan: plan,
     lastPayment: new Date(),
     createdAt: new Date(session.created * 1000),
   };
 }
 
-// focused on updating non-critical data like sending emails and tracking events
-// most of the decisions are made either in payment intent , invoice-paid, subscription-updated.
 export const handleCheckoutComplete = createWebhookHandler(
   async (event) => {
     const session = event.data.object as Stripe.Checkout.Session;
+    
+    // Validate required metadata
+    if (!session.metadata?.userId) {
+      throw new Error("Missing required userId in metadata");
+    }
+
     const customerData = createCustomerDataFromSession(session);
     await updateClerkMetadata(customerData);
-    await trackLoopsEvent({
-      email: session.customer_details?.email || "",
-      firstName: session.customer_details?.name?.split(" ")[0],
-      lastName: session.customer_details?.name?.split(" ").slice(1).join(" "),
-      userId: customerData.userId,
-      eventName: "checkout_completed",
-    });
+    
+    if (session.customer_details?.email) {
+      await trackLoopsEvent({
+        email: session.customer_details.email,
+        firstName: session.customer_details?.name?.split(" ")[0],
+        lastName: session.customer_details?.name?.split(" ").slice(1).join(" "),
+        userId: customerData.userId,
+        eventName: "checkout_completed",
+        data: {
+          type: session.metadata?.type,
+          plan: session.metadata?.plan,
+        }
+      });
+    }
 
     return {
       success: true,
       message: `Successfully processed checkout for ${customerData.userId}`,
     };
-  },
-  {
-    requiredMetadata: ["userId", "product_key", "price_key"],
   }
 );

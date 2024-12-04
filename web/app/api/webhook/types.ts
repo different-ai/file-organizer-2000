@@ -1,7 +1,16 @@
+import Stripe from "stripe";
+
 export type WebhookEvent = {
+  id: string;
   type: string;
   data: {
-    object: any;
+    object: Stripe.Event.Data.Object & {
+      metadata?: {
+        userId?: string;
+        type?: string;
+        plan?: string;
+      };
+    };
   };
 };
 
