@@ -8,6 +8,7 @@
     "build": "pnpm run db:migrate  && pnpm next build",
     "start": "pnpm next start",
     "lint": "pnpm next lint",
+    "ts:check": "pnpm tsc --noEmit",
     "db:generate": "pnpm drizzle-kit generate",
     "db:migrate": "pnpm dotenv -c -- drizzle-kit migrate",
     "db:studio": "pnpm dotenv -c -- drizzle-kit studio",
