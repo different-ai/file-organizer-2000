@@ -4,6 +4,7 @@ import { updateClerkMetadata } from '@/lib/services/clerk';
 import { db,  UserUsageTable } from '@/drizzle/schema';
 import { eq } from 'drizzle-orm';
 import { updateUserSubscriptionData } from '../utils';
+import Stripe from 'stripe';
 
 function getSubscriptionProduct(subscription: any): string | null {
   const productKey = subscription.items?.data?.[0]?.price?.product?.metadata?.srm_product_key;
@@ -22,7 +23,7 @@ async function deleteUserSubscriptionData(userId: string) {
 }
 
 export const handleSubscriptionCanceled = createWebhookHandler(
-  async (event) => {
+  async (event: Stripe.CustomerSubscriptionDeletedEvent) => {
     const subscription = event.data.object;
     const userId = subscription.metadata?.userId;
     
@@ -30,7 +31,7 @@ export const handleSubscriptionCanceled = createWebhookHandler(
 
     const customerData: CustomerData = {
       userId,
-      customerId: subscription.customer,
+      customerId: typeof subscription.customer === 'string' ? subscription.customer : subscription.customer.id,
       status: 'canceled',
       paymentStatus: 'canceled',
       product: getSubscriptionProduct(subscription) || 'none',
