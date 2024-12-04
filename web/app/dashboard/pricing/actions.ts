@@ -73,9 +73,6 @@ export async function createSubscriptionCheckout() {
     mode: "subscription",
     payment_method_types: ["card"],
     metadata,
-    payment_intent_data: {
-      metadata,
-    },
     line_items: [
       {
         price_data: {
