@@ -7,7 +7,7 @@ import { createEmptyUserUsage } from "@/drizzle/schema";
 import { getTargetUrl } from "@/srm.config";
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-  apiVersion: "2022-11-15",
+  apiVersion: "2024-06-20",
 });
 
 async function createFallbackUser() {
@@ -84,8 +84,10 @@ export async function POST(req: NextRequest) {
       tokens: "5000000", // 5M tokens
       price_key: "top_up_5m",
       product_key: "top_up_5m",
+      },
     },
-  });
+    
+  );
 
   return NextResponse.json({ url: session.url, licenseKey });
 }
