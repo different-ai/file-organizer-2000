@@ -5,6 +5,7 @@ export type WebhookEvent = {
   type: string;
   data: {
     object: Stripe.Event.Data.Object & {
+      id: string;
       metadata?: {
         userId?: string;
         type?: string;
