@@ -107,67 +107,6 @@ export const getTargetUrl = () => {
   }
   return "localhost:3000";
 };
-
-// Stripe session creator helper
-export const createStripeSession = async (
-  stripe: Stripe,
-  {
-    userId,
-    productKey,
-    successUrl,
-    cancelUrl,
-  }: {
-    userId: string;
-    productKey: keyof typeof PRODUCTS;
-    successUrl: string;
-    cancelUrl: string;
-  }
-) => {
-  const product = PRODUCTS[productKey];
-  const priceKey = Object.keys(product.prices)[0];
-  const price = product.prices[priceKey];
-
-  const isSubscription = price.type === "recurring";
-
-  const session = await stripe.checkout.sessions.create({
-    mode: isSubscription ? "subscription" : "payment",
-    payment_method_types: ["card"],
-    metadata: {
-      userId,
-      ...product.metadata,
-    },
-    line_items: [
-      {
-        price_data: {
-          currency: "usd",
-          product_data: {
-            name: product.name,
-            metadata: product.metadata,
-          },
-          unit_amount: price.amount,
-          ...(isSubscription && {
-            recurring: {
-              interval: price.interval,
-            },
-          }),
-        },
-        quantity: 1,
-      },
-    ],
-    success_url: successUrl,
-    cancel_url: cancelUrl,
-    allow_promotion_codes: true,
-    ...(isSubscription &&
-      price.trialPeriodDays && {
-        subscription_data: {
-          trial_period_days: price.trialPeriodDays,
-        },
-      }),
-  });
-
-  return session;
-};
-
 // Webhook configuration
 export const webhookConfig = {
   events: [

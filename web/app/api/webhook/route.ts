@@ -7,7 +7,6 @@ import { handleInvoicePaid } from "./handlers/invoice-paid";
 import { handlePaymentIntentSucceeded } from "./handlers/payment-intent-succeeded";
 import { handleInvoicePaymentFailed } from "./handlers/invoice-payment-failed";
 import { validateWebhookMetadata } from "@/srm.config";
-import { WebhookEvent } from "./types";
 
 const HANDLERS = {
   "checkout.session.completed": handleCheckoutComplete,

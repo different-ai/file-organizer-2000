@@ -3,6 +3,7 @@ import { auth } from "@clerk/nextjs/server";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import Stripe from "stripe";
+import { PRODUCTS, PRICES } from "../../../srm.config";
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
   apiVersion: "2024-06-20",
@@ -22,29 +23,33 @@ const getUrls = () => {
 export async function createOneTimePaymentCheckout() {
   const { userId } = auth();
   if (!userId) throw new Error("Not authenticated");
-  
+  const metadata = {
+    userId,
+    type: PRODUCTS.Lifetime.metadata.type,
+  };
+
   const { success, cancel, lifetime } = getUrls();
 
   const session = await stripe.checkout.sessions.create({
     mode: "payment",
     payment_method_types: ["card"],
-    metadata: {
-      userId,
-      type: "lifetime",
-    },
-    line_items: [{
-      price_data: {
-        currency: "usd",
-        product_data: {
-          name: "Lifetime License",
-          metadata: {
-            type: "lifetime",
+    metadata,
+    line_items: [
+      {
+        price_data: {
+          currency: "usd",
+          product_data: {
+            name: PRODUCTS.Lifetime.name,
+            metadata: PRODUCTS.Lifetime.metadata,
           },
+          unit_amount: PRICES.LIFETIME,
         },
-        unit_amount: 19900, // $199.00
+        quantity: 1,
       },
-      quantity: 1,
-    }],
+    ],
+    payment_intent_data: {
+      metadata,
+    },
     success_url: lifetime,
     cancel_url: cancel,
     allow_promotion_codes: true,
@@ -58,32 +63,38 @@ export async function createSubscriptionCheckout() {
   if (!userId) throw new Error("Not authenticated");
 
   const { success, cancel } = getUrls();
+  const metadata = {
+    userId,
+    type: PRODUCTS.HobbyMonthly.metadata.type,
+    plan: PRODUCTS.HobbyMonthly.metadata.plan,
+  };
 
   const session = await stripe.checkout.sessions.create({
     mode: "subscription",
     payment_method_types: ["card"],
-    metadata: {
-      userId,
-      type: "subscription",
-      plan: "monthly",
+    metadata,
+    payment_intent_data: {
+      metadata,
     },
-    line_items: [{
-      price_data: {
-        currency: "usd",
-        product_data: {
-          name: "Monthly Subscription",
-          metadata: {
-            type: "subscription",
-            plan: "monthly",
+    line_items: [
+      {
+        price_data: {
+          currency: "usd",
+          product_data: {
+            name: PRODUCTS.HobbyMonthly.name,
+            metadata: PRODUCTS.HobbyMonthly.metadata,
+          },
+          unit_amount: PRICES.MONTHLY,
+          recurring: {
+            interval: "month",
           },
         },
-        unit_amount: 1500, // $15.00
-        recurring: {
-          interval: "month",
-        },
+        quantity: 1,
       },
-      quantity: 1,
-    }],
+    ],
+    subscription_data: {
+      metadata,
+    },
     success_url: success,
     cancel_url: cancel,
     allow_promotion_codes: true,
@@ -99,35 +110,34 @@ export async function createYearlySubscriptionCheckout() {
   const { success, cancel } = getUrls();
 
   const session = await stripe.checkout.sessions.create({
-    mode: "subscription", 
+    mode: "subscription",
     payment_method_types: ["card"],
     metadata: {
       userId,
-      type: "subscription",
-      plan: "yearly",
+      type: PRODUCTS.HobbyYearly.metadata.type,
+      plan: PRODUCTS.HobbyYearly.metadata.plan,
     },
-    line_items: [{
-      price_data: {
-        currency: "usd",
-        product_data: {
-          name: "Yearly Subscription",
-          metadata: {
-            type: "subscription",
-            plan: "yearly",
+    line_items: [
+      {
+        price_data: {
+          currency: "usd",
+          product_data: {
+            name: PRODUCTS.HobbyYearly.name,
+            metadata: PRODUCTS.HobbyYearly.metadata,
+          },
+          unit_amount: PRICES.YEARLY,
+          recurring: {
+            interval: "year",
           },
         },
-        unit_amount: 9900, // $99.00
-        recurring: {
-          interval: "year",
-        },
+        quantity: 1,
       },
-      quantity: 1,
-    }],
+    ],
     success_url: success,
     cancel_url: cancel,
     allow_promotion_codes: true,
     subscription_data: {
-      trial_period_days: 7,
+      trial_period_days: PRODUCTS.HobbyYearly.prices.yearly.trialPeriodDays,
     },
   });
 
@@ -137,7 +147,7 @@ export async function createYearlySubscriptionCheckout() {
 export async function createOneYearCheckout() {
   const { userId } = auth();
   if (!userId) throw new Error("Not authenticated");
-  
+
   const { success, cancel } = getUrls();
 
   const session = await stripe.checkout.sessions.create({
@@ -145,23 +155,22 @@ export async function createOneYearCheckout() {
     payment_method_types: ["card"],
     metadata: {
       userId,
-      type: "lifetime",
-      plan: "one_year",
+      type: PRODUCTS.OneYear.metadata.type,
+      plan: PRODUCTS.OneYear.metadata.plan,
     },
-    line_items: [{
-      price_data: {
-        currency: "usd",
-        product_data: {
-          name: "One Year License",
-          metadata: {
-            type: "lifetime",
-            plan: "one_year",
+    line_items: [
+      {
+        price_data: {
+          currency: "usd",
+          product_data: {
+            name: PRODUCTS.OneYear.name,
+            metadata: PRODUCTS.OneYear.metadata,
           },
+          unit_amount: PRICES.ONE_YEAR,
         },
-        unit_amount: 20000, // $200.00
+        quantity: 1,
       },
-      quantity: 1,
-    }],
+    ],
     success_url: success,
     cancel_url: cancel,
     allow_promotion_codes: true,
