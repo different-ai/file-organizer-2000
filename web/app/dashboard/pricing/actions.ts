@@ -88,7 +88,6 @@ export async function createMonthlySubscriptionCheckout() {
           currency: "usd",
           product_data: {
             name: PRODUCTS.SubscriptionMonthly.name,
-            metadata: PRODUCTS.SubscriptionMonthly.metadata,
           },
           unit_amount: PRICES.MONTHLY,
           recurring: {
@@ -127,7 +126,6 @@ export async function createYearlySession(userId: string) {
           currency: "usd",
           product_data: {
             name: PRODUCTS.SubscriptionYearly.name,
-            metadata: PRODUCTS.SubscriptionYearly.metadata,
           },
           unit_amount: PRICES.YEARLY,
           recurring: {
@@ -141,7 +139,8 @@ export async function createYearlySession(userId: string) {
     cancel_url: cancel,
     allow_promotion_codes: true,
     subscription_data: {
-      trial_period_days: PRODUCTS.SubscriptionYearly.prices.yearly.trialPeriodDays,
+      trial_period_days:
+        PRODUCTS.SubscriptionYearly.prices.yearly.trialPeriodDays,
       metadata,
     },
   });
@@ -168,6 +167,7 @@ export async function createPayOnceOneYearCheckout() {
       userId,
       type: PRODUCTS.PayOnceOneYear.metadata.type,
       plan: PRODUCTS.PayOnceOneYear.metadata.plan,
+      product: PRODUCTS.PayOnceOneYear.name,
     },
 
     line_items: [

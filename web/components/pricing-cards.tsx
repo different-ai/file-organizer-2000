@@ -46,11 +46,11 @@ export function PricingCards(): JSX.Element {
     const isSubscription = planType === "subscription";
     const planKey = isSubscription
       ? isYearly
-        ? "HobbyYearly"
-        : "HobbyMonthly"
+        ? "SubscriptionYearly"
+        : "SubscriptionMonthly"
       : isLifetime
-      ? "Lifetime"
-      : "OneYear";
+      ? "PayOnceLifetime"
+      : "PayOnceOneYear";
     const product = config.products[planKey];
     const priceKey = isSubscription
       ? isYearly

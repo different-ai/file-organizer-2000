@@ -57,39 +57,6 @@ function createCustomerDataFromInvoice(
   };
 }
 
-async function updateUserSubscriptionDataFromInvoice(invoice: Stripe.Invoice) {
-  const priceKey = await getSrmPriceKey(invoice);
-  const productKey = await getSrmProductKey(invoice);
-  const customerData = createCustomerDataFromInvoice(
-    invoice,
-    priceKey,
-    productKey
-  );
-
-  await db
-    .insert(UserUsageTable)
-    .values({
-      userId: customerData.userId,
-      subscriptionStatus: customerData.status,
-      paymentStatus: customerData.paymentStatus,
-      billingCycle: customerData.billingCycle,
-      maxTokenUsage: 5000 * 1000,
-      lastPayment: new Date(),
-      currentProduct: customerData.product,
-      currentPlan: customerData.plan,
-    })
-    .onConflictDoUpdate({
-      target: [UserUsageTable.userId],
-      set: {
-        subscriptionStatus: invoice.status,
-        paymentStatus: invoice.status,
-        billingCycle: priceKey as "monthly" | "lifetime" | "yearly",
-        lastPayment: new Date(),
-        currentProduct: productKey,
-        currentPlan: priceKey,
-      },
-    });
-}
 
 export const handleInvoicePaid = createWebhookHandler(
   async (event) => {
@@ -102,31 +69,36 @@ export const handleInvoicePaid = createWebhookHandler(
       };
     }
 
-  await db
-  .insert(UserUsageTable)
-    .values({
-      userId: invoice.subscription_details.metadata?.userId,
-      subscriptionStatus: invoice.status,
-      paymentStatus: invoice.status,
-      billingCycle: invoice.subscription_details.metadata?.type as "monthly" | "yearly" | "lifetime", 
-      maxTokenUsage: 5000 * 1000,
-      lastPayment: new Date(),
-      currentProduct: productKey,
-      currentPlan: priceKey,
-    })
-    .onConflictDoUpdate({
-      target: [UserUsageTable.userId],
-      set: {
-      subscriptionStatus: invoice.status,
-      paymentStatus: invoice.status,
-      billingCycle: priceKey as "monthly" | "lifetime" | "yearly",
-      lastPayment: new Date(),
-      currentProduct: productKey,
-      currentPlan: priceKey,
-    },
-  });
-}
-    
+    await db
+      .insert(UserUsageTable)
+      .values({
+        userId: invoice.subscription_details.metadata?.userId,
+        subscriptionStatus: invoice.status,
+        paymentStatus: invoice.status,
+        billingCycle: invoice.subscription_details.metadata?.type as
+          | "monthly"
+          | "yearly"
+          | "lifetime",
+        maxTokenUsage: 5000 * 1000,
+        lastPayment: new Date(),
+        currentProduct: invoice.subscription_details.metadata?.product,
+        currentPlan: invoice.subscription_details.metadata?.plan,
+      })
+      .onConflictDoUpdate({
+        target: [UserUsageTable.userId],
+        set: {
+          subscriptionStatus: invoice.status,
+          paymentStatus: invoice.status,
+        maxTokenUsage: 5000 * 1000,
+          billingCycle: invoice.subscription_details.metadata?.type as
+            | "monthly"
+            | "yearly"
+            | "lifetime",
+          lastPayment: new Date(),
+          currentProduct: invoice.subscription_details.metadata?.product,
+          currentPlan: invoice.subscription_details.metadata?.plan,
+        },
+      });
 
     await resetUserUsageAndSetLastPayment(invoice.metadata?.userId);
 

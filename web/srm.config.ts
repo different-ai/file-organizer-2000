@@ -28,15 +28,19 @@ const standardPayOnceFeatures = [
   "30-day money-back guarantee",
 ];
 
+export interface ProductMetadata {
+  type: PlanType;
+  plan: Plan;
+}
+
 // Product metadata configuration
 export const PRODUCTS = {
   SubscriptionMonthly: {
     name: "File Organizer 2000 - Cloud",
-    type: "subscription" as ProductType,
     metadata: {
-      type: "subscription" as PlanType,
-      plan: "monthly" as Plan,
-    },
+      type: "subscription",
+      plan: "monthly",
+    } as ProductMetadata,
     prices: {
       monthly: {
         amount: PRICES.MONTHLY,
@@ -48,10 +52,9 @@ export const PRODUCTS = {
   },
   SubscriptionYearly: {
     name: "File Organizer 2000 - Cloud",
-    type: "subscription" as ProductType,
     metadata: {
       type: "subscription" as PlanType,
-      plan: "yearly" as Plan,
+      plan: "subscription_yearly" as Plan,
     },
     prices: {
       yearly: {
@@ -65,10 +68,9 @@ export const PRODUCTS = {
   },
   PayOnceLifetime: {
     name: "File Organizer 2000 - Pay Once",
-    type: "lifetime" as ProductType,
     metadata: {
       type: "pay-once" as PlanType,
-      plan: "lifetime" as Plan,
+      plan: "lifetime_license" as Plan,
     },
     prices: {
       lifetime: {
@@ -81,16 +83,14 @@ export const PRODUCTS = {
   },
   PayOnceOneYear: {
     name: "File Organizer 2000 - Pay Once",
-    type: "lifetime" as ProductType,
     metadata: {
       type: "pay-once" as PlanType,
-      plan: "one_year" as Plan,
+      plan: "one_year_license" as Plan,
     },
     prices: {
       one_year: {
         amount: PRICES.ONE_YEAR,
         type: "one_time" as const,
-        interval: "one_time" as const,
       },
     },
     features: [...standardPayOnceFeatures, "One Year of Updates"],
