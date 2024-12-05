@@ -1,4 +1,4 @@
-import { PreSRMConfig, SubscriptionWebhookEvent } from "./lib/srm/src";
+import {  SubscriptionWebhookEvent } from "./lib/srm/src";
 
 // Product and plan types for type safety
 export type ProductType = "subscription" | "lifetime" | "top_up";
@@ -107,19 +107,6 @@ export const getTargetUrl = () => {
   }
   return "localhost:3000";
 };
-// Webhook configuration
-export const webhookConfig = {
-  events: [
-    "checkout.session.completed",
-    "customer.subscription.created",
-    "customer.subscription.deleted",
-    "customer.subscription.updated",
-    "invoice.paid",
-    "invoice.payment_failed",
-    "payment_intent.succeeded",
-  ] as SubscriptionWebhookEvent[],
-  endpoint: `https://${getTargetUrl()}/api/webhook`,
-};
 
 // Helper to validate webhook metadata
 export const validateWebhookMetadata = (metadata: any) => {
@@ -137,8 +124,7 @@ export const validateWebhookMetadata = (metadata: any) => {
 // Export the full config
 export const config = {
   products: PRODUCTS,
-  webhooks: webhookConfig,
-} satisfies PreSRMConfig;
+};
 
 // Type helpers for webhook handlers
 export type WebhookMetadata = {
