@@ -22,40 +22,6 @@ async function resetUserUsageAndSetLastPayment(userId: string) {
     .where(eq(UserUsageTable.userId, userId));
 }
 
-async function getSrmPriceKey(invoice: Stripe.Invoice) {
-  return invoice.lines.data[0].price?.metadata?.srm_price_key || "default";
-}
-
-async function getStripeProduct(invoice: Stripe.Invoice) {
-  const product = await stripe.products.retrieve(
-    invoice.lines.data[0].price?.product as string
-  );
-  return product;
-}
-
-async function getSrmProductKey(invoice: Stripe.Invoice) {
-  const product = await getStripeProduct(invoice);
-  return product.metadata?.srm_product_key || "default";
-}
-
-function createCustomerDataFromInvoice(
-  invoice: Stripe.Invoice,
-  priceKey: string,
-  productKey: string
-): CustomerData {
-  return {
-    userId:
-      invoice.subscription_details?.metadata?.userId ||
-      invoice.metadata?.userId,
-    customerId: invoice.customer.toString(),
-    status: invoice.status,
-    billingCycle: priceKey as "monthly" | "lifetime" | "yearly",
-    paymentStatus: invoice.status,
-    product: productKey,
-    plan: priceKey,
-    lastPayment: new Date(),
-  };
-}
 
 
 export const handleInvoicePaid = createWebhookHandler(
@@ -68,35 +34,36 @@ export const handleInvoicePaid = createWebhookHandler(
         message: "No subscription details found",
       };
     }
+    const metadata = invoice.subscription_details.metadata;
 
     await db
       .insert(UserUsageTable)
       .values({
-        userId: invoice.subscription_details.metadata?.userId,
+        userId: metadata?.userId,
         subscriptionStatus: invoice.status,
         paymentStatus: invoice.status,
-        billingCycle: invoice.subscription_details.metadata?.type as
+        billingCycle: metadata?.type as
           | "monthly"
           | "yearly"
           | "lifetime",
         maxTokenUsage: 5000 * 1000,
         lastPayment: new Date(),
-        currentProduct: invoice.subscription_details.metadata?.product,
-        currentPlan: invoice.subscription_details.metadata?.plan,
+        currentProduct: metadata?.product,
+        currentPlan: metadata?.plan,
       })
       .onConflictDoUpdate({
         target: [UserUsageTable.userId],
         set: {
           subscriptionStatus: invoice.status,
           paymentStatus: invoice.status,
-        maxTokenUsage: 5000 * 1000,
-          billingCycle: invoice.subscription_details.metadata?.type as
+          maxTokenUsage: 5000 * 1000,
+          billingCycle: metadata?.type as
             | "monthly"
             | "yearly"
             | "lifetime",
           lastPayment: new Date(),
-          currentProduct: invoice.subscription_details.metadata?.product,
-          currentPlan: invoice.subscription_details.metadata?.plan,
+          currentProduct: metadata?.product,
+          currentPlan: metadata?.plan,
         },
       });
 
