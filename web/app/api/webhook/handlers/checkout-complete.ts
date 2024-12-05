@@ -7,6 +7,8 @@ import Stripe from "stripe";
 function createCustomerDataFromSession(
   session: Stripe.Checkout.Session
 ): CustomerData {
+  console.log('create customer data from session');
+  console.log("session", session,);
   const { type = "subscription", plan = "monthly" } = session.metadata || {};
   
   return {
