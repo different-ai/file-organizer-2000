@@ -19,6 +19,7 @@ const handleSubscription = async (
   session: Stripe.Checkout.Session & { metadata: ProductMetadata }
 ) => {
   const metadata = session.metadata;
+  console.log("creating subscription with metadata", metadata);
 
   await db.insert(UserUsageTable).values({
     userId: metadata.userId,
@@ -35,6 +36,7 @@ const handlePayOnce = async (
   session: Stripe.Checkout.Session & { metadata: ProductMetadata }
 ) => {
   const metadata = session.metadata;
+  console.log("creating pay once with metadata", metadata);
   await db.insert(UserUsageTable).values({
     userId: metadata.userId,
     subscriptionStatus: "active",
