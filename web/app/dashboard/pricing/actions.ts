@@ -29,12 +29,12 @@ const getUrls = () => {
   };
 };
 
-export async function createOneTimePaymentCheckout() {
+export async function createPayOnceLifetimeCheckout() {
   const { userId } = auth();
   if (!userId) throw new Error("Not authenticated");
   const metadata = {
     userId,
-    type: PRODUCTS.Lifetime.metadata.type,
+    type: "pay-once",
   };
 
   const { success, cancel, lifetime } = getUrls();
@@ -48,8 +48,8 @@ export async function createOneTimePaymentCheckout() {
         price_data: {
           currency: "usd",
           product_data: {
-            name: PRODUCTS.Lifetime.name,
-            metadata: PRODUCTS.Lifetime.metadata,
+            name: PRODUCTS.PayOnceLifetime.name,
+            metadata: PRODUCTS.PayOnceLifetime.metadata,
           },
           unit_amount: PRICES.LIFETIME,
         },
@@ -67,15 +67,15 @@ export async function createOneTimePaymentCheckout() {
   redirect(session.url!);
 }
 
-export async function createSubscriptionCheckout() {
+export async function createMonthlySubscriptionCheckout() {
   const { userId } = auth();
   if (!userId) throw new Error("Not authenticated");
 
   const { success, cancel } = getUrls();
   const metadata = {
     userId,
-    type: PRODUCTS.HobbyMonthly.metadata.type,
-    plan: PRODUCTS.HobbyMonthly.metadata.plan,
+    type: PRODUCTS.SubscriptionMonthly.metadata.type,
+    plan: PRODUCTS.SubscriptionMonthly.metadata.plan,
   };
 
   const session = await stripe.checkout.sessions.create({
@@ -87,8 +87,8 @@ export async function createSubscriptionCheckout() {
         price_data: {
           currency: "usd",
           product_data: {
-            name: PRODUCTS.HobbyMonthly.name,
-            metadata: PRODUCTS.HobbyMonthly.metadata,
+            name: PRODUCTS.SubscriptionMonthly.name,
+            metadata: PRODUCTS.SubscriptionMonthly.metadata,
           },
           unit_amount: PRICES.MONTHLY,
           recurring: {
@@ -109,27 +109,25 @@ export async function createSubscriptionCheckout() {
   redirect(session.url!);
 }
 
-export async function createYearlySubscriptionCheckout() {
-  const { userId } = auth();
-  if (!userId) throw new Error("Not authenticated");
-
+export async function createYearlySession(userId: string) {
   const { success, cancel } = getUrls();
+  const metadata = {
+    userId,
+    type: PRODUCTS.SubscriptionYearly.metadata.type,
+    plan: PRODUCTS.SubscriptionYearly.metadata.plan,
+  };
 
   const session = await stripe.checkout.sessions.create({
     mode: "subscription",
     payment_method_types: ["card"],
-    metadata: {
-      userId,
-      type: PRODUCTS.HobbyYearly.metadata.type,
-      plan: PRODUCTS.HobbyYearly.metadata.plan,
-    },
+    metadata,
     line_items: [
       {
         price_data: {
           currency: "usd",
           product_data: {
-            name: PRODUCTS.HobbyYearly.name,
-            metadata: PRODUCTS.HobbyYearly.metadata,
+            name: PRODUCTS.SubscriptionYearly.name,
+            metadata: PRODUCTS.SubscriptionYearly.metadata,
           },
           unit_amount: PRICES.YEARLY,
           recurring: {
@@ -143,14 +141,21 @@ export async function createYearlySubscriptionCheckout() {
     cancel_url: cancel,
     allow_promotion_codes: true,
     subscription_data: {
-      trial_period_days: PRODUCTS.HobbyYearly.prices.yearly.trialPeriodDays,
+      trial_period_days: PRODUCTS.SubscriptionYearly.prices.yearly.trialPeriodDays,
+      metadata,
     },
   });
+  return session;
+}
 
+export async function createYearlySubscriptionCheckout() {
+  const { userId } = auth();
+  if (!userId) throw new Error("Not authenticated");
+  const session = await createYearlySession(userId);
   redirect(session.url!);
 }
 
-export async function createOneYearCheckout() {
+export async function createPayOnceOneYearCheckout() {
   const { userId } = auth();
   if (!userId) throw new Error("Not authenticated");
 
@@ -161,16 +166,17 @@ export async function createOneYearCheckout() {
     payment_method_types: ["card"],
     metadata: {
       userId,
-      type: PRODUCTS.OneYear.metadata.type,
-      plan: PRODUCTS.OneYear.metadata.plan,
+      type: PRODUCTS.PayOnceOneYear.metadata.type,
+      plan: PRODUCTS.PayOnceOneYear.metadata.plan,
     },
+
     line_items: [
       {
         price_data: {
           currency: "usd",
           product_data: {
-            name: PRODUCTS.OneYear.name,
-            metadata: PRODUCTS.OneYear.metadata,
+            name: PRODUCTS.PayOnceOneYear.name,
+            metadata: PRODUCTS.PayOnceOneYear.metadata,
           },
           unit_amount: PRICES.ONE_YEAR,
         },

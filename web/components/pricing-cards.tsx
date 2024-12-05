@@ -15,10 +15,10 @@ import { twMerge } from "tailwind-merge";
 import { Switch } from "@/components/ui/switch";
 import { useState } from "react";
 import {
-  createOneTimePaymentCheckout,
-  createSubscriptionCheckout,
+  createPayOnceLifetimeCheckout,
+  createMonthlySubscriptionCheckout,
   createYearlySubscriptionCheckout,
-  createOneYearCheckout,
+  createPayOnceOneYearCheckout,
 } from "@/app/dashboard/pricing/actions";
 
 export function PricingCards(): JSX.Element {
@@ -28,13 +28,13 @@ export function PricingCards(): JSX.Element {
   const handlePlanSelection = async (planKey: string) => {
     switch (planKey) {
       case "Monthly":
-        return await createSubscriptionCheckout();
+        return await createMonthlySubscriptionCheckout();
       case "Yearly":
         return await createYearlySubscriptionCheckout();
       case "Lifetime":
-        return await createOneTimePaymentCheckout();
+        return await createPayOnceLifetimeCheckout();
       case "OneYear":
-        return await createOneYearCheckout();
+        return await createPayOnceOneYearCheckout();
       default:
         return;
     }

@@ -1,8 +1,20 @@
+import { UserUsageTable, db } from "@/drizzle/schema";
 import { createWebhookHandler } from "../handler-factory";
 import { CustomerData } from "../types";
-import { updateClerkMetadata } from "@/lib/services/clerk";
 import { trackLoopsEvent } from "@/lib/services/loops";
 import Stripe from "stripe";
+// import db schema 
+const createUser = async(customerData: CustomerData) => {
+  await db.insert(UserUsageTable).values({
+    userId: customerData.userId,
+    subscriptionStatus: customerData.status,
+    paymentStatus: customerData.paymentStatus,
+    billingCycle: customerData.billingCycle,
+    lastPayment: customerData.lastPayment,
+    currentProduct: customerData.product,
+    currentPlan: customerData.plan,
+  });
+}
 
 function createCustomerDataFromSession(
   session: Stripe.Checkout.Session
@@ -11,7 +23,7 @@ function createCustomerDataFromSession(
   console.log("session", session,);
   const { type = "subscription", plan = "monthly" } = session.metadata || {};
   
-  return {
+  const customerData: CustomerData = {
     userId: session.metadata?.userId,
     customerId: session.customer?.toString(),
     status: session.status,
@@ -22,11 +34,15 @@ function createCustomerDataFromSession(
     lastPayment: new Date(),
     createdAt: new Date(session.created * 1000),
   };
+  // this should now be added to the database
+  return customerData;
 }
+
 
 export const handleCheckoutComplete = createWebhookHandler(
   async (event) => {
     const session = event.data.object as Stripe.Checkout.Session;
+    console.log("checkout complete", session);
     
     // Validate required metadata
     if (!session.metadata?.userId) {
@@ -34,7 +50,8 @@ export const handleCheckoutComplete = createWebhookHandler(
     }
 
     const customerData = createCustomerDataFromSession(session);
-    await updateClerkMetadata(customerData);
+    await createUser(customerData);
+    // await updateClerkMetadata(customerData);
     
     if (session.customer_details?.email) {
       await trackLoopsEvent({

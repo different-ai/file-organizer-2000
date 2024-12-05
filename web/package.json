@@ -14,10 +14,7 @@
     "db:generate": "pnpm drizzle-kit generate",
     "db:migrate": "pnpm dotenv -c -- drizzle-kit migrate",
     "db:studio": "pnpm dotenv -c -- drizzle-kit studio",
-    "db:studio:prod": "pnpm dotenv -e .env.production.local -- drizzle-kit studio",
-    "migrate:top-up": "tsx scripts/migrate.ts",
-    "migrate:rollback-top-up": "tsx scripts/rollback.ts",
-    "test:webhooks": "tsx scripts/test-webhooks.ts"
+    "db:studio:prod": "pnpm dotenv -e .env.production.local -- drizzle-kit studio"
   },
   "dependencies": {
     "@ai-sdk/anthropic": "^0.0.9",

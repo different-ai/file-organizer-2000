@@ -1,9 +1,9 @@
 import { PreSRMConfig, SubscriptionWebhookEvent } from "./lib/srm/src";
-import Stripe from "stripe";
 
 // Product and plan types for type safety
 export type ProductType = "subscription" | "lifetime" | "top_up";
-export type PlanType = "monthly" | "yearly" | "lifetime" | "top_up";
+export type Plan = "monthly" | "yearly" | "lifetime" | "top_up";
+export type PlanType = "subscription" | "pay-once";
 
 // Pricing configuration
 export const PRICES = {
@@ -30,12 +30,12 @@ const standardPayOnceFeatures = [
 
 // Product metadata configuration
 export const PRODUCTS = {
-  HobbyMonthly: {
+  SubscriptionMonthly: {
     name: "File Organizer 2000 - Cloud",
     type: "subscription" as ProductType,
     metadata: {
-      type: "subscription",
-      plan: "monthly" as PlanType,
+      type: "subscription" as PlanType,
+      plan: "monthly" as Plan,
     },
     prices: {
       monthly: {
@@ -46,12 +46,12 @@ export const PRODUCTS = {
     },
     features: cloudFeatures,
   },
-  HobbyYearly: {
+  SubscriptionYearly: {
     name: "File Organizer 2000 - Cloud",
     type: "subscription" as ProductType,
     metadata: {
-      type: "subscription",
-      plan: "yearly" as PlanType,
+      type: "subscription" as PlanType,
+      plan: "yearly" as Plan,
     },
     prices: {
       yearly: {
@@ -63,12 +63,12 @@ export const PRODUCTS = {
     },
     features: [...cloudFeatures, "Save 33% compared to monthly"],
   },
-  Lifetime: {
+  PayOnceLifetime: {
     name: "File Organizer 2000 - Pay Once",
     type: "lifetime" as ProductType,
     metadata: {
-      type: "lifetime",
-      plan: "lifetime" as PlanType,
+      type: "pay-once" as PlanType,
+      plan: "lifetime" as Plan,
     },
     prices: {
       lifetime: {
@@ -79,12 +79,12 @@ export const PRODUCTS = {
     },
     features: [...standardPayOnceFeatures, "Multiple License Forever"],
   },
-  OneYear: {
+  PayOnceOneYear: {
     name: "File Organizer 2000 - Pay Once",
     type: "lifetime" as ProductType,
     metadata: {
-      type: "lifetime",
-      plan: "one_year" as PlanType,
+      type: "pay-once" as PlanType,
+      plan: "one_year" as Plan,
     },
     prices: {
       one_year: {
@@ -144,7 +144,7 @@ export const config = {
 export type WebhookMetadata = {
   userId: string;
   type: ProductType;
-  plan: PlanType;
+  plan: Plan;
 };
 
 export type WebhookEventType = SubscriptionWebhookEvent;
