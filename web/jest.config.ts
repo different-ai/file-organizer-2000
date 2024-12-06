@@ -16,7 +16,7 @@ const config: Config.InitialOptions = {
   // Test environment
   testEnvironment: 'node',
   // every file that has .test.ts will be run
-  testMatch: ['**/*.test.ts'],
+  testMatch: ['**/**/*.test.ts'],
   // use jest.setup.js for global setup
   setupFilesAfterEnv: ['<rootDir>/jest.setup.ts'],
 
