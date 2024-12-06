@@ -9,12 +9,24 @@ export default async function MainPage() {
 
   const { userId } = auth();
 
-
   const billingCycle = await getUserBillingCycle(userId);
+  console.log("Billing cycle:", billingCycle);
 
-  if (billingCycle === "monthly") {
+  // if billing cycle part of legacy plans
+  const isSubscription = [
+    // legacy cycle
+    "monthly",
+    "yearly",
+    // new up to date cycle
+    "subscription",
+  ].includes(billingCycle);
+
+  // top-up is not a "PAY ONCE" plan
+  const isPayOnce = ["pay-once", "lifetime"].includes(billingCycle);
+
+  if (isSubscription) {
     redirect("/dashboard/subscribers");
-  } else if (billingCycle === "lifetime") {
+  } else if (isPayOnce) {
     redirect("/dashboard/lifetime");
   } else {
     redirect("/dashboard/onboarding");

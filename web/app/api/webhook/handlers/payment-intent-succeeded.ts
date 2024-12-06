@@ -1,24 +1,10 @@
 import { createWebhookHandler } from '../handler-factory';
-import { CustomerData, WebhookEvent, WebhookHandlerResponse } from "../types";
+import { CustomerData, } from "../types";
 import { db, UserUsageTable } from "@/drizzle/schema";
-import { eq, sql } from "drizzle-orm";
+import { sql } from "drizzle-orm";
 import { updateUserSubscriptionData } from "../utils";
 import Stripe from "stripe";
-import { trackLoopsEvent } from '@/lib/services/loops';
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-  apiVersion: "2022-11-15",
-});
-
-async function getCustomerEmail(customerId: string): Promise<string> {
-  try {
-    const customer = await stripe.customers.retrieve(customerId) as Stripe.Customer;
-    return typeof customer === 'string' ? '' : customer.email || '';
-  } catch (error) {
-    console.error("Error retrieving customer email:", error);
-    return '';
-  }
-}
 
 async function handleTopUp(userId: string, tokens: number,) {
   console.log("Handling top-up for user", userId, "with", tokens, "tokens");

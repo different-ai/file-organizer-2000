@@ -70,7 +70,7 @@ export const AccountData: React.FC<AccountDataProps> = ({ plugin, onLicenseKeyCh
               </p>
             </div>
             <div 
-              onClick={() => window.open('https://fileorganizer2000.com', '_blank')}
+              onClick={() => window.open(plugin.getServerUrl(), '_blank')}
               className="mt-4 cursor-pointer bg-[--interactive-accent] text-[--text-on-accent] px-4 py-2 rounded hover:bg-[--interactive-accent-hover] transition-colors text-center font-medium"
             >
               Create Account

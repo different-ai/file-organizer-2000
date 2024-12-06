@@ -16,9 +16,9 @@ export function createWebhookHandler(
       if (options.requiredMetadata) {
         const metadata = event.data.object.metadata || {};
         const missingFields = options.requiredMetadata.filter(
-          field => !metadata[field]
+          (field) => !metadata[field]
         );
-        
+
         if (missingFields.length > 0) {
           throw new Error(
             `Missing required metadata fields: ${missingFields.join(", ")}`
@@ -53,4 +53,4 @@ export function createWebhookHandler(
       };
     }
   };
-} 
+}

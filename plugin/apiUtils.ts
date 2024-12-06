@@ -30,6 +30,7 @@ export async function checkLicenseKey(
         Authorization: `Bearer ${key}`,
       },
     });
+    console.log("response", response.json);
     return response.status === 200;
   } catch (error) {
     logger.error("Error checking API key:", error);

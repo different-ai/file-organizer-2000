@@ -13,7 +13,7 @@ async function handleLogging(
   userId: string,
   isCustomer: boolean
 ) {
-  const user = await clerkClient.users.getUser(userId);
+  const user = await clerkClient().users.getUser(userId);
   console.log("user", user.emailAddresses[0]?.emailAddress);
   const client = PostHogClient();
   if (client) {

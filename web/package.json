@@ -5,31 +5,33 @@
   "scripts": {
     "dev": "pnpm next dev",
     "build:self-host": "pnpm next build",
-    "build": "pnpm run db:migrate && pnpm run migrate:top-up && npx @u22n/srm deploy && pnpm next build",
+    "build": "pnpm run db:migrate  && pnpm next build",
     "start": "pnpm next start",
     "lint": "pnpm next lint",
-    "pricing:deploy": "pnpm srm deploy --env .env.local",
+    "test": "jest",
+    "test:watch": "jest --watch",
+    "ts:check": "pnpm tsc --noEmit",
     "db:generate": "pnpm drizzle-kit generate",
     "db:migrate": "pnpm dotenv -c -- drizzle-kit migrate",
     "db:studio": "pnpm dotenv -c -- drizzle-kit studio",
-    "db:studio:prod": "pnpm dotenv -e .env.production.local -- drizzle-kit studio",
-    "migrate:top-up": "tsx scripts/migrate.ts",
-    "migrate:rollback-top-up": "tsx scripts/rollback.ts"
+    "db:studio:prod": "pnpm dotenv -e .env.production.local -- drizzle-kit studio"
   },
   "dependencies": {
     "@ai-sdk/anthropic": "^0.0.9",
     "@ai-sdk/openai": "^0.0.68",
+    "@browserbasehq/stagehand": "^1.5.0",
     "@clerk/nextjs": "^5.7.5",
     "@radix-ui/react-label": "^2.1.0",
     "@radix-ui/react-select": "^2.1.2",
     "@radix-ui/react-slot": "^1.1.0",
+    "@radix-ui/react-switch": "^1.1.1",
     "@stripe/stripe-js": "^3.5.0",
+    "@testing-library/jest-dom": "^6.6.3",
     "@tiptap/core": "^2.9.1",
     "@tiptap/starter-kit": "^2.9.1",
     "@types/node": "20.8.5",
     "@types/react": "18.2.28",
     "@types/react-dom": "18.2.13",
-    "@u22n/srm": "github:un/srm",
     "@unkey/api": "^0.19.5",
     "@vercel/postgres": "^0.8.0",
     "ai": "^3.4.17",
@@ -49,6 +51,7 @@
     "next": "^14.2.16",
     "ollama-ai-provider": "^0.15.2",
     "openai": "^4.68.2",
+    "playwright": "^1.49.0",
     "postcss": "8.4.31",
     "posthog-js": "^1.174.3",
     "posthog-node": "^4.2.1",
@@ -68,6 +71,13 @@
   },
   "packageManager": "pnpm@8.15.4",
   "devDependencies": {
-    "tsx": "^4.19.2"
+    "@jest/types": "^29.5.0",
+    "@types/jest": "^29.5.0",
+    "@types/uuid": "^10.0.0",
+    "jest": "^29.5.0",
+    "jest-environment-jsdom": "^29.5.0",
+    "ts-jest": "^29.1.0",
+    "tsx": "^4.19.2",
+    "uuid": "^11.0.3"
   }
 }
