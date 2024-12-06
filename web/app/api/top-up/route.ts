@@ -4,9 +4,9 @@ import { getToken, handleAuthorizationV2 } from "@/lib/handleAuthorization";
 import { createAnonymousUser } from "../anon";
 import { createLicenseKeyFromUserId } from "@/app/actions";
 import { createEmptyUserUsage } from "@/drizzle/schema";
-import { config, getTargetUrl, PRICES } from "@/srm.config";
-import { getURL } from "@/app/dashboard/pricing/actions";
-
+import { config,  PRICES } from "@/srm.config";
+import { getUrl } from "@/lib/getUrl";
+  
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
   apiVersion: "2024-06-20",
 });
@@ -47,7 +47,8 @@ export async function POST(req: NextRequest) {
     );
   }
 
-  const baseUrl = getURL();
+  const baseUrl = getUrl();
+  console.log("baseUrl", baseUrl);
 
   const session = await stripe.checkout.sessions.create({
     payment_method_types: ["card"],
