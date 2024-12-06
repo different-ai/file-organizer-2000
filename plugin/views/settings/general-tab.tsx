@@ -125,7 +125,7 @@ export const GeneralTab: React.FC<GeneralTabProps> = ({ plugin, userId, email })
           <iframe
             width="100%"
             height="315"
-            src="https://www.youtube.com/embed/dRtLCBFzTAo?si=eo0h8dxTW-AIsNpp"
+            src="https://www.youtube.com/watch?v=X4yN4ykTJIo`"
             frameBorder="0"
             allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
             allowFullScreen
