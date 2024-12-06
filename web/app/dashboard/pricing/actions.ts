@@ -90,12 +90,7 @@ export async function createMonthlySubscriptionCheckout() {
     subscription_data: {
       metadata,
     },
-    invoice_creation: {
-      enabled: true,
-      invoice_data: {
-        metadata,
-      },
-    },
+
     success_url: success,
     cancel_url: cancel,
     allow_promotion_codes: true,
@@ -138,12 +133,6 @@ export async function createYearlySession(userId: string) {
       trial_period_days:
         PRODUCTS.SubscriptionYearly.prices.yearly.trialPeriodDays,
       metadata,
-    },
-    invoice_creation: {
-      enabled: true,
-      invoice_data: {
-        metadata, // Attach invoice-level metadata here
-      },
     },
   });
   return session;
