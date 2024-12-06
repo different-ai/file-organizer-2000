@@ -1,7 +1,9 @@
+import { db, UserUsageTable } from "@/drizzle/schema";
 import { createWebhookHandler } from "../handler-factory";
 import { updateClerkMetadata } from "@/lib/services/clerk";
 import { trackLoopsEvent } from "@/lib/services/loops";
 import Stripe from "stripe";
+import { eq } from "drizzle-orm";
 
 export const handleInvoicePaymentFailed = createWebhookHandler(
   async (event) => {
@@ -12,6 +14,14 @@ export const handleInvoicePaymentFailed = createWebhookHandler(
       console.warn("No userId found in invoice metadata");
       return { success: true, message: "Skipped invoice without userId" };
     }
+    // set user to inactive
+    await db
+      .update(UserUsageTable)
+      .set({
+        paymentStatus: "payment_failed",
+        maxTokenUsage: 0,
+      })
+      .where(eq(UserUsageTable.userId, userId));
 
     await updateClerkMetadata({
       userId,
@@ -40,4 +50,4 @@ export const handleInvoicePaymentFailed = createWebhookHandler(
       message: `Successfully processed failed payment for ${userId}`,
     };
   }
-); 
+);

@@ -9,7 +9,6 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
   apiVersion: "2024-06-20",
 });
 
-
 // Helper to get URLs
 const getUrls = () => {
   const origin = getUrl();
@@ -90,6 +89,12 @@ export async function createMonthlySubscriptionCheckout() {
     ],
     subscription_data: {
       metadata,
+    },
+    invoice_creation: {
+      enabled: true,
+      invoice_settings: {
+        metadata: metadata,
+      },
     },
     success_url: success,
     cancel_url: cancel,
