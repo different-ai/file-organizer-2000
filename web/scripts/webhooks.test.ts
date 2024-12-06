@@ -5,15 +5,6 @@ import { v4 as uuidv4 } from "uuid";
 import { setTimeout } from "timers/promises";
 import { config } from "../srm.config";
 
-// Expected states for different subscription types
-type ExpectedState = {
-  subscriptionStatus: string;
-  paymentStatus: string;
-  currentProduct: string;
-  currentPlan: string;
-  billingCycle: string;
-  maxTokenUsage: number;
-};
 
 const EXPECTED_STATES = {
   hobby_monthly: {
