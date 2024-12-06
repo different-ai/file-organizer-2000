@@ -8,8 +8,7 @@
     "build": "node esbuild.config.mjs production",
     "version": "node version-bump.mjs && git add manifest.json versions.json",
     "test": "ts-node ./standalone/index.test.ts",
-    "release": "node release.js",
-    "test:webhooks": "tsx web/scripts/test-webhooks.ts"
+    "release": "node release.js"
   },
   "author": "",
   "license": "MIT",
