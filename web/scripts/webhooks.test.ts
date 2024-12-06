@@ -204,12 +204,21 @@ describe("Stripe Webhook Tests", () => {
   test("Failed Payment", async () => {
     // Arrange
     const userId = generateTestUserId("payment_failed");
+    const metadata = {
+      userId,
+      type: config.products.SubscriptionMonthly.metadata.type,
+      plan: config.products.SubscriptionMonthly.metadata.plan,
+    };
+    // complete a session first
+    triggerWebhook(`stripe trigger checkout.session.completed \
+      --add checkout_session:metadata.userId=${userId} \
+      --add checkout_session:metadata.type=${metadata.type} \
+      --add checkout_session:metadata.plan=${metadata.plan} \
+      --add checkout_session:mode=subscription`);
 
     // Act
     triggerWebhook(`stripe trigger invoice.payment_failed \
       --add invoice:metadata.userId=${userId} \
-      --add invoice:metadata.type=subscription \
-      --add invoice:status=payment_failed \
       --add invoice:customer=cus_123`);
 
     await setTimeout(1000);
