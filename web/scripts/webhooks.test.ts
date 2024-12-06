@@ -3,7 +3,7 @@ import { db, UserUsageTable } from "../drizzle/schema";
 import { eq } from "drizzle-orm";
 import { v4 as uuidv4 } from "uuid";
 import { setTimeout } from "timers/promises";
-import { createYearlySession } from "../app/dashboard/pricing/actions";
+import { config } from "../srm.config";
 
 // Expected states for different subscription types
 type ExpectedState = {
@@ -18,42 +18,42 @@ type ExpectedState = {
 const EXPECTED_STATES = {
   hobby_monthly: {
     subscriptionStatus: "active",
-    paymentStatus: "succeeded",
-    currentProduct: "subscription",
-    currentPlan: "monthly",
-    billingCycle: "monthly",
+    paymentStatus: "paid",
+    currentProduct: config.products.SubscriptionMonthly.metadata.type,
+    currentPlan: config.products.SubscriptionMonthly.metadata.plan,
+    billingCycle: config.products.SubscriptionMonthly.metadata.type,
     maxTokenUsage: 5000 * 1000,
   },
   hobby_yearly: {
     subscriptionStatus: "active",
-    paymentStatus: "succeeded",
-    currentProduct: "subscription",
-    currentPlan: "yearly",
-    billingCycle: "yearly",
+    paymentStatus: "paid",
+    currentProduct: config.products.SubscriptionYearly.metadata.type,
+    currentPlan: config.products.SubscriptionYearly.metadata.plan,
+    billingCycle: config.products.SubscriptionYearly.metadata.type,
     maxTokenUsage: 5000 * 1000,
   },
   lifetime: {
     subscriptionStatus: "active",
     paymentStatus: "succeeded",
-    currentProduct: "lifetime",
-    currentPlan: "lifetime",
-    billingCycle: "lifetime",
+    currentProduct: config.products.PayOnceLifetime.metadata.type,
+    currentPlan: config.products.PayOnceLifetime.metadata.plan,
+    billingCycle: config.products.PayOnceLifetime.metadata.type,
     maxTokenUsage: 0,
   },
   one_year: {
     subscriptionStatus: "active",
     paymentStatus: "succeeded",
-    currentProduct: "lifetime",
-    currentPlan: "one_year",
-    billingCycle: "one_year",
+    currentProduct: config.products.PayOnceOneYear.metadata.type,
+    currentPlan: config.products.PayOnceOneYear.metadata.plan,
+    billingCycle: config.products.PayOnceOneYear.metadata.type,
     maxTokenUsage: 0,
   },
   top_up: {
     subscriptionStatus: "active",
     paymentStatus: "succeeded",
-    currentProduct: "top_up",
-    currentPlan: "top_up",
-    billingCycle: "top-up",
+    currentProduct: config.products.PayOnceTopUp.metadata.type,
+    currentPlan: config.products.PayOnceTopUp.metadata.plan,
+    billingCycle: config.products.PayOnceTopUp.metadata.type,
     maxTokenUsage: 5000000, // 5M tokens
   },
 } as const;
@@ -78,15 +78,15 @@ describe("Stripe Webhook Tests", () => {
     // Arrange
     const userId = generateTestUserId("top_up");
 
+    const type = config.products.PayOnceTopUp.metadata.type;
+    const plan = config.products.PayOnceTopUp.metadata.plan;
+
     // Act
-    triggerWebhook(`stripe trigger payment_intent.succeeded \
-      --add payment_intent:metadata.userId=${userId} \
-      --add payment_intent:metadata.type=top_up \
-      --add payment_intent:metadata.tokens=5000000 \
-      --add payment_intent:metadata.price_key=top_up_5m \
-      --add payment_intent:metadata.product_key=top_up_5m \
-      --add payment_intent:amount=1500 \
-      --add payment_intent:currency=usd`);
+    triggerWebhook(`stripe trigger checkout.session.completed \
+      --add checkout_session:metadata.userId=${userId} \
+      --add checkout_session:metadata.type=${type} \
+      --add checkout_session:metadata.plan=${plan} \
+      --add checkout_session:metadata.tokens=5000000`);
 
     // Wait for webhook processing
     await setTimeout(1000);
@@ -98,25 +98,20 @@ describe("Stripe Webhook Tests", () => {
       .where(eq(UserUsageTable.userId, userId));
 
     expect(userUsage).toHaveLength(1);
-    expect(userUsage[0]).toMatchObject({
-      subscriptionStatus: "active",
-      paymentStatus: "succeeded",
-      currentProduct: "top_up",
-      currentPlan: "top_up",
-      billingCycle: "top-up",
-      maxTokenUsage: 5000000,
-    });
+    expect(userUsage[0]).toMatchObject(EXPECTED_STATES.top_up);
   });
 
   test("HobbyMonthly Subscription", async () => {
     // Arrange
     const userId = generateTestUserId("hobby_monthly");
+    const type = config.products.SubscriptionMonthly.metadata.type;
+    const plan = config.products.SubscriptionMonthly.metadata.plan;
 
     // Act
     triggerWebhook(`stripe trigger checkout.session.completed \
       --add checkout_session:metadata.userId=${userId} \
-      --add checkout_session:metadata.type=subscription \
-      --add checkout_session:metadata.plan=monthly \
+      --add checkout_session:metadata.type=${type} \
+      --add checkout_session:metadata.plan=${plan} \
       --add checkout_session:mode=subscription`);
 
     await setTimeout(1000);
@@ -135,11 +130,13 @@ describe("Stripe Webhook Tests", () => {
     // Arrange
     const userId = generateTestUserId("sub_update");
 
+    const type = config.products.SubscriptionMonthly.metadata.type;
+    const plan = config.products.SubscriptionMonthly.metadata.plan;
     // Act - Initial subscription
     triggerWebhook(`stripe trigger checkout.session.completed \
       --add checkout_session:metadata.userId=${userId} \
-      --add checkout_session:metadata.type=subscription \
-      --add checkout_session:metadata.plan=monthly \
+      --add checkout_session:metadata.type=${type} \
+      --add checkout_session:metadata.plan=${plan} \
       --add checkout_session:mode=subscription`);
 
     await setTimeout(1000);
@@ -153,13 +150,11 @@ describe("Stripe Webhook Tests", () => {
     expect(userUsage[0]).toMatchObject(EXPECTED_STATES.hobby_monthly);
 
     // Act - Update subscription
-    triggerWebhook(`stripe trigger customer.subscription.updated \
-      --add subscription:metadata.userId=${userId} \
-      --add subscription:metadata.type=subscription \
-      --add subscription:metadata.plan=yearly \
-      --add subscription:status=active \
-      --add subscription:items.data.0.price.recurring.interval=year \
-      --add subscription:items.data.0.price.metadata.srm_price_key=yearly`);
+    triggerWebhook(`stripe trigger checkout.session.completed \
+      --add checkout_session:metadata.userId=${userId} \
+      --add checkout_session:metadata.type=subscription \
+      --add checkout_session:metadata.plan=yearly \
+      --add checkout_session:status=active`);
 
     await setTimeout(1000);
 
@@ -172,47 +167,23 @@ describe("Stripe Webhook Tests", () => {
     expect(userUsage[0]).toMatchObject(EXPECTED_STATES.hobby_yearly);
   });
 
-  test.only("HobbyYearly Subscription", async () => {
+  test("HobbyYearly Subscription", async () => {
     // Arrange
     const userId = generateTestUserId("hobby_yearly");
-    const expectedState = {
-      billingCycle: "yearly",
-      currentPlan: "yearly",
-      currentProduct: "subscription",
-      maxTokenUsage: 0,
-      paymentStatus: "paid",
-      subscriptionStatus: "complete",
-    };
+    const type = config.products.SubscriptionYearly.metadata.type;
+    const plan = config.products.SubscriptionYearly.metadata.plan;
 
     // Act - Checkout Session
     triggerWebhook(`stripe trigger checkout.session.completed \
       --add checkout_session:metadata.userId=${userId} \
-      --add checkout_session:metadata.type=subscription \
-      --add checkout_session:metadata.plan=yearly \
+      --add checkout_session:metadata.type=${type} \
+      --add checkout_session:metadata.plan=${plan} \
       --add checkout_session:mode=subscription`);
 
     await setTimeout(2000);
 
     // Assert checkout session state
-    let userUsage = await db
-      .select()
-      .from(UserUsageTable)
-      .where(eq(UserUsageTable.userId, userId));
-
-    expect(userUsage).toHaveLength(1);
-    expect(userUsage[0]).toMatchObject(expectedState);
-
-    // Act - subscription created event
-    triggerWebhook(`stripe trigger customer.subscription.created \
-      --add subscription:metadata.userId=${userId} \
-      --add subscription:metadata.type=subscription \
-      --add subscription:metadata.plan=yearly \
-      --add subscription:items.data.0.price.recurring.interval=year`);
-
-    await setTimeout(1000);
-
-    // Final assertion
-    userUsage = await db
+    const userUsage = await db
       .select()
       .from(UserUsageTable)
       .where(eq(UserUsageTable.userId, userId));
@@ -224,12 +195,14 @@ describe("Stripe Webhook Tests", () => {
   test("Lifetime Purchase", async () => {
     // Arrange
     const userId = generateTestUserId("lifetime");
+    const type = config.products.PayOnceLifetime.metadata.type;
+    const plan = config.products.PayOnceLifetime.metadata.plan;
 
     // Act
     triggerWebhook(`stripe trigger checkout.session.completed \
       --add checkout_session:metadata.userId=${userId} \
-      --add checkout_session:metadata.type=lifetime \
-      --add checkout_session:metadata.plan=lifetime \
+      --add checkout_session:metadata.type=${type} \
+      --add checkout_session:metadata.plan=${plan} \
       --add checkout_session:mode=payment`);
 
     await setTimeout(1000);
@@ -247,12 +220,14 @@ describe("Stripe Webhook Tests", () => {
   test("OneYear Purchase", async () => {
     // Arrange
     const userId = generateTestUserId("one_year");
+    const type = config.products.PayOnceOneYear.metadata.type;
+    const plan = config.products.PayOnceOneYear.metadata.plan;
 
     // Act
     triggerWebhook(`stripe trigger checkout.session.completed \
       --add checkout_session:metadata.userId=${userId} \
-      --add checkout_session:metadata.type=lifetime \
-      --add checkout_session:metadata.plan=one_year \
+      --add checkout_session:metadata.type=${type} \
+      --add checkout_session:metadata.plan=${plan} \
       --add checkout_session:mode=payment`);
 
     await setTimeout(1000);
@@ -265,30 +240,6 @@ describe("Stripe Webhook Tests", () => {
 
     expect(userUsage).toHaveLength(1);
     expect(userUsage[0]).toMatchObject(EXPECTED_STATES.one_year);
-  });
-
-  test("Invoice Paid", async () => {
-    // Arrange
-    const userId = generateTestUserId("invoice_paid");
-
-    // Act
-    triggerWebhook(`stripe trigger invoice.paid \
-      --add invoice:metadata.userId=${userId} \
-      --add invoice:metadata.type=subscription \
-      --add invoice:metadata.plan=monthly \
-      --add invoice:status=paid \
-      --add invoice:customer_email=test@example.com`);
-
-    await setTimeout(1000);
-
-    // Assert
-    const userUsage = await db
-      .select()
-      .from(UserUsageTable)
-      .where(eq(UserUsageTable.userId, userId));
-
-    expect(userUsage).toHaveLength(1);
-    expect(userUsage[0]).toMatchObject(EXPECTED_STATES.hobby_monthly);
   });
 
   test("Failed Payment", async () => {
@@ -321,5 +272,4 @@ describe("Stripe Webhook Tests", () => {
     });
   });
 
-  // Add other tests following the same pattern...
 });

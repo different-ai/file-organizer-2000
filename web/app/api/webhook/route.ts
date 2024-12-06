@@ -12,9 +12,9 @@ const HANDLERS = {
   "checkout.session.completed": handleCheckoutComplete,
   "customer.subscription.deleted": handleSubscriptionCanceled,
   "customer.subscription.updated": handleSubscriptionUpdated,
-  "invoice.paid": handleInvoicePaid,
+  // "invoice.paid": handleInvoicePaid,
   "invoice.payment_failed": handleInvoicePaymentFailed,
-  "payment_intent.succeeded": handlePaymentIntentSucceeded,
+  // "payment_intent.succeeded": handlePaymentIntentSucceeded,
 } as const;
 
 export async function POST(req: NextRequest) {

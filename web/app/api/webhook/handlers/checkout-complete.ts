@@ -2,8 +2,8 @@ import { UserUsageTable, db } from "@/drizzle/schema";
 import { createWebhookHandler } from "../handler-factory";
 import { trackLoopsEvent } from "@/lib/services/loops";
 import Stripe from "stripe";
-import { ProductMetadata } from "@/srm.config";
-
+import { config, ProductMetadata } from "@/srm.config";
+import { sql } from "drizzle-orm";
 
 // sample yearly metadata
 // "metadata": {
@@ -21,15 +21,27 @@ const handleSubscription = async (
   const metadata = session.metadata;
   console.log("creating subscription with metadata", metadata);
 
-  await db.insert(UserUsageTable).values({
-    userId: metadata.userId,
-    subscriptionStatus: "active",
-    paymentStatus: "paid",
-    maxTokenUsage: 5000 * 1000,
-    billingCycle: metadata.type,
-    lastPayment: new Date(),
-    currentPlan: metadata.plan,
-  });
+  // insert or update
+  await db
+    .insert(UserUsageTable)
+    .values({
+      userId: metadata.userId,
+      subscriptionStatus: "active",
+      paymentStatus: "paid",
+      maxTokenUsage: 5000 * 1000,
+      billingCycle: metadata.type,
+      lastPayment: new Date(),
+      currentPlan: metadata.plan,
+      currentProduct: metadata.type,
+    })
+    .onConflictDoUpdate({
+      target: [UserUsageTable.userId],
+      set: {
+        lastPayment: new Date(),
+        currentPlan: metadata.plan,
+        currentProduct: metadata.type,
+      },
+    });
 };
 
 const handlePayOnce = async (
@@ -44,9 +56,42 @@ const handlePayOnce = async (
     maxTokenUsage: 0,
     billingCycle: metadata.type,
     lastPayment: new Date(),
-    currentPlan: metadata.plan,
-  });
+      currentPlan: metadata.plan,
+      currentProduct: metadata.type,
+    })
+    .onConflictDoUpdate({
+      target: [UserUsageTable.userId],
+      set: {
+        lastPayment: new Date(),
+      },
+    });
 };
+async function handleTopUp(userId: string, tokens: number) {
+  console.log("Handling top-up for user", userId, "with", tokens, "tokens");
+
+  await db
+    .insert(UserUsageTable)
+    .values({
+      userId,
+      maxTokenUsage: tokens,
+      tokenUsage: 0,
+      subscriptionStatus: "active",
+      paymentStatus: "succeeded",
+      currentProduct: config.products.PayOnceTopUp.metadata.type,
+      currentPlan: config.products.PayOnceTopUp.metadata.plan,
+      billingCycle: config.products.PayOnceTopUp.metadata.type,
+      lastPayment: new Date(),
+    })
+    .onConflictDoUpdate({
+      target: [UserUsageTable.userId],
+      set: {
+        maxTokenUsage: sql`COALESCE(${UserUsageTable.maxTokenUsage}, 0) + ${tokens}`,
+        lastPayment: new Date(),
+        subscriptionStatus: "active",
+        paymentStatus: "succeeded",
+      },
+    });
+}
 
 export const handleCheckoutComplete = createWebhookHandler(async (event) => {
   const session = event.data.object as Stripe.Checkout.Session;
@@ -63,14 +108,34 @@ export const handleCheckoutComplete = createWebhookHandler(async (event) => {
     throw new Error("Missing required plan in metadata");
   }
 
-  if (session.metadata?.type === "subscription") {
+  // either yearly or monthly subscription
+  if (
+    session.metadata?.plan ===
+      config.products.SubscriptionYearly.metadata.plan ||
+    session.metadata?.plan === config.products.SubscriptionMonthly.metadata.plan
+  ) {
     await handleSubscription(
       session as Stripe.Checkout.Session & { metadata: ProductMetadata }
     );
   }
-  if (session.metadata?.type === "pay-once") {
+  // either pay once year or pay once lifetime
+  if (
+    session.metadata?.plan === config.products.PayOnceOneYear.metadata.plan ||
+    session.metadata?.plan === config.products.PayOnceLifetime.metadata.plan
+  ) {
     await handlePayOnce(
       session as Stripe.Checkout.Session & { metadata: ProductMetadata }
+    );
+  }
+  // pay once top up
+  if (session.metadata?.plan === config.products.PayOnceTopUp.metadata.plan) {
+    console.log("handling top-up", session.metadata);
+    if (!session.metadata.tokens) {
+      throw new Error("Missing required tokens in metadata");
+    }
+    await handleTopUp(
+      session.metadata.userId,
+      parseInt(session.metadata.tokens)
     );
   }
 

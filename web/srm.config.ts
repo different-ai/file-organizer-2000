@@ -1,4 +1,5 @@
-import {  SubscriptionWebhookEvent } from "./lib/srm/src";
+//
+import { SubscriptionWebhookEvent } from "./lib/srm/src";
 
 // Product and plan types for type safety
 export type ProductType = "subscription" | "lifetime" | "top_up";
@@ -11,6 +12,7 @@ export const PRICES = {
   YEARLY: 11900, // $119.00
   LIFETIME: 30000, // $300.00
   ONE_YEAR: 20000, // $200.00
+  TOP_UP: 1500, // $15.00
 } as const;
 
 const cloudFeatures = [
@@ -94,6 +96,20 @@ export const PRODUCTS = {
       },
     },
     features: [...standardPayOnceFeatures, "One Year of Updates"],
+  },
+  PayOnceTopUp: {
+    name: "File Organizer 2000 - Top Up",
+    metadata: {
+      type: "pay-once" as PlanType,
+      plan: "top_up" as Plan,
+    },
+    prices: {
+      top_up: {
+        amount: PRICES.TOP_UP,
+        type: "one_time" as const,
+      },
+    },
+    features: ["One-time purchase of additional tokens"],
   },
 } as const;
 
