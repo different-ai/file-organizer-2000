@@ -5,6 +5,7 @@ import { createAnonymousUser } from "../anon";
 import { createLicenseKeyFromUserId } from "@/app/actions";
 import { createEmptyUserUsage } from "@/drizzle/schema";
 import { config, getTargetUrl, PRICES } from "@/srm.config";
+import { getURL } from "@/app/dashboard/pricing/actions";
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
   apiVersion: "2024-06-20",
@@ -46,9 +47,7 @@ export async function POST(req: NextRequest) {
     );
   }
 
-  const baseUrl = getTargetUrl();
-  const targetUrl =
-    baseUrl === "localhost:3000" ? `http://${baseUrl}` : `https://${baseUrl}`;
+  const baseUrl = getURL();
 
   const session = await stripe.checkout.sessions.create({
     payment_method_types: ["card"],
@@ -74,8 +73,8 @@ export async function POST(req: NextRequest) {
       },
     ],
     mode: "payment",
-    success_url: `${targetUrl}/top-up-success`,
-    cancel_url: `${targetUrl}/top-up-cancelled`,
+    success_url: `${baseUrl}/top-up-success`,
+    cancel_url: `${baseUrl}/top-up-cancelled`,
     allow_promotion_codes: true,
     metadata: {
       userId,
