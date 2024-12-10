@@ -15,7 +15,7 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { CheckCircle2, ChevronRight } from "lucide-react";
+import { CheckCircle2, ChevronRight, ExternalLink, Clock } from "lucide-react";
 
 const formSchema = z.object({
   vercelToken: z.string().min(1, "Vercel token is required").trim(),
@@ -53,6 +53,7 @@ export function AutomatedSetup() {
       error: null,
       deploymentUrl: null,
       licenseKey: null,
+      projectUrl: null,
     });
 
     try {
@@ -79,6 +80,53 @@ export function AutomatedSetup() {
     }
   };
   console.log(form.formState, "form state");
+
+  const TroubleshootingSection = () => (
+    <div className="mt-8 border-t pt-6">
+      <details className="group">
+        <summary className="flex items-center justify-between cursor-pointer">
+          <h4 className="font-medium text-muted-foreground">
+            Troubleshooting Guide
+          </h4>
+          <ChevronRight className="h-4 w-4 transition-transform group-open:rotate-90" />
+        </summary>
+        <div className="mt-4 space-y-4 text-sm text-muted-foreground">
+          <div className="space-y-2">
+            <h5 className="font-medium">Common Issues:</h5>
+            <ul className="list-disc list-inside space-y-2 ml-2">
+              <li>
+                <span className="font-medium">Deployment Stuck:</span> If your deployment seems stuck, check the build logs on Vercel by clicking on the deployment URL and navigating to the "Runtime Logs" tab.
+              </li>
+              <li>
+                <span className="font-medium">Invalid Project URL:</span> Make sure you're using the production URL from your Vercel deployment (usually ends with .vercel.app unless you've configured a custom domain).
+              </li>
+              <li>
+                <span className="font-medium">License Key Not Working:</span> Verify that you've copied the entire license key without any extra spaces.
+              </li>
+            </ul>
+          </div>
+          
+          <div className="bg-muted/50 p-4 rounded-lg mt-4">
+            <p>
+              If you continue experiencing issues, please email{" "}
+              <a 
+                href="mailto:alex@fileorganizer2000.com"
+                className="text-primary hover:underline"
+              >
+                alex@fileorganizer2000.com
+              </a>{" "}
+              with:
+            </p>
+            <ul className="list-disc list-inside mt-2 ml-2">
+              <li>Your deployment URL</li>
+              <li>Screenshots of any error messages</li>
+              <li>Steps you've tried so far</li>
+            </ul>
+          </div>
+        </div>
+      </details>
+    </div>
+  );
 
   const steps = [
     {
@@ -189,8 +237,38 @@ export function AutomatedSetup() {
       isCurrent: currentStep === 3,
       content: (
         <div className="space-y-6">
+          {deploymentStatus.deploymentUrl && (
+            <Card className="border bg-muted/50 p-4">
+              <CardHeader>
+                <CardTitle className="text-lg">Deployment Status</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="flex flex-col gap-2">
+                  <p className="text-sm text-muted-foreground">
+                    1. Click the link below to check your deployment status:
+                  </p>
+                  <a 
+                    href={deploymentStatus.deploymentUrl.startsWith('http') ? deploymentStatus.deploymentUrl : `https://${deploymentStatus.deploymentUrl}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-2 text-primary hover:underline"
+                  >
+                    <ExternalLink className="h-4 w-4" />
+                    View Deployment Status
+                  </a>
+                </div>
+                <div className="rounded-lg bg-primary/10 p-4">
+                  <p className="text-sm flex items-center gap-2">
+                    <Clock className="h-4 w-4" />
+                    Wait for the deployment to complete (usually takes 2-3 minutes)
+                  </p>
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
           {deploymentStatus.licenseKey && (
-            <Card className="border bg-muted/50 ">
+            <Card className="border bg-muted/50 p-4">
               <CardHeader>
                 <CardTitle className="text-lg">Your License Key</CardTitle>
               </CardHeader>
@@ -217,7 +295,25 @@ export function AutomatedSetup() {
 
           <div className="space-y-4">
             <h4 className="font-medium">Next Steps:</h4>
-            <ol className="list-decimal list-inside space-y-2 text-sm">
+            <ol className="list-decimal list-inside space-y-4 text-sm">
+              <li className="text-muted-foreground">
+                After deployment is complete, copy your project URL from the Vercel dashboard
+                {deploymentStatus.projectUrl && (
+                  <div className="mt-2">
+                    <code className="px-2 py-1 bg-muted rounded text-sm break-all">
+                      {deploymentStatus.projectUrl}
+                    </code>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="ml-2"
+                      onClick={() => navigator.clipboard.writeText(deploymentStatus.projectUrl!)}
+                    >
+                      Copy
+                    </Button>
+                  </div>
+                )}
+              </li>
               <li>
                 Install the Obsidian plugin:
                 <div className="mt-2">
@@ -230,15 +326,12 @@ export function AutomatedSetup() {
               </li>
               <li>Open Obsidian settings and go to File Organizer settings</li>
               <li>Click on Advanced and enable "Self-Hosting" toggle</li>
-              <li>
-                Enter your project URL:{" "}
-                <code className="px-2 py-1 bg-muted rounded text-sm">
-                  {deploymentStatus.projectUrl}
-                </code>
-              </li>
-              <li>Enter your license key and click "Activate"</li>
+              <li>Enter your project URL and license key in the settings</li>
+              <li>Click "Activate" to complete the setup</li>
             </ol>
           </div>
+
+          <TroubleshootingSection />
         </div>
       ),
     },
