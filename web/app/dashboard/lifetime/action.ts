@@ -2,7 +2,7 @@
 import { Vercel } from "@vercel/sdk";
 import { auth } from "@clerk/nextjs/server";
 import { db, vercelTokens } from "@/drizzle/schema";
-import { eq } from "drizzle-orm";
+import { eq, exists } from "drizzle-orm";
 import { createLicenseKeyFromUserId } from "@/app/actions";
 
 const GITHUB_ORG = "different-ai";
@@ -17,7 +17,10 @@ type SetupProjectResult = {
   projectUrl: string;
 };
 
-export async function setupProject(vercelToken: string, openaiKey: string): Promise<SetupProjectResult> {
+export async function setupProject(
+  vercelToken: string,
+  openaiKey: string
+): Promise<SetupProjectResult> {
   const { userId } = auth();
   // create an api key for the user
   if (!userId) {
@@ -32,6 +35,7 @@ export async function setupProject(vercelToken: string, openaiKey: string): Prom
   if (!openaiKey) {
     throw new Error("OpenAI API key is required");
   }
+  console.log("userId", userId);
 
   // Store or update the token
   const existingToken = await db
@@ -39,8 +43,10 @@ export async function setupProject(vercelToken: string, openaiKey: string): Prom
     .from(vercelTokens)
     .where(eq(vercelTokens.userId, userId));
 
-  if (existingToken) {
-    console.log("Updating existing token");
+  console.log("existingToken", existingToken);
+
+  if (existingToken.length > 0) {
+    console.log("Updating existing token", vercelToken);
     // Update existing token
     await db
       .update(vercelTokens)
@@ -118,7 +124,6 @@ export async function setupProject(vercelToken: string, openaiKey: string): Prom
         },
       },
     });
-    
 
     // Update token record with project details and URL
     await db
