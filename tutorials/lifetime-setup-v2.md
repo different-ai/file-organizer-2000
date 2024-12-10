@@ -1,4 +1,6 @@
-
+1. [Set Up a Vercel Account](#set-up-a-vercel-account-if-you-do-not-have-one)  
+2. [Creating a Token](#creating-a-token)  
+3. [Finishing Up](#finishing-up)  
 
 
 ## Set Up a Vercel Account (if you do not have one)
