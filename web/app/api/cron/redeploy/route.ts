@@ -34,6 +34,9 @@ export async function GET(request: Request) {
             console.log(`No project ID for user ${tokenRecord.userId}`);
             return;
           }
+          const repo = "file-organizer-2000";
+          const org = "different-ai";
+          const ref = "master";
 
           // Create new deployment with correct properties
           const deployment = await vercel.deployments.createDeployment({
@@ -43,9 +46,9 @@ export async function GET(request: Request) {
               project: tokenRecord.projectId,
               gitSource: {
                 type: "github",
-                repo: "different-ai/file-organizer-2000",
-                ref: "master",
-                org: "different-ai",
+                repo: repo,
+                ref: ref,
+                org: org,
               },
               projectSettings: {
                 framework: "nextjs",
