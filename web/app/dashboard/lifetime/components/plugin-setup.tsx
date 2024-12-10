@@ -1,3 +1,7 @@
+import { Button } from "@/components/ui/button";
+
+import { Card, CardTitle, CardHeader, CardContent } from "@/components/ui/card";
+
 export function PluginSetup({ projectUrl }) {
   return (
     <Card className="rounded-md p-4">
