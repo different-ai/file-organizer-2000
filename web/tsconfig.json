@@ -21,7 +21,8 @@
     "paths": {
       "@/*": ["./*"]
     },
-    "strictNullChecks": false
+    "strictNullChecks": false,
+    "baseUrl": "."
   },
   "include": [
     "next-env.d.ts",

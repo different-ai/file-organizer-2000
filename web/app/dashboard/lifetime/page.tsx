@@ -1,21 +1,169 @@
+"use client";
 import { Button } from "@/components/ui/button";
-import { UserButton } from "@clerk/nextjs";
 import { LicenseForm } from "@/app/components/license-form";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { setupProject } from "./action";
+import { useState } from "react";
+import { Input } from "@/components/ui/input";
 
-export default async function LifetimeAccessPage() {
-  if (process.env.ENABLE_USER_MANAGEMENT !== "true") {
-    return (
-      <div className="p-4 border border-stone-300 text-center text-xl">
-        User management is disabled
+export default function LifetimeAccessPage() {
+  const [deploymentStatus, setDeploymentStatus] = useState({
+    isDeploying: false,
+    error: null,
+    deploymentUrl: null,
+    licenseKey: null as string | null
+  });
+  const [vercelToken, setVercelToken] = useState("");
+  const [openaiKey, setOpenaiKey] = useState("");
+
+  // if (process.env.ENABLE_USER_MANAGEMENT !== "true") {
+  //   return (
+  //     <div className="p-4 border border-stone-300 text-center text-xl">
+  //       User management is disabled
+  //     </div>
+  //   );
+  // }
+  const handleDeploy = async () => {
+    console.log('Starting deployment process...');
+    setDeploymentStatus({ 
+      isDeploying: true, 
+      error: null, 
+      deploymentUrl: null, 
+      licenseKey: null 
+    });
+
+    try {
+      const result = await setupProject(vercelToken, openaiKey);
+      console.log('✅ Deployment completed successfully:', result);
+      setDeploymentStatus({
+        isDeploying: false,
+        error: null,
+        deploymentUrl: result.deploymentUrl,
+        licenseKey: result.licenseKey
+      });
+    } catch (error: any) {
+      console.error('❌ Deployment failed:', error);
+      setDeploymentStatus({
+        isDeploying: false,
+        error: error.message,
+        deploymentUrl: null,
+        licenseKey: null
+      });
+    }
+  };
+
+  // Update the deploy section to include both token inputs
+  const deploySection = (
+    <div className="mb-8">
+      <div className="space-y-4">
+        <div>
+          <label className="block text-sm font-medium mb-2">
+            Vercel Token
+          </label>
+          <Input
+            type="password"
+            value={vercelToken}
+            onChange={(e) => setVercelToken(e.target.value)}
+            placeholder="Enter your Vercel token"
+            className="w-full mb-2"
+          />
+          <p className="text-sm text-muted-foreground">
+            Get your token from{" "}
+            <a 
+              href="https://vercel.com/account/tokens" 
+              target="_blank" 
+              rel="noopener noreferrer"
+              className="text-[--text-accent] hover:underline"
+            >
+              Vercel Account Settings
+            </a>
+          </p>
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium mb-2">
+            OpenAI API Key
+          </label>
+          <Input
+            type="password"
+            value={openaiKey}
+            onChange={(e) => setOpenaiKey(e.target.value)}
+            placeholder="Enter your OpenAI API key"
+            className="w-full mb-2"
+          />
+          <p className="text-sm text-muted-foreground">
+            Get your API key from{" "}
+            <a 
+              href="https://platform.openai.com/api-keys" 
+              target="_blank" 
+              rel="noopener noreferrer"
+              className="text-[--text-accent] hover:underline"
+            >
+              OpenAI Dashboard
+            </a>
+          </p>
+        </div>
       </div>
-    );
-  }
+
+      <Button 
+        onClick={handleDeploy} 
+        disabled={deploymentStatus.isDeploying || !vercelToken || !openaiKey}
+        className="w-full mt-6"
+      >
+        {deploymentStatus.isDeploying ? 'Deploying...' : 'Deploy to Vercel'}
+      </Button>
+    </div>
+  );
+
+  // Update status message to include license key
+  const statusMessage = deploymentStatus.error ? (
+    <div className="text-[--text-error] mb-4">
+      Error: {deploymentStatus.error}
+    </div>
+  ) : deploymentStatus.deploymentUrl ? (
+    <div className="space-y-4 mb-4">
+      <div className="text-[--text-success]">
+        Deployment successful! Visit your site at:{' '}
+        <a 
+          href={deploymentStatus.deploymentUrl} 
+          target="_blank" 
+          rel="noopener noreferrer"
+          className="underline"
+        >
+          {deploymentStatus.deploymentUrl}
+        </a>
+      </div>
+      {deploymentStatus.licenseKey && (
+        <div className="p-4 border rounded-md bg-background">
+          <p className="font-medium mb-2">Your License Key:</p>
+          <div className="flex items-center gap-2">
+            <code className="px-2 py-1 bg-muted rounded text-sm break-all">
+              {deploymentStatus.licenseKey}
+            </code>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => {
+                navigator.clipboard.writeText(deploymentStatus.licenseKey!);
+              }}
+            >
+              Copy
+            </Button>
+          </div>
+          <p className="text-sm text-muted-foreground mt-2">
+            Save this key! You'll need it to activate your plugin.
+          </p>
+        </div>
+      )}
+    </div>
+  ) : null;
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-100 to-gray-200 dark:from-gray-900 dark:to-gray-800">
       <main className="container mx-auto px-4 py-12">
         <h1 className="text-4xl font-bold mb-8">Lifetime Access Setup</h1>
+        {deploySection}
+        {statusMessage}
 
         <div className="grid md:grid-cols-2 gap-12">
           <div>

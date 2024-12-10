@@ -34,6 +34,7 @@
     "@types/react-dom": "18.2.13",
     "@unkey/api": "^0.19.5",
     "@vercel/postgres": "^0.8.0",
+    "@vercel/sdk": "^1.1.0",
     "ai": "^3.4.33",
     "autoprefixer": "10.4.16",
     "class-variance-authority": "^0.7.1",

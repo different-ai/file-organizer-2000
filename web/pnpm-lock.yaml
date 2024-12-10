@@ -56,6 +56,9 @@ dependencies:
   '@vercel/postgres':
     specifier: ^0.8.0
     version: 0.8.0
+  '@vercel/sdk':
+    specifier: ^1.1.0
+    version: 1.1.0(zod@3.23.8)
   ai:
     specifier: ^3.4.33
     version: 3.4.33(openai@4.76.0)(react@18.2.0)(svelte@5.8.0)(vue@3.5.13)(zod@3.23.8)
@@ -3169,6 +3172,14 @@ packages:
       bufferutil: 4.0.8
       utf-8-validate: 6.0.3
       ws: 8.14.2(bufferutil@4.0.8)(utf-8-validate@6.0.3)
+    dev: false
+
+  /@vercel/sdk@1.1.0(zod@3.23.8):
+    resolution: {integrity: sha512-xhWcBXD0sQhCk7aTdfncuDxjYwgYBBEyM6bG0BODkAz5iypu4CoOv0n+e7mgdxggR86cRIMuuD1jz7Uzv5TZFA==}
+    peerDependencies:
+      zod: '>= 3'
+    dependencies:
+      zod: 3.23.8
     dev: false
 
   /@vue/compiler-core@3.5.13:
