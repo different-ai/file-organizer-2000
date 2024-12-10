@@ -1,0 +1,1 @@
+DROP TABLE "vercel_tokens";
