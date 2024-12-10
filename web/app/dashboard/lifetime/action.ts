@@ -5,11 +5,6 @@ import { db, vercelTokens } from "@/drizzle/schema";
 import { eq } from "drizzle-orm";
 import { createLicenseKeyFromUserId } from "@/app/actions";
 
-const VERCEL_TOKEN = process.env.VERCEL_TOKEN;
-if (!VERCEL_TOKEN) {
-  throw new Error("VERCEL_TOKEN environment variable is not set");
-}
-
 const GITHUB_ORG = "different-ai";
 const GITHUB_REPO = "file-organizer-2000";
 const GITHUB_BRANCH = "master";
@@ -45,12 +40,14 @@ export async function setupProject(vercelToken: string, openaiKey: string): Prom
     .where(eq(vercelTokens.userId, userId));
 
   if (existingToken) {
+    console.log("Updating existing token");
     // Update existing token
     await db
       .update(vercelTokens)
       .set({ token: vercelToken, updatedAt: new Date() })
       .where(eq(vercelTokens.userId, userId));
   } else {
+    console.log("Inserting new token");
     // Insert new token
     await db.insert(vercelTokens).values({
       userId,
