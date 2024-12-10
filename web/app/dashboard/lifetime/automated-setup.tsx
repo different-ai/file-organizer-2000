@@ -35,6 +35,7 @@ export function AutomatedSetup() {
     isDeploying: false,
     error: null,
     deploymentUrl: null,
+    projectUrl: null,
     licenseKey: null as string | null,
   });
 
@@ -64,6 +65,7 @@ export function AutomatedSetup() {
         error: null,
         deploymentUrl: result.deploymentUrl,
         licenseKey: result.licenseKey,
+        projectUrl: result.projectUrl,
       });
       setCurrentStep(3); // Move to final step after successful deployment
     } catch (error: any) {
@@ -72,6 +74,7 @@ export function AutomatedSetup() {
         error: error.message,
         deploymentUrl: null,
         licenseKey: null,
+        projectUrl: null,
       });
     }
   };
@@ -228,9 +231,9 @@ export function AutomatedSetup() {
               <li>Open Obsidian settings and go to File Organizer settings</li>
               <li>Click on Advanced and enable "Self-Hosting" toggle</li>
               <li>
-                Enter your deployment URL:{" "}
+                Enter your project URL:{" "}
                 <code className="px-2 py-1 bg-muted rounded text-sm">
-                  {deploymentStatus.deploymentUrl}
+                  {deploymentStatus.projectUrl}
                 </code>
               </li>
               <li>Enter your license key and click "Activate"</li>

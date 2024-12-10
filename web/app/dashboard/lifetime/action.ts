@@ -14,7 +14,15 @@ const GITHUB_ORG = "different-ai";
 const GITHUB_REPO = "file-organizer-2000";
 const GITHUB_BRANCH = "master";
 
-export async function setupProject(vercelToken: string, openaiKey: string) {
+type SetupProjectResult = {
+  success: boolean;
+  deploymentUrl: string;
+  projectId: string;
+  licenseKey: string;
+  projectUrl: string;
+};
+
+export async function setupProject(vercelToken: string, openaiKey: string): Promise<SetupProjectResult> {
   const { userId } = auth();
   // create an api key for the user
   if (!userId) {
@@ -58,6 +66,8 @@ export async function setupProject(vercelToken: string, openaiKey: string) {
   const uniqueProjectName = `file-organizer-${Math.random()
     .toString(36)
     .substring(2, 15)}`;
+
+  const projectUrl = `https://${uniqueProjectName}.vercel.app`;
 
   console.log("apiKey", apiKey.key.key);
   try {
@@ -113,12 +123,13 @@ export async function setupProject(vercelToken: string, openaiKey: string) {
     });
     
 
-    // Update token record with project details
+    // Update token record with project details and URL
     await db
       .update(vercelTokens)
       .set({
         projectId: createProjectResponse.id,
         deploymentUrl: deploymentResponse.url,
+        projectUrl,
         updatedAt: new Date(),
       })
       .where(eq(vercelTokens.userId, userId));
@@ -128,6 +139,7 @@ export async function setupProject(vercelToken: string, openaiKey: string) {
       deploymentUrl: deploymentResponse.url,
       projectId: createProjectResponse.id,
       licenseKey: apiKey.key.key,
+      projectUrl,
     };
   } catch (error: any) {
     console.error("❌ Error in setupProject:", error);
@@ -152,6 +164,7 @@ export async function getVercelDeployment() {
     ? {
         deploymentUrl: tokenRecord[0].deploymentUrl,
         projectId: tokenRecord[0].projectId,
+        projectUrl: tokenRecord[0].projectUrl,
       }
     : null;
 }

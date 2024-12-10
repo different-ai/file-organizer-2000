@@ -43,9 +43,10 @@ export const vercelTokens = pgTable('vercel_tokens', {
   userId: text('user_id').notNull(),
   token: text('token').notNull(),
   projectId: text('project_id'),
-  deploymentUrl: text('deployment_url'),
-  createdAt: timestamp('created_at').defaultNow(),
-  updatedAt: timestamp('updated_at').defaultNow(),
+  deploymentUrl: text("deployment_url"),
+  projectUrl: text("project_url"),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
 });
 
 export type VercelToken = typeof vercelTokens.$inferSelect;
