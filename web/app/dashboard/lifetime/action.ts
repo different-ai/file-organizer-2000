@@ -111,6 +111,7 @@ export async function setupProject(vercelToken: string, openaiKey: string) {
         },
       },
     });
+    
 
     // Update token record with project details
     await db
