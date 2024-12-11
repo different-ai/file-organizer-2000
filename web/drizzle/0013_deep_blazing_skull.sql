@@ -1,0 +1,1 @@
+ALTER TABLE "vercel_tokens" ADD COLUMN "vision_model_name" text DEFAULT 'gpt-4-vision';

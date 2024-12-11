@@ -1,5 +1,5 @@
 "use server";
-import { auth } from "@clerk/nextjs/server";
+import { auth,  } from "@clerk/nextjs/server";
 import { Unkey } from "@unkey/api";
 import { db, UserUsageTable as UserUsageTableImport } from "@/drizzle/schema";
 import { eq } from "drizzle-orm";
@@ -32,6 +32,7 @@ export async function createLicenseKeyFromUserId(userId: string) {
 
   const name = "my api key";
   const unkey = new Unkey({ token });
+
 
   console.log("Creating Unkey license key");
   const key = await unkey.keys.create({
