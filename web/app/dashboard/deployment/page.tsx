@@ -29,6 +29,7 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 
 const formSchema = z.object({
   modelName: z.string().min(1, "Model name is required"),
@@ -45,6 +46,7 @@ export default function DeploymentDashboard() {
   const [isRedeploying, setIsRedeploying] = useState(false);
   const [isGeneratingNewLicense, setIsGeneratingNewLicense] = useState(false);
   const [availableModels] = useState(() => getAvailableModels());
+  const [newLicenseKey, setNewLicenseKey] = useState<string | null>(null);
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
@@ -110,7 +112,6 @@ export default function DeploymentDashboard() {
   };
 
   const onSubmit = async (values: FormValues) => {
-    // Show loading toast
     const loadingToast = toast.loading('Updating configuration...');
     
     try {
@@ -126,16 +127,7 @@ export default function DeploymentDashboard() {
         throw new Error(result.error);
       }
 
-      // Dismiss loading toast
       toast.dismiss(loadingToast);
-
-      // Show success messages
-      if (result.newLicenseKey) {
-        toast.success('New license key generated successfully', {
-          duration: 5000,
-          icon: '🔑',
-        });
-      }
 
       // Show what was updated
       const updates = [];
@@ -151,17 +143,18 @@ export default function DeploymentDashboard() {
             Updated: {updates.join(', ')}
           </p>
         </div>,
-        {
-          duration: 5000,
-          icon: '✅',
-        }
+        { duration: 5000, icon: '✅' }
       );
+
+      // If new license key was generated, show it in modal
+      if (result.newLicenseKey) {
+        setNewLicenseKey(result.newLicenseKey);
+      }
       
       // Clear API keys
       form.setValue('openaiKey', '');
       form.setValue('anthropicKey', '');
       
-      // Refresh deployment status
       await fetchDeploymentStatus();
     } catch (error) {
       // Dismiss loading toast
@@ -457,7 +450,63 @@ export default function DeploymentDashboard() {
             </Form>
           </CardContent>
         </Card>
-      </div>
+        </div>
+
+      <Dialog open={!!newLicenseKey} onOpenChange={() => setNewLicenseKey(null)}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>New License Key Generated</DialogTitle>
+            <DialogDescription>
+              Copy your new license key and update it in your plugin settings.
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <label className="text-sm font-medium">License Key</label>
+              <div className="flex items-center gap-2">
+                <code className="flex-1 p-2 bg-muted rounded text-sm font-mono break-all">
+                  {newLicenseKey}
+                </code>
+                <Button
+                  size="icon"
+                  variant="outline"
+                  onClick={() => {
+                    navigator.clipboard.writeText(newLicenseKey || '');
+                    toast.success('License key copied to clipboard');
+                  }}
+                >
+                  <svg
+                    width="15"
+                    height="15"
+                    viewBox="0 0 15 15"
+                    fill="none"
+                    xmlns="http://www.w3.org/2000/svg"
+                    className="h-4 w-4"
+                  >
+                    <path
+                      d="M1 9.50006C1 10.3285 1.67157 11.0001 2.5 11.0001H4L4 10.0001H2.5C2.22386 10.0001 2 9.7762 2 9.50006L2 2.50006C2 2.22392 2.22386 2.00006 2.5 2.00006L9.5 2.00006C9.77614 2.00006 10 2.22392 10 2.50006V4.00002H5.5C4.67157 4.00002 4 4.67159 4 5.50002V12.5C4 13.3284 4.67157 14 5.5 14H12.5C13.3284 14 14 13.3284 14 12.5V5.50002C14 4.67159 13.3284 4.00002 12.5 4.00002H11V2.50006C11 1.67163 10.3284 1.00006 9.5 1.00006H2.5C1.67157 1.00006 1 1.67163 1 2.50006V9.50006ZM5 5.50002C5 5.22388 5.22386 5.00002 5.5 5.00002H12.5C12.7761 5.00002 13 5.22388 13 5.50002V12.5C13 12.7762 12.7761 13 12.5 13H5.5C5.22386 13 5 12.7762 5 12.5V5.50002Z"
+                      fill="currentColor"
+                      fillRule="evenodd"
+                      clipRule="evenodd"
+                    />
+                  </svg>
+                </Button>
+              </div>
+            </div>
+            
+            <Alert>
+              <AlertCircle className="h-4 w-4" />
+              <AlertTitle>Important</AlertTitle>
+              <AlertDescription>
+                Make sure to update this key in your Obsidian plugin settings.
+                The old key will stop working once you restart your plugin.
+              </AlertDescription>
+            </Alert>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
+
   );
 } 

@@ -3,7 +3,7 @@ import type { Metadata } from "next";
 import { PHProvider } from "./providers";
 import dynamic from "next/dynamic";
 import Logo from "@/components/ui/logo";
-import {Toaster} from 'react-hot-toast';
+import { Toaster } from "react-hot-toast";
 
 const PostHogPageView = dynamic(() => import("./posthog-page-view"), {
   ssr: false,
@@ -37,7 +37,7 @@ export default function RootLayout({
                     <Logo />
                   </Link>
                 </div>
-                  <UserManagement />
+                <UserManagement />
               </nav>
             </header>
             <main className="min-h-screen text-stone-900 font-sans">

@@ -120,7 +120,7 @@ export async function updateKeys({
 
     return { 
       success: true,
-      newLicenseKey,
+      newLicenseKey: newLicenseKey,
     };
   } catch (error) {
     console.error("Error updating keys:", error);
