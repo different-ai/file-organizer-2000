@@ -21,3 +21,6 @@ export const getModel = (name: string) => {
   return models[name];
 };
 
+export const getAvailableModels = () => {
+  return Object.keys(models);
+};
