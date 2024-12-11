@@ -21,29 +21,28 @@ export async function GET() {
       return new NextResponse("No deployment found", { status: 404 });
     }
 
-    // Check for API keys in Vercel environment
+    // Check for API keys and model names in Vercel environment
     const vercel = new Vercel({
       bearerToken: deployment.token,
     });
 
-    const envVars = await vercel.projects.filterProjectEnvs({
+    // @ts-ignore
+    const { envs } = await vercel.projects.filterProjectEnvs({
       idOrName: deployment.projectId,
     });
-    console.log('env vars', envVars);
 
-    const openaiKeyPresent = envVars.envs.some(
-      (env) => env.key === "OPENAI_API_KEY"
-    );
-    const anthropicKeyPresent = envVars.envs.some(
-      (env) => env.key === "ANTHROPIC_API_KEY"
-    );
+    // Find environment variables
+    const openaiKeyPresent = envs.some(env => env.key === "OPENAI_API_KEY");
+    const anthropicKeyPresent = envs.some(env => env.key === "ANTHROPIC_API_KEY");
+    const currentModelName = envs.find(env => env.key === "MODEL_NAME")?.value || 'gpt-4o';
+    const currentVisionModelName = envs.find(env => env.key === "VISION_MODEL_NAME")?.value || 'gpt-4o';
 
     return NextResponse.json({
       projectUrl: deployment.projectUrl,
       deploymentUrl: deployment.deploymentUrl,
       lastDeployment: deployment.lastDeployment,
-      modelName: deployment.modelName,
-      visionModelName: deployment.visionModelName,
+      modelName: currentModelName,
+      visionModelName: currentVisionModelName,
       lastApiKeyUpdate: deployment.lastApiKeyUpdate,
       openaiKeyPresent,
       anthropicKeyPresent,
