@@ -11,33 +11,35 @@ export async function POST() {
       return new NextResponse("Unauthorized", { status: 401 });
     }
 
-    const tokenRecord = await db
+    const [deployment] = await db
       .select()
       .from(vercelTokens)
       .where(eq(vercelTokens.userId, userId))
       .limit(1);
 
-    if (!tokenRecord[0] || !tokenRecord[0].projectId) {
+    if (!deployment) {
       return new NextResponse("No deployment found", { status: 404 });
     }
 
     const vercel = new Vercel({
-      bearerToken: tokenRecord[0].token,
+      bearerToken: deployment.token,
     });
+
     const repo = "file-organizer-2000";
     const org = "different-ai";
     const ref = "master";
 
-    const deployment = await vercel.deployments.createDeployment({
+    // Create new deployment
+    const result = await vercel.deployments.createDeployment({
       requestBody: {
         name: `file-organizer-redeploy-${Date.now()}`,
         target: "production",
-        project: tokenRecord[0].projectId,
+        project: deployment.projectId,
         gitSource: {
           type: "github",
-          repo: repo,
-          ref: ref,
-          org: org,
+          repo,
+          ref,
+          org,
         },
         projectSettings: {
           framework: "nextjs",
@@ -49,9 +51,18 @@ export async function POST() {
       },
     });
 
+    // Update last deployment timestamp
+    await db
+      .update(vercelTokens)
+      .set({
+        lastDeployment: new Date(),
+        updatedAt: new Date(),
+      })
+      .where(eq(vercelTokens.userId, userId));
+
     return NextResponse.json({
       success: true,
-      deploymentUrl: deployment.url,
+      deploymentUrl: result.url,
     });
   } catch (error) {
     console.error("Error in redeploy:", error);

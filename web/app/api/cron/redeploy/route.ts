@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { db, vercelTokens } from "@/drizzle/schema";
 import { Vercel } from "@vercel/sdk";
 import { headers } from "next/headers";
+import { eq } from "drizzle-orm";
 
 const CRON_SECRET = process.env.CRON_SECRET;
 
@@ -23,6 +24,10 @@ export async function GET(request: Request) {
 
     console.log(`Found ${tokens.length} tokens to process`);
 
+    const repo = "file-organizer-2000";
+    const org = "different-ai";
+    const ref = "master";
+
     const results = await Promise.allSettled(
       tokens.map(async (tokenRecord) => {
         try {
@@ -34,11 +39,8 @@ export async function GET(request: Request) {
             console.log(`No project ID for user ${tokenRecord.userId}`);
             return;
           }
-          const repo = "file-organizer-2000";
-          const org = "different-ai";
-          const ref = "master";
 
-          // Create new deployment with correct properties
+          // Create new deployment
           const deployment = await vercel.deployments.createDeployment({
             requestBody: {
               name: `file-organizer-redeploy-${Date.now()}`,
@@ -46,9 +48,9 @@ export async function GET(request: Request) {
               project: tokenRecord.projectId,
               gitSource: {
                 type: "github",
-                repo: repo,
-                ref: ref,
-                org: org,
+                repo,
+                ref,
+                org,
               },
               projectSettings: {
                 framework: "nextjs",
@@ -59,6 +61,15 @@ export async function GET(request: Request) {
               },
             },
           });
+
+          // Update last deployment timestamp
+          await db
+            .update(vercelTokens)
+            .set({
+              lastDeployment: new Date(),
+              updatedAt: new Date(),
+            })
+            .where(eq(vercelTokens.userId, tokenRecord.userId));
 
           console.log(`Redeployed project ${tokenRecord.projectId} for user ${tokenRecord.userId}`);
           return deployment;

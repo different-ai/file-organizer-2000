@@ -3,6 +3,7 @@ import type { Metadata } from "next";
 import { PHProvider } from "./providers";
 import dynamic from "next/dynamic";
 import Logo from "@/components/ui/logo";
+import { Toaster } from "react-hot-toast";
 
 const PostHogPageView = dynamic(() => import("./posthog-page-view"), {
   ssr: false,
@@ -28,6 +29,7 @@ export default function RootLayout({
         <PHProvider>
           <body className="">
             <PostHogPageView />
+            <Toaster />
             <header className="p-4 border-b border-stone-300">
               <nav className="max-w-9xl mx-auto flex items-center space-x-6 justify-between w-full">
                 <div className=" sm:block">
@@ -35,7 +37,7 @@ export default function RootLayout({
                     <Logo />
                   </Link>
                 </div>
-                  <UserManagement />
+                <UserManagement />
               </nav>
             </header>
             <main className="min-h-screen text-stone-900 font-sans">
