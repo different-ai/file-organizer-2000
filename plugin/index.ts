@@ -5,14 +5,12 @@ import {
   Notice,
   TFolder,
   TFile,
-  TAbstractFile,
   moment,
   normalizePath,
   loadPdfJs,
-  requestUrl,
   arrayBufferToBase64,
 } from "obsidian";
-import { logMessage, formatToSafeName, sanitizeTag } from "./someUtils";
+import { logMessage, sanitizeTag } from "./someUtils";
 import { FileOrganizerSettingTab } from "./views/settings/view";
 import {
   AssistantViewWrapper,
@@ -140,306 +138,6 @@ export default class FileOrganizer extends Plugin {
     return serverUrl;
   }
 
-  /**
-   * Processes a file by organizing it and logging the actions.
-   * @param originalFile - The file to process.
-   * @param oldPath - The previous path of the file, if any.
-   */
-  async processFileV2(originalFile: TFile, oldPath?: string): Promise<void> {
-    const formattedDate = moment().format("YYYY-MM-DD");
-    const processedFileName = originalFile.basename;
-    const logFilePath = `${this.settings.logFolderPath}/${formattedDate}-fo2k.md`;
-
-    try {
-      // Step 1-3: Initialize and validate
-      await this.initializeProcessing(logFilePath, processedFileName);
-
-      if (!validateFile(originalFile)) {
-        await this.log(
-          logFilePath,
-          `2. Unsupported file type. Skipping ${processedFileName}`
-        );
-        return;
-      }
-
-      // Step 4-5: Process content
-      const processingResult = await this.processContent(
-        originalFile,
-        logFilePath
-      );
-      if (!processingResult) return;
-
-      const { text, classification, formattedText } = processingResult;
-
-      // Step 6-7: Determine paths
-      const { newPath, newName } = await this.determineDestination(
-        formattedText || text,
-        originalFile,
-        text,
-        logFilePath
-      );
-      logMessage(
-        `newPath: ${newPath}, newName: ${newName}, formattedText: ${formattedText}`
-      );
-
-      // Step 8: Process based on file type
-      if (this.shouldCreateMarkdownContainer(originalFile)) {
-        await this.processMediaFile(
-          originalFile,
-          text,
-          newName,
-          newPath,
-          logFilePath,
-          formattedText
-        );
-      } else {
-        await this.processNonMediaFile(
-          originalFile,
-          text,
-          newName,
-          newPath,
-          classification || "",
-          logFilePath,
-          formattedText
-        );
-      }
-
-      // Step 9: Complete
-      await this.completeProcessing(logFilePath, processedFileName);
-    } catch (error) {
-      await this.handleProcessingError(error, logFilePath, processedFileName);
-    }
-  }
-
-  private async initializeProcessing(
-    logFilePath: string,
-    fileName: string
-  ): Promise<void> {
-    await this.ensureLogFileExists(logFilePath);
-    await this.log(logFilePath, `\n\n## Processing Start: ${fileName}\n`);
-    new Notice(`Processing ${fileName}`, 3000);
-    await this.log(logFilePath, `1. Started processing ${fileName}`);
-    await this.checkAndCreateFolders();
-    await this.log(logFilePath, `3. Verified necessary folders exist`);
-  }
-
-  async processContent(
-    file: TFile,
-    logFilePath: string
-  ): Promise<ProcessingResult | null> {
-    try {
-      const text = await this.getTextFromFile(file);
-      await this.log(logFilePath, `4. Read content from ${file.basename}`);
-
-      let classification = "unclassified";
-      let formattedText = text;
-
-      if (this.settings.enableDocumentClassification) {
-        const templateNames = await this.getTemplateNames();
-        classification = await this.classifyContentV2(text, templateNames);
-        const instructions = await this.getTemplateInstructions(classification);
-        formattedText = await this.formatContentV2(text, instructions);
-        logMessage(`formattedText: ${formattedText}`);
-        await this.log(logFilePath, `5. Classified as ${classification}`);
-      }
-
-      return { text, classification, formattedText };
-    } catch (error) {
-      await this.log(
-        logFilePath,
-        `Error reading file ${file.basename}: ${error.message}`
-      );
-      new Notice(`Error reading file ${file.basename}`, 3000);
-      logger.error("Error in getTextFromFile:", error);
-      return null;
-    }
-  }
-
-  private async determineDestination(
-    content: string,
-    file: TFile,
-    originalText: string,
-    logFilePath: string
-  ) {
-    const newPath = await this.getAIClassifiedFolder(content, file.path);
-    await this.log(logFilePath, `6. Determined new folder: ${newPath}`);
-
-    const newName = await this.generateNameFromContent(
-      originalText,
-      file.basename
-    );
-    await this.log(logFilePath, `7. Generated new name: ${newName}`);
-
-    return { newPath, newName };
-  }
-
-  private async processMediaFile(
-    file: TFile,
-    content: string,
-    newName: string,
-    newPath: string,
-    logFilePath: string,
-    formattedText: string
-  ): Promise<void> {
-    const containerFile = await this.createMediaContainer(formattedText);
-    await this.log(
-      logFilePath,
-      `8a. Created markdown container: [[${containerFile.path}]]`
-    );
-
-    const attachmentFile = await this.moveToAttachmentFolder(file, newName);
-    // append the original file to the container
-    await this.app.vault.append(
-      containerFile,
-      `\n\n![[${attachmentFile.path}]]`
-    );
-
-    await this.log(
-      logFilePath,
-      `8b. Moved attachment to: [[${attachmentFile.path}]]`
-    );
-
-    await this.moveFile(containerFile, newName, newPath);
-    await this.log(
-      logFilePath,
-      `8c. Moved container to: [[${newPath}/${newName}]]`
-    );
-
-    await this.generateAndAppendSimilarTags(containerFile, content, newName);
-  }
-
-  private async processNonMediaFile(
-    file: TFile,
-    content: string,
-    newName: string,
-    newPath: string,
-    classification: string,
-    logFilePath: string,
-    formattedText: string
-  ): Promise<void> {
-    if (classification && classification !== "unclassified") {
-      await this.app.vault.modify(file, formattedText);
-      await this.log(
-        logFilePath,
-        `8f. Formatted content according to classification`
-      );
-    }
-
-    await this.generateAndAppendSimilarTags(file, content, newName);
-    await this.moveFile(file, newName, newPath);
-    await this.log(
-      logFilePath,
-      `8h. Renamed and moved file to: [[${newPath}/${newName}]]`
-    );
-  }
-
-  async createMediaContainer(content: string): Promise<TFile> {
-    const containerContent = `${content}`;
-    const containerFilePath = `${
-      this.settings.defaultDestinationPath
-    }/${Date.now()}.md`;
-    return await this.app.vault.create(containerFilePath, containerContent);
-  }
-
-  private async completeProcessing(
-    logFilePath: string,
-    fileName: string
-  ): Promise<void> {
-    await this.log(logFilePath, `9. Completed processing of ${fileName}`);
-    new Notice(`Processed ${fileName}`, 3000);
-  }
-
-  private async handleProcessingError(
-    error: Error,
-    logFilePath: string,
-    fileName: string
-  ): Promise<void> {
-    await this.log(
-      logFilePath,
-      `Error processing ${fileName}: ${error.message}`
-    );
-    new Notice(`Unexpected error processing ${fileName}`, 3000);
-    logger.error("Error in processFileV2:", error);
-  }
-
-  /**
-   * Ensures that the log file exists. If not, creates it.
-   * @param logFilePath - The path to the log file.
-   */
-  async ensureLogFileExists(logFilePath: string): Promise<void> {
-    if (!(await this.app.vault.adapter.exists(normalizePath(logFilePath)))) {
-      await this.app.vault.create(logFilePath, "");
-    }
-  }
-
-  /**
-   * Appends a single log entry to the specified log file.
-   * @param logFilePath - The path to the log file.
-   * @param message - The log message to append.
-   */
-  async log(logFilePath: string, message: string): Promise<void> {
-    const logFile = this.app.vault.getAbstractFileByPath(logFilePath);
-    if (!(logFile instanceof TFile)) {
-      throw new Error(`Log file at path "${logFilePath}" is not a valid file.`);
-    }
-
-    const timestamp = moment().format("HH:mm:ss");
-    const formattedMessage = `[${timestamp}] ${message}\n`;
-    await this.app.vault.append(logFile, formattedMessage);
-  }
-
-  // Helper methods
-
-  async generateAndApplyNewName(file: TFile, content: string): Promise<string> {
-    const newName = await this.generateNameFromContent(content, file.basename);
-    await this.app.fileManager.renameFile(
-      file,
-      `${file.parent?.path}/${newName}.${file.extension}`
-    );
-    return newName;
-  }
-
-  async determineAndMoveToNewFolder(
-    file: TFile,
-    content: string
-  ): Promise<string> {
-    const newPath = await this.getAIClassifiedFolder(content, file.path);
-    await this.moveFile(file, file.basename, newPath);
-    return newPath;
-  }
-
-  async generateAndAppendAliases(
-    file: TFile,
-    newName: string,
-    content: string
-  ): Promise<void> {
-    const aliases = await this.generateAliasses(newName, content);
-    for (const alias of aliases) {
-      await this.appendAlias(file, alias);
-    }
-  }
-
-  async generateAndAppendSimilarTags(
-    file: TFile,
-    content: string,
-    newName: string
-  ): Promise<void> {
-    const existingTags = await this.getAllVaultTags();
-    const similarTags = await this.recommendTags(
-      content,
-      file.path,
-      existingTags
-    );
-    // filter only tasks above a certain score
-    const filteredTags = similarTags.filter(
-      tag => tag.score > this.settings.tagScoreThreshold
-    );
-
-    for (const tag of filteredTags) {
-      await this.appendTag(file, tag.tag);
-    }
-  }
-
   shouldCreateMarkdownContainer(file: TFile): boolean {
     return (
       VALID_MEDIA_EXTENSIONS.includes(file.extension) ||
@@ -472,54 +170,6 @@ export default class FileOrganizer extends Plugin {
       new Notice("An error occurred while processing the document.", 6000);
       throw error;
     }
-  }
-
-  async generateAliasses(name: string, content: string): Promise<string[]> {
-    const response = await makeApiRequest(() =>
-      requestUrl({
-        url: `${this.getServerUrl()}/api/aliases`,
-        method: "POST",
-        contentType: "application/json",
-        body: JSON.stringify({
-          fileName: name,
-          content,
-        }),
-        throw: false,
-        headers: {
-          Authorization: `Bearer ${this.settings.API_KEY}`,
-        },
-      })
-    );
-    const { aliases } = await response.json;
-    return aliases;
-  }
-
-  async getSimilarTags(content: string, fileName: string): Promise<string[]> {
-    const tags: string[] = await this.getAllVaultTags();
-
-    if (tags.length === 0) {
-      console.info("No tags found");
-      return [];
-    }
-
-    const response = await makeApiRequest(() =>
-      requestUrl({
-        url: `${this.getServerUrl()}/api/tags`,
-        method: "POST",
-        contentType: "application/json",
-        body: JSON.stringify({
-          content,
-          fileName,
-          tags,
-        }),
-        throw: false,
-        headers: {
-          Authorization: `Bearer ${this.settings.API_KEY}`,
-        },
-      })
-    );
-    const { generatedTags } = await response.json;
-    return generatedTags;
   }
 
   async formatContentV2(
@@ -659,88 +309,6 @@ export default class FileOrganizer extends Plugin {
     await this.app.vault.create(filePath, content);
   }
 
-  async _experimentalIdentifyConcepts(content: string): Promise<string[]> {
-    try {
-      const response = await makeApiRequest(() =>
-        requestUrl({
-          url: `${this.getServerUrl()}/api/concepts`,
-          method: "POST",
-          contentType: "application/json",
-          body: JSON.stringify({
-            content,
-          }),
-          throw: false,
-          headers: {
-            Authorization: `Bearer ${this.settings.API_KEY}`,
-          },
-        })
-      );
-
-      const { concepts } = await response.json;
-      return concepts;
-    } catch (error) {
-      logger.error("Error identifying concepts:", error);
-      new Notice("An error occurred while identifying concepts.", 6000);
-      return [];
-    }
-  }
-
-  async fetchChunkForConcept(
-    content: string,
-    concept: string
-  ): Promise<{ content: string }> {
-    try {
-      const response = await makeApiRequest(() =>
-        requestUrl({
-          url: `${this.getServerUrl()}/api/chunks`,
-          method: "POST",
-          contentType: "application/json",
-          body: JSON.stringify({
-            content,
-            concept,
-          }),
-          throw: false,
-          headers: {
-            Authorization: `Bearer ${this.settings.API_KEY}`,
-          },
-        })
-      );
-
-      const { chunk } = await response.json;
-      return { content: chunk };
-    } catch (error) {
-      logger.error("Error fetching chunk for concept:", error);
-      new Notice("An error occurred while fetching chunk for concept.", 6000);
-      return { content: "" };
-    }
-  }
-
-  async getClassifications(): Promise<
-    { type: string; formattingInstruction: string }[]
-  > {
-    const templateFolder = this.app.vault.getAbstractFileByPath(
-      this.settings.templatePaths
-    );
-
-    if (!templateFolder || !(templateFolder instanceof TFolder)) {
-      logger.error("Template folder not found or is not a valid folder.");
-      return [];
-    }
-
-    const templateFiles: TFile[] = templateFolder.children.filter(
-      file => file instanceof TFile
-    ) as TFile[];
-
-    const classifications = await Promise.all(
-      templateFiles.map(async file => ({
-        type: file.basename,
-        formattingInstruction: await this.app.vault.read(file),
-      }))
-    );
-
-    return classifications;
-  }
-
   async extractTextFromPDF(file: TFile): Promise<string> {
     const pdfjsLib = await loadPdfJs(); // Ensure PDF.js is loaded
     try {
@@ -805,33 +373,6 @@ export default class FileOrganizer extends Plugin {
     return formattedContent;
   }
 
-  async readPatternFiles(
-    patternName: string
-  ): Promise<{ systemContent: string; userContent: string }> {
-    const patternDir = this.app.vault.getAbstractFileByPath(
-      `_FileOrganizer2000/patterns/${patternName}`
-    );
-    if (!(patternDir instanceof TFolder)) {
-      throw new Error(`Pattern directory not found: ${patternName}`);
-    }
-
-    const systemFile = patternDir.children.find(
-      file => file.name === "system.md"
-    );
-    const userFile = patternDir.children.find(file => file.name === "user.md");
-
-    if (!(systemFile instanceof TFile) || !(userFile instanceof TFile)) {
-      throw new Error(
-        `Missing system.md or user.md in pattern: ${patternName}`
-      );
-    }
-
-    const systemContent = await this.app.vault.read(systemFile);
-    const userContent = await this.app.vault.read(userFile);
-
-    return { systemContent, userContent };
-  }
-
   async transcribeAudio(
     audioBuffer: ArrayBuffer,
     fileExtension: string
@@ -888,20 +429,6 @@ export default class FileOrganizer extends Plugin {
     }
   }
 
-  getClassificationsForFabric(): string[] {
-    const patternFolder = this.app.vault.getAbstractFileByPath(
-      this.settings.fabricPaths
-    );
-    if (!patternFolder || !(patternFolder instanceof TFolder)) {
-      logger.error("Pattern folder not found or is not a valid folder.");
-      return [];
-    }
-    const patternFolders = patternFolder.children
-      .filter(file => file instanceof TFolder)
-      .map(folder => folder.name);
-    return patternFolders;
-  }
-
   async classifyContentV2(
     content: string,
     classifications: string[]
@@ -927,28 +454,6 @@ export default class FileOrganizer extends Plugin {
 
     const { documentType } = await response.json();
     return documentType;
-  }
-
-  async organizeFile(file: TFile, content: string) {
-    const destinationFolder = await this.getAIClassifiedFolder(
-      content,
-      file.path
-    );
-    new Notice(`Most similar folder: ${destinationFolder}`, 3000);
-    await this.moveFile(file, file.basename, destinationFolder);
-  }
-
-  async showAssistantSidebar() {
-    this.app.workspace.detachLeavesOfType(ORGANIZER_VIEW_TYPE);
-
-    await this.app.workspace.getRightLeaf(false)?.setViewState({
-      type: ORGANIZER_VIEW_TYPE,
-      active: true,
-    });
-
-    this.app.workspace.revealLeaf(
-      this.app.workspace.getLeavesOfType(ORGANIZER_VIEW_TYPE)[0]
-    );
   }
 
   async getTextFromFile(file: TFile): Promise<string> {
@@ -992,10 +497,6 @@ export default class FileOrganizer extends Plugin {
         frontmatter[key].push(value);
       }
     });
-  }
-
-  async appendAlias(file: TFile, alias: string) {
-    this.appendToFrontMatter(file, "aliases", alias);
   }
 
   async checkAndCreateFolders() {
@@ -1077,137 +578,6 @@ export default class FileOrganizer extends Plugin {
     });
   }
 
-  async _experimentalGenerateSimilarFiles(
-    fileToCheck: TFile
-  ): Promise<string[]> {
-    if (!fileToCheck) {
-      return [];
-    }
-
-    const activeFileContent = await this.app.vault.read(fileToCheck);
-    logMessage("activeFileContent", activeFileContent);
-    const settingsPaths = [
-      this.settings.pathToWatch,
-      this.settings.defaultDestinationPath,
-      this.settings.attachmentsPath,
-      this.settings.logFolderPath,
-      this.settings.templatePaths,
-    ];
-    const allFiles = this.app.vault.getMarkdownFiles();
-    // remove any file path that is part of the settingsPath
-    const allFilesFiltered = allFiles.filter(
-      file =>
-        !settingsPaths.some(path => file.path.includes(path)) &&
-        file.path !== fileToCheck.path
-    );
-
-    const fileContents = allFilesFiltered.map(file => ({
-      name: file.path,
-    }));
-
-    const similarFiles = await this._experimentalGenerateRelationships(
-      activeFileContent,
-      fileContents
-    );
-
-    return similarFiles.filter(
-      (file: string) =>
-        !settingsPaths.some(path => file.includes(path)) &&
-        !this.settings.ignoreFolders.includes(file)
-    );
-  }
-
-  async _experimentalGenerateRelationships(
-    activeFileContent: string,
-    files: { name: string }[]
-  ): Promise<string[]> {
-    const response = await makeApiRequest(() =>
-      requestUrl({
-        url: `${this.getServerUrl()}/api/relationships`,
-        method: "POST",
-        contentType: "application/json",
-        body: JSON.stringify({
-          activeFileContent,
-          files,
-        }),
-        headers: {
-          Authorization: `Bearer ${this.settings.API_KEY}`,
-        },
-      })
-    );
-    const { similarFiles } = await response.json;
-    return similarFiles;
-  }
-
-  async moveToAttachmentFolder(file: TFile, newFileName: string) {
-    const destinationFolder = this.settings.attachmentsPath;
-    // current time and date
-    const formattedDate = moment().format("YYYY-MM-DD-HH-mm-ss");
-    return await this.moveFile(
-      file,
-      `${formattedDate}-${newFileName}`,
-      destinationFolder
-    );
-  }
-
-  async generateNameFromContent(
-    content: string,
-    currentName: string
-  ): Promise<string> {
-    if (!this.settings.enableFileRenaming) {
-      return currentName; // Return the current name if renaming is disabled
-    }
-
-    const renameInstructions = this.settings.renameInstructions;
-    logMessage("renameInstructions", renameInstructions);
-    const name = await this.generateDocumentTitle(
-      content,
-      currentName,
-      renameInstructions
-    );
-    return formatToSafeName(name);
-  }
-
-  // should be deprecated to use v2 api routes
-  async generateDocumentTitle(
-    content: string,
-    currentName: string,
-    renameInstructions: string
-  ): Promise<string> {
-    const response = await makeApiRequest(() =>
-      requestUrl({
-        url: `${this.getServerUrl()}/api/title`,
-        method: "POST",
-        contentType: "application/json",
-        body: JSON.stringify({
-          document: content,
-          instructions: renameInstructions,
-          currentName,
-        }),
-        throw: false,
-        headers: {
-          Authorization: `Bearer ${this.settings.API_KEY}`,
-        },
-      })
-    );
-    const { title } = await response.json;
-    return title;
-  }
-
-  // get random titles from the users vault to get better titles suggestions
-  getRandomVaultTitles(count: number): string[] {
-    const allFiles = this.app.vault.getFiles();
-    const filteredFiles = allFiles.filter(
-      file =>
-        file.extension === "md" &&
-        !file.basename.toLowerCase().includes("untitled") &&
-        !file.basename.toLowerCase().includes("backup") &&
-        !file.path.includes(this.settings.backupFolderPath)
-    );
-    const shuffled = filteredFiles.sort(() => 0.5 - Math.random());
-    return shuffled.slice(0, count).map(file => file.basename);
-  }
-
   async compressImage(fileContent: Buffer): Promise<Buffer> {
     const image = await Jimp.read(fileContent);
 
@@ -1286,16 +656,9 @@ export default class FileOrganizer extends Plugin {
   }
   async processBacklog() {
     const pendingFiles = await this.getBacklog();
-    if (this.settings.useInbox) {
-      logMessage("Enqueuing files from backlog V3");
-      Inbox.getInstance().enqueueFiles(pendingFiles);
-      return;
-    }
-    logMessage("Processing files from backlog V2");
-
-    for (const file of pendingFiles) {
-      await this.processFileV2(file);
-    }
+    logMessage("Enqueuing files from backlog V3");
+    Inbox.getInstance().enqueueFiles(pendingFiles);
+    return;
   }
 
   async getAllVaultTags(): Promise<string[]> {
@@ -1316,30 +679,6 @@ export default class FileOrganizer extends Plugin {
     return sortedTags.map(tag => tag[0]);
   }
 
-  isTFolder(file: TAbstractFile): file is TFolder {
-    return file instanceof TFolder;
-  }
-
-  // should be reprecatd and only use guessRelevantFolders
-  async getAIClassifiedFolder(
-    content: string,
-    filePath: string
-  ): Promise<string> {
-    let destinationFolder = "None";
-
-    logMessage("ignore folders", this.settings.ignoreFolders);
-
-    // todo: replace with boolean along the lines of
-    // disable inbox folder categorization
-    if (this.settings.ignoreFolders.includes("*")) {
-      return this.settings.defaultDestinationPath;
-    }
-
-    const guessedFolders = await this.recommendFolders(content, filePath);
-    destinationFolder =
-      guessedFolders[0].folder || this.settings.defaultDestinationPath;
-    return destinationFolder;
-  }
   async recommendTags(
     content: string,
     filePath: string,

@@ -23,16 +23,28 @@ function TabContent({
 }) {
   return (
     <div className="relative h-full">
-      <div className={`absolute inset-0 ${activeTab === "organizer" ? "block" : "hidden"}`}>
+      <div
+        className={`absolute inset-0 ${
+          activeTab === "organizer" ? "block" : "hidden"
+        }`}
+      >
         <AssistantView plugin={plugin} leaf={leaf} />
       </div>
 
-      <div className={`absolute inset-0 ${activeTab === "inbox" ? "block" : "hidden"}`}>
+      <div
+        className={`absolute inset-0 ${
+          activeTab === "inbox" ? "block" : "hidden"
+        }`}
+      >
         <SectionHeader text="Inbox Processing" icon="📥 " />
         <InboxLogs />
       </div>
 
-      <div className={`absolute inset-0 ${activeTab === "chat" ? "block" : "hidden"}`}>
+      <div
+        className={`absolute inset-0 ${
+          activeTab === "chat" ? "block" : "hidden"
+        }`}
+      >
         <AIChatSidebar plugin={plugin} apiKey={plugin.settings.API_KEY} />
       </div>
     </div>
@@ -91,14 +103,12 @@ function OrganizerContent({
         >
           Organizer
         </TabButton>
-        {plugin.settings.useInbox && (
-          <TabButton
-            isActive={activeTab === "inbox"}
-            onClick={() => setActiveTab("inbox")}
-          >
-            Inbox
-          </TabButton>
-        )}
+        <TabButton
+          isActive={activeTab === "inbox"}
+          onClick={() => setActiveTab("inbox")}
+        >
+          Inbox
+        </TabButton>
         <TabButton
           isActive={activeTab === "chat"}
           onClick={() => setActiveTab("chat")}
@@ -123,23 +133,23 @@ export class AssistantViewWrapper extends ItemView {
   constructor(leaf: WorkspaceLeaf, plugin: FileOrganizer) {
     super(leaf);
     this.plugin = plugin;
-    
+
     // Register commands
     this.plugin.addCommand({
-      id: 'open-organizer-tab',
-      name: 'Open Organizer Tab',
+      id: "open-organizer-tab",
+      name: "Open Organizer Tab",
       callback: () => this.activateTab("organizer"),
     });
 
     this.plugin.addCommand({
-      id: 'open-inbox-tab',
-      name: 'Open Inbox Tab',
+      id: "open-inbox-tab",
+      name: "Open Inbox Tab",
       callback: () => this.activateTab("inbox"),
     });
 
     this.plugin.addCommand({
-      id: 'open-chat-tab',
-      name: 'Open Chat Tab',
+      id: "open-chat-tab",
+      name: "Open Chat Tab",
       callback: () => this.activateTab("chat"),
     });
   }
@@ -147,7 +157,7 @@ export class AssistantViewWrapper extends ItemView {
   activateTab(tab: Tab) {
     // Ensure view is open
     this.plugin.app.workspace.revealLeaf(this.leaf);
-    
+
     // Update tab
     this.activeTab = tab;
     this.setActiveTab(tab);
@@ -175,13 +185,13 @@ export class AssistantViewWrapper extends ItemView {
       <AppContext.Provider value={{ plugin: this.plugin, root: this.root }}>
         <React.StrictMode>
           <div className="h-full ">
-            <OrganizerContent 
-              plugin={this.plugin} 
+            <OrganizerContent
+              plugin={this.plugin}
               leaf={this.leaf}
               initialTab={this.activeTab}
-              onTabChange={(setTab) => {
+              onTabChange={setTab => {
                 this.setActiveTab = setTab;
-              }} 
+              }}
             />
           </div>
         </React.StrictMode>

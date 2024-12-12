@@ -10,11 +10,7 @@ export function registerEventHandlers(plugin: FileOrganizer) {
       if (!file.path.includes(plugin.settings.pathToWatch)) return;
       if (file instanceof TFile) {
         new Notice("Inbox is looking at new file: " + file.basename);
-        if (plugin.settings.useInbox) {
-          Inbox.getInstance().enqueueFiles([file]);
-        } else {
-          plugin.processFileV2(file);
-        }
+        Inbox.getInstance().enqueueFiles([file]);
       }
     })
   );
@@ -27,11 +23,7 @@ export function registerEventHandlers(plugin: FileOrganizer) {
       if (!file.path.includes(plugin.settings.pathToWatch)) return;
       if (file instanceof TFile) {
         new Notice("Inbox is looking at new file: " + file.basename);
-        if (plugin.settings.useInbox) {
-          Inbox.getInstance().enqueueFiles([file]);
-        } else {
-          plugin.processFileV2(file, oldPath);
-        }
+        Inbox.getInstance().enqueueFiles([file]);
       }
     })
   );
