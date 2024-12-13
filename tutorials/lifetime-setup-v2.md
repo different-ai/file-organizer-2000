@@ -25,3 +25,14 @@ Only do this once you have a URL created from the file organizer dashboard with 
 
 <img width="1840" alt="Screenshot 2024-12-10 at 15 25 43" src="https://github.com/user-attachments/assets/3028d5d1-80fb-4010-acf9-d9f472dbe098">
 <img width="1840" alt="Screenshot 2024-12-10 at 15 31 57" src="https://github.com/user-attachments/assets/00def0e4-d96e-4629-a8d3-36c97e71108d">
+
+## If you are having issues with "License Key Invalid" 
+
+
+- Make sure to use the same license key in vercel and in obsidian. If you forget it you can access it by going into vercel and navigate to setting > environment variables and reveal SOLO_API_KEY. (as shown below)
+
+
+<img width="1165" alt="Screenshot 2024-11-06 at 2 11 25 PM" src="https://github.com/user-attachments/assets/6752bf08-6dd3-4b89-902c-bd3e84fa0616">
+
+
+- Make sure SOLO_API_KEY is your license key and OPENAI_API_KEY is the openAI API key
