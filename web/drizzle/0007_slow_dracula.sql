@@ -1,1 +1,0 @@
-ALTER TABLE "user_usage" ALTER COLUMN "maxTokenUsage" SET DEFAULT 0;

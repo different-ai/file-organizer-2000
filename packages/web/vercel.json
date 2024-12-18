@@ -1,0 +1,12 @@
+{
+  "crons": [
+    {
+      "path": "/api/cron/reset-tokens",
+      "schedule": "0 0 1 * *"
+    },
+    {
+      "path": "/api/cron/redeploy",
+      "schedule": "0 0 * * *"
+    }
+  ]
+} 

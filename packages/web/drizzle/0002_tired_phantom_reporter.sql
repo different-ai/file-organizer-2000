@@ -1,0 +1,1 @@
+ALTER TABLE "user_usage" DROP COLUMN IF EXISTS "dummy";

@@ -1,0 +1,8 @@
+
+
+> @file-organizer/plugin@1.131.1 build /home/ubuntu/repos/file-organizer-2000/packages/plugin
+> node esbuild.config.mjs production
+
+
+[1m[33mwarn[39m[22m - No utility classes were detected in your source files. If this is unexpected, double-check the `content` option in your Tailwind CSS configuration.
+[1m[33mwarn[39m[22m - https://tailwindcss.com/docs/content-configuration
