@@ -5,7 +5,7 @@
   "scripts": {
     "dev": "pnpm next dev",
     "build:self-host": "pnpm next build",
-    "build": "pnpm next build",
+    "build": "pnpm run db:migrate  && pnpm next build",
     "start": "pnpm next start",
     "lint": "pnpm next lint",
     "test": "jest",
