@@ -1,5 +1,9 @@
 # vscode
 
+.turbo/*
+
+*/.turbo/*
+
 .vscode 
 
 # Intellij

@@ -6,7 +6,15 @@
     "esModuleInterop": true,
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,
-    "jsx": "react-jsx"
+    "jsx": "react-jsx",
+    "composite": true,
+    "declaration": true
   },
-  "include": ["plugin/**/*"]
+  "references": [
+    { "path": "packages/shared" },
+    { "path": "packages/plugin" },
+    { "path": "packages/web" },
+    { "path": "packages/audio-server" }
+  ],
+  "exclude": ["node_modules"]
 }

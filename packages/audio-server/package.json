@@ -1,5 +1,5 @@
 {
-  "name": "audio-transcription-server",
+  "name": "@file-organizer/audio-server",
   "version": "1.0.0",
   "description": "",
   "main": "dist/server.js",
