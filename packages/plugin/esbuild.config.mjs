@@ -42,7 +42,7 @@ const context = await esbuild.context({
 	logLevel: "info",
 	sourcemap: prod ? false : "inline",
 	treeShaking: true,
-	outdir: "dist", // Output to dist directory instead of root
+	outdir: "../..", // Output to dist directory instead of root
 	plugins: [
 		postcss({
 			plugins: {
