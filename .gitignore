@@ -1,5 +1,8 @@
 # vscode
-.turbo
+
+.turbo/*
+
+*/.turbo/*
 
 .vscode 
 
