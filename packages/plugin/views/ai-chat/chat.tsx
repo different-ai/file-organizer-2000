@@ -108,12 +108,17 @@ export const ChatComponent: React.FC<ChatComponentProps> = ({
       }
 
       if (selectedModel === "llama3.2") {
-        const { messages, unifiedContext, currentDatetime, enableScreenpipe } =
+        const { messages, newUnifiedContext, currentDatetime, enableScreenpipe } =
           JSON.parse(options.body as string);
+        logger.debug("llama3.2 context", {
+          contextLength: newUnifiedContext.length,
+          contextPreview: newUnifiedContext.slice(0, 200),
+          messageCount: messages.length,
+        });
         const result = await streamText({
           model: ollama("llama3.2"),
           system: getChatSystemPrompt(
-            unifiedContext,
+            newUnifiedContext,
             enableScreenpipe,
             currentDatetime
           ),
