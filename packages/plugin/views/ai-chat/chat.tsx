@@ -107,29 +107,25 @@ export const ChatComponent: React.FC<ChatComponentProps> = ({
         return fetch(url, options);
       }
 
-      if (selectedModel === "llama3.2") {
-        const { messages, newUnifiedContext, currentDatetime, enableScreenpipe } =
-          JSON.parse(options.body as string);
-        logger.debug("llama3.2 context", {
-          contextLength: newUnifiedContext.length,
-          contextPreview: newUnifiedContext.slice(0, 200),
-          messageCount: messages.length,
-        });
-        const result = await streamText({
-          model: ollama("llama3.2"),
-          system: getChatSystemPrompt(
-            newUnifiedContext,
-            enableScreenpipe,
-            currentDatetime
-          ),
-          messages: convertToCoreMessages(messages),
-        });
+      // Handle local models (llama3.2 or custom)
+      const { messages, newUnifiedContext, currentDatetime, enableScreenpipe } =
+        JSON.parse(options.body as string);
+      logger.debug("local model context", {
+        model: selectedModel,
+        contextLength: newUnifiedContext.length,
+        contextPreview: newUnifiedContext.slice(0, 200),
+        messageCount: messages.length,
+      });
+      const result = await streamText({
+        model: ollama(selectedModel),
+        system: `
+          ${newUnifiedContext},
+          currentDatetime: ${currentDatetime},
+          `,
+        messages: convertToCoreMessages(messages),
+      });
 
-        return result.toDataStreamResponse();
-      }
-
-      // Default fetch behavior for remote API
-      return fetch(url, options);
+      return result.toDataStreamResponse();
     },
     onToolCall({ toolCall }) {
       logMessage("toolCall", toolCall);
@@ -187,7 +183,14 @@ export const ChatComponent: React.FC<ChatComponentProps> = ({
   const [maxContextSize] = useState(80 * 1000); // Keep this one
 
   // Update state to default to gpt-4
-  const [selectedModel, setSelectedModel] = useState<ModelType>("gpt-4o");
+  const [selectedModel, setSelectedModel] = useState<ModelType>(
+    plugin.settings.selectedModel
+  );
+
+  useEffect(() => {
+    // Update selectedModel when plugin settings change
+    setSelectedModel(plugin.settings.selectedModel);
+  }, [plugin.settings.selectedModel]);
 
   const handleTranscriptionComplete = (text: string) => {
     handleInputChange({
@@ -222,19 +225,15 @@ export const ChatComponent: React.FC<ChatComponentProps> = ({
 
       <div className="border-t border-[--background-modifier-border] p-4">
         <div className="flex items-center space-x-2 mb-4">
-
           <ContextItems />
 
           <ClearAllButton />
         </div>
 
-        <form
-          onSubmit={handleSendMessage}
-          className="flex items-end"
-        >
+        <form onSubmit={handleSendMessage} className="flex items-end">
           <div className="flex-grow overflow-y-auto relative" ref={inputRef}>
             <Tiptap
-            value={input}
+              value={input}
               onChange={handleTiptapChange}
               onKeyDown={handleKeyDown}
             />
