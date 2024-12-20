@@ -1,0 +1,7 @@
+# Build output
+dist/
+
+# Development output
+main.js
+styles.css
+data.json 

@@ -1,0 +1,48 @@
+name: Release Obsidian Plugin
+
+on:
+  push:
+    tags:
+      - "*"
+    paths:
+      - 'packages/plugin/**'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Use Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: "18.x"
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: 8
+
+      - name: Install dependencies
+        run: |
+          cd packages/plugin
+          pnpm install
+
+      - name: Build plugin
+        run: |
+          cd packages/plugin
+          GITHUB_ACTIONS=true pnpm build
+
+      - name: Create release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          cd packages/plugin
+          echo "Creating release for tag ${GITHUB_REF#refs/tags/}"
+          
+          gh release create "${GITHUB_REF#refs/tags/}" \
+            --title="${GITHUB_REF#refs/tags/}" \
+            --draft=false \
+            --prerelease=false \
+            dist/main.js manifest.json dist/styles.css 

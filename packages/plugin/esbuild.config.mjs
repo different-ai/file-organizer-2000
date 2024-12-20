@@ -10,6 +10,10 @@ if you want to view the source, please visit the github repository of this plugi
 `;
 
 const prod = process.argv[2] === "production";
+const isGithubAction = process.env.GITHUB_ACTIONS === "true";
+
+// Determine output directory based on environment
+const outdir = isGithubAction ? "dist" : "../..";
 
 const context = await esbuild.context({
 	banner: {
@@ -42,7 +46,7 @@ const context = await esbuild.context({
 	logLevel: "info",
 	sourcemap: prod ? false : "inline",
 	treeShaking: true,
-	outdir: "../..", // Output to dist directory instead of root
+	outdir: outdir,
 	plugins: [
 		postcss({
 			plugins: {
@@ -53,14 +57,15 @@ const context = await esbuild.context({
 			extract: true,
 		}),
 	],
-	define: prod ? {
-		'process.env.NODE_ENV': '"production"'
-	} : {},
+	define: {
+		'process.env.NODE_ENV': prod ? '"production"' : '"development"',
+		'process.env.GITHUB_ACTIONS': JSON.stringify(process.env.GITHUB_ACTIONS || "false"),
+	},
 	loader: {
 		'.ts': 'ts',
 		'.wasm': 'binary',
 	},
-	tsconfig: "tsconfig.json", // Specify the path to your tsconfig.json
+	tsconfig: "tsconfig.json",
 });
 
 if (prod) {
