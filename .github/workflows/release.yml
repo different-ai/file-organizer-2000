@@ -1,36 +1,59 @@
-name: Release Obsidian plugin
+name: Release Obsidian Plugin
 
 on:
-    push:
-        tags:
-            - "*"
+  push:
+    tags:
+      - "*"
 
 jobs:
-    build:
-        runs-on: ubuntu-latest
+  build:
+    runs-on: ubuntu-latest
 
-        steps:
-            - uses: actions/checkout@v3
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
 
-            - name: Use Node.js
-              uses: actions/setup-node@v3
-              with:
-                  node-version: "18.x"
+      - name: Use Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: "18.x"
 
-            - name: Build plugin
-              run: |
-                  npm install
-                  npm run build
+      - name: Install pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: 8
 
-            - name: Create release
-              env:
-                  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-                  GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-              run: |
-                  echo "GH_TOKEN: $GH_TOKEN"
-                  echo "GITHUB_REF: $GITHUB_REF"
-                  tag="${GITHUB_REF#refs/tags/}"
+      - name: Install dependencies
+        run: pnpm install
 
-                  gh release create "$tag" \
-                    --title="$tag" \
-                    main.js manifest.json styles.css
+      - name: Build plugin
+        run: pnpm --filter "./packages/plugin" build
+
+      - name: Get plugin version
+        id: version
+        run: |
+          version=$(node -p "require('./packages/plugin/manifest.json').version")
+          echo "version=$version" >> $GITHUB_OUTPUT
+          
+      - name: Create Release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          # Create a temporary directory for release files
+          mkdir release
+          cp packages/plugin/dist/main.js release/
+          cp packages/plugin/dist/styles.css release/
+          cp packages/plugin/manifest.json release/
+          
+          # Create release notes from git log
+          git log --pretty=format:"- %s" $(git describe --tags --abbrev=0 HEAD^)..HEAD > release/notes.md
+          
+          # Create the release
+          gh release create "${{ steps.version.outputs.version }}" \
+            --title="Version ${{ steps.version.outputs.version }}" \
+            --notes-file=release/notes.md \
+            --draft=false \
+            release/main.js \
+            release/styles.css \
+            release/manifest.json
