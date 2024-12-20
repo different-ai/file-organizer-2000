@@ -16,8 +16,8 @@ const context = await esbuild.context({
 		js: banner,
 	},
 	entryPoints: {
-		main: "plugin/index.ts",
-		styles: "plugin/styles.css",
+		main: "index.ts",
+		styles: "styles.css",
 	},
 	bundle: true,
 	external: [
@@ -42,10 +42,13 @@ const context = await esbuild.context({
 	logLevel: "info",
 	sourcemap: prod ? false : "inline",
 	treeShaking: true,
-	outdir: ".", // Output to the root directory
+	outdir: "../..", // Output to dist directory instead of root
 	plugins: [
 		postcss({
-			plugins: ['tailwindcss', 'autoprefixer'],
+			plugins: {
+				tailwindcss: {},
+				autoprefixer: {},
+			},
 			inject: false,
 			extract: true,
 		}),
