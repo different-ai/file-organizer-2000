@@ -1,0 +1,9 @@
+{
+	"id": "fileorganizer2000",
+	"name": "AI File Organizer 2000",
+	"version": "1.131.1",
+	"minAppVersion": "0.15.0",
+	"description": "An AI assistant to organize and chat with your vault",
+	"author": "Benjamin Ashgan Shafii",
+	"isDesktopOnly": true
+}
