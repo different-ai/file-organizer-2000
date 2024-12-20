@@ -3,7 +3,6 @@ name: Release Obsidian Plugin
 on:
   push:
     tags:
-      - "test-*"
       - "*"
 
 jobs:
@@ -12,6 +11,8 @@ jobs:
 
     steps:
       - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
 
       - name: Use Node.js
         uses: actions/setup-node@v3
@@ -29,24 +30,30 @@ jobs:
       - name: Build plugin
         run: pnpm --filter "./packages/plugin" build
 
-      - name: Create release
+      - name: Get plugin version
+        id: version
+        run: |
+          version=$(node -p "require('./packages/plugin/manifest.json').version")
+          echo "version=$version" >> $GITHUB_OUTPUT
+          
+      - name: Create Release
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          echo "Creating release for tag ${GITHUB_REF#refs/tags/}"
+          # Create a temporary directory for release files
+          mkdir release
+          cp packages/plugin/dist/main.js release/
+          cp packages/plugin/dist/styles.css release/
+          cp packages/plugin/manifest.json release/
           
-          if [[ ${GITHUB_REF#refs/tags/} == test-* ]]; then
-            echo "TEST MODE: Would create release with files:"
-            echo "- packages/plugin/dist/main.js"
-            echo "- packages/plugin/manifest.json"
-            echo "- packages/plugin/dist/styles.css"
-            
-            # Verify files exist
-            ls -la packages/plugin/dist/main.js packages/plugin/manifest.json packages/plugin/dist/styles.css || true
-          else
-            gh release create "${GITHUB_REF#refs/tags/}" \
-              --title="${GITHUB_REF#refs/tags/}" \
-              --draft=false \
-              --prerelease=false \
-              packages/plugin/dist/main.js packages/plugin/manifest.json packages/plugin/dist/styles.css
-          fi 
+          # Create release notes from git log
+          git log --pretty=format:"- %s" $(git describe --tags --abbrev=0 HEAD^)..HEAD > release/notes.md
+          
+          # Create the release
+          gh release create "${{ steps.version.outputs.version }}" \
+            --title="Version ${{ steps.version.outputs.version }}" \
+            --notes-file=release/notes.md \
+            --draft=false \
+            release/main.js \
+            release/styles.css \
+            release/manifest.json
