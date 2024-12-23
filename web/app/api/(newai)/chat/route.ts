@@ -52,12 +52,6 @@ export async function POST(req: NextRequest) {
       ),
       maxSteps: 3,
       messages: convertToCoreMessages(messages),
-      onMetadata: isGeminiModel ? (metadata) => {
-        const geminiMetadata = metadata?.google as GoogleGenerativeAIProviderMetadata | undefined;
-        if (geminiMetadata?.groundingMetadata) {
-          console.log("Search grounding metadata:", geminiMetadata.groundingMetadata);
-        }
-      } : undefined,
       tools: {
         getSearchQuery: {
           description: "Extract queries to search for notes",
