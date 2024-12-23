@@ -22,7 +22,7 @@ export const ModelSelector: React.FC<ModelSelectorProps> = ({
       return;
     }
     onModelSelect(model);
-    if (model === "gpt-4o" || model === "llama3.2") {
+    if (model === "gpt-4o" || model === "llama3.2" || model === "gemini-2.0-flash-exp") {
       plugin.settings.selectedModel = model;
     }
     await plugin.saveSettings();
@@ -71,6 +71,12 @@ export const ModelSelector: React.FC<ModelSelectorProps> = ({
                 className="cursor-pointer block w-full text-left px-4 py-2 text-sm text-[--text-normal] hover:bg-[--background-modifier-hover]"
               >
                 gpt-4o
+              </div>
+              <div
+                onClick={() => handleModelSelect("gemini-2.0-flash-exp")}
+                className="cursor-pointer block w-full text-left px-4 py-2 text-sm text-[--text-normal] hover:bg-[--background-modifier-hover]"
+              >
+                gemini-2.0-flash-exp
               </div>
               {isCustomizing ? (
                 <div className="px-4 py-2">

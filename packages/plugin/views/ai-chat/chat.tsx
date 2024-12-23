@@ -77,6 +77,7 @@ export const ChatComponent: React.FC<ChatComponentProps> = ({
     currentDatetime: window.moment().format("YYYY-MM-DDTHH:mm:ssZ"),
     enableScreenpipe: plugin.settings.enableScreenpipe,
     newUnifiedContext: contextString,
+    model: plugin.settings.selectedModel, // Pass selected model to server
   };
 
   const {
@@ -98,12 +99,11 @@ export const ChatComponent: React.FC<ChatComponentProps> = ({
     fetch: async (url, options) => {
       logMessage(plugin.settings.showLocalLLMInChat, "showLocalLLMInChat");
       logMessage(selectedModel, "selectedModel");
-      // local llm disabled or using gpt-4o
-      if (!plugin.settings.showLocalLLMInChat) {
-        // return normal server fetch
-        return fetch(url, options);
-      }
-      if (selectedModel === "gpt-4o") {
+      // Handle different model types
+      if (!plugin.settings.showLocalLLMInChat || 
+          selectedModel === "gpt-4o" || 
+          selectedModel === "gemini-2.0-flash-exp") {
+        // Use server fetch for non-local models
         return fetch(url, options);
       }
 
