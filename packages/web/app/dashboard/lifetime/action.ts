@@ -79,7 +79,7 @@ export async function setupProject(
     const createProjectResponse = await vercel.projects.createProject({
       requestBody: {
         name: uniqueProjectName,
-        rootDirectory: "web",
+        rootDirectory: "packages/web",
         publicSource: true,
         framework: "nextjs",
         buildCommand: "pnpm build:self-host",
@@ -120,7 +120,7 @@ export async function setupProject(
           buildCommand: "pnpm build:self-host",
           installCommand: "pnpm install",
           outputDirectory: ".next",
-          rootDirectory: "web",
+          rootDirectory: "packages/web",
         },
       },
     });

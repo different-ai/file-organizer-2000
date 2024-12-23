@@ -57,7 +57,7 @@ export async function GET(request: Request) {
                 buildCommand: "pnpm build:self-host",
                 installCommand: "pnpm install",
                 outputDirectory: ".next",
-                rootDirectory: "web",
+                rootDirectory: "packages/web",
               },
             },
           });
@@ -95,4 +95,4 @@ export async function GET(request: Request) {
     console.error("Error in redeploy cron:", error);
     return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
   }
-} 
+}    
