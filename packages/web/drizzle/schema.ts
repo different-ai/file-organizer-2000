@@ -6,6 +6,7 @@ import {
   text,
   timestamp,
   uniqueIndex,
+  boolean,
 } from "drizzle-orm/pg-core";
 import { eq, sql } from "drizzle-orm";
 import { sql as psql } from "@vercel/postgres";
@@ -30,6 +31,7 @@ export const UserUsageTable = pgTable(
     // get rid of this
     currentProduct: text("currentProduct"),
     currentPlan: text("currentPlan"),
+    hasCatalystAccess: boolean("hasCatalystAccess").notNull().default(false),
   },
   (userUsage) => {
     return {

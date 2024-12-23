@@ -33,6 +33,7 @@ const handleSubscription = async (
       lastPayment: new Date(),
       currentPlan: metadata.plan,
       currentProduct: metadata.type,
+      hasCatalystAccess: true,
     })
     .onConflictDoUpdate({
       target: [UserUsageTable.userId],
@@ -40,6 +41,7 @@ const handleSubscription = async (
         lastPayment: new Date(),
         currentPlan: metadata.plan,
         currentProduct: metadata.type,
+        hasCatalystAccess: true,
       },
     });
 };
@@ -56,13 +58,15 @@ const handlePayOnce = async (
     maxTokenUsage: 0,
     billingCycle: metadata.type,
     lastPayment: new Date(),
-      currentPlan: metadata.plan,
-      currentProduct: metadata.type,
+    currentPlan: metadata.plan,
+    currentProduct: metadata.type,
+    hasCatalystAccess: true,
     })
     .onConflictDoUpdate({
       target: [UserUsageTable.userId],
       set: {
         lastPayment: new Date(),
+        hasCatalystAccess: true,
       },
     });
 };
@@ -81,6 +85,7 @@ async function handleTopUp(userId: string, tokens: number) {
       currentPlan: config.products.PayOnceTopUp.metadata.plan,
       billingCycle: config.products.PayOnceTopUp.metadata.type,
       lastPayment: new Date(),
+      hasCatalystAccess: true,
     })
     .onConflictDoUpdate({
       target: [UserUsageTable.userId],
@@ -89,6 +94,7 @@ async function handleTopUp(userId: string, tokens: number) {
         lastPayment: new Date(),
         subscriptionStatus: "active",
         paymentStatus: "succeeded",
+        hasCatalystAccess: true,
       },
     });
 }
