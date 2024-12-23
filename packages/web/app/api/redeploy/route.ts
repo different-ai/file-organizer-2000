@@ -46,7 +46,7 @@ export async function POST() {
           buildCommand: "pnpm build:self-host",
           installCommand: "pnpm install",
           outputDirectory: ".next",
-          rootDirectory: "web",
+          rootDirectory: "packages/web",
         },
       },
     });
@@ -71,4 +71,4 @@ export async function POST() {
       { status: 500 }
     );
   }
-} 
+}    
