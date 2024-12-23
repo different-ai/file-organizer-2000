@@ -3,6 +3,8 @@ import { NextResponse, NextRequest } from "next/server";
 import { incrementAndLogTokenUsage } from "@/lib/incrementAndLogTokenUsage";
 import { handleAuthorization } from "@/lib/handleAuthorization";
 import { z } from "zod";
+import { google } from "@ai-sdk/google";
+import type { GoogleGenerativeAIProviderMetadata } from "@ai-sdk/google";
 
 import { getModel } from "@/lib/models";
 import { getChatSystemPrompt } from "@/lib/prompts/chat-prompt";
@@ -38,6 +40,9 @@ export async function POST(req: NextRequest) {
         })
         .join("\n\n");
 
+    // Extract metadata for Gemini model if applicable
+    const isGeminiModel = MODEL_NAME === "gemini-2.0-flash-exp";
+    
     const result = await streamText({
       model,
       system: getChatSystemPrompt(
@@ -47,6 +52,12 @@ export async function POST(req: NextRequest) {
       ),
       maxSteps: 3,
       messages: convertToCoreMessages(messages),
+      onMetadata: isGeminiModel ? (metadata) => {
+        const geminiMetadata = metadata?.google as GoogleGenerativeAIProviderMetadata | undefined;
+        if (geminiMetadata?.groundingMetadata) {
+          console.log("Search grounding metadata:", geminiMetadata.groundingMetadata);
+        }
+      } : undefined,
       tools: {
         getSearchQuery: {
           description: "Extract queries to search for notes",
