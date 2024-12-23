@@ -1,0 +1,59 @@
+name: Release Obsidian Plugin
+
+on:
+  push:
+    tags:
+      - "test-*"
+      - "*"
+    paths:
+      - 'packages/plugin/**'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Use Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: "18.x"
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: 8
+
+      - name: Install dependencies
+        run: |
+          cd packages/plugin
+          pnpm install
+
+      - name: Build plugin
+        run: |
+          cd packages/plugin
+          GITHUB_ACTIONS=true pnpm build
+
+      - name: Create release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          cd packages/plugin
+          echo "Creating release for tag ${GITHUB_REF#refs/tags/}"
+          
+          if [[ ${GITHUB_REF#refs/tags/} == test-* ]]; then
+            echo "TEST MODE: Would create release with files:"
+            echo "- dist/main.js"
+            echo "- manifest.json"
+            echo "- dist/styles.css"
+            
+            # Verify files exist
+            ls -la dist/main.js manifest.json dist/styles.css || true
+          else
+            gh release create "${GITHUB_REF#refs/tags/}" \
+              --title="${GITHUB_REF#refs/tags/}" \
+              --draft=false \
+              --prerelease=false \
+              dist/main.js manifest.json dist/styles.css
+          fi

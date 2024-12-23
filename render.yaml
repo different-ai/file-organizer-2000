@@ -2,7 +2,7 @@ services:
 - type: web
   name: File Organizer 2000
   runtime: node
-  rootDir: ./web  
+  rootDir: ./packages/web  
   buildCommand: pnpm install; pnpm run build:self-host
   startCommand: pnpm start
   autoDeploy: true
