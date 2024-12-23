@@ -8,8 +8,6 @@ import { getModel } from "@/lib/models";
 import { getChatSystemPrompt } from "@/lib/prompts/chat-prompt";
 
 export const maxDuration = 60;
-const MODEL_NAME = process.env.CHAT_MODEL || process.env.MODEL_NAME;
-
 const settingsSchema = z.object({
   renameInstructions: z.string().optional(),
   customFolderInstructions: z.string().optional(),
@@ -17,8 +15,6 @@ const settingsSchema = z.object({
 });
 
 export async function POST(req: NextRequest) {
-  console.log("Chat using model:", MODEL_NAME);
-  const model = getModel(MODEL_NAME);
   try {
     const { userId } = await handleAuthorization(req);
     const {
@@ -27,7 +23,16 @@ export async function POST(req: NextRequest) {
       enableScreenpipe,
       currentDatetime,
       unifiedContext: oldUnifiedContext,
+      model: bodyModel,
     } = await req.json();
+
+    const chosenModelName = 
+      bodyModel ?? 
+      process.env.CHAT_MODEL ?? 
+      process.env.MODEL_NAME ?? 
+      "gemini-2.0-flash-exp";
+    console.log("Chat using model:", chosenModelName);
+    const model = getModel(chosenModelName);
 
     // if oldunified context do what is below if not just return newunified context
     const contextString =
