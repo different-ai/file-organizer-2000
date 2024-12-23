@@ -29,6 +29,7 @@
     "typescript": "^5.2.2"
   },
   "dependencies": {
+    "@ai-sdk/google": "^1.0.12",
     "@ai-sdk/openai": "^0.0.40",
     "@ai-sdk/react": "^0.0.70",
     "@emotion/styled": "^11.13.0",
