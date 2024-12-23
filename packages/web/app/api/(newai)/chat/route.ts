@@ -3,14 +3,12 @@ import { NextResponse, NextRequest } from "next/server";
 import { incrementAndLogTokenUsage } from "@/lib/incrementAndLogTokenUsage";
 import { handleAuthorization } from "@/lib/handleAuthorization";
 import { z } from "zod";
-import { google } from "@ai-sdk/google";
-import type { GoogleGenerativeAIProviderMetadata } from "@ai-sdk/google";
 
 import { getModel } from "@/lib/models";
 import { getChatSystemPrompt } from "@/lib/prompts/chat-prompt";
 
 export const maxDuration = 60;
-const MODEL_NAME = process.env.MODEL_NAME || "gemini-2.0-flash-exp";
+const MODEL_NAME = process.env.MODEL_NAME;
 
 const settingsSchema = z.object({
   renameInstructions: z.string().optional(),
@@ -40,9 +38,6 @@ export async function POST(req: NextRequest) {
         })
         .join("\n\n");
 
-    // Extract metadata for Gemini model if applicable
-    const isGeminiModel = MODEL_NAME === "gemini-2.0-flash-exp";
-    
     const result = await streamText({
       model,
       system: getChatSystemPrompt(
