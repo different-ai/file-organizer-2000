@@ -10,7 +10,7 @@ import { getModel } from "@/lib/models";
 import { getChatSystemPrompt } from "@/lib/prompts/chat-prompt";
 
 export const maxDuration = 60;
-const MODEL_NAME = process.env.MODEL_NAME;
+const MODEL_NAME = process.env.MODEL_NAME || "gemini-2.0-flash-exp";
 
 const settingsSchema = z.object({
   renameInstructions: z.string().optional(),
