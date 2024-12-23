@@ -3,7 +3,7 @@ import { handleAuthorizationV2 } from "@/lib/handleAuthorization";
 import { db, UserUsageTable } from '@/drizzle/schema';
 import { eq } from 'drizzle-orm';
 
-export async function checkCatalyst(userId: string): Promise<boolean> {
+async function checkCatalyst(userId: string): Promise<boolean> {
   try {
     const result = await db
       .select({ hasCatalystAccess: UserUsageTable.hasCatalystAccess })
