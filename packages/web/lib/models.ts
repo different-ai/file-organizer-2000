@@ -27,6 +27,7 @@ const models = {
   "gemini-2.0-flash-exp": createGoogleGenerativeAI({
     apiKey: process.env.GOOGLE_API_KEY
   })("gemini-2.0-flash-exp"),
+  // bedrock
   ...(process.env.AWS_ACCESS_KEY_ID && process.env.AWS_SECRET_ACCESS_KEY ? {
     // Llama Models
     "llama-3-3-70b": createAmazonBedrock({
@@ -51,16 +52,16 @@ const models = {
       secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY
     })("mistral.mixtral-8x7b-instruct-v0:1"),
     // Anthropic Models
-    "claude-3-sonnet": createAmazonBedrock({
+    "anthropic.claude-3-5-sonnet-20240620-v1:0": createAmazonBedrock({
       region: process.env.AWS_REGION || "us-west-2",
       accessKeyId: process.env.AWS_ACCESS_KEY_ID,
       secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY
-    })("anthropic.claude-3-sonnet-20240229-v1:0"),
-    "claude-3-haiku": createAmazonBedrock({
+    })("anthropic.claude-3-5-sonnet-20240620-v1:0"),
+    "anthropic.claude-3-5-haiku-20241022-v1:0": createAmazonBedrock({
       region: process.env.AWS_REGION || "us-west-2",
       accessKeyId: process.env.AWS_ACCESS_KEY_ID,
       secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY
-    })("anthropic.claude-3-haiku-20240307-v1:0"),
+    })("anthropic.claude-3-5-haiku-20241022-v1:0"),
   } : {}),
 };
 
