@@ -10,6 +10,9 @@ import { SettingsUpdateHandler } from "./settings-update-handler";
 import { AppendContentHandler } from "./append-content-handler";
 import { OnboardHandler } from "./onboard-handler";
 import { MoveFilesHandler } from "./move-files-handler";
+import { RenameFilesHandler } from "./rename-files-handler";
+import { SearchRenameHandler } from "./search-rename-handler";
+import { ExecuteActionsHandler } from "./execute-actions-handler";
 
 interface ToolInvocationHandlerProps {
   toolInvocation: any;
@@ -39,6 +42,9 @@ function ToolInvocationHandler({
       appendContentToFile: "Append Content",
       analyzeVaultStructure: "Vault Analysis",
       moveFiles: "Moving Files",
+      renameFiles: "Renaming Files",
+      searchByName: "Search Files by Name",
+      executeActionsOnFileBasedOnPrompt: "Execute Actions on Files",
     };
     return toolTitles[toolName] || "Tool Invocation";
   };
@@ -76,6 +82,7 @@ function ToolInvocationHandler({
         <ScreenpipeHandler
           toolInvocation={toolInvocation}
           handleAddResult={handleAddResult}
+          app={app}
         />
       ),
       generateSettings: () => (
@@ -99,6 +106,27 @@ function ToolInvocationHandler({
       ),
       moveFiles: () => (
         <MoveFilesHandler
+          toolInvocation={toolInvocation}
+          handleAddResult={handleAddResult}
+          app={app}
+        />
+      ),
+      renameFiles: () => (
+        <RenameFilesHandler
+          toolInvocation={toolInvocation}
+          handleAddResult={handleAddResult}
+          app={app}
+        />
+      ),
+      searchByName: () => (
+        <SearchRenameHandler
+          toolInvocation={toolInvocation}
+          handleAddResult={handleAddResult}
+          app={app}
+        />
+      ),
+      executeActionsOnFileBasedOnPrompt: () => (
+        <ExecuteActionsHandler
           toolInvocation={toolInvocation}
           handleAddResult={handleAddResult}
           app={app}

@@ -61,6 +61,14 @@ export async function POST(req: NextRequest) {
               .describe("The search query to find relevant notes"),
           }),
         },
+        searchByName: {
+          description: "Search for files by name pattern",
+          parameters: z.object({
+            query: z
+              .string()
+              .describe("The name pattern to search for (e.g., 'Untitled*' or exact name)"),
+          }),
+        },
         getYoutubeVideoId: {
           description: "Get the YouTube video ID from a URL",
           parameters: z.object({
@@ -124,6 +132,23 @@ export async function POST(req: NextRequest) {
               }).optional()
             })),
             message: z.string().describe("Confirmation message to show user")
+          }),
+        },
+        renameFiles: {
+          description: "Rename files based on pattern or criteria",
+          parameters: z.object({
+            files: z.array(z.object({
+              oldPath: z.string().describe("The current full path of the file"),
+              newName: z.string().describe("Proposed new file name (no directories)")
+            })),
+            message: z.string().describe("Confirmation message to show user")
+          }),
+        },
+        executeActionsOnFileBasedOnPrompt: {
+          description: "Analyze file content and apply one of (recommendTags & appendTag), (recommendFolders & moveFile), or (recommendName & moveFile)",
+          parameters: z.object({
+            filePaths: z.array(z.string()).describe("List of file paths to analyze"),
+            userPrompt: z.string().describe("User instructions to decide how to rename or re-tag or re-folder the files")
           }),
         },
       },
