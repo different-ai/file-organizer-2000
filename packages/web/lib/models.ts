@@ -1,6 +1,7 @@
 import { createAnthropic } from "@ai-sdk/anthropic";
 import { createOpenAI } from "@ai-sdk/openai";
 import { createGoogleGenerativeAI } from "@ai-sdk/google";
+import { createAmazonBedrock } from "@ai-sdk/amazon-bedrock";
 
 const DEFAULT_MODEL = "gpt-4o";
 
@@ -26,6 +27,11 @@ const models = {
   "gemini-2.0-flash-exp": createGoogleGenerativeAI({
     apiKey: process.env.GOOGLE_API_KEY
   })("gemini-2.0-flash-exp"),
+  "claude-3-sonnet": createAmazonBedrock({
+    region: process.env.AWS_REGION,
+    accessKeyId: process.env.AWS_ACCESS_KEY_ID,
+    secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY
+  })("anthropic.claude-3-sonnet-20240229-v1:0"),
 };
 
 export const getModel = (name: string) => {

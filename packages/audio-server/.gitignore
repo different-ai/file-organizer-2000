@@ -1,1 +1,5 @@
 uploads/
+
+# Build artifacts
+.turbo
+*.tsbuildinfo
