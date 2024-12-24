@@ -101,7 +101,7 @@ Choose between the setups below:
    cd packages/web && pnpm build:self-host && pnpm start
    ```
 
-   And make sure you have your `OPENAI_API_KEY` variable set up in your `.env.local` file inside the `packages/web` directory.
+   And make sure you have your `OPENAI_API_KEY` variable set up in your `.env.local` file inside the `packages/web` directory. If you want to use Amazon Bedrock models, you'll also need to configure AWS credentials (`AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`, `AWS_REGION`).
 
    For Windows (PowerShell):
 

@@ -4,4 +4,8 @@ dist/
 # Development output
 main.js
 styles.css
-data.json 
+data.json
+
+# Build artifacts
+.turbo
+*.tsbuildinfo  
