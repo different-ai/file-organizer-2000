@@ -144,6 +144,13 @@ export async function POST(req: NextRequest) {
             message: z.string().describe("Confirmation message to show user")
           }),
         },
+        executeActionsOnFileBasedOnPrompt: {
+          description: "Analyze file content and apply one of (recommendTags & appendTag), (recommendFolders & moveFile), or (recommendName & moveFile)",
+          parameters: z.object({
+            filePaths: z.array(z.string()).describe("List of file paths to analyze"),
+            userPrompt: z.string().describe("User instructions to decide how to rename or re-tag or re-folder the files")
+          }),
+        },
       },
       onFinish: async ({ usage }) => {
         console.log("Token usage:", usage);

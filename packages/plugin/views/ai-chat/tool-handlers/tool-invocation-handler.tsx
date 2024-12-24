@@ -12,6 +12,7 @@ import { OnboardHandler } from "./onboard-handler";
 import { MoveFilesHandler } from "./move-files-handler";
 import { RenameFilesHandler } from "./rename-files-handler";
 import { SearchRenameHandler } from "./search-rename-handler";
+import { ExecuteActionsHandler } from "./execute-actions-handler";
 
 interface ToolInvocationHandlerProps {
   toolInvocation: any;
@@ -43,6 +44,7 @@ function ToolInvocationHandler({
       moveFiles: "Moving Files",
       renameFiles: "Renaming Files",
       searchByName: "Search Files by Name",
+      executeActionsOnFileBasedOnPrompt: "Execute Actions on Files",
     };
     return toolTitles[toolName] || "Tool Invocation";
   };
@@ -118,6 +120,13 @@ function ToolInvocationHandler({
       ),
       searchByName: () => (
         <SearchRenameHandler
+          toolInvocation={toolInvocation}
+          handleAddResult={handleAddResult}
+          app={app}
+        />
+      ),
+      executeActionsOnFileBasedOnPrompt: () => (
+        <ExecuteActionsHandler
           toolInvocation={toolInvocation}
           handleAddResult={handleAddResult}
           app={app}
