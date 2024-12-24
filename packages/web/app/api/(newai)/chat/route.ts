@@ -61,6 +61,14 @@ export async function POST(req: NextRequest) {
               .describe("The search query to find relevant notes"),
           }),
         },
+        searchByName: {
+          description: "Search for files by name pattern",
+          parameters: z.object({
+            query: z
+              .string()
+              .describe("The name pattern to search for (e.g., 'Untitled*' or exact name)"),
+          }),
+        },
         getYoutubeVideoId: {
           description: "Get the YouTube video ID from a URL",
           parameters: z.object({
@@ -122,6 +130,16 @@ export async function POST(req: NextRequest) {
                 namePattern: z.string().optional().describe("File name pattern to match (e.g., 'untitled-*')"),
                 extension: z.string().optional().describe("File extension to match")
               }).optional()
+            })),
+            message: z.string().describe("Confirmation message to show user")
+          }),
+        },
+        renameFiles: {
+          description: "Rename files based on pattern or criteria",
+          parameters: z.object({
+            files: z.array(z.object({
+              oldPath: z.string().describe("The current full path of the file"),
+              newName: z.string().describe("Proposed new file name (no directories)")
             })),
             message: z.string().describe("Confirmation message to show user")
           }),

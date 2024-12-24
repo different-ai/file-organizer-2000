@@ -1,0 +1,115 @@
+
+
+> @file-organizer/web@0.1.0 build /home/ubuntu/repos/file-organizer-2000/packages/web
+> pnpm run db:migrate  && pnpm next build
+
+
+> @file-organizer/web@0.1.0 db:migrate /home/ubuntu/repos/file-organizer-2000/packages/web
+> pnpm dotenv -c -- drizzle-kit migrate
+
+[90mdrizzle-kit: v0.22.8[39m
+[90mdrizzle-orm: v0.31.4[39m
+
+[90mNo config path provided, using default path[39m
+[90mReading config file '/home/ubuntu/repos/file-organizer-2000/packages/web/drizzle.config.ts'[39m
+[90mUsing 'pg' driver for database querying[39m
+[⣷] applying migrations...[2K[G[⣯] applying migrations...[2K[G[⣟] applying migrations...[2K[G[⡿] applying migrations...[2K[G[⢿] applying migrations...[2K[G[⣻] applying migrations...[2K[G[⣽] applying migrations...[2K[G[⣷] applying migrations...[2K[G[⣯] applying migrations...[2K[G[⣟] applying migrations...[2K[G[⡿] applying migrations...[2K[G[⢿] applying migrations...[2K[G[[32m✓[39m] migrations applied successfully![35m[1mAttention[22m[39m: Next.js now collects completely anonymous telemetry regarding usage.
+This information is used to shape Next.js' roadmap and prioritize features.
+You can learn more, including how to opt-out if you'd not like to participate in this anonymous program, by visiting the following URL:
+[36mhttps://nextjs.org/telemetry[39m
+
+  [1m[38;2;173;127;168m▲ Next.js 14.2.21[39m[22m
+
+ [37m[1m [22m[39m Creating an optimized production build ...
+ [32m[1m✓[22m[39m Compiled successfully
+ [37m[1m [22m[39m Skipping linting
+[?25l [37m[1m [22m[39m Checking validity of types  [36m.[39m[2K[1G [37m[1m [22m[39m Checking validity of types  [36m..[39m [33m[1m⚠[22m[39m TypeScript project references are not fully supported. Attempting to build in incremental mode.
+[2K[1G [37m[1m [22m[39m Checking validity of types  [36m...[39m[2K[1G [37m[1m [22m[39m Checking validity of types  [36m.[39m[2K[1G [37m[1m [22m[39m Checking validity of types  [36m..[39m[2K[1G [37m[1m [22m[39m Checking validity of types  [36m...[39m[2K[1G [37m[1m [22m[39m Checking validity of types  [36m.[39m[2K[1G [37m[1m [22m[39m Checking validity of types  [36m..[39m[2K[1G [37m[1m [22m[39m Checking validity of types  [36m...[39m[2K[1G [37m[1m [22m[39m Checking validity of types  [36m.[39m[2K[1G [37m[1m [22m[39m Checking validity of types  [36m..[39m[2K[1G [37m[1m [22m[39m Checking validity of types  [36m...[39m[2K[1G [37m[1m [22m[39m Checking validity of types  [36m.[39m[2K[1G [37m[1m [22m[39m Checking validity of types  [36m..[39m[2K[1G [37m[1m [22m[39m Checking validity of types  [36m...[39m[2K[1G [37m[1m [22m[39m Checking validity of types  [36m.[39m[2K[1G [37m[1m [22m[39m Checking validity of types  [36m..[39m[2K[1G [37m[1m [22m[39m Checking validity of types  [36m...[39m[2K[1G [37m[1m [22m[39m Checking validity of types  [36m.[39m[2K[1G [37m[1m [22m[39m Checking validity of types  [36m..[39m[2K[1G [37m[1m [22m[39m Checking validity of types  [36m...[39m[2K[1G [37m[1m [22m[39m Checking validity of types  [36m.[39m[2K[1G [37m[1m [22m[39m Checking validity of types  [36m..[39m[2K[1G [37m[1m [22m[39m Checking validity of types  [36m...[39m[2K[1G [37m[1m [22m[39m Checking validity of types  [36m.[39m[2K[1G [37m[1m [22m[39m Checking validity of types  [36m..[39m[2K[1G [37m[1m [22m[39m Checking validity of types  [36m...[39m[2K[1G [37m[1m [22m[39m Checking validity of types  [36m.[39m[2K[1G [37m[1m [22m[39m Checking validity of types  [36m..[39m[2K[1G [37m[1m [22m[39m Checking validity of types  [36m...[39m[2K[1G [37m[1m [22m[39m Checking validity of types  [36m.[39m[2K[1G [37m[1m [22m[39m Checking validity of types  [36m..[39m[2K[1G [37m[1m [22m[39m Checking validity of types  [36m...[39m[2K[1G [37m[1m [22m[39m Checking validity of types  [36m.[39m[2K[1G [37m[1m [22m[39m Checking validity of types  [36m..[39m[2K[1G [37m[1m [22m[39m Checking validity of types  [36m...[39m[2K[1G [37m[1m [22m[39m Checking validity of types  [36m.[39m[2K[1G[?25h [37m[1m [22m[39m Checking validity of types     [32m[1m✓[22m[39m Checking validity of types 
+[?25l [37m[1m [22m[39m Collecting page data  [36m.[39m[2K[1G [37m[1m [22m[39m Collecting page data  [36m..[39m[2K[1G [37m[1m [22m[39m Collecting page data  [36m...[39m[2K[1G [37m[1m [22m[39m Collecting page data  [36m.[39m(node:12496) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+(Use `node --trace-deprecation ...` to show where the warning was created)
+[2K[1G[?25h [33m[1m⚠[22m[39m Using edge runtime on a page currently disables static generation for that page
+[?25l [37m[1m [22m[39m Collecting page data  [36m.[39m[2K[1G[?25h [37m[1m [22m[39m Collecting page data     [32m[1m✓[22m[39m Collecting page data 
+[?25l [37m[1m [22m[39m Generating static pages (0/52)  [36m[    ][39m[2K[1G [37m[1m [22m[39m Generating static pages (0/52)  [36m[=   ][39m[2K[1G [37m[1m [22m[39m Generating static pages (9/52)  [36m[==  ][39m[2K[1G [37m[1m [22m[39m Generating static pages (22/52)  [36m[=== ][39m[2K[1G [37m[1m [22m[39m Generating static pages (30/52)  [36m[ ===][39m[2K[1G [37m[1m [22m[39m Generating static pages (30/52)  [36m[  ==][39mRedeploy cron job started
+Error fetching deployment status: n [Error]: Dynamic server usage: Route /api/deployment/status couldn't be rendered statically because it used `headers`. See more info here: https://nextjs.org/docs/messages/dynamic-server-error
+    at l (/home/ubuntu/repos/file-organizer-2000/packages/web/.next/server/chunks/4385.js:1:57698)
+    at u (/home/ubuntu/repos/file-organizer-2000/packages/web/.next/server/chunks/7481.js:9:21260)
+    at s (/home/ubuntu/repos/file-organizer-2000/packages/web/.next/server/chunks/7481.js:1:524)
+    at P (/home/ubuntu/repos/file-organizer-2000/packages/web/.next/server/chunks/3609.js:1:4668)
+    at c (/home/ubuntu/repos/file-organizer-2000/packages/web/.next/server/app/api/deployment/status/route.js:1:1396)
+    at /home/ubuntu/repos/file-organizer-2000/node_modules/.pnpm/next@14.2.21_@babel+core@7.26.0_@opentelemetry+api@1.9.0_@playwright+test@1.49.1_babel-plugin_eijz2nmsxu5mtrciidzudqwz2y/node_modules/next/dist/compiled/next-server/app-route.runtime.prod.js:6:38417
+    at /home/ubuntu/repos/file-organizer-2000/node_modules/.pnpm/next@14.2.21_@babel+core@7.26.0_@opentelemetry+api@1.9.0_@playwright+test@1.49.1_babel-plugin_eijz2nmsxu5mtrciidzudqwz2y/node_modules/next/dist/server/lib/trace/tracer.js:140:36
+    at NoopContextManager.with (/home/ubuntu/repos/file-organizer-2000/node_modules/.pnpm/@opentelemetry+api@1.9.0/node_modules/@opentelemetry/api/build/src/context/NoopContextManager.js:25:19)
+    at ContextAPI.with (/home/ubuntu/repos/file-organizer-2000/node_modules/.pnpm/@opentelemetry+api@1.9.0/node_modules/@opentelemetry/api/build/src/api/context.js:60:46)
+    at NoopTracer.startActiveSpan (/home/ubuntu/repos/file-organizer-2000/node_modules/.pnpm/@opentelemetry+api@1.9.0/node_modules/@opentelemetry/api/build/src/trace/NoopTracer.js:65:31) {
+  description: "Route /api/deployment/status couldn't be rendered statically because it used `headers`. See more info here: https://nextjs.org/docs/messages/dynamic-server-error",
+  digest: 'DYNAMIC_SERVER_USAGE'
+}
+(node:12498) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+(Use `node --trace-deprecation ...` to show where the warning was created)
+[2K[1G [37m[1m [22m[39m Generating static pages (49/52)  [36m[   =][39m[2K[1G [37m[1m [22m[39m Generating static pages (50/52)  [36m[    ][39m[2K[1G[?25h [32m[1m✓[22m[39m Generating static pages (52/52)
+[?25l [37m[1m [22m[39m Finalizing page optimization  [36m.[39m[?25l [37m[1m [22m[39m Collecting build traces  [36m.[39m[2K[1G[?25h [37m[1m [22m[39m Collecting build traces     [32m[1m✓[22m[39m Collecting build traces 
+[2K[1G[?25h [37m[1m [22m[39m Finalizing page optimization     [32m[1m✓[22m[39m Finalizing page optimization 
+
+[4mRoute (app)[24m                              [4mSize[24m     [4mFirst Load JS[24m
+┌ ○ /                                    142 B          [37m[1m87.2 kB[22m[39m
+├ ○ /_not-found                          872 B            [37m[1m88 kB[22m[39m
+├ ƒ /api/aliases                         0 B                [37m[1m0 B[22m[39m
+├ ƒ /api/chat                            0 B                [37m[1m0 B[22m[39m
+├ ƒ /api/check-key                       0 B                [37m[1m0 B[22m[39m
+├ ○ /api/check-premium                   0 B                [37m[1m0 B[22m[39m
+├ ƒ /api/chunks                          0 B                [37m[1m0 B[22m[39m
+├ ƒ /api/classify-v2                     0 B                [37m[1m0 B[22m[39m
+├ ƒ /api/classify1                       0 B                [37m[1m0 B[22m[39m
+├ ƒ /api/concepts                        0 B                [37m[1m0 B[22m[39m
+├ ƒ /api/concepts-and-chunks             0 B                [37m[1m0 B[22m[39m
+├ ƒ /api/create-folder                   0 B                [37m[1m0 B[22m[39m
+├ ƒ /api/cron/redeploy                   0 B                [37m[1m0 B[22m[39m
+├ ƒ /api/cron/reset-tokens               0 B                [37m[1m0 B[22m[39m
+├ ƒ /api/deployment/status               0 B                [37m[1m0 B[22m[39m
+├ ƒ /api/deployment/update-key           0 B                [37m[1m0 B[22m[39m
+├ ƒ /api/fabric-classify                 0 B                [37m[1m0 B[22m[39m
+├ ƒ /api/folders                         0 B                [37m[1m0 B[22m[39m
+├ ƒ /api/folders/embeddings              0 B                [37m[1m0 B[22m[39m
+├ ƒ /api/folders/existing                0 B                [37m[1m0 B[22m[39m
+├ ƒ /api/folders/new                     0 B                [37m[1m0 B[22m[39m
+├ ƒ /api/folders/v2                      0 B                [37m[1m0 B[22m[39m
+├ ƒ /api/format                          0 B                [37m[1m0 B[22m[39m
+├ ƒ /api/format-stream                   0 B                [37m[1m0 B[22m[39m
+├ ƒ /api/format/v2                       0 B                [37m[1m0 B[22m[39m
+├ ○ /api/health                          0 B                [37m[1m0 B[22m[39m
+├ ƒ /api/organize-all                    0 B                [37m[1m0 B[22m[39m
+├ ƒ /api/redeploy                        0 B                [37m[1m0 B[22m[39m
+├ ƒ /api/relationships                   0 B                [37m[1m0 B[22m[39m
+├ ƒ /api/tags                            0 B                [37m[1m0 B[22m[39m
+├ ƒ /api/tags/existing                   0 B                [37m[1m0 B[22m[39m
+├ ƒ /api/tags/new                        0 B                [37m[1m0 B[22m[39m
+├ ƒ /api/tags/v2                         0 B                [37m[1m0 B[22m[39m
+├ ƒ /api/title                           0 B                [37m[1m0 B[22m[39m
+├ ƒ /api/title/multiple                  0 B                [37m[1m0 B[22m[39m
+├ ƒ /api/title/multiple-stream           0 B                [37m[1m0 B[22m[39m
+├ ƒ /api/title/v2                        0 B                [37m[1m0 B[22m[39m
+├ ƒ /api/top-up                          0 B                [37m[1m0 B[22m[39m
+├ ƒ /api/transcribe                      0 B                [37m[1m0 B[22m[39m
+├ ƒ /api/usage                           0 B                [37m[1m0 B[22m[39m
+├ ƒ /api/vision                          0 B                [37m[1m0 B[22m[39m
+├ ƒ /api/webhook                         0 B                [37m[1m0 B[22m[39m
+├ ○ /dashboard/deployment                97.1 kB         [37m[1m223 kB[22m[39m
+├ ○ /dashboard/lifetime                  10.7 kB         [37m[1m157 kB[22m[39m
+├ ○ /dashboard/onboarding                1.5 kB          [37m[1m102 kB[22m[39m
+├ ○ /dashboard/pricing                   397 B           [37m[1m101 kB[22m[39m
+├ ○ /dashboard/self-hosted               142 B          [37m[1m87.2 kB[22m[39m
+├ ○ /dashboard/subscribers               2.13 kB         [37m[1m118 kB[22m[39m
+├ ○ /top-up-cancelled                    178 B          [37m[1m94.1 kB[22m[39m
+└ ○ /top-up-success                      178 B          [37m[1m94.1 kB[22m[39m
++ First Load JS shared by all            [37m[1m87.1 kB[22m[39m
+  ├ chunks/559-8081ffbc384b587b.js       31.6 kB
+  ├ chunks/8eb2234e-bf095b28ff238582.js  53.6 kB
+  └ other shared chunks (total)          1.9 kB
+
+
+ƒ Middleware                             [37m[1m60.4 kB[22m[39m
+
+○  (Static)   prerendered as static content
+ƒ  (Dynamic)  server-rendered on demand
+
+[?25h
