@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from "react";
-import { claimTokens } from "./page";
+import { claimTokens } from "./actions";
 
 export function ClaimButton() {
   const [loading, setLoading] = useState(false);
