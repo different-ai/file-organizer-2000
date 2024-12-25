@@ -2,6 +2,7 @@ import { convertToCoreMessages, streamText } from "ai";
 import { NextResponse, NextRequest } from "next/server";
 import { incrementAndLogTokenUsage } from "@/lib/incrementAndLogTokenUsage";
 import { handleAuthorization } from "@/lib/handleAuthorization";
+import { GoogleGenerativeAIProviderMetadata } from "@ai-sdk/google";
 import { z } from "zod";
 
 import { getModel } from "@/lib/models";
@@ -152,7 +153,10 @@ export async function POST(req: NextRequest) {
           }),
         },
       },
-      onFinish: async ({ usage, experimental_providerMetadata }) => {
+      onFinish: async ({ usage, experimental_providerMetadata }: { 
+        usage: { totalTokens: number };
+        experimental_providerMetadata?: { google?: GoogleGenerativeAIProviderMetadata };
+      }) => {
         console.log("Token usage:", usage);
         const googleMetadata = experimental_providerMetadata?.google;
         console.log("Search Grounding Metadata:", googleMetadata?.groundingMetadata);
