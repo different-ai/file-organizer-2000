@@ -3,9 +3,12 @@ interface NextRequestInit extends RequestInit {
 }
 
 export class NextRequest extends Request {
+  private _url: string;
+
   constructor(input: RequestInfo | URL, init?: NextRequestInit) {
     super(input, init);
     Object.setPrototypeOf(this, NextRequest.prototype);
+    this._url = input instanceof URL ? input.href : input.toString();
   }
 
   json<T = any>(): Promise<T> {
@@ -17,8 +20,12 @@ export class NextRequest extends Request {
     return new Map();
   }
 
+  get url() {
+    return this._url;
+  }
+
   get nextUrl() {
-    return new URL(this.url);
+    return new URL(this._url);
   }
 }
 
