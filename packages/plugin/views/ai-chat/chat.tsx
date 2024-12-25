@@ -12,7 +12,8 @@ import { MessageRenderer } from "./message-renderer";
 import ToolInvocationHandler from "./tool-handlers/tool-invocation-handler";
 import { convertToCoreMessages, streamText, ToolInvocation } from "ai";
 import { ollama } from "ollama-ai-provider";
-import { getChatSystemPrompt } from "../../../packages/web/lib/prompts/chat-prompt";
+import { getChatSystemPrompt } from "../../../web/lib/prompts/chat-prompt";
+import { SourcesSection } from "./components/SourcesSection";
 import { ContextLimitIndicator } from "./context-limit-indicator";
 import { ModelSelector } from "./model-selector";
 import { ModelType } from "./types";
@@ -228,6 +229,9 @@ export const ChatComponent: React.FC<ChatComponentProps> = ({
             </React.Fragment>
           ))}
           <div ref={messagesEndRef} />
+          {groundingMetadata && (
+            <SourcesSection groundingMetadata={groundingMetadata} />
+          )}
         </div>
       </div>
 
