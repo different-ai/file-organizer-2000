@@ -12,9 +12,10 @@ const config: Config.InitialOptions = {
   // Mock environment variables
   setupFiles: ['<rootDir>/jest.env.setup.js'],
 
-  // Module name mapper for Next.js imports
+  // Module name mapper for Next.js imports and other aliases
   moduleNameMapper: {
-    '^@/(.*)$': '<rootDir>/$1',
+    '^@/(.*)$': '<rootDir>/__mocks__/@/$1',
+    '^next/server$': '<rootDir>/__mocks__/next/server.ts'
   },
 
   // Module file extensions for importing
