@@ -157,17 +157,19 @@ export async function POST(req: NextRequest) {
         const googleMetadata = experimental_providerMetadata?.google;
         console.log("Search Grounding Metadata:", googleMetadata?.groundingMetadata);
         
-        // Send the grounding metadata as a special data chunk
-        if (googleMetadata?.groundingMetadata) {
-          result.appendDataChunk({
-            type: 'metadata',
-            data: {
-              groundingMetadata: googleMetadata.groundingMetadata
-            }
-          });
-        }
-        
         await incrementAndLogTokenUsage(userId, usage.totalTokens);
+        
+        // Send metadata as a special message
+        if (googleMetadata?.groundingMetadata) {
+          const metadataMessage = {
+            role: 'assistant',
+            content: JSON.stringify({
+              type: 'metadata',
+              data: { groundingMetadata: googleMetadata.groundingMetadata }
+            })
+          };
+          messages.push(metadataMessage);
+        }
       },
     });
 
