@@ -24,6 +24,8 @@ import { getUniqueReferences, useContextItems } from "./use-context-items";
 import { ContextItems } from "./components/context-items";
 import { ClearAllButton } from "./components/clear-all-button";
 import { useCurrentFile } from "./hooks/use-current-file";
+import { SearchAnnotationHandler } from "./tool-handlers/search-annotation-handler";
+import { isSearchResultsAnnotation } from "./types/annotations";
 
 interface ChatComponentProps {
   plugin: FileOrganizer;
@@ -82,7 +84,8 @@ export const ChatComponent: React.FC<ChatComponentProps> = ({
     model: plugin.settings.selectedModel, // Pass selected model to server
   };
 
-  const [groundingMetadata, setGroundingMetadata] = useState<GroundingMetadata | null>(null);
+  const [groundingMetadata, setGroundingMetadata] =
+    useState<GroundingMetadata | null>(null);
 
   const {
     isLoading: isGenerating,
@@ -94,7 +97,7 @@ export const ChatComponent: React.FC<ChatComponentProps> = ({
     addToolResult,
   } = useChat({
     onDataChunk: (chunk: DataChunk) => {
-      if (chunk.type === 'metadata' && chunk.data?.groundingMetadata) {
+      if (chunk.type === "metadata" && chunk.data?.groundingMetadata) {
         setGroundingMetadata(chunk.data.groundingMetadata);
       }
     },
@@ -109,16 +112,19 @@ export const ChatComponent: React.FC<ChatComponentProps> = ({
       logMessage(plugin.settings.showLocalLLMInChat, "showLocalLLMInChat");
       logMessage(selectedModel, "selectedModel");
       // Handle different model types
-      if (!plugin.settings.showLocalLLMInChat || 
-          selectedModel === "gpt-4o" || 
-          selectedModel === "gemini-2.0-flash-exp") {
+      if (
+        !plugin.settings.showLocalLLMInChat ||
+        selectedModel === "gpt-4o" ||
+        selectedModel === "gemini-2.0-flash-exp"
+      ) {
         // Use server fetch for non-local models
         return fetch(url, options);
       }
 
       // Handle local models (llama3.2 or custom)
-      const { messages, newUnifiedContext, currentDatetime, enableScreenpipe } =
-        JSON.parse(options.body as string);
+      const { messages, newUnifiedContext, currentDatetime } = JSON.parse(
+        options.body as string
+      );
       logger.debug("local model context", {
         model: selectedModel,
         contextLength: newUnifiedContext.length,
@@ -214,6 +220,17 @@ export const ChatComponent: React.FC<ChatComponentProps> = ({
           {messages.map(message => (
             <React.Fragment key={message.id}>
               <MessageRenderer message={message} />
+              {message.annotations?.map((annotation, index) => {
+                if (isSearchResultsAnnotation(annotation)) {
+                  return (
+                    <SearchAnnotationHandler
+                      key={`${message.id}-annotation-${index}`}
+                      annotation={annotation}
+                    />
+                  );
+                }
+                return null;
+              })}
               {message.toolInvocations?.map(
                 (toolInvocation: ToolInvocation) => {
                   return (
