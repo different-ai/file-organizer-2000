@@ -152,18 +152,20 @@ export async function POST(req: NextRequest) {
           }),
         },
       },
-      onFinish: async ({ usage, providerMetadata }) => {
+      onFinish: async ({ usage, experimental_providerMetadata }) => {
         console.log("Token usage:", usage);
-        const googleMetadata = providerMetadata?.google;
+        const googleMetadata = experimental_providerMetadata?.google;
         console.log("Search Grounding Metadata:", googleMetadata?.groundingMetadata);
         
         // Send the grounding metadata as a special data chunk
-        result.appendDataChunk({
-          type: 'metadata',
-          data: {
-            groundingMetadata: googleMetadata?.groundingMetadata
-          }
-        });
+        if (googleMetadata?.groundingMetadata) {
+          result.appendDataChunk({
+            type: 'metadata',
+            data: {
+              groundingMetadata: googleMetadata.groundingMetadata
+            }
+          });
+        }
         
         await incrementAndLogTokenUsage(userId, usage.totalTokens);
       },
