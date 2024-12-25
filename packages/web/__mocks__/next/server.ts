@@ -4,15 +4,21 @@ interface NextRequestInit extends RequestInit {
 
 export class NextRequest extends Request {
   private _url: string;
+  private _body: any;
 
   constructor(input: RequestInfo | URL, init?: NextRequestInit) {
     super(input, init);
     Object.setPrototypeOf(this, NextRequest.prototype);
     this._url = input instanceof URL ? input.href : input.toString();
+    try {
+      this._body = init?.body ? JSON.parse(init.body.toString()) : {};
+    } catch (e) {
+      this._body = {};
+    }
   }
 
-  json<T = any>(): Promise<T> {
-    return super.json();
+  json(): Promise<any> {
+    return Promise.resolve(this._body);
   }
 
   // Add other required Next.js Request methods
