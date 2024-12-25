@@ -3,7 +3,7 @@ import { TFile, WorkspaceLeaf, Notice } from "obsidian";
 import FileOrganizer from "../../../index";
 import { debounce } from "lodash";
 
-import { SectionHeader } from "./components/section-header";
+import { SectionHeader } from "../section-header";
 import { SimilarTags } from "./tags";
 import { AtomicNotes } from "./chunks";
 import { RenameSuggestion } from "./titles/box";
@@ -173,7 +173,7 @@ export const AssistantView: React.FC<AssistantViewProps> = ({
   }
 
   return (
-    <div className="">
+    <div className="flex flex-col gap-4">
       <div className="flex gap-3 items-center ">
         <RefreshButton onRefresh={refreshContext} />
         <div className="text-accent">{activeFile.basename}</div>

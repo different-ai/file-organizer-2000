@@ -4,7 +4,7 @@ import {
   LogEntry,
   Action,
   FileStatus,
-} from "../../../inbox/services/record-manager";
+} from "../../inbox/services/record-manager";
 import moment from "moment";
 import {
   ChevronDown,
@@ -18,8 +18,8 @@ import {
   Calendar,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
-import { usePlugin } from "../provider";
-import { Inbox } from "../../../inbox";
+import { usePlugin } from "./provider";
+import { Inbox } from "../../inbox";
 
 // Add a tooltip component for error details
 const ErrorTooltip: React.FC<{ error: LogEntry["error"] }> = ({
@@ -524,14 +524,14 @@ const SearchBar: React.FC<SearchBarProps> = ({
   return (
     <div className="bg-[--background-primary] p-4 rounded-lg border border-[--background-modifier-border] space-y-3">
       {/* Search input row */}
-      <div className="relative flex-1">
+      <div className="pl-10 relative flex-1">
         <Search className="w-4 h-4 absolute left-3 top-1/2 transform -translate-y-1/2 text-[--text-muted]" />
         <input
           type="text"
           placeholder="Search files, tags, or actions..."
           value={searchQuery}
           onChange={handleSearchChange}
-          className="w-full pl-9 pr-4 h-min py-2 bg-[--background-secondary] rounded border border-[--background-modifier-border] text-sm"
+          className="w-full pl-10 pr-4 h-min py-2 bg-[--background-secondary] rounded border border-[--background-modifier-border] text-sm"
         />
       </div>
 

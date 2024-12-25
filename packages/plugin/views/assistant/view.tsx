@@ -3,8 +3,8 @@ import * as React from "react";
 import { Root, createRoot } from "react-dom/client";
 import { AssistantView } from "./organizer/organizer";
 import FileOrganizer from "../..";
-import { InboxLogs } from "./components/inbox-logs";
-import { SectionHeader } from "./components/section-header";
+import { InboxLogs } from "./inbox-logs";
+import { SectionHeader } from "./section-header";
 import { AppContext } from "./provider";
 import AIChatSidebar from "./ai-chat/container";
 
@@ -77,7 +77,7 @@ function TabButton({
   );
 }
 
-function OrganizerContent({
+function AssistantContent({
   plugin,
   leaf,
   initialTab,
@@ -185,7 +185,7 @@ export class AssistantViewWrapper extends ItemView {
       <AppContext.Provider value={{ plugin: this.plugin, root: this.root }}>
         <React.StrictMode>
           <div className="h-full ">
-            <OrganizerContent
+            <AssistantContent
               plugin={this.plugin}
               leaf={this.leaf}
               initialTab={this.activeTab}

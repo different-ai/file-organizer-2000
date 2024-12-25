@@ -37,7 +37,11 @@ export const AtomicNotes: React.FC<DocumentChunksProps> = ({ plugin, activeFile 
 
   return (
     <div className="document-chunks">
-      <button onClick={parseDocument} disabled={loading}>
+      <button
+        onClick={parseDocument}
+        disabled={loading}
+        className="bg-accent text-accent-foreground px-2 py-1"
+      >
         {loading ? "Parsing..." : "Parse Document"}
       </button>
       {concepts.map((concept, index) => (
@@ -48,7 +52,12 @@ export const AtomicNotes: React.FC<DocumentChunksProps> = ({ plugin, activeFile 
             .map((chunk, chunkIndex) => (
               <div key={chunkIndex} className="chunk-container">
                 <p>{chunk.content}</p>
-                <button onClick={() => addToInbox(concept, chunk.content)}>Add to Inbox</button>
+                <button
+                  className="bg-accent text-accent-foreground px-2 py-1"
+                  onClick={() => addToInbox(concept, chunk.content)}
+                >
+                  Add to Inbox
+                </button>
               </div>
             ))}
         </div>
