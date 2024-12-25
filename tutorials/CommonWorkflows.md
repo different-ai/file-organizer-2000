@@ -30,20 +30,12 @@ This triggers the ExecuteActionsHandler to:
 
 ### Step 1: Get Activity Data
 ```
-based on my screenpipe activity
+based on my screenpipe activity give me a small summary of my day 
 ```
-This retrieves your recent activity data.
 
-### Step 2: Organize Related Files
-```
-organize files based on my recent activity
-```
-This uses the Screenpipe context to suggest appropriate organization.
+This uses the Screenpipe context so you can create daily logs of based on your activity right in Obidian.
 
-### What Happens Behind the Scenes
-1. First prompt triggers `getScreenpipeDailySummary`
-2. Data is added to context
-3. Second prompt can use this context for better organization decisions
+
 
 ## Finding and Tagging Recent Files
 
