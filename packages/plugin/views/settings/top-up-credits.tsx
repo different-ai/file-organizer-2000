@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Button } from "../ai-chat/button";
+import { Button } from "../assistant/ai-chat/button";
 import FileOrganizer from "../..";
 
 export function TopUpCredits({

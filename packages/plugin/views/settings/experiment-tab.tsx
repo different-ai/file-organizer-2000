@@ -8,9 +8,7 @@ interface ExperimentTabProps {
 }
 
 export const ExperimentTab: React.FC<ExperimentTabProps> = ({ plugin }) => {
-  const [enableSimilarFiles, setEnableSimilarFiles] = useState(
-    plugin.settings.enableSimilarFiles
-  );
+
   const [enableAtomicNotes, setEnableAtomicNotes] = useState(
     plugin.settings.enableAtomicNotes
   );
@@ -52,7 +50,6 @@ export const ExperimentTab: React.FC<ExperimentTabProps> = ({ plugin }) => {
             Enable them to:
           </p>
           <ul className="list-disc pl-6 text-[--text-muted] space-y-1 mb-6">
-            <li>Discover similar files automatically</li>
             <li>Generate atomic notes from your content</li>
             <li>Integrate with external tools</li>
             <li>Use AI-powered formatting</li>
@@ -71,18 +68,7 @@ export const ExperimentTab: React.FC<ExperimentTabProps> = ({ plugin }) => {
               Core Experiments
             </h3>
             <div className="space-y-3">
-              <ToggleSetting
-                name="Similar Files"
-                description="Enable the display of similar files in the assistant sidebar."
-                value={enableSimilarFiles}
-                onChange={value =>
-                  handleToggleChange(
-                    value,
-                    setEnableSimilarFiles,
-                    "enableSimilarFiles"
-                  )
-                }
-              />
+             
               <ToggleSetting
                 name="Atomic Notes"
                 description="Enable the generation of atomic notes in the assistant sidebar."
