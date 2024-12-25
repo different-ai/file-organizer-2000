@@ -40,6 +40,39 @@ export const UserUsageTable = pgTable(
   }
 );
 
+// Table to track one-time Christmas token claims
+export const christmasClaims = pgTable(
+  "christmas_claims",
+  {
+    id: serial("id").primaryKey(),
+    userId: text("user_id").notNull(),
+    claimedAt: timestamp("claimed_at").defaultNow().notNull(),
+  },
+  (table) => {
+    return {
+      uniqueUserIdx: uniqueIndex("unique_christmas_claim_idx").on(table.userId),
+    };
+  }
+);
+
+export type ChristmasClaim = typeof christmasClaims.$inferSelect;
+
+// Helper function to check if a user has claimed their Christmas tokens
+export const hasClaimedChristmasTokens = async (userId: string): Promise<boolean> => {
+  try {
+    const claims = await db
+      .select()
+      .from(christmasClaims)
+      .where(eq(christmasClaims.userId, userId))
+      .limit(1);
+    
+    return claims.length > 0;
+  } catch (error) {
+    console.error("Error checking Christmas token claims:", error);
+    return false;
+  }
+};
+
 export const vercelTokens = pgTable('vercel_tokens', {
   id: serial('id').primaryKey(),
   userId: text('user_id').notNull(),

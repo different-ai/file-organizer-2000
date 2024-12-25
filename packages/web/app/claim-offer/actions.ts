@@ -1,11 +1,9 @@
 'use server';
 
-import { db, UserUsageTable, createEmptyUserUsage } from "@/drizzle/schema";
+import { db, UserUsageTable, createEmptyUserUsage, christmasClaims, hasClaimedChristmasTokens } from "@/drizzle/schema";
 import { eq, sql } from "drizzle-orm";
 import { revalidatePath } from 'next/cache';
-import { handleAuthorizationV2 } from "@/lib/handleAuthorization";
-import { headers } from 'next/headers';
-import { NextRequest } from 'next/server';
+import { auth } from "@clerk/nextjs/server";
 
 export async function claimTokens() {
   try {
@@ -16,12 +14,7 @@ export async function claimTokens() {
     }
 
     // Get authenticated user
-    const headersList = headers();
-    const request = new NextRequest('https://dummy.url', {
-      headers: headersList,
-    });
-    
-    const { userId } = await handleAuthorizationV2(request);
+    const { userId } = auth();
     if (!userId) {
       return { error: "You must be logged in to claim tokens" };
     }
@@ -35,22 +28,39 @@ export async function claimTokens() {
     }
 
     // Check if already claimed
-    if (usage.maxTokenUsage >= 5_000_000) {
+    const hasClaimed = await hasClaimedChristmasTokens(userId);
+    if (hasClaimed) {
       return { error: "You have already claimed this offer" };
     }
+
+    // Record the claim
+    await db.insert(christmasClaims).values({ userId });
 
     // Increase maxTokenUsage by 5M
     const result = await db
       .update(UserUsageTable)
       .set({
-        maxTokenUsage: sql`GREATEST(${UserUsageTable.maxTokenUsage}, 5000000)`,
-        subscriptionStatus: "active",
-        paymentStatus: "succeeded"
+        maxTokenUsage: sql`COALESCE(${UserUsageTable.maxTokenUsage}, 0) + 5000000`
       })
       .where(eq(UserUsageTable.userId, userId))
       .returning({ newMaxTokens: UserUsageTable.maxTokenUsage });
 
     revalidatePath('/claim-offer');
+    
+    // Track successful claim in PostHog
+    const PostHogClient = (await import("@/lib/posthog")).default;
+    const posthog = PostHogClient();
+    if (posthog) {
+      await posthog.capture({
+        distinctId: userId,
+        event: 'christmas_tokens_claimed',
+        properties: {
+          tokens_amount: 5000000,
+          new_max_tokens: result[0].newMaxTokens
+        }
+      });
+    }
+
     return { 
       success: true,
       maxTokens: result[0].newMaxTokens
