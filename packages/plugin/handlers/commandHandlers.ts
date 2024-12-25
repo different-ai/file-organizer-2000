@@ -1,6 +1,6 @@
 import { WorkspaceLeaf } from "obsidian";
 import FileOrganizer from "../index";
-import { ORGANIZER_VIEW_TYPE, AssistantViewWrapper } from "../views/organizer/view";
+import { ORGANIZER_VIEW_TYPE, AssistantViewWrapper } from "../views/assistant/view";
 
 
 

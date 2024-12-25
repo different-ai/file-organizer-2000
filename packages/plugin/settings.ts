@@ -24,7 +24,6 @@ export class FileOrganizerSettings {
   usePro = true;
   useSimilarTagsInFrontmatter = false;
   enableAtomicNotes = false;
-  enableSimilarFiles = false;
   ignoreFolders = [""];
   stagingFolder = ".fileorganizer2000/staging";
   enableSelfHosting = false;

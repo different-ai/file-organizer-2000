@@ -1,11 +1,18 @@
-import { convertToCoreMessages, streamText } from "ai";
+import { convertToCoreMessages, streamText, StreamData, tool } from "ai";
 import { NextResponse, NextRequest } from "next/server";
 import { incrementAndLogTokenUsage } from "@/lib/incrementAndLogTokenUsage";
 import { handleAuthorization } from "@/lib/handleAuthorization";
+import { GoogleGenerativeAIProviderMetadata } from "@ai-sdk/google";
 import { z } from "zod";
 
 import { getModel } from "@/lib/models";
 import { getChatSystemPrompt } from "@/lib/prompts/chat-prompt";
+
+interface GroundingMetadataItem {
+  content: string;
+  title: string;
+  relevanceScore: number;
+}
 
 export const maxDuration = 60;
 const settingsSchema = z.object({
@@ -26,15 +33,10 @@ export async function POST(req: NextRequest) {
       model: bodyModel,
     } = await req.json();
 
-    const chosenModelName = 
-      bodyModel ?? 
-      process.env.CHAT_MODEL ?? 
-      process.env.MODEL_NAME ?? 
-      "gemini-2.0-flash-exp";
+    const chosenModelName = bodyModel;
     console.log("Chat using model:", chosenModelName);
     const model = getModel(chosenModelName);
 
-    // if oldunified context do what is below if not just return newunified context
     const contextString =
       newUnifiedContext ||
       oldUnifiedContext
@@ -42,6 +44,8 @@ export async function POST(req: NextRequest) {
           return `File: ${file.title}\n\nContent:\n${file.content}\nPath: ${file.path} Reference: ${file.reference}`;
         })
         .join("\n\n");
+
+    const data = new StreamData();
 
     const result = await streamText({
       model,
@@ -66,7 +70,9 @@ export async function POST(req: NextRequest) {
           parameters: z.object({
             query: z
               .string()
-              .describe("The name pattern to search for (e.g., 'Untitled*' or exact name)"),
+              .describe(
+                "The name pattern to search for (e.g., 'Untitled*' or exact name)"
+              ),
           }),
         },
         getYoutubeVideoId: {
@@ -106,60 +112,113 @@ export async function POST(req: NextRequest) {
           parameters: settingsSchema,
         },
         analyzeVaultStructure: {
-          description: "Analyze vault structure to suggest organization improvements",
+          description:
+            "Analyze vault structure to suggest organization improvements",
           parameters: z.object({
-            path: z.string().describe("Path to analyze. Use '/' for all files or specific folder path"),
-            maxDepth: z.number().optional().describe("Maximum depth to analyze"),
-            addToContext: z.boolean().optional().describe("Whether to add analyzed files to context")
+            path: z
+              .string()
+              .describe(
+                "Path to analyze. Use '/' for all files or specific folder path"
+              ),
+            maxDepth: z
+              .number()
+              .optional()
+              .describe("Maximum depth to analyze"),
+            addToContext: z
+              .boolean()
+              .optional()
+              .describe("Whether to add analyzed files to context"),
           }),
         },
         getScreenpipeDailySummary: {
           description: "Get a summary of the user's day using Screenpipe data",
           parameters: z.object({
-            startTime: z.string().optional().describe("Start time in ISO format"),
+            startTime: z
+              .string()
+              .optional()
+              .describe("Start time in ISO format"),
             endTime: z.string().optional().describe("End time in ISO format"),
           }),
         },
         moveFiles: {
           description: "Move files to their designated folders",
           parameters: z.object({
-            moves: z.array(z.object({
-              sourcePath: z.string().describe("Source path (e.g., '/' for root, or specific folder path)"),
-              destinationPath: z.string().describe("Destination folder path"),
-              pattern: z.object({
-                namePattern: z.string().optional().describe("File name pattern to match (e.g., 'untitled-*')"),
-                extension: z.string().optional().describe("File extension to match")
-              }).optional()
-            })),
-            message: z.string().describe("Confirmation message to show user")
+            moves: z.array(
+              z.object({
+                sourcePath: z
+                  .string()
+                  .describe(
+                    "Source path (e.g., '/' for root, or specific folder path)"
+                  ),
+                destinationPath: z.string().describe("Destination folder path"),
+                pattern: z
+                  .object({
+                    namePattern: z
+                      .string()
+                      .optional()
+                      .describe(
+                        "File name pattern to match (e.g., 'untitled-*')"
+                      ),
+                    extension: z
+                      .string()
+                      .optional()
+                      .describe("File extension to match"),
+                  })
+                  .optional(),
+              })
+            ),
+            message: z.string().describe("Confirmation message to show user"),
           }),
         },
         renameFiles: {
           description: "Rename files based on pattern or criteria",
           parameters: z.object({
-            files: z.array(z.object({
-              oldPath: z.string().describe("The current full path of the file"),
-              newName: z.string().describe("Proposed new file name (no directories)")
-            })),
-            message: z.string().describe("Confirmation message to show user")
+            files: z.array(
+              z.object({
+                oldPath: z
+                  .string()
+                  .describe("The current full path of the file"),
+                newName: z
+                  .string()
+                  .describe("Proposed new file name (no directories)"),
+              })
+            ),
+            message: z.string().describe("Confirmation message to show user"),
           }),
         },
         executeActionsOnFileBasedOnPrompt: {
-          description: "Analyze file content and apply one of (recommendTags & appendTag), (recommendFolders & moveFile), or (recommendName & moveFile)",
+          description:
+            "Analyze file content and apply one of (recommendTags & appendTag), (recommendFolders & moveFile), or (recommendName & moveFile)",
           parameters: z.object({
-            filePaths: z.array(z.string()).describe("List of file paths to analyze"),
-            userPrompt: z.string().describe("User instructions to decide how to rename or re-tag or re-folder the files")
+            filePaths: z
+              .array(z.string())
+              .describe("List of file paths to analyze"),
+            userPrompt: z
+              .string()
+              .describe(
+                "User instructions to decide how to rename or re-tag or re-folder the files"
+              ),
           }),
         },
       },
-      onFinish: async ({ usage }) => {
+      onFinish: async ({ usage, experimental_providerMetadata }) => {
         console.log("Token usage:", usage);
+        const googleMetadata = experimental_providerMetadata?.google as unknown as GoogleGenerativeAIProviderMetadata | undefined;
+        console.log("Google metadata:", JSON.stringify(googleMetadata, null, 2));
+
+        if (googleMetadata?.groundingMetadata) {
+          data.appendMessageAnnotation({
+            type: "search-results",
+            groundingMetadata: googleMetadata.groundingMetadata
+          });
+        }
+
         await incrementAndLogTokenUsage(userId, usage.totalTokens);
+        data.close();
       },
     });
 
-    const response = result.toDataStreamResponse();
-    return response;
+    return result.toDataStreamResponse({ data });
   } catch (error) {
     console.error("Error in POST request:", error);
     return NextResponse.json(

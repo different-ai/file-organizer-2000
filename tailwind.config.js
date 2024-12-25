@@ -10,5 +10,5 @@ module.exports = {
     corePlugins: {
         preflight: false, // This prevents Tailwind from injecting its base styles
     },
-    important: true, // Changed from '.fo2k' to true
+    important: '.fo2k', // Changed from '.fo2k' to true
 }

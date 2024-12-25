@@ -15,7 +15,7 @@ import { FileOrganizerSettingTab } from "./views/settings/view";
 import {
   AssistantViewWrapper,
   ORGANIZER_VIEW_TYPE,
-} from "./views/organizer/view";
+} from "./views/assistant/view";
 import Jimp from "jimp/es/index";
 
 import { FileOrganizerSettings, DEFAULT_SETTINGS } from "./settings";
@@ -43,7 +43,7 @@ import {
 import { initializeInboxQueue, Inbox } from "./inbox";
 import { validateFile } from "./utils";
 import { logger } from "./services/logger";
-import { addTextSelectionContext } from "./views/ai-chat/use-context-items";
+import { addTextSelectionContext } from "./views/assistant/ai-chat/use-context-items";
 
 type TagCounts = {
   [key: string]: number;
