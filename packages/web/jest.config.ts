@@ -1,12 +1,20 @@
 import type { Config } from '@jest/types';
 
 const config: Config.InitialOptions = {
-  // Specify the correct root directory for Jest to look for test files
-  roots: ['<rootDir>/scripts'],
+  // Specify the correct root directories for Jest to look for test files
+  roots: ['<rootDir>/scripts', '<rootDir>/app'],
 
   // Use TypeScript for Jest
   transform: {
     '^.+\\.tsx?$': 'ts-jest',
+  },
+
+  // Mock environment variables
+  setupFiles: ['<rootDir>/jest.env.setup.js'],
+
+  // Module name mapper for Next.js imports
+  moduleNameMapper: {
+    '^@/(.*)$': '<rootDir>/$1',
   },
 
   // Module file extensions for importing
