@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { claimTokens } from "./actions";
+import { Button } from "@/components/ui/button";
 
 export function ClaimButton() {
   const [loading, setLoading] = useState(false);
@@ -40,13 +41,13 @@ export function ClaimButton() {
 
   return (
     <div className="text-center">
-      <button
+      <Button
         onClick={handleClaim}
         disabled={loading}
-        className="px-6 py-3 bg-red-600 text-white font-semibold rounded-lg hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+        size="lg"
       >
         {loading ? "Claiming..." : "Claim 5M Tokens"}
-      </button>
+      </Button>
       {error && (
         <p className="mt-2 text-red-600 text-sm">{error}</p>
       )}
