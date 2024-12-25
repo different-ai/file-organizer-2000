@@ -3,6 +3,7 @@ import { useChat, UseChatOptions } from "@ai-sdk/react";
 import { moment } from "obsidian";
 
 import FileOrganizer from "../..";
+import { GroundingMetadata, DataChunk } from "./types/grounding";
 import Tiptap from "./tiptap";
 import { usePlugin } from "../organizer/provider";
 
@@ -80,6 +81,8 @@ export const ChatComponent: React.FC<ChatComponentProps> = ({
     model: plugin.settings.selectedModel, // Pass selected model to server
   };
 
+  const [groundingMetadata, setGroundingMetadata] = useState<GroundingMetadata | null>(null);
+
   const {
     isLoading: isGenerating,
     messages,
@@ -89,6 +92,11 @@ export const ChatComponent: React.FC<ChatComponentProps> = ({
     stop,
     addToolResult,
   } = useChat({
+    onDataChunk: (chunk: DataChunk) => {
+      if (chunk.type === 'metadata' && chunk.data?.groundingMetadata) {
+        setGroundingMetadata(chunk.data.groundingMetadata);
+      }
+    },
     maxSteps: 2,
     api: `${plugin.getServerUrl()}/api/chat`,
     experimental_throttle: 100,

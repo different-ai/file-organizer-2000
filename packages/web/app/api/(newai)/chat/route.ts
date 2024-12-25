@@ -152,8 +152,19 @@ export async function POST(req: NextRequest) {
           }),
         },
       },
-      onFinish: async ({ usage }) => {
+      onFinish: async ({ usage, providerMetadata }) => {
         console.log("Token usage:", usage);
+        const googleMetadata = providerMetadata?.google;
+        console.log("Search Grounding Metadata:", googleMetadata?.groundingMetadata);
+        
+        // Send the grounding metadata as a special data chunk
+        result.appendDataChunk({
+          type: 'metadata',
+          data: {
+            groundingMetadata: googleMetadata?.groundingMetadata
+          }
+        });
+        
         await incrementAndLogTokenUsage(userId, usage.totalTokens);
       },
     });

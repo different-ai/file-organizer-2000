@@ -27,6 +27,9 @@ const models = {
   "gemini-2.0-flash-exp": createGoogleGenerativeAI({
     apiKey: process.env.GOOGLE_API_KEY
   })("gemini-2.0-flash-exp"),
+  "gemini-1.5-pro-search": createGoogleGenerativeAI({
+    apiKey: process.env.GOOGLE_API_KEY
+  })("gemini-1.5-pro"),
   // bedrock
   ...(process.env.AWS_ACCESS_KEY_ID && process.env.AWS_SECRET_ACCESS_KEY ? {
     // Llama Models
