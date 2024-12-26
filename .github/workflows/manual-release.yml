@@ -75,7 +75,7 @@ jobs:
 
           echo "Current directory: $(pwd)"
           echo "Current package.json version: $(node -p "require('./package.json').version")"
-          echo "Current manifest.json version: $(node -p "require('./manifest.json').version")"
+          echo "Current manifest.json version: $(node -p "require('../../manifest.json').version")"
           echo "Increment type: ${{ github.event.inputs.increment }}"
 
           # Bump version in package.json (using npm's built-in version command)
@@ -87,16 +87,16 @@ jobs:
           # Make new version available to subsequent steps
           echo "version=${VERSION_NUMBER}" >> "$GITHUB_OUTPUT"
 
-          # Update manifest.json to match
+          # Update root manifest.json to match
+          cd ../..
           jq --arg version "$VERSION_NUMBER" '.version = $version' manifest.json > manifest.json.tmp
           mv manifest.json.tmp manifest.json
 
-          echo "Updated package.json version: $(node -p "require('./package.json').version")"
+          echo "Updated package.json version: $(node -p "require('./packages/plugin/package.json').version")"
           echo "Updated manifest.json version: $(node -p "require('./manifest.json').version")"
 
           # Stage and commit changes
-          git add package.json manifest.json
-          cd ../..
+          git add packages/plugin/package.json manifest.json
           echo "Files to be committed:"
           git status --porcelain
           git commit -m "chore(release): bump version to $VERSION_NUMBER"
