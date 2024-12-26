@@ -21,13 +21,15 @@ jobs:
     steps:
       - id: check
         name: Check for running release workflows
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          # Get running workflows
+          # Get running workflows named either "Release Obsidian Plugin" or "Manual Plugin Release"
           running=$(gh api /repos/${{ github.repository }}/actions/runs \
             --jq '.workflow_runs[] | select(.status=="in_progress" and (.name=="Release Obsidian Plugin" or .name=="Manual Plugin Release")) | .id' \
             | wc -l)
 
-          # If any release workflows are running (besides this one), set output
+          # If any release workflows are running (besides this one), fail early
           if [ "$running" -gt "1" ]; then
             echo "is_releasing=true" >> $GITHUB_OUTPUT
             echo "::error::A release is already in progress. Please wait for it to complete."
@@ -35,16 +37,16 @@ jobs:
           else
             echo "is_releasing=false" >> $GITHUB_OUTPUT
           fi
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
   release:
     needs: check_release
     if: needs.check_release.outputs.is_releasing != 'true'
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - name: Check out repository
+        uses: actions/checkout@v3
         with:
+          # Use a full checkout so the version bump can be committed & pushed
           fetch-depth: 0
           token: ${{ secrets.GITHUB_TOKEN }}
 
@@ -70,22 +72,24 @@ jobs:
         id: version
         run: |
           cd packages/plugin
+
           echo "Current directory: $(pwd)"
           echo "Current package.json version: $(node -p "require('./package.json').version")"
           echo "Current manifest.json version: $(node -p "require('./manifest.json').version")"
           echo "Increment type: ${{ github.event.inputs.increment }}"
 
-          # Update package.json and get new version
+          # Bump version in package.json (using npm's built-in version command)
           NEW_VERSION=$(npm version ${{ github.event.inputs.increment }} --no-git-tag-version)
           VERSION_NUMBER=${NEW_VERSION#v}
           echo "New version (with v): $NEW_VERSION"
-          echo "New version (without v): $VERSION_NUMBER"
+          echo "New version (stripped): $VERSION_NUMBER"
 
-          # NOTE: Just a direct echo without curly braces
+          # Make new version available to subsequent steps
           echo "version=${VERSION_NUMBER}" >> "$GITHUB_OUTPUT"
 
-          # Update manifest.json
-          jq --arg version "$VERSION_NUMBER" '.version = $version' manifest.json > manifest.json.tmp && mv manifest.json.tmp manifest.json
+          # Update manifest.json to match
+          jq --arg version "$VERSION_NUMBER" '.version = $version' manifest.json > manifest.json.tmp
+          mv manifest.json.tmp manifest.json
 
           echo "Updated package.json version: $(node -p "require('./package.json').version")"
           echo "Updated manifest.json version: $(node -p "require('./manifest.json').version")"
@@ -97,3 +101,9 @@ jobs:
           git status --porcelain
           git commit -m "chore(release): bump version to $VERSION_NUMBER"
           echo "Commit created with version $VERSION_NUMBER"
+
+      - name: Push changes
+        # Push the newly bumped version back to the repo
+        run: git push origin HEAD
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
