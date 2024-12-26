@@ -66,10 +66,22 @@ jobs:
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
 
-      - name: Increment version
+      - name: Update package.json version
         run: |
           cd packages/plugin
-          pnpm version ${{ github.event.inputs.increment }} --no-git-tag-version
+          NEW_VERSION=$(npm version ${{ github.event.inputs.increment }} --no-git-tag-version)
+          echo "NEW_VERSION=$NEW_VERSION" >> $GITHUB_ENV
+          cd ../..
+          git add packages/plugin/package.json
+
+      - name: Update manifest.json version
+        run: |
+          cd packages/plugin
+          VERSION_NUMBER=${NEW_VERSION#v}
+          jq --arg version "$VERSION_NUMBER" '.version = $version' manifest.json > manifest.json.tmp && mv manifest.json.tmp manifest.json
+          git add manifest.json
+          cd ../..
+          git commit -m "chore(release): bump version to ${NEW_VERSION}"
           
       - name: Build plugin
         run: pnpm --filter "./packages/plugin" build
