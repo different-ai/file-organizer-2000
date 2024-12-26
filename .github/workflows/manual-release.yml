@@ -107,3 +107,41 @@ jobs:
         run: git push origin HEAD
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build plugin
+        run: pnpm --filter "./packages/plugin" build
+
+      - name: Prepare release artifacts
+        run: |
+          mkdir -p release-artifacts
+          cp packages/plugin/dist/main.js release-artifacts/
+          cp packages/plugin/dist/styles.css release-artifacts/
+          cp packages/plugin/manifest.json release-artifacts/
+          
+          # Create checksum file
+          cd release-artifacts
+          sha256sum * > checksums.txt
+          cd ..
+
+      - name: Create Release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          version=$(node -p "require('./packages/plugin/manifest.json').version")
+          
+          # Create release notes
+          echo "## Changes in this release" > release-notes.md
+          echo "Version bump: ${{ github.event.inputs.increment }}" >> release-notes.md
+          echo "" >> release-notes.md
+          echo "### SHA-256 Checksums" >> release-notes.md
+          cat release-artifacts/checksums.txt >> release-notes.md
+          
+          # Create the release
+          gh release create "$version" \
+            --title="Version $version" \
+            --notes-file=release-notes.md \
+            --draft=false \
+            release-artifacts/main.js \
+            release-artifacts/styles.css \
+            release-artifacts/manifest.json \
+            release-artifacts/checksums.txt
