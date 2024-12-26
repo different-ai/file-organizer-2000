@@ -5,34 +5,23 @@ module.exports = {
     '!./node_modules/**/*',
   ],
   theme: {
-    extend: {
-      // Extend colors to support Obsidian theme variables
-      colors: {
-        'obsidian': {
-          'accent': 'hsl(var(--accent-h), var(--accent-s), var(--accent-l))',
-          'bg-primary': 'var(--background-primary)',
-          'bg-secondary': 'var(--background-secondary)',
-          'text-normal': 'var(--text-normal)',
-          'text-muted': 'var(--text-muted)',
-          'text-faint': 'var(--text-faint)',
-          'text-error': 'var(--text-error)',
-          'text-success': 'var(--text-success)',
-          'text-warning': 'var(--text-warning)',
-          'interactive': 'var(--interactive-normal)',
-          'interactive-hover': 'var(--interactive-hover)',
-          'interactive-accent': 'var(--interactive-accent)',
-        }
+      extend: {
+          // Extend theme to use Obsidian CSS variables
+          colors: {
+              'obsidian': {
+                  'text': 'var(--text-normal)',
+                  'muted': 'var(--text-muted)',
+              'faint': 'var(--text-faint)',
+                  'accent': 'var(--text-accent)',
+                  'background': 'var(--background-primary)',
+                  'error': 'var(--text-error)',
+                  'success': 'var(--text-success)',
+              }
+          },
       },
-      backgroundColor: {
-        'modifier': {
-          'hover': 'var(--background-modifier-hover)',
-          'active': 'var(--background-modifier-active-hover)',
-          'border': 'var(--background-modifier-border)',
-        }
-      },
-    },
   },
   plugins: [],
-  // Prevent Tailwind from purging styles with CSS variable references
-
+  corePlugins: {
+      preflight: false, // Keeps Obsidian's base styles
+  },
 }

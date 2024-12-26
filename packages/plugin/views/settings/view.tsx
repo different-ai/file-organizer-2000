@@ -24,7 +24,7 @@ export class FileOrganizerSettingTab extends PluginSettingTab {
 
     this.root.render(
       <React.StrictMode>
-        <SettingsTabContent plugin={this.plugin} />
+          <SettingsTabContent plugin={this.plugin} />
       </React.StrictMode>
     );
   }
@@ -35,6 +35,7 @@ export class FileOrganizerSettingTab extends PluginSettingTab {
       this.root.unmount();
       this.root = null;
     }
+    this.containerEl.removeClass('fo2k-view');
   }
 }
 

@@ -64,11 +64,11 @@ function TabButton({
     <button
       onClick={onClick}
       className={`
-                px-3 py-2 text-sm font-medium  shadow-none cursor-pointer bg-transparent
+                fo-px-3 fo-py-2 fo-text-sm fo-font-medium fo-shadow-none fo-cursor-pointer fo-bg-transparent
        ${
          isActive
-           ? "bg[--interactive-accent] text[--text-on-accent] "
-           : "bg[--background-primary] text-[--text-muted] hover:bg[--background-modifier-hover]"
+           ? "fo-bg-[--interactive-accent] fo-text-[--text-on-accent] "
+           : "fo-bg-[--background-primary] fo-text-[--text-muted] hover:fo-bg-[--background-modifier-hover]"
        }
       `}
     >
@@ -176,7 +176,9 @@ export class AssistantViewWrapper extends ItemView {
   }
 
   async onOpen(): Promise<void> {
-    this.root = createRoot(this.containerEl.children[1]);
+    const container = this.containerEl.children[1];
+    container.addClass('fo2k-view');
+    this.root = createRoot(container);
     this.render();
   }
 
@@ -184,7 +186,6 @@ export class AssistantViewWrapper extends ItemView {
     this.root?.render(
       <AppContext.Provider value={{ plugin: this.plugin, root: this.root }}>
         <React.StrictMode>
-          <div className="h-full ">
             <AssistantContent
               plugin={this.plugin}
               leaf={this.leaf}
@@ -193,13 +194,13 @@ export class AssistantViewWrapper extends ItemView {
                 this.setActiveTab = setTab;
               }}
             />
-          </div>
         </React.StrictMode>
       </AppContext.Provider>
     );
   }
 
   async onClose(): Promise<void> {
+    this.containerEl.children[1].removeClass('fo2k-view');
     this.root?.unmount();
   }
 }
