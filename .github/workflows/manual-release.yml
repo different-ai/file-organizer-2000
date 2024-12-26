@@ -111,12 +111,27 @@ jobs:
       - name: Build plugin
         run: pnpm --filter "./packages/plugin" build
 
+      - name: Generate Release Notes
+        id: release_notes
+        env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+        run: |
+          # Build the release-notes package
+          pnpm --filter "@file-organizer/release-notes" build
+          
+          # Generate the release notes
+          cd packages/plugin
+          NOTES_JSON=$(node -r ts-node/register ../release-notes/dist/index.js ${{ steps.version.outputs.version }} $GITHUB_WORKSPACE)
+          echo "NOTES_JSON<<EOF" >> $GITHUB_ENV
+          echo "$NOTES_JSON" >> $GITHUB_ENV
+          echo "EOF" >> $GITHUB_ENV
+
       - name: Prepare release artifacts
         run: |
           mkdir -p release-artifacts
           cp packages/plugin/dist/main.js release-artifacts/
           cp packages/plugin/dist/styles.css release-artifacts/
-          cp packages/plugin/manifest.json release-artifacts/
+          cp manifest.json release-artifacts/
           
           # Create checksum file
           cd release-artifacts
@@ -127,18 +142,29 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          version=$(node -p "require('./packages/plugin/manifest.json').version")
+          version=$(node -p "require('./manifest.json').version")
+          
+          # Parse release notes JSON
+          RELEASE_NAME=$(echo "$NOTES_JSON" | jq -r '.name')
+          RELEASE_DESC=$(echo "$NOTES_JSON" | jq -r '.description')
+          TECHNICAL_CHANGES=$(echo "$NOTES_JSON" | jq -r '.technicalChanges | join("\n- ")')
           
           # Create release notes
-          echo "## Changes in this release" > release-notes.md
-          echo "Version bump: ${{ github.event.inputs.increment }}" >> release-notes.md
-          echo "" >> release-notes.md
-          echo "### SHA-256 Checksums" >> release-notes.md
-          cat release-artifacts/checksums.txt >> release-notes.md
+          {
+            echo "# $RELEASE_NAME"
+            echo ""
+            echo "$RELEASE_DESC"
+            echo ""
+            echo "## Technical Changes"
+            echo "- $TECHNICAL_CHANGES"
+            echo ""
+            echo "## SHA-256 Checksums"
+            cat release-artifacts/checksums.txt
+          } > release-notes.md
           
           # Create the release
           gh release create "$version" \
-            --title="Version $version" \
+            --title="$RELEASE_NAME" \
             --notes-file=release-notes.md \
             --draft=false \
             release-artifacts/main.js \
