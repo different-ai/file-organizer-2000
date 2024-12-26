@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "node esbuild.config.mjs",
     "build": "node esbuild.config.mjs production",
-    "version": "node version-bump.mjs && git add manifest.json versions.json",
+    "new-version": "node version-bump.mjs && git add manifest.json versions.json",
     "test": "ts-node ./standalone/index.test.ts",
     "release": "node release.js"
   },
