@@ -66,22 +66,35 @@ jobs:
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
 
-      - name: Update package.json version
+      - name: Update versions
+        id: version
         run: |
           cd packages/plugin
+          echo "Current directory: $(pwd)"
+          echo "Current package.json version: $(node -p "require('./package.json').version")"
+          echo "Current manifest.json version: $(node -p "require('./manifest.json').version")"
+          echo "Increment type: ${{ github.event.inputs.increment }}"
+          
+          # Update package.json and get new version
           NEW_VERSION=$(npm version ${{ github.event.inputs.increment }} --no-git-tag-version)
-          echo "NEW_VERSION=$NEW_VERSION" >> $GITHUB_ENV
-          cd ../..
-          git add packages/plugin/package.json
-
-      - name: Update manifest.json version
-        run: |
-          cd packages/plugin
           VERSION_NUMBER=${NEW_VERSION#v}
+          echo "New version (with v): $NEW_VERSION"
+          echo "New version (without v): $VERSION_NUMBER"
+          echo "version=$VERSION_NUMBER" >> $GITHUB_OUTPUT
+          
+          # Update manifest.json
           jq --arg version "$VERSION_NUMBER" '.version = $version' manifest.json > manifest.json.tmp && mv manifest.json.tmp manifest.json
-          git add manifest.json
+          
+          echo "Updated package.json version: $(node -p "require('./package.json').version")"
+          echo "Updated manifest.json version: $(node -p "require('./manifest.json').version")"
+          
+          # Stage and commit changes
+          git add package.json manifest.json
           cd ../..
-          git commit -m "chore(release): bump version to ${NEW_VERSION}"
+          echo "Files to be committed:"
+          git status --porcelain
+          git commit -m "chore(release): bump version to $VERSION_NUMBER"
+          echo "Commit created with version $VERSION_NUMBER"
           
       - name: Build plugin
         run: pnpm --filter "./packages/plugin" build
@@ -89,9 +102,8 @@ jobs:
       - name: Create Release
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          VERSION: ${{ steps.version.outputs.version }}
         run: |
-          version=$(node -p "require('./packages/plugin/manifest.json').version")
-          
           # Create a temporary directory for release files
           mkdir release
           cp packages/plugin/dist/main.js release/
@@ -103,8 +115,8 @@ jobs:
           echo "Version bump: ${{ github.event.inputs.increment }}" >> release/notes.md
           
           # Create the release
-          gh release create "$version" \
-            --title="Version $version" \
+          gh release create "$VERSION" \
+            --title="Version $VERSION" \
             --notes-file=release/notes.md \
             --draft=false \
             release/main.js \
@@ -112,10 +124,9 @@ jobs:
             release/manifest.json
 
       - name: Create and push tag
-        run: |
-          cd packages/plugin
-          version=$(node -p "require('./manifest.json').version")
-          git tag -a "$version" -m "Release $version"
-          git push origin "$version"
         env:
+          VERSION: ${{ steps.version.outputs.version }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          git tag -a "$VERSION" -m "Release $VERSION"
+          git push origin "$VERSION"
