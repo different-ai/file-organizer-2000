@@ -1,0 +1,84 @@
+name: Manual Plugin Release
+
+on:
+  workflow_dispatch:
+    inputs:
+      increment:
+        description: 'Version increment type'
+        required: true
+        type: choice
+        options:
+          - patch
+          - minor
+          - major
+        default: 'patch'
+
+jobs:
+  check_release:
+    runs-on: ubuntu-latest
+    outputs:
+      is_releasing: ${{ steps.check.outputs.is_releasing }}
+    steps:
+      - id: check
+        name: Check for running release workflows
+        run: |
+          # Get running workflows
+          running=$(gh api /repos/${{ github.repository }}/actions/runs \
+            --jq '.workflow_runs[] | select(.status=="in_progress" and (.name=="Release Obsidian Plugin" or .name=="Manual Plugin Release")) | .id' \
+            | wc -l)
+          
+          # If any release workflows are running (besides this one), set output
+          if [ "$running" -gt "1" ]; then
+            echo "is_releasing=true" >> $GITHUB_OUTPUT
+            echo "::error::A release is already in progress. Please wait for it to complete."
+            exit 1
+          else
+            echo "is_releasing=false" >> $GITHUB_OUTPUT
+          fi
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  release:
+    needs: check_release
+    if: needs.check_release.outputs.is_releasing != 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Use Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: "18.x"
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: 8
+
+      - name: Install dependencies
+        run: pnpm install
+
+      - name: Configure Git
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+
+      - name: Increment version
+        run: |
+          cd packages/plugin
+          pnpm version ${{ github.event.inputs.increment }} --no-git-tag-version
+
+      - name: Update manifest and versions
+        run: |
+          cd packages/plugin
+          pnpm run version
+
+      - name: Create and push tag
+        run: |
+          cd packages/plugin
+          node commit.js
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
