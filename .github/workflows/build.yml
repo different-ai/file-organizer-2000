@@ -1,1 +1,41 @@
- 
+name: Build Obsidian Plugin
+
+on:
+  push:
+    paths:
+      - 'packages/plugin/**'
+  pull_request:
+    paths:
+      - 'packages/plugin/**'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Use Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: "18.x"
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: 8
+
+      - name: Install dependencies
+        run: |
+          cd packages/plugin
+          pnpm install
+
+      - name: Build plugin
+        run: |
+          cd packages/plugin
+          GITHUB_ACTIONS=true pnpm build
+
+      - name: Run tests
+        run: |
+          cd packages/plugin
+          pnpm test  
