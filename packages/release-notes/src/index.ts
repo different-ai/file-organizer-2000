@@ -93,6 +93,7 @@ export async function generateReleaseNotes(version: string, options: GenerateOpt
 
   const model = openai('gpt-4o');
   const diff = getDiff(options.repoRoot);
+  console.log('Diff:', diff);
 
   try {
     const { object } = await generateObject({
