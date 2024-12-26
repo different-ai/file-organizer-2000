@@ -4,14 +4,14 @@ on:
   workflow_dispatch:
     inputs:
       increment:
-        description: 'Version increment type'
+        description: "Version increment type"
         required: true
         type: choice
         options:
           - patch
           - minor
           - major
-        default: 'patch'
+        default: "patch"
 
 jobs:
   check_release:
@@ -26,7 +26,7 @@ jobs:
           running=$(gh api /repos/${{ github.repository }}/actions/runs \
             --jq '.workflow_runs[] | select(.status=="in_progress" and (.name=="Release Obsidian Plugin" or .name=="Manual Plugin Release")) | .id' \
             | wc -l)
-          
+
           # If any release workflows are running (besides this one), set output
           if [ "$running" -gt "1" ]; then
             echo "is_releasing=true" >> $GITHUB_OUTPUT
@@ -74,20 +74,22 @@ jobs:
           echo "Current package.json version: $(node -p "require('./package.json').version")"
           echo "Current manifest.json version: $(node -p "require('./manifest.json').version")"
           echo "Increment type: ${{ github.event.inputs.increment }}"
-          
+
           # Update package.json and get new version
           NEW_VERSION=$(npm version ${{ github.event.inputs.increment }} --no-git-tag-version)
           VERSION_NUMBER=${NEW_VERSION#v}
           echo "New version (with v): $NEW_VERSION"
           echo "New version (without v): $VERSION_NUMBER"
-          echo "version=$VERSION_NUMBER" >> $GITHUB_OUTPUT
-          
+
+          # NOTE: Just a direct echo without curly braces
+          echo "version=${VERSION_NUMBER}" >> "$GITHUB_OUTPUT"
+
           # Update manifest.json
           jq --arg version "$VERSION_NUMBER" '.version = $version' manifest.json > manifest.json.tmp && mv manifest.json.tmp manifest.json
-          
+
           echo "Updated package.json version: $(node -p "require('./package.json').version")"
           echo "Updated manifest.json version: $(node -p "require('./manifest.json').version")"
-          
+
           # Stage and commit changes
           git add package.json manifest.json
           cd ../..
@@ -95,38 +97,3 @@ jobs:
           git status --porcelain
           git commit -m "chore(release): bump version to $VERSION_NUMBER"
           echo "Commit created with version $VERSION_NUMBER"
-          
-      - name: Build plugin
-        run: pnpm --filter "./packages/plugin" build
-
-      - name: Create Release
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          VERSION: ${{ steps.version.outputs.version }}
-        run: |
-          # Create a temporary directory for release files
-          mkdir release
-          cp packages/plugin/dist/main.js release/
-          cp packages/plugin/dist/styles.css release/
-          cp packages/plugin/manifest.json release/
-          
-          # Create release notes
-          echo "## Changes in this release" > release/notes.md
-          echo "Version bump: ${{ github.event.inputs.increment }}" >> release/notes.md
-          
-          # Create the release
-          gh release create "$VERSION" \
-            --title="Version $VERSION" \
-            --notes-file=release/notes.md \
-            --draft=false \
-            release/main.js \
-            release/styles.css \
-            release/manifest.json
-
-      - name: Create and push tag
-        env:
-          VERSION: ${{ steps.version.outputs.version }}
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          git tag -a "$VERSION" -m "Release $VERSION"
-          git push origin "$VERSION"
