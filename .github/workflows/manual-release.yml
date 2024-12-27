@@ -120,7 +120,7 @@ jobs:
           
           # Generate the release notes
           cd packages/plugin
-          NOTES_JSON=$(node -r ts-node/register ../release-notes/dist/index.js ${{ steps.version.outputs.version }} $GITHUB_WORKSPACE)
+          NOTES_JSON=$(node -r ts-node/register ../release-notes/dist/index.js ${{ steps.version.outputs.version }} )
           echo "NOTES_JSON<<EOF" >> $GITHUB_ENV
           echo "$NOTES_JSON" >> $GITHUB_ENV
           echo "EOF" >> $GITHUB_ENV
