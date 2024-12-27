@@ -24,36 +24,28 @@ export type ReleaseNotes = z.infer<typeof releaseNotesSchema>["releaseNotes"];
 
 function getDiff(repoRoot: string, targetVersion: string): string {
   try {
-    // Get the current version from manifest.json
-    const manifestPath = path.join(repoRoot, "manifest.json");
-    const manifest = require(manifestPath);
-    const currentVersion = manifest.version;
-
-    // Compare target version with current version
-    const versionInfo = `Changes between v${currentVersion} and v${targetVersion}\n\n`;
-
-    // Get the diff between current version and target version,
-    // excluding gitignored files by limiting the diff to tracked files only
-    const diff = execSync(`git diff ${targetVersion} -- .`, {
+    const diff = execSync(`git diff ${targetVersion} -- packages/plugin`, {
       encoding: "utf-8",
       cwd: repoRoot,
     });
 
-    // Retrieve and log all changed files since the target version
-    const changedFilesOutput = execSync(`git diff --name-only ${targetVersion} -- .`, {
-      encoding: "utf-8",
-      cwd: repoRoot,
-    });
+    const changedFilesOutput = execSync(
+      `git diff --name-only ${targetVersion} -- packages/plugin`,
+      {
+        encoding: "utf-8",
+        cwd: repoRoot,
+      }
+    );
 
     const changedFiles = changedFilesOutput
       .split("\n")
-      .map(file => file.trim())
-      .filter(file => file.length > 0);
+      .map((file) => file.trim())
+      .filter((file) => file.startsWith("packages/plugin/") && file.length > 0);
 
-    console.log("Changed files since release:");
-    changedFiles.forEach(file => console.log(`- ${file}`));
+    console.log("Changed files in packages/plugin:");
+    changedFiles.forEach((file) => console.log(`- ${file}`));
 
-    return versionInfo + diff;
+    return `Changes in packages/plugin:\n\n${diff}`;
   } catch (error) {
     console.error("Error getting git diff:", error);
     return "";
@@ -85,7 +77,8 @@ export async function generateReleaseNotes(
 Given the following git diff between versions, generate a user-friendly release name and description.
 Focus on the user-facing changes and new features that will benefit users.
 
-${diff}`,
+// only use first 100k characters of diff
+${diff.slice(0, 100000)}`,
     });
 
     return object.releaseNotes;

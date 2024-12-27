@@ -46,7 +46,7 @@ jobs:
       - name: Check out repository
         uses: actions/checkout@v3
         with:
-          # Use a full checkout so the version bump can be committed & pushed
+          # Use a full checkout to ensure all history is available
           fetch-depth: 0
           token: ${{ secrets.GITHUB_TOKEN }}
 
@@ -78,16 +78,16 @@ jobs:
           echo "Current manifest.json version: $(node -p "require('../../manifest.json').version")"
           echo "Increment type: ${{ github.event.inputs.increment }}"
 
-          # Bump version in package.json (using npm's built-in version command)
+          # Bump version in package.json
           NEW_VERSION=$(npm version ${{ github.event.inputs.increment }} --no-git-tag-version)
           VERSION_NUMBER=${NEW_VERSION#v}
           echo "New version (with v): $NEW_VERSION"
           echo "New version (stripped): $VERSION_NUMBER"
 
-          # Make new version available to subsequent steps
+          # Export the new version for subsequent steps
           echo "version=${VERSION_NUMBER}" >> "$GITHUB_OUTPUT"
 
-          # Update root manifest.json to match
+          # Update root manifest.json to match the new version
           cd ../..
           jq --arg version "$VERSION_NUMBER" '.version = $version' manifest.json > manifest.json.tmp
           mv manifest.json.tmp manifest.json
@@ -103,7 +103,6 @@ jobs:
           echo "Commit created with version $VERSION_NUMBER"
 
       - name: Push changes
-        # Push the newly bumped version back to the repo
         run: git push origin HEAD
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -149,7 +148,7 @@ jobs:
           RELEASE_DESC=$(echo "$NOTES_JSON" | jq -r '.description')
           TECHNICAL_CHANGES=$(echo "$NOTES_JSON" | jq -r '.technicalChanges | join("\n- ")')
           
-          # Create release notes
+          # Create release notes markdown
           {
             echo "# $RELEASE_NAME"
             echo ""
@@ -162,7 +161,7 @@ jobs:
             cat release-artifacts/checksums.txt
           } > release-notes.md
           
-          # Create the release
+          # Create the GitHub release
           gh release create "$version" \
             --title="$RELEASE_NAME" \
             --notes-file=release-notes.md \
