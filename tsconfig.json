@@ -8,7 +8,12 @@
     "forceConsistentCasingInFileNames": true,
     "jsx": "react-jsx",
     "composite": true,
-    "declaration": true
+    "declaration": true,
+    "baseUrl": ".",
+    "paths": {
+      "@file-organizer/*": ["packages/*/src"],
+      "@/*": ["packages/web/*"]
+    }
   },
   "references": [
     { "path": "packages/shared" },

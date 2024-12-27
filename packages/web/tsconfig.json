@@ -32,7 +32,9 @@
     "**/*.tsx",
     ".next/types/**/*.ts",
     "types/**/*.d.ts",
-    "drizzle/envConfig.js"
+    "drizzle/envConfig.js",
+    "components/**/*.ts",
+    "components/**/*.tsx"
   ],
   "exclude": ["node_modules"],
   "references": [
