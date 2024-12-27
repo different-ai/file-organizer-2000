@@ -1,10 +1,12 @@
-'use client';
+
+"use client";
+import * as React from "react";
 
 import { useState } from "react";
 import { claimTokens } from "./actions";
 import { Button } from "@/components/ui/button";
 
-export const ClaimButton: React.FC = () => {
+export const ClaimButton = () => {
   const [loading, setLoading] = useState(false);
   const [claimed, setClaimed] = useState(false);
   const [error, setError] = useState("");
@@ -14,7 +16,7 @@ export const ClaimButton: React.FC = () => {
     try {
       setLoading(true);
       setError("");
-      
+
       const result = await claimTokens();
 
       if (result.success) {
@@ -34,24 +36,22 @@ export const ClaimButton: React.FC = () => {
   if (claimed) {
     return (
       <div className="text-center">
-        <p className="text-green-600 font-semibold mb-2">🎉 Successfully claimed 5M tokens!</p>
-        <p className="text-sm text-gray-600">Your new token limit: {maxTokens.toLocaleString()}</p>
+        <p className="text-green-600 font-semibold mb-2">
+          🎉 Successfully claimed 5M tokens!
+        </p>
+        <p className="text-sm text-gray-600">
+          Your new token limit: {maxTokens.toLocaleString()}
+        </p>
       </div>
     );
   }
 
   return (
     <div className="text-center">
-      <Button
-        onClick={handleClaim}
-        disabled={loading}
-        size="lg"
-      >
+      <Button onClick={handleClaim} disabled={loading} size="lg">
         {loading ? "Claiming..." : "Claim 5M Tokens"}
       </Button>
-      {error && (
-        <p className="mt-2 text-red-600 text-sm">{error}</p>
-      )}
+      {error && <p className="mt-2 text-red-600 text-sm">{error}</p>}
     </div>
   );
-}
+};

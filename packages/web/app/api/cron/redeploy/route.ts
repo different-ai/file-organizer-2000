@@ -9,9 +9,9 @@ const CRON_SECRET = process.env.CRON_SECRET;
 export async function GET(request: Request) {
     console.log("Redeploy cron job started");
   // Verify the request is from Vercel Cron
-  const headersList = headers();
-  const authHeader = headersList.get('authorization');
-  
+  const headersList = await headers();
+  const authHeader = headersList.get("authorization");
+
   if (authHeader !== `Bearer ${CRON_SECRET}`) {
     return new NextResponse('Unauthorized', { status: 401 });
   }

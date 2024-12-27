@@ -1,3 +1,4 @@
+import React from 'react'
 import { ClaimButton } from './claim-button';
 
 export default function ClaimOfferPage() {

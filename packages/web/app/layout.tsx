@@ -5,10 +5,6 @@ import dynamic from "next/dynamic";
 import Logo from "@/components/ui/logo";
 import { Toaster } from "react-hot-toast";
 
-const PostHogPageView = dynamic(() => import("./posthog-page-view"), {
-  ssr: false,
-});
-
 import "./globals.css";
 import Link from "next/link";
 import UserManagement from "@/components/user-management";
@@ -28,7 +24,6 @@ export default function RootLayout({
       <html lang="en">
         <PHProvider>
           <body className="">
-            <PostHogPageView />
             <Toaster />
             <header className="p-4 border-b border-stone-300">
               <nav className="max-w-9xl mx-auto flex items-center space-x-6 justify-between w-full">

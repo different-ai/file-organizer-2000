@@ -21,7 +21,7 @@ import {
   createPayOnceOneYearCheckout,
 } from "@/app/dashboard/pricing/actions";
 
-export function PricingCards(): JSX.Element {
+export function PricingCards() {
   const [isYearly, setIsYearly] = useState(true);
   const [isLifetime, setIsLifetime] = useState(false);
 
@@ -40,9 +40,7 @@ export function PricingCards(): JSX.Element {
     }
   };
 
-  const renderPlanCard = (
-    planType: "subscription" | "lifetime"
-  ): JSX.Element => {
+  const renderPlanCard = (planType: "subscription" | "lifetime") => {
     const isSubscription = planType === "subscription";
     const planKey = isSubscription
       ? isYearly
