@@ -2,6 +2,19 @@ import React from 'react';
 import { ModelType } from './types';
 import { usePlugin } from '../provider';
 
+// Add a mapping for display names
+const MODEL_DISPLAY_NAMES: Record<ModelType, string> = {
+  'gpt-4o': 'Classic',
+  'llama3.2': 'Local LLM',
+  'gemini-2.0-flash-exp': 'Internet Search',
+  'custom': 'Ollama Model'
+} as const;
+
+// Helper to get display name
+const getDisplayName = (model: ModelType): string => {
+  return MODEL_DISPLAY_NAMES[model] || model;
+};
+
 interface ModelSelectorProps {
   selectedModel: ModelType;
   onModelSelect: (model: ModelType) => void;
@@ -45,7 +58,7 @@ export const ModelSelector: React.FC<ModelSelectorProps> = ({
           onClick={() => plugin.settings.showLocalLLMInChat && setIsModelSelectorOpen(!isModelSelectorOpen)}
           className={`flex items-center space-x-1 text-[--text-muted] hover:text-[--text-normal] text-sm bg-[--background-primary-alt] ${plugin.settings.showLocalLLMInChat ? 'hover:bg-[--background-modifier-hover] cursor-pointer' : ''} px-2 py-1 rounded`}
         >
-          <span>{selectedModel}</span>
+          <span>{getDisplayName(selectedModel)}</span>
           {plugin.settings.showLocalLLMInChat && (
             <svg
               xmlns="http://www.w3.org/2000/svg"
@@ -70,13 +83,13 @@ export const ModelSelector: React.FC<ModelSelectorProps> = ({
                 onClick={() => handleModelSelect("gpt-4o")}
                 className="cursor-pointer block w-full text-left px-4 py-2 text-sm text-[--text-normal] hover:bg-[--background-modifier-hover]"
               >
-                gpt-4o
+                {getDisplayName("gpt-4o")}
               </div>
               <div
                 onClick={() => handleModelSelect("gemini-2.0-flash-exp")}
                 className="cursor-pointer block w-full text-left px-4 py-2 text-sm text-[--text-normal] hover:bg-[--background-modifier-hover]"
               >
-                gemini-2.0-flash-exp
+                {getDisplayName("gemini-2.0-flash-exp")}
               </div>
               {isCustomizing ? (
                 <div className="px-4 py-2">
@@ -107,7 +120,7 @@ export const ModelSelector: React.FC<ModelSelectorProps> = ({
                   onClick={() => handleModelSelect("custom")}
                   className="cursor-pointer block w-full text-left px-4 py-2 text-sm text-[--text-normal] hover:bg-[--background-modifier-hover]"
                 >
-                  Custom Model
+                  {getDisplayName("custom")}
                 </div>
               )}
             </div>
