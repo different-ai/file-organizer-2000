@@ -1,31 +1,29 @@
-# vscode
+# VSCode
+.vscode/
 
-.turbo/*
-
-*/.turbo/*
-
-.vscode 
-
-# Intellij
+# IntelliJ
 *.iml
-.idea
+.idea/
 
-*/dist/*
+# Build directories
+/dist/
+node_modules/
 
-# npm
-node_modules
-
-# Don't include the compiled main.js file in the repo.
-# They should be uploaded to GitHub releases instead.
+# Compiled files
 main.js
 
-# Exclude sourcemaps
+# Source maps
 *.map
 
-# obsidian
+# Obsidian
 data.json
 
-# Exclude macOS Finder (System Explorer) View States
+# macOS Finder
 .DS_Store
 
+# Tailwind CSS
 /styles.css
+
+# Turbo build cache
+.turbo/
+**/.turbo/
