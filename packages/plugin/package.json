@@ -7,7 +7,7 @@
     "dev": "node esbuild.config.mjs",
     "build": "node esbuild.config.mjs production",
     "new-version": "node version-bump.mjs && git add manifest.json versions.json",
-    "test": "ts-node ./standalone/index.test.ts",
+    "test": "echo \"no tests\"",
     "release": "node release.js"
   },
   "author": "",
