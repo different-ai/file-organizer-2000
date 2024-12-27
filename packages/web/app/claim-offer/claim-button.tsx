@@ -4,7 +4,7 @@ import { useState } from "react";
 import { claimTokens } from "./actions";
 import { Button } from "@/components/ui/button";
 
-export function ClaimButton() {
+export const ClaimButton: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [claimed, setClaimed] = useState(false);
   const [error, setError] = useState("");
@@ -23,8 +23,9 @@ export function ClaimButton() {
       } else {
         setError(result.error || "Failed to claim tokens");
       }
-    } catch (err: any) {
-      setError(err.message || "Failed to claim tokens");
+    } catch (err: Error | unknown) {
+      const error = err as Error;
+      setError(error.message || "Failed to claim tokens");
     } finally {
       setLoading(false);
     }
