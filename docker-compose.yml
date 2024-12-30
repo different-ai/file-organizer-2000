@@ -1,4 +1,3 @@
-version: '3'
 services:
   app:
     build:
@@ -17,5 +16,3 @@ services:
       - MODEL_FOLDERS=${MODEL_FOLDERS}
 
       - OLLAMA_API_URL=${OLLAMA_API_URL}
-    env_file:
-      - app/.env.local

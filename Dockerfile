@@ -1,23 +1,26 @@
 # Use an official Node.js runtime as the base image
-FROM node:18
+FROM node:20
 
 # Set the working directory in the container
 WORKDIR /app
 
-# Copy package.json and package-lock.json to the working directory
-COPY app/package*.json ./
+# Copy the rest of the application code to the working directory
+COPY . .
+
+# install pnpm
+RUN npm install -g pnpm
+
+# Set the working directory to the web package
+WORKDIR /app/packages/web
 
 # Install the application dependencies
-RUN npm ci
-
-# Copy the rest of the application code to the working directory
-COPY app/ .
+RUN pnpm install
 
 # Build the Next.js application
-RUN npm run build
+RUN pnpm run build:self-host
 
 # Expose the port on which the application will run
 EXPOSE 3000
 
 # Set the command to run the application
-CMD ["npm", "start"]
+CMD ["pnpm", "run", "start"]
