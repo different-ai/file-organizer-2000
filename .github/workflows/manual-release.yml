@@ -133,7 +133,7 @@ jobs:
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
         run: |
           # Build all packages including release-notes
-          pnpm build
+          pnpm build --filter "@file-organizer/release-notes"
 
           # Execute the compiled release notes generator
           NOTES_JSON=$(node packages/release-notes/dist/index.js ${{ steps.version.outputs.previous_version }})
