@@ -86,6 +86,10 @@ jobs:
         run: |
           cd packages/plugin
 
+          # Get the previous version before any updates
+          PREVIOUS_VERSION=$(node -p "require('../../manifest.json').version")
+          echo "previous_version=${PREVIOUS_VERSION}" >> "$GITHUB_OUTPUT"
+
           echo "Current directory: $(pwd)"
           echo "Current package.json version: $(node -p "require('./package.json').version")"
           echo "Current manifest.json version: $(node -p "require('../../manifest.json').version")"
@@ -131,10 +135,8 @@ jobs:
           # Build the release-notes package
           pnpm --filter "@file-organizer/release-notes" build
 
-          previous_version=$(node -p "require('./manifest.json').version")
-          # Generate the release notes
-          cd packages/plugin
-          NOTES_JSON=$(node -r ts-node/register ../release-notes/dist/index.js $previous_version )
+          # Use the stored previous version from the version step
+          NOTES_JSON=$(node -r ts-node/register ../release-notes/dist/index.js ${{ steps.version.outputs.previous_version }} )
           echo "NOTES_JSON<<EOF" >> $GITHUB_ENV
           echo "$NOTES_JSON" >> $GITHUB_ENV
           echo "EOF" >> $GITHUB_ENV
