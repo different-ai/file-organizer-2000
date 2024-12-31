@@ -25,6 +25,7 @@ import { ClearAllButton } from "./components/clear-all-button";
 import { useCurrentFile } from "./hooks/use-current-file";
 import { SearchAnnotationHandler } from "./tool-handlers/search-annotation-handler";
 import { isSearchResultsAnnotation, SearchResultsAnnotation } from "./types/annotations";
+import { ExamplePrompts } from "./components/example-prompts";
 
 interface ChatComponentProps {
   plugin: FileOrganizer;
@@ -212,38 +213,51 @@ export const ChatComponent: React.FC<ChatComponentProps> = ({
     } as React.ChangeEvent<HTMLInputElement>);
   };
 
+  const handleExampleClick = (prompt: string) => {
+    handleInputChange({
+      target: { value: prompt },
+    } as React.ChangeEvent<HTMLInputElement>);
+  };
+
   return (
     <div className="flex flex-col h-full">
       <div className="flex-grow overflow-y-auto p-4 h-full">
         <div className="flex flex-col min-h-min-content">
-          {messages.map(message => (
-            <React.Fragment key={message.id}>
-              <MessageRenderer message={message} />
-              {message.annotations?.map((annotation, index) => {
-                if (isSearchResultsAnnotation(annotation)) {
-                  return (
-                    <SearchAnnotationHandler
-                      key={`${message.id}-annotation-${index}`}
-                      annotation={annotation as SearchResultsAnnotation}
-                    />
-                  );
-                }
-                return null;
-              })}
-              {message.toolInvocations?.map(
-                (toolInvocation: ToolInvocation) => {
-                  return (
-                    <ToolInvocationHandler
-                      key={toolInvocation.toolCallId}
-                      toolInvocation={toolInvocation}
-                      addToolResult={addToolResult}
-                      app={app}
-                    />
-                  );
-                }
-              )}
-            </React.Fragment>
-          ))}
+          {messages.length === 0 ? (
+            <div className="flex flex-col items-center justify-center h-full">
+              <h3 className="text-[--text-normal] mb-4">Try these examples</h3>
+              <ExamplePrompts onExampleClick={handleExampleClick} />
+            </div>
+          ) : (
+            messages.map(message => (
+              <React.Fragment key={message.id}>
+                <MessageRenderer message={message} />
+                {message.annotations?.map((annotation, index) => {
+                  if (isSearchResultsAnnotation(annotation)) {
+                    return (
+                      <SearchAnnotationHandler
+                        key={`${message.id}-annotation-${index}`}
+                        annotation={annotation as SearchResultsAnnotation}
+                      />
+                    );
+                  }
+                  return null;
+                })}
+                {message.toolInvocations?.map(
+                  (toolInvocation: ToolInvocation) => {
+                    return (
+                      <ToolInvocationHandler
+                        key={toolInvocation.toolCallId}
+                        toolInvocation={toolInvocation}
+                        addToolResult={addToolResult}
+                        app={app}
+                      />
+                    );
+                  }
+                )}
+              </React.Fragment>
+            ))
+          )}
           <div ref={messagesEndRef} />
           {groundingMetadata && (
             <SourcesSection groundingMetadata={groundingMetadata} />
