@@ -2,9 +2,9 @@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { AutomatedSetup } from "./automated-setup";
 import { LegacySetup } from "./legacy-setup";
-import { InfoIcon, BookOpenIcon, Link, ArrowLeftIcon } from "lucide-react";
+import { InfoIcon, BookOpenIcon, } from "lucide-react";
 import { Button } from "@/components/ui/button";
-
+import Link from "next/link";
 export default function LifetimeAccessPage() {
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-100 to-gray-200 dark:from-gray-900 dark:to-gray-800">
@@ -18,6 +18,22 @@ export default function LifetimeAccessPage() {
           </TabsList>
 
           <TabsContent value="automated">
+            <div className="flex items-center justify-between mb-6 p-4 rounded-lg border bg-card">
+              <div className="space-y-1">
+                <p className="text-sm text-muted-foreground">
+                  Already deployed your instance?
+                </p>
+                <p className="text-xs text-muted-foreground">
+                  Visit your deployment dashboard to manage models and API keys
+                </p>
+              </div>
+              <Link href="/dashboard/deployment" className="shrink-0">
+                <Button variant="outline" className="gap-2">
+                  Deployment Dashboard
+                </Button>
+              </Link>
+            </div>
+
             <div className="space-y-6 mb-8">
               <div className="rounded-lg border bg-card shadow-sm transition-all">
                 <div className="flex items-center gap-3 border-b p-4">
@@ -75,12 +91,7 @@ export default function LifetimeAccessPage() {
             </div>
             <AutomatedSetup />
             {/* if you alread deployed you can also check out the deployment page */}
-            <Link href="/dashboard/deployment">
-              <Button>
-                <ArrowLeftIcon className="h-4 w-4" />
-                Back to Dashboard
-              </Button>
-            </Link>
+
           </TabsContent>
 
           <TabsContent value="legacy">
