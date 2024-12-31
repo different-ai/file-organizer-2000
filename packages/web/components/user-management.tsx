@@ -5,7 +5,7 @@ import { auth } from "@clerk/nextjs/server";
 import { isPaidUser } from "@/app/actions";
 
 export default async function UserManagement() {
-  const { userId } = auth();
+  const { userId } = await auth();
   const isPaid = await isPaidUser(userId);
 
   return (

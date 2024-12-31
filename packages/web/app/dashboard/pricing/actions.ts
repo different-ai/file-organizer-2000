@@ -20,7 +20,7 @@ const getUrls = () => {
 };
 
 export async function createPayOnceLifetimeCheckout() {
-  const { userId } = auth();
+  const { userId } = await auth();
   if (!userId) throw new Error("Not authenticated");
   const metadata = {
     userId,
@@ -58,7 +58,7 @@ export async function createPayOnceLifetimeCheckout() {
 }
 
 export async function createMonthlySubscriptionCheckout() {
-  const { userId } = auth();
+  const { userId } = await auth();
   if (!userId) throw new Error("Not authenticated");
 
   const { success, cancel } = getUrls();
@@ -139,14 +139,14 @@ export async function createYearlySession(userId: string) {
 }
 
 export async function createYearlySubscriptionCheckout() {
-  const { userId } = auth();
+  const { userId } = await auth();
   if (!userId) throw new Error("Not authenticated");
   const session = await createYearlySession(userId);
   redirect(session.url!);
 }
 
 export async function createPayOnceOneYearCheckout() {
-  const { userId } = auth();
+  const { userId } = await auth();
   if (!userId) throw new Error("Not authenticated");
 
   const { success, cancel } = getUrls();

@@ -6,7 +6,7 @@ import { eq } from "drizzle-orm";
 
 export async function POST() {
   try {
-    const { userId } = auth();
+    const { userId } = await auth();
     if (!userId) {
       return new NextResponse("Unauthorized", { status: 401 });
     }

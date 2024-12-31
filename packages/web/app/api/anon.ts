@@ -3,7 +3,8 @@ import { auth, clerkClient } from "@clerk/nextjs/server";
 // Create an anonymous user
 export const createAnonymousUser = async () => {
   try {
-    const user = await clerkClient().users.createUser({
+    const client = await clerkClient();
+    const user = await client.users.createUser({
       skipPasswordRequirement: true,
       skipPasswordChecks: true,
       firstName: 'Anonymous',
@@ -22,7 +23,8 @@ export const createAnonymousUser = async () => {
 export const updateAnonymousUserEmail = async (userId: string, newEmail: string) => {
   console.log("updateAnonymousUserEmail", userId, newEmail);
   try {
-    const user = await clerkClient().users.getUser(userId);
+    const client = await clerkClient();
+    const user = await client.users.getUser(userId);
     
     // Check if the user has an anonymous email
     const isAnonymous = user.emailAddresses.some(email => 
@@ -32,7 +34,7 @@ export const updateAnonymousUserEmail = async (userId: string, newEmail: string)
 
     if (isAnonymous) {
       // First create the new email address
-      await clerkClient().emailAddresses.createEmailAddress({
+      await client.emailAddresses.createEmailAddress({
         userId: userId,
         emailAddress: newEmail,
         primary: true,
@@ -47,7 +49,7 @@ export const updateAnonymousUserEmail = async (userId: string, newEmail: string)
       );
       console.log("anonymousEmail", anonymousEmail);
       if (anonymousEmail) {
-        await clerkClient().emailAddresses.deleteEmailAddress(anonymousEmail.id);
+        await client.emailAddresses.deleteEmailAddress(anonymousEmail.id);
       }
 
       console.log(`Updated email for user ${userId} to ${newEmail}`);

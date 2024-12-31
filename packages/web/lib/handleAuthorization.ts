@@ -1,4 +1,4 @@
-import { clerkClient } from "@clerk/nextjs/server";
+import {  clerkClient } from "@clerk/nextjs/server";
 import { verifyKey } from "@unkey/api";
 import { NextRequest } from "next/server";
 import { checkTokenUsage } from "../drizzle/schema";
@@ -13,8 +13,8 @@ async function handleLogging(
   userId: string,
   isCustomer: boolean
 ) {
-  const user = await clerkClient().users.getUser(userId);
-  console.log("user", user.emailAddresses[0]?.emailAddress);
+  const authClient = await clerkClient();
+  const user = await authClient.users.getUser(userId);
   const client = PostHogClient();
   if (client) {
     client.capture({
@@ -33,11 +33,12 @@ async function handleLoggingV2(
   req: NextRequest,
   userId: string,
 ) {
-  const user = await clerkClient.users.getUser(userId);
+  const client = await clerkClient();
+  const user = await client.users.getUser(userId);
   console.log("user", user.emailAddresses[0]?.emailAddress);
-  const client = PostHogClient();
-  if (client) {
-    client.capture({
+  const posthogClient = PostHogClient();
+  if (posthogClient) {
+    posthogClient.capture({
       distinctId: userId,
       event: "call-api",
       properties: {

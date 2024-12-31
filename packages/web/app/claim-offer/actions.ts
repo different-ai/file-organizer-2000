@@ -14,7 +14,7 @@ export async function claimTokens() {
     }
 
     // Get authenticated user
-    const { userId } = auth();
+    const { userId } = await auth();
     if (!userId) {
       return { error: "You must be logged in to claim tokens" };
     }

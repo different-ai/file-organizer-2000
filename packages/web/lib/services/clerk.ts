@@ -3,7 +3,8 @@ import { CustomerData } from '../../app/api/webhook/types';
 
 export async function updateClerkMetadata(data: CustomerData) {
   try {
-    await clerkClient().users.updateUserMetadata(data.userId, {
+    const client = await clerkClient();
+    await client.users.updateUserMetadata(data.userId, {
       publicMetadata: {
         stripe: {
           customerId: data.customerId,

@@ -47,7 +47,7 @@ export async function createLicenseKeyFromUserId(userId: string) {
 
 export async function createLicenseKey() {
   "use server";
-  const { userId } = auth();
+  const { userId } = await auth();
   console.log("Creating license key - User authenticated:", !!userId);
   if (!userId) {
     return null;

@@ -21,7 +21,7 @@
     "@ai-sdk/anthropic": "^1.0.6",
     "@ai-sdk/openai": "^1.0.6",
     "@browserbasehq/stagehand": "^1.5.0",
-    "@clerk/nextjs": "^5.7.5",
+    "@clerk/nextjs": "^6.9.6",
     "@hookform/resolvers": "^3.9.1",
     "@radix-ui/react-dialog": "^1.1.2",
     "@radix-ui/react-label": "^2.1.0",

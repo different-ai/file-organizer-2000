@@ -6,7 +6,7 @@ import { Vercel } from "@vercel/sdk";
 
 export async function GET() {
   try {
-    const { userId } = auth();
+    const { userId } = await auth();
     if (!userId) {
       return new NextResponse("Unauthorized", { status: 401 });
     }

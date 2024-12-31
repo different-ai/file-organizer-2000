@@ -2,7 +2,8 @@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { AutomatedSetup } from "./automated-setup";
 import { LegacySetup } from "./legacy-setup";
-import { InfoIcon, BookOpenIcon } from "lucide-react";
+import { InfoIcon, BookOpenIcon, Link, ArrowLeftIcon } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
 export default function LifetimeAccessPage() {
   return (
@@ -73,6 +74,13 @@ export default function LifetimeAccessPage() {
               </div>
             </div>
             <AutomatedSetup />
+            {/* if you alread deployed you can also check out the deployment page */}
+            <Link href="/dashboard/deployment">
+              <Button>
+                <ArrowLeftIcon className="h-4 w-4" />
+                Back to Dashboard
+              </Button>
+            </Link>
           </TabsContent>
 
           <TabsContent value="legacy">

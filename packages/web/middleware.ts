@@ -20,7 +20,7 @@ const userManagementMiddleware = () =>
       return NextResponse.next();
     }
     if (isCheckoutApiRoute(req) || isAuthRoute(req)) {
-      auth().protect();
+      auth.protect();
     }
     return NextResponse.next();
   });

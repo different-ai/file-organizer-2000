@@ -21,7 +21,7 @@ export async function setupProject(
   vercelToken: string,
   openaiKey: string
 ): Promise<SetupProjectResult> {
-  const { userId } = auth();
+  const { userId } = await auth();
   // create an api key for the user
   if (!userId) {
     throw new Error("User not authenticated");
@@ -151,7 +151,7 @@ export async function setupProject(
 
 // Helper function to get user's Vercel deployment info
 export async function getVercelDeployment() {
-  const { userId } = auth();
+  const { userId } = await auth();
   if (!userId) {
     throw new Error("User not authenticated");
   }

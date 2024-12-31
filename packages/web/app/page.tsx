@@ -7,7 +7,7 @@ export default async function MainPage() {
     redirect("/dashboard/self-hosted");
   }
 
-  const { userId } = auth();
+  const { userId } = await auth();
 
   const billingCycle = await getUserBillingCycle(userId);
   console.log("Billing cycle:", billingCycle);
