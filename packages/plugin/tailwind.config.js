@@ -24,5 +24,5 @@ module.exports = {
   corePlugins: {
       preflight: false, // Keeps Obsidian's base styles
   },
-  important: '#app',
+  important: '.fo2k-view',
 }

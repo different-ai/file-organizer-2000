@@ -1,6 +1,7 @@
 import React from "react";
 import { motion } from "framer-motion";
 import { App } from "obsidian";
+import { ToolInvocation } from "ai";
 import { YouTubeHandler } from "./youtube-handler";
 import { SearchHandler } from "./search-handler";
 import { DateRangeHandler } from "./date-range-handler";
@@ -13,9 +14,10 @@ import { MoveFilesHandler } from "./move-files-handler";
 import { RenameFilesHandler } from "./rename-files-handler";
 import { SearchRenameHandler } from "./search-rename-handler";
 import { ExecuteActionsHandler } from "./execute-actions-handler";
+import { AddTextHandler } from "./add-text-handler";
 
 interface ToolInvocationHandlerProps {
-  toolInvocation: any;
+  toolInvocation: ToolInvocation;
   addToolResult: (result: { toolCallId: string; result: string }) => void;
   app: App;
 }
@@ -45,6 +47,7 @@ function ToolInvocationHandler({
       renameFiles: "Renaming Files",
       searchByName: "Search Files by Name",
       executeActionsOnFileBasedOnPrompt: "Execute Actions on Files",
+      addTextToDocument: "Adding Text to Document",
     };
     return toolTitles[toolName] || "Tool Invocation";
   };
@@ -132,6 +135,13 @@ function ToolInvocationHandler({
           app={app}
         />
       ),
+      addTextToDocument: () => (
+        <AddTextHandler
+          toolInvocation={toolInvocation}
+          handleAddResult={handleAddResult}
+          app={app}
+        />
+      ),
     };
 
     return handlers[toolInvocation.toolName]?.() || null;
@@ -153,3 +163,4 @@ function ToolInvocationHandler({
 }
 
 export default ToolInvocationHandler;
+

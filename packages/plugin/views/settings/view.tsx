@@ -17,6 +17,7 @@ export class FileOrganizerSettingTab extends PluginSettingTab {
   display(): void {
     const { containerEl } = this;
     containerEl.empty();
+    containerEl.addClass('fo2k-view');
 
     if (!this.root) {
       this.root = createRoot(containerEl);

@@ -106,6 +106,13 @@ export async function POST(req: NextRequest) {
               .describe("Optional specific file to append to"),
           }),
         },
+        addTextToDocument: {
+          description: "Adds the text to the current document when the user requests to do so",
+          parameters: z.object({
+            content: z.string().describe("The text content to add to the document"),
+            path: z.string().optional().describe("Optional path to the document. If not provided, uses current document"),
+          }),
+        },
         generateSettings: {
           description:
             "Generate vault organization settings based on user preferences",

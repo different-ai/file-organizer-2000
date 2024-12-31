@@ -177,7 +177,7 @@ export class AssistantViewWrapper extends ItemView {
 
   async onOpen(): Promise<void> {
     const container = this.containerEl.children[1];
-    container.id = 'app';
+    container.addClass('fo2k-view');
     this.root = createRoot(container);
     this.render();
   }
