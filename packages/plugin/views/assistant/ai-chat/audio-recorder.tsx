@@ -139,10 +139,11 @@ export const AudioRecorder: React.FC<AudioRecorderProps> = ({
 
   return (
     <div className="flex flex-col gap-4">
-      <button
+      <Button
         onClick={isRecording ? stopRecording : startRecording}
         className={cn(
-          "bg-transparent opacity-50 cursor-pointer",
+          // box shadow none
+          "bg-transparent opacity-50 cursor-pointer shadow-lg ",
           "hover:opacity-100 hover:shadow-none",
           "shadow-none disabled:shadow-none disabled:cursor-not-allowed",
           {
@@ -165,7 +166,7 @@ export const AudioRecorder: React.FC<AudioRecorderProps> = ({
         ) : (
           <MicIcon className="w-4 h-4" />
         )}
-      </button>
+      </Button>
 
       {debug && recordings.length > 0 && (
         <div className="flex flex-col gap-2 p-2 rounded bg-[--background-secondary]">

@@ -186,6 +186,7 @@ export class AssistantViewWrapper extends ItemView {
     this.root?.render(
       <AppContext.Provider value={{ plugin: this.plugin, root: this.root }}>
         <React.StrictMode>
+          <div id="app">
             <AssistantContent
               plugin={this.plugin}
               leaf={this.leaf}
@@ -194,6 +195,7 @@ export class AssistantViewWrapper extends ItemView {
                 this.setActiveTab = setTab;
               }}
             />
+          </div>
         </React.StrictMode>
       </AppContext.Provider>
     );
