@@ -1,8 +1,6 @@
-fo2k {
-  @tailwind base;
-  @tailwind components;
-  @tailwind utilities;
-}
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
 
 @layer base {
   :root {
