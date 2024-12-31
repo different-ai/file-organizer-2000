@@ -132,23 +132,15 @@ jobs:
         env:
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
         run: |
-          # Install ts-node and dependencies locally in the release-notes package
-          cd packages/release-notes
-          npm install --save-dev ts-node typescript @types/node
-
-          # Build the release-notes package
+          # Build all packages including release-notes
           pnpm build
 
-          # Generate release notes using ts-node directly
-          NOTES_JSON=$(npx ts-node src/index.ts ${{ steps.version.outputs.previous_version }})
+          # Execute the compiled release notes generator
+          NOTES_JSON=$(node packages/release-notes/dist/index.js ${{ steps.version.outputs.previous_version }})
           
-          # Set the output
           echo "NOTES_JSON<<EOF" >> $GITHUB_ENV
           echo "$NOTES_JSON" >> $GITHUB_ENV
           echo "EOF" >> $GITHUB_ENV
-          
-          # Return to root directory
-          cd ../..
 
       - name: Prepare release artifacts
         run: |
