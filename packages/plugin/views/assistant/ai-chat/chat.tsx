@@ -25,7 +25,7 @@ import { ContextItems } from "./components/context-items";
 import { ClearAllButton } from "./components/clear-all-button";
 import { useCurrentFile } from "./hooks/use-current-file";
 import { SearchAnnotationHandler } from "./tool-handlers/search-annotation-handler";
-import { isSearchResultsAnnotation } from "./types/annotations";
+import { isSearchResultsAnnotation, SearchResultsAnnotation } from "./types/annotations";
 
 interface ChatComponentProps {
   plugin: FileOrganizer;
@@ -214,8 +214,8 @@ export const ChatComponent: React.FC<ChatComponentProps> = ({
   };
 
   return (
-    <div className="flex flex-col h-full max-h-screen ">
-      <div className="flex-grow overflow-y-auto p-4">
+    <div className="flex flex-col h-full">
+      <div className="flex-grow overflow-y-auto p-4 h-full">
         <div className="flex flex-col min-h-min-content">
           {messages.map(message => (
             <React.Fragment key={message.id}>
@@ -225,7 +225,7 @@ export const ChatComponent: React.FC<ChatComponentProps> = ({
                   return (
                     <SearchAnnotationHandler
                       key={`${message.id}-annotation-${index}`}
-                      annotation={annotation}
+                      annotation={annotation as SearchResultsAnnotation}
                     />
                   );
                 }

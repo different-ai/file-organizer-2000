@@ -177,7 +177,7 @@ export class AssistantViewWrapper extends ItemView {
 
   async onOpen(): Promise<void> {
     const container = this.containerEl.children[1];
-    container.addClass('fo2k-view');
+    container.id = 'app';
     this.root = createRoot(container);
     this.render();
   }
@@ -186,7 +186,6 @@ export class AssistantViewWrapper extends ItemView {
     this.root?.render(
       <AppContext.Provider value={{ plugin: this.plugin, root: this.root }}>
         <React.StrictMode>
-          <div id="app">
             <AssistantContent
               plugin={this.plugin}
               leaf={this.leaf}
@@ -195,7 +194,6 @@ export class AssistantViewWrapper extends ItemView {
                 this.setActiveTab = setTab;
               }}
             />
-          </div>
         </React.StrictMode>
       </AppContext.Provider>
     );
