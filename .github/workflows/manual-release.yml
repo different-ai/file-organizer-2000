@@ -117,7 +117,7 @@ jobs:
         run: |
           # Build the release-notes package
           pnpm --filter "@file-organizer/release-notes" build
-          
+
           # Generate the release notes
           cd packages/plugin
           previous_version=$(node -p "require('./manifest.json').version")
@@ -132,7 +132,7 @@ jobs:
           cp packages/plugin/dist/main.js release-artifacts/
           cp packages/plugin/dist/styles.css release-artifacts/
           cp manifest.json release-artifacts/
-          
+
           # Create checksum file
           cd release-artifacts
           sha256sum * > checksums.txt
@@ -142,13 +142,20 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
+          # Debug: Check current directory and list files
+          pwd
+          ls -la
+
+          # Debug: Check if manifest.json exists and is readable
+          cat manifest.json || echo "Cannot read manifest.json"
+
           version=$(node -p "require('./manifest.json').version")
-          
+
           # Parse release notes JSON
           RELEASE_NAME=$(echo "$NOTES_JSON" | jq -r '.name')
           RELEASE_DESC=$(echo "$NOTES_JSON" | jq -r '.description')
           TECHNICAL_CHANGES=$(echo "$NOTES_JSON" | jq -r '.technicalChanges | join("\n- ")')
-          
+
           # Create release notes markdown
           {
             echo "# $RELEASE_NAME"
@@ -161,7 +168,7 @@ jobs:
             echo "## SHA-256 Checksums"
             cat release-artifacts/checksums.txt
           } > release-notes.md
-          
+
           # Create the GitHub release
           gh release create "$version" \
             --title="$RELEASE_NAME" \
