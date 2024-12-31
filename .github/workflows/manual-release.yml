@@ -118,9 +118,9 @@ jobs:
           # Build the release-notes package
           pnpm --filter "@file-organizer/release-notes" build
 
+          previous_version=$(node -p "require('./manifest.json').version")
           # Generate the release notes
           cd packages/plugin
-          previous_version=$(node -p "require('./manifest.json').version")
           NOTES_JSON=$(node -r ts-node/register ../release-notes/dist/index.js $previous_version )
           echo "NOTES_JSON<<EOF" >> $GITHUB_ENV
           echo "$NOTES_JSON" >> $GITHUB_ENV
