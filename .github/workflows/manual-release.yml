@@ -94,22 +94,24 @@ jobs:
             
             async function run() {
               try {
+                const repoRoot = process.cwd();
+                
                 // Step 1: Update versions
                 console.log('Updating versions...');
-                const versionInfo = await updateVersions('${{ github.event.inputs.increment }}');
+                const versionInfo = await updateVersions('${{ github.event.inputs.increment }}', repoRoot);
                 console.log('Version info:', JSON.stringify(versionInfo));
                 
                 // Step 2: Build plugin and prepare directory
                 console.log('Building plugin...');
                 await generateReleaseArtifacts(versionInfo.previous, {
-                  repoRoot: process.cwd(),
+                  repoRoot,
                   openAIApiKey: process.env.OPENAI_API_KEY
                 });
                 
                 // Step 3: Generate release notes
                 console.log('Generating release notes...');
                 const notes = await generateReleaseNotes(versionInfo.previous, {
-                  repoRoot: process.cwd(),
+                  repoRoot,
                   openAIApiKey: process.env.OPENAI_API_KEY
                 });
                 
@@ -144,6 +146,11 @@ jobs:
           echo "RELEASE_DATA<<EOF" >> $GITHUB_ENV
           cat release-data.json >> $GITHUB_ENV
           echo "EOF" >> $GITHUB_ENV
+
+      - name: Push changes
+        run: git push origin HEAD
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Verify artifacts
         run: |
