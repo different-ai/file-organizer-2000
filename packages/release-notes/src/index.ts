@@ -73,8 +73,11 @@ interface VersionInfo {
   type: 'patch' | 'minor' | 'major';
 }
 
-async function updateVersions(increment: VersionInfo['type']): Promise<VersionInfo> {
-  const previousVersion = require('../../manifest.json').version;
+async function updateVersions(increment: VersionInfo['type'], repoRoot: string): Promise<VersionInfo> {
+  const manifestPath = path.join(repoRoot, 'manifest.json');
+  const manifestContent = await fs.readFile(manifestPath, 'utf-8');
+  const manifest = JSON.parse(manifestContent);
+  const previousVersion = manifest.version;
   const [major, minor, patch] = previousVersion.split('.').map(Number);
   
   let newVersion;
@@ -89,6 +92,21 @@ async function updateVersions(increment: VersionInfo['type']): Promise<VersionIn
       newVersion = `${major}.${minor}.${patch + 1}`;
       break;
   }
+
+  // Update manifest.json
+  manifest.version = newVersion;
+  await fs.writeFile(manifestPath, JSON.stringify(manifest, null, 2));
+
+  // Update package.json in plugin directory
+  const pluginPackagePath = path.join(repoRoot, 'packages/plugin/package.json');
+  const pluginPackageContent = await fs.readFile(pluginPackagePath, 'utf-8');
+  const pluginPackage = JSON.parse(pluginPackageContent);
+  pluginPackage.version = newVersion;
+  await fs.writeFile(pluginPackagePath, JSON.stringify(pluginPackage, null, 2));
+
+  // Stage the changes
+  execSync('git add manifest.json packages/plugin/package.json', { cwd: repoRoot });
+  execSync(`git commit -m "chore(release): bump version to ${newVersion}"`, { cwd: repoRoot });
   
   return {
     previous: previousVersion,
