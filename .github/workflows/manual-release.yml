@@ -101,7 +101,7 @@ jobs:
                 const versionInfo = await updateVersions('${{ github.event.inputs.increment }}', repoRoot);
                 console.log('Version info:', JSON.stringify(versionInfo));
                 
-                // Step 2: Build plugin and prepare directory
+                // Step 2: Build plugin
                 console.log('Building plugin...');
                 await generateReleaseArtifacts(versionInfo.previous, {
                   repoRoot,
@@ -115,7 +115,7 @@ jobs:
                   openAIApiKey: process.env.OPENAI_API_KEY
                 });
                 
-                // Step 4: Prepare artifacts and generate checksums
+                // Step 4: Prepare artifacts
                 console.log('Preparing artifacts...');
                 const artifacts = await prepareReleaseArtifacts(versionInfo.new);
                 console.log('Generated artifacts:', artifacts);
@@ -135,17 +135,31 @@ jobs:
               process.exit(1);
             });
           "
-          
-          # Check if release-data.json exists
+
+      - name: Save release data
+        id: save_release_data
+        run: |
           if [ ! -f "release-data.json" ]; then
             echo "Error: release-data.json was not created"
             exit 1
           fi
           
-          # Export the release data to GITHUB_ENV
-          echo "RELEASE_DATA<<EOF" >> $GITHUB_ENV
-          cat release-data.json >> $GITHUB_ENV
-          echo "EOF" >> $GITHUB_ENV
+          # Read the file and set outputs
+          VERSION=$(jq -r '.versionInfo.new' release-data.json)
+          RELEASE_NAME=$(jq -r '.notes.name' release-data.json)
+          RELEASE_DESC=$(jq -r '.notes.description' release-data.json)
+          TECHNICAL_CHANGES=$(jq -r '.notes.technicalChanges | join("\n- ")' release-data.json)
+          
+          # Save to outputs
+          echo "version=${VERSION}" >> $GITHUB_OUTPUT
+          echo "release_name=${RELEASE_NAME}" >> $GITHUB_OUTPUT
+          # Use delimiter for multiline strings
+          echo "release_desc<<EOF" >> $GITHUB_OUTPUT
+          echo "${RELEASE_DESC}" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+          echo "technical_changes<<EOF" >> $GITHUB_OUTPUT
+          echo "${TECHNICAL_CHANGES}" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
 
       - name: Push changes
         run: git push origin HEAD
@@ -166,26 +180,14 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          # Parse release data
-          VERSION=$(cat release-data.json | jq -r '.versionInfo.new')
-          RELEASE_NAME=$(cat release-data.json | jq -r '.notes.name')
-          RELEASE_DESC=$(cat release-data.json | jq -r '.notes.description')
-          TECHNICAL_CHANGES=$(cat release-data.json | jq -r '.notes.technicalChanges | join("\n- ")')
-          
-          # Verify all required variables
-          if [ -z "$VERSION" ] || [ -z "$RELEASE_NAME" ] || [ -z "$RELEASE_DESC" ] || [ -z "$TECHNICAL_CHANGES" ]; then
-            echo "Error: Missing required release information"
-            exit 1
-          fi
-          
           # Create release notes markdown
           {
-            echo "# $RELEASE_NAME"
+            echo "# ${{ steps.save_release_data.outputs.release_name }}"
             echo ""
-            echo "$RELEASE_DESC"
+            echo "${{ steps.save_release_data.outputs.release_desc }}"
             echo ""
             echo "## Technical Changes"
-            echo "- $TECHNICAL_CHANGES"
+            echo "- ${{ steps.save_release_data.outputs.technical_changes }}"
             echo ""
             echo "## SHA-256 Checksums"
             cat release-artifacts/checksums.txt
@@ -198,8 +200,8 @@ jobs:
           fi
           
           # Create the GitHub release
-          gh release create "$VERSION" \
-            --title="$RELEASE_NAME" \
+          gh release create "${{ steps.save_release_data.outputs.version }}" \
+            --title="${{ steps.save_release_data.outputs.release_name }}" \
             --notes-file=release-notes.md \
             --draft=false \
             release-artifacts/main.js \
