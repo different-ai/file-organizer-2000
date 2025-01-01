@@ -33,13 +33,25 @@ function getDiff(repoRoot: string, targetVersion: string): string {
   }
 
   try {
-    const diff = execSync(`git diff ${targetVersion} -- packages/plugin`, {
+    // Get the current HEAD commit hash for comparison
+    const currentCommit = execSync('git rev-parse HEAD', {
+      encoding: "utf-8",
+      cwd: repoRoot,
+    }).trim();
+
+    // Use HEAD if targetVersion doesn't exist
+    const compareVersion = execSync(`git rev-parse --verify ${targetVersion} 2>/dev/null || echo ${currentCommit}`, {
+      encoding: "utf-8",
+      cwd: repoRoot,
+    }).trim();
+
+    const diff = execSync(`git diff ${compareVersion} -- packages/plugin`, {
       encoding: "utf-8",
       cwd: repoRoot,
     });
 
     const changedFilesOutput = execSync(
-      `git diff --name-only ${targetVersion} -- packages/plugin`,
+      `git diff --name-only ${compareVersion} -- packages/plugin`,
       {
         encoding: "utf-8",
         cwd: repoRoot,
@@ -73,7 +85,7 @@ interface VersionInfo {
   type: 'patch' | 'minor' | 'major';
 }
 
-async function updateVersions(increment: VersionInfo['type'], repoRoot: string): Promise<VersionInfo> {
+export async function updateVersions(increment: VersionInfo['type'], repoRoot: string): Promise<VersionInfo> {
   const manifestPath = path.join(repoRoot, 'manifest.json');
   const manifestContent = await fs.readFile(manifestPath, 'utf-8');
   const manifest = JSON.parse(manifestContent);
@@ -115,7 +127,7 @@ async function updateVersions(increment: VersionInfo['type'], repoRoot: string):
   };
 }
 
-async function generateReleaseNotes(
+export async function generateReleaseNotes(
   version: string,
   options: GenerateOptions
 ): Promise<ReleaseNotes> {
@@ -153,22 +165,32 @@ ${diff.slice(0, 100000)}`,
   throw new Error('Failed to generate release notes after retries');
 }
 
-async function prepareReleaseArtifacts(version: string): Promise<string[]> {
-  const artifactFiles = [
-    'main.js',
-    'styles.css',
-    'manifest.json'
+export async function prepareReleaseArtifacts(version: string): Promise<string[]> {
+  // Define files and their source locations
+  const artifactSources = [
+    { name: 'main.js', source: 'packages/plugin/dist' },
+    { name: 'styles.css', source: 'packages/plugin/dist' },
+    { name: 'manifest.json', source: '.' }  // Root directory
   ];
   
+  // Create release-artifacts directory if it doesn't exist
+  await fs.mkdir('release-artifacts', { recursive: true });
+  
   const artifacts = await Promise.all(
-    artifactFiles.map(async (file) => {
-      const source = path.join('packages/plugin/dist', file);
-      const target = path.join('release-artifacts', file);
-      await fs.copyFile(source, target);
-      return target;
+    artifactSources.map(async ({ name, source }) => {
+      const sourcePath = path.join(source, name);
+      const targetPath = path.join('release-artifacts', name);
+      try {
+        await fs.copyFile(sourcePath, targetPath);
+        return targetPath;
+      } catch (error) {
+        console.error(`Error copying ${sourcePath} to ${targetPath}:`, error);
+        throw error;
+      }
     })
   );
   
+  // Generate checksums
   const checksums = await Promise.all(
     artifacts.map(async (file) => {
       const content = await fs.readFile(file);
@@ -181,7 +203,7 @@ async function prepareReleaseArtifacts(version: string): Promise<string[]> {
   return artifacts;
 }
 
-async function generateReleaseArtifacts(version: string, options: GenerateOptions): Promise<void> {
+export async function generateReleaseArtifacts(version: string, options: GenerateOptions): Promise<void> {
   await Promise.all([
     execSync('pnpm --filter "./packages/plugin" build'),
     generateReleaseNotes(version, options),
@@ -216,5 +238,3 @@ if (require.main === module) {
       process.exit(1);
     });
 }
-
-export { generateReleaseArtifacts, prepareReleaseArtifacts, updateVersions };
