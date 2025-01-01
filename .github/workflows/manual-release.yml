@@ -24,12 +24,9 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          # Get running workflows named either "Release Obsidian Plugin" or "Manual Plugin Release"
           running=$(gh api /repos/${{ github.repository }}/actions/runs \
             --jq '.workflow_runs[] | select(.status=="in_progress" and (.name=="Release Obsidian Plugin" or .name=="Manual Plugin Release")) | .id' \
             | wc -l)
-
-          # If any release workflows are running (besides this one), fail early
           if [ "$running" -gt "1" ]; then
             echo "is_releasing=true" >> $GITHUB_OUTPUT
             echo "::error::A release is already in progress. Please wait for it to complete."
@@ -81,97 +78,55 @@ jobs:
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
 
-      - name: Update versions
-        id: version
-        run: |
-          cd packages/plugin
-
-          # Get the previous version before any updates
-          PREVIOUS_VERSION=$(node -p "require('../../manifest.json').version")
-          echo "previous_version=${PREVIOUS_VERSION}" >> "$GITHUB_OUTPUT"
-
-          echo "Current directory: $(pwd)"
-          echo "Current package.json version: $(node -p "require('./package.json').version")"
-          echo "Current manifest.json version: $(node -p "require('../../manifest.json').version")"
-          echo "Increment type: ${{ github.event.inputs.increment }}"
-
-          # Bump version in package.json
-          NEW_VERSION=$(npm version ${{ github.event.inputs.increment }} --no-git-tag-version)
-          VERSION_NUMBER=${NEW_VERSION#v}
-          echo "New version (with v): $NEW_VERSION"
-          echo "New version (stripped): $VERSION_NUMBER"
-
-          # Export the new version for subsequent steps
-          echo "version=${VERSION_NUMBER}" >> "$GITHUB_OUTPUT"
-
-          # Update root manifest.json to match the new version
-          cd ../..
-          jq --arg version "$VERSION_NUMBER" '.version = $version' manifest.json > manifest.json.tmp
-          mv manifest.json.tmp manifest.json
-
-          echo "Updated package.json version: $(node -p "require('./packages/plugin/package.json').version")"
-          echo "Updated manifest.json version: $(node -p "require('./manifest.json').version")"
-
-          # Stage and commit changes
-          git add packages/plugin/package.json manifest.json
-          echo "Files to be committed:"
-          git status --porcelain
-          git commit -m "chore(release): bump version to $VERSION_NUMBER"
-          echo "Commit created with version $VERSION_NUMBER"
-
-      - name: Push changes
-        run: git push origin HEAD
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Build plugin
-        run: pnpm --filter "./packages/plugin" build
-
-      - name: Generate Release Notes
-        id: release_notes
+      - name: Update versions and generate artifacts
+        id: release_prep
         env:
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
         run: |
           # Build all packages including release-notes
           pnpm build --filter "@file-organizer/release-notes"
-
-          # Execute the compiled release notes generator
-          NOTES_JSON=$(node packages/release-notes/dist/index.js ${{ steps.version.outputs.previous_version }})
           
-          echo "NOTES_JSON<<EOF" >> $GITHUB_ENV
-          echo "$NOTES_JSON" >> $GITHUB_ENV
+          # Use the optimized release process
+          RELEASE_DATA=$(node -e "
+            const { updateVersions, generateReleaseArtifacts, prepareReleaseArtifacts, generateReleaseNotes } = require('./packages/release-notes/dist');
+            
+            async function run() {
+              const versionInfo = await updateVersions('${{ github.event.inputs.increment }}');
+              console.log('Version info:', JSON.stringify(versionInfo));
+              
+              await generateReleaseArtifacts(versionInfo.previous, {
+                repoRoot: process.cwd(),
+                openAIApiKey: process.env.OPENAI_API_KEY
+              });
+              
+              const artifacts = await prepareReleaseArtifacts(versionInfo.new);
+              console.log('Generated artifacts:', artifacts);
+              
+              const notes = await generateReleaseNotes(versionInfo.previous, {
+                repoRoot: process.cwd(),
+                openAIApiKey: process.env.OPENAI_API_KEY
+              });
+              
+              return { versionInfo, notes };
+            }
+            
+            run().catch(console.error);
+          ")
+          
+          echo "RELEASE_DATA<<EOF" >> $GITHUB_ENV
+          echo "$RELEASE_DATA" >> $GITHUB_ENV
           echo "EOF" >> $GITHUB_ENV
-
-      - name: Prepare release artifacts
-        run: |
-          mkdir -p release-artifacts
-          cp packages/plugin/dist/main.js release-artifacts/
-          cp packages/plugin/dist/styles.css release-artifacts/
-          cp manifest.json release-artifacts/
-
-          # Create checksum file
-          cd release-artifacts
-          sha256sum * > checksums.txt
-          cd ..
 
       - name: Create Release
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          # Debug: Check current directory and list files
-          pwd
-          ls -la
-
-          # Debug: Check if manifest.json exists and is readable
-          cat manifest.json || echo "Cannot read manifest.json"
-
-          version=$(node -p "require('./manifest.json').version")
-
-          # Parse release notes JSON
-          RELEASE_NAME=$(echo "$NOTES_JSON" | jq -r '.name')
-          RELEASE_DESC=$(echo "$NOTES_JSON" | jq -r '.description')
-          TECHNICAL_CHANGES=$(echo "$NOTES_JSON" | jq -r '.technicalChanges | join("\n- ")')
-
+          # Parse release data
+          VERSION=$(echo "$RELEASE_DATA" | jq -r '.versionInfo.new')
+          RELEASE_NAME=$(echo "$RELEASE_DATA" | jq -r '.notes.name')
+          RELEASE_DESC=$(echo "$RELEASE_DATA" | jq -r '.notes.description')
+          TECHNICAL_CHANGES=$(echo "$RELEASE_DATA" | jq -r '.notes.technicalChanges | join("\n- ")')
+          
           # Create release notes markdown
           {
             echo "# $RELEASE_NAME"
@@ -184,9 +139,9 @@ jobs:
             echo "## SHA-256 Checksums"
             cat release-artifacts/checksums.txt
           } > release-notes.md
-
+          
           # Create the GitHub release
-          gh release create "$version" \
+          gh release create "$VERSION" \
             --title="$RELEASE_NAME" \
             --notes-file=release-notes.md \
             --draft=false \

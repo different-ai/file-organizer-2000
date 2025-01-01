@@ -3,6 +3,8 @@ import { generateObject } from "ai";
 import { z } from "zod";
 import { execSync } from "child_process";
 import path from "path";
+import fs from "fs/promises";
+import crypto from "crypto";
 
 export const releaseNotesSchema = z.object({
   releaseNotes: z.object({
@@ -22,7 +24,14 @@ export const releaseNotesSchema = z.object({
 
 export type ReleaseNotes = z.infer<typeof releaseNotesSchema>["releaseNotes"];
 
+const diffCache = new Map<string, string>();
+
 function getDiff(repoRoot: string, targetVersion: string): string {
+  const cacheKey = `${repoRoot}-${targetVersion}`;
+  if (diffCache.has(cacheKey)) {
+    return diffCache.get(cacheKey)!;
+  }
+
   try {
     const diff = execSync(`git diff ${targetVersion} -- packages/plugin`, {
       encoding: "utf-8",
@@ -45,7 +54,8 @@ function getDiff(repoRoot: string, targetVersion: string): string {
     console.log("Changed files in packages/plugin:");
     changedFiles.forEach((file) => console.log(`- ${file}`));
 
-    return `Changes in packages/plugin:\n\n${diff}`;
+    diffCache.set(cacheKey, diff);
+    return diff;
   } catch (error) {
     console.error("Error getting git diff:", error);
     return "";
@@ -57,7 +67,37 @@ export interface GenerateOptions {
   openAIApiKey: string;
 }
 
-export async function generateReleaseNotes(
+interface VersionInfo {
+  previous: string;
+  new: string;
+  type: 'patch' | 'minor' | 'major';
+}
+
+async function updateVersions(increment: VersionInfo['type']): Promise<VersionInfo> {
+  const previousVersion = require('../../manifest.json').version;
+  const [major, minor, patch] = previousVersion.split('.').map(Number);
+  
+  let newVersion;
+  switch (increment) {
+    case 'major':
+      newVersion = `${major + 1}.0.0`;
+      break;
+    case 'minor':
+      newVersion = `${major}.${minor + 1}.0`;
+      break;
+    case 'patch':
+      newVersion = `${major}.${minor}.${patch + 1}`;
+      break;
+  }
+  
+  return {
+    previous: previousVersion,
+    new: newVersion,
+    type: increment
+  };
+}
+
+async function generateReleaseNotes(
   version: string,
   options: GenerateOptions
 ): Promise<ReleaseNotes> {
@@ -68,28 +108,67 @@ export async function generateReleaseNotes(
 
   const model = openai("gpt-4o");
   const diff = getDiff(options.repoRoot, version);
-
-  try {
-    const { object } = await generateObject({
-      model,
-      schema: releaseNotesSchema,
-      prompt: `You are a release notes generator for an Obsidian plugin called File Organizer 2000.
+  
+  const maxRetries = 3;
+  let attempt = 0;
+  
+  while (attempt < maxRetries) {
+    try {
+      const { object } = await generateObject({
+        model,
+        schema: releaseNotesSchema,
+        prompt: `You are a release notes generator for an Obsidian plugin called File Organizer 2000.
 Given the following git diff between versions, generate a user-friendly release name and description.
 Focus on the user-facing changes and new features that will benefit users.
 
-// only use first 100k characters of diff
 ${diff.slice(0, 100000)}`,
-    });
-
-    return object.releaseNotes;
-  } catch (error) {
-    console.error("Error generating release notes:", error);
-    return {
-      name: `Version ${version}`,
-      description: "No description available",
-      technicalChanges: [],
-    };
+      });
+      
+      return object.releaseNotes;
+    } catch (error) {
+      attempt++;
+      if (attempt === maxRetries) throw error;
+      await new Promise(resolve => setTimeout(resolve, Math.pow(2, attempt) * 1000));
+    }
   }
+  
+  throw new Error('Failed to generate release notes after retries');
+}
+
+async function prepareReleaseArtifacts(version: string): Promise<string[]> {
+  const artifactFiles = [
+    'main.js',
+    'styles.css',
+    'manifest.json'
+  ];
+  
+  const artifacts = await Promise.all(
+    artifactFiles.map(async (file) => {
+      const source = path.join('packages/plugin/dist', file);
+      const target = path.join('release-artifacts', file);
+      await fs.copyFile(source, target);
+      return target;
+    })
+  );
+  
+  const checksums = await Promise.all(
+    artifacts.map(async (file) => {
+      const content = await fs.readFile(file);
+      const hash = crypto.createHash('sha256').update(content).digest('hex');
+      return `${hash}  ${path.basename(file)}`;
+    })
+  );
+  
+  await fs.writeFile('release-artifacts/checksums.txt', checksums.join('\n'));
+  return artifacts;
+}
+
+async function generateReleaseArtifacts(version: string, options: GenerateOptions): Promise<void> {
+  await Promise.all([
+    execSync('pnpm --filter "./packages/plugin" build'),
+    generateReleaseNotes(version, options),
+    fs.mkdir('release-artifacts', { recursive: true })
+  ]);
 }
 
 // CLI support
@@ -119,3 +198,5 @@ if (require.main === module) {
       process.exit(1);
     });
 }
+
+export { generateReleaseArtifacts, prepareReleaseArtifacts, updateVersions };
