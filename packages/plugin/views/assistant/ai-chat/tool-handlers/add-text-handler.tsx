@@ -1,6 +1,5 @@
 import React, { useRef, useState } from "react";
-import { App } from "obsidian";
-import { addTextToDocument } from "../../../../handlers/commandHandlers";
+import { App, TFile } from "obsidian";
 import { logger } from "../../../../services/logger";
 
 interface AddTextHandlerProps {
@@ -23,7 +22,37 @@ export function AddTextHandler({
         hasFetchedRef.current = true;
         const { content, path } = toolInvocation.args;
         try {
-          await addTextToDocument(app, content, path);
+          let targetFile: TFile;
+          
+          if (path) {
+            targetFile = app.vault.getAbstractFileByPath(path) as TFile;
+            if (!targetFile) {
+              throw new Error(`File not found at path: ${path}`);
+            }
+          } else {
+            // Get the active file
+            targetFile = app.workspace.getActiveFile();
+            if (!targetFile) {
+              throw new Error("No active file found");
+            }
+          }
+
+          // Get current content
+          const currentContent = await app.vault.read(targetFile);
+          
+          // Get editor if it exists
+          const editor = app.workspace.activeEditor?.editor;
+          
+          if (editor) {
+            // If we have an editor, insert at cursor position
+            const cursor = editor.getCursor();
+            editor.replaceRange(content, cursor);
+          } else {
+            // Otherwise append to the end
+            await app.vault.modify(targetFile, currentContent + "\n" + content);
+          }
+          
+          logger.info(`Successfully added text to document: ${targetFile.path}`);
           handleAddResult(`Successfully added text to document${path ? `: ${path}` : ""}`);
           setAddSuccess(true);
         } catch (error) {

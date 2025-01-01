@@ -15,6 +15,7 @@ import { RenameFilesHandler } from "./rename-files-handler";
 import { SearchRenameHandler } from "./search-rename-handler";
 import { ExecuteActionsHandler } from "./execute-actions-handler";
 import { AddTextHandler } from "./add-text-handler";
+import { ModifyTextHandler } from "./modify-text-handler";
 
 interface ToolInvocationHandlerProps {
   toolInvocation: ToolInvocation;
@@ -48,6 +49,7 @@ function ToolInvocationHandler({
       searchByName: "Search Files by Name",
       executeActionsOnFileBasedOnPrompt: "Execute Actions on Files",
       addTextToDocument: "Adding Text to Document",
+      modifyDocumentText: "Modifying Document Text",
     };
     return toolTitles[toolName] || "Tool Invocation";
   };
@@ -137,6 +139,13 @@ function ToolInvocationHandler({
       ),
       addTextToDocument: () => (
         <AddTextHandler
+          toolInvocation={toolInvocation}
+          handleAddResult={handleAddResult}
+          app={app}
+        />
+      ),
+      modifyDocumentText: () => (
+        <ModifyTextHandler
           toolInvocation={toolInvocation}
           handleAddResult={handleAddResult}
           app={app}

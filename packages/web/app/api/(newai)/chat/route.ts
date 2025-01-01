@@ -113,6 +113,13 @@ export async function POST(req: NextRequest) {
             path: z.string().optional().describe("Optional path to the document. If not provided, uses current document"),
           }),
         },
+        modifyDocumentText: {
+          description: "Modifies the text in the current document or selected text according to user's request",
+          parameters: z.object({
+            content: z.string().describe("The new text content to replace the current content or selection"),
+            path: z.string().optional().describe("Optional path to the document. If not provided, uses current document"),
+          }),
+        },
         generateSettings: {
           description:
             "Generate vault organization settings based on user preferences",
