@@ -135,6 +135,7 @@ export async function getDailyInformation({
       endTime: endTime.toISOString(),
       contentType: "ocr",
       limit: plugin.settings.queryScreenpipeLimit,
+      appName: "Arc"
     }),
     queryScreenpipe({
       startTime: startTime.toISOString(),

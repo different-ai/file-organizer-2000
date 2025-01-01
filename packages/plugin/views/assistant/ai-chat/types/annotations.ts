@@ -1,20 +1,38 @@
-import { MessageAnnotation } from 'ai';
+import type { Message } from 'ai';
 
 export interface SearchResult {
-  content: string;
-  score: number;
-  filePath: string;
+  segment: {
+    text: string;
+    startIndex: number;
+    endIndex: number;
+  };
+  groundingChunkIndices: number[];
+  confidenceScores: number[];
 }
 
-export interface SearchResultsAnnotation extends MessageAnnotation {
+export interface WebSource {
+  web: {
+    uri: string;
+    title: string;
+  };
+}
+
+export interface SearchResultsAnnotation {
   type: 'search-results';
-  results: SearchResult[];
+  groundingMetadata: {
+    webSearchQueries: string[];
+    searchEntryPoint: {
+      renderedContent: string;
+    };
+    groundingChunks: WebSource[];
+    groundingSupports: SearchResult[];
+  };
 }
 
 export type CustomAnnotation = SearchResultsAnnotation;
 
 export function isSearchResultsAnnotation(
-  annotation: MessageAnnotation
+  annotation: any
 ): annotation is SearchResultsAnnotation {
   return annotation.type === 'search-results';
 } 

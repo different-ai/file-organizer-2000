@@ -13,7 +13,7 @@ export const SubmitButton: React.FC<SubmitButtonProps> = ({
   return (
     <Button
       type="submit"
-      className={`h-full ml-2 font-bold py-2 px-4 rounded ${
+      className={`flex-none ml-2 font-bold px-4 flex items-center justify-center h-full ${
         isGenerating
           ? "bg-[--background-modifier-form-field] text-[--text-muted] cursor-not-allowed"
           : "bg-[--interactive-accent] hover:bg-[--interactive-accent-hover] text-[--text-on-accent]"
