@@ -1,20 +1,9 @@
 import React, { useState } from "react";
 import { TFile, TFolder } from "obsidian";
 import { ToolHandlerProps } from "./types";
-import { addFileContext } from "../use-context-items";
 
-interface FolderStructure {
-  name: string;
-  type: "folder";
-  children: (FolderStructure | FileStructure)[];
-  depth: number;
-}
 
-interface FileStructure {
-  name: string;
-  type: "file";
-  depth: number;
-}
+
 
 export function OnboardHandler({
   toolInvocation,
@@ -47,7 +36,6 @@ export function OnboardHandler({
     path: string,
     depth = 0,
     maxDepth = 3,
-    shouldAddToContext = false
   ) => {
     const files = getFilesFromPath(path);
     const structure = {
@@ -61,14 +49,7 @@ export function OnboardHandler({
           depth: depth + 1,
         };
 
-        // Add to context if requested
-        if (shouldAddToContext) {
-          addFileContext({
-            path: file.path,
-            title: file.basename,
-            content: fileData.content,
-          });
-        }
+   
 
         return fileData;
       })),
@@ -84,8 +65,7 @@ export function OnboardHandler({
             const subStructure = await analyzeFolderStructure(
               child.path,
               depth + 1,
-              maxDepth,
-              shouldAddToContext
+              maxDepth
             );
             structure.subfolders.push(subStructure);
           }
@@ -99,8 +79,8 @@ export function OnboardHandler({
   const handleAnalyze = async () => {
     setIsAnalyzing(true);
     try {
-      const { path = "/", maxDepth = 3, addToContext = false } = toolInvocation.args;
-      const structure = await analyzeFolderStructure(path, 0, maxDepth, addToContext);
+      const { path = "/", maxDepth = 3 } = toolInvocation.args;
+      const structure = await analyzeFolderStructure(path, 0, maxDepth);
       
       setIsValidated(true);
       handleAddResult(
