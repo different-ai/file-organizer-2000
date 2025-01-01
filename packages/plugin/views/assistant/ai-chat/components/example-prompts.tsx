@@ -7,18 +7,18 @@ interface Example {
 }
 
 const examples: Example[] = [
+//   {
+//     prompt: "Move all my untitled notes to an 'Inbox' folder",
+//     description: "File organization",
+//     icon: "📁"
+//   },
+//   {
+//     prompt: "Rename my daily notes to include topics discussed",
+//     description: "Smart renaming",
+//     icon: "✏️"
+//   },
   {
-    prompt: "Move all my untitled notes to an 'Inbox' folder",
-    description: "File organization",
-    icon: "📁"
-  },
-  {
-    prompt: "Rename my daily notes to include topics discussed",
-    description: "Smart renaming",
-    icon: "✏️"
-  },
-  {
-    prompt: "Add a summary section to my meeting notes",
+    prompt: "Add a summary section at the bottom of my current note",
     description: "Content editing",
     icon: "➕"
   },
@@ -27,16 +27,16 @@ const examples: Example[] = [
     description: "Smart search",
     icon: "🔍"
   },
-  {
-    prompt: "Tag my book notes with relevant categories",
-    description: "Auto-tagging",
-    icon: "🏷️"
-  },
-  {
-    prompt: "Analyze my vault structure and suggest improvements",
-    description: "Vault analysis",
-    icon: "📊"
-  },
+//   {
+//     prompt: "Tag my book notes with relevant categories",
+//     description: "Auto-tagging",
+//     icon: "🏷️"
+//   },
+//   {
+//     prompt: "Analyze my vault structure and suggest improvements",
+//     description: "Vault analysis",
+//     icon: "📊"
+//   },
   {
     prompt: "Get a summary of my day from Screenpipe",
     description: "Daily summary",

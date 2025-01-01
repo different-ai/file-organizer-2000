@@ -50,6 +50,7 @@ export const ChatComponent: React.FC<ChatComponentProps> = ({
     currentFile,
     screenpipe,
     textSelections,
+    isLightweightMode,
   } = useContextItems();
 
   const uniqueReferences = getUniqueReferences();
@@ -72,9 +73,42 @@ export const ChatComponent: React.FC<ChatComponentProps> = ({
   });
 
   const contextString = React.useMemo(() => {
-    const contextString = JSON.stringify(contextItems);
-    return contextString;
-  }, [contextItems]);
+    if (isLightweightMode) {
+      // In lightweight mode, only include metadata
+      const lightweightContext = {
+        files: Object.fromEntries(
+          Object.entries(files).map(([id, file]) => [
+            id,
+            { ...file, content: '' }
+          ])
+        ),
+        folders: Object.fromEntries(
+          Object.entries(folders).map(([id, folder]) => [
+            id,
+            { ...folder, files: folder.files.map(f => ({ ...f, content: '' })) }
+          ])
+        ),
+        tags: Object.fromEntries(
+          Object.entries(tags).map(([id, tag]) => [
+            id,
+            { ...tag, files: tag.files.map(f => ({ ...f, content: '' })) }
+          ])
+        ),
+        searchResults: Object.fromEntries(
+          Object.entries(searchResults).map(([id, search]) => [
+            id,
+            { ...search, results: search.results.map(r => ({ ...r, content: '' })) }
+          ])
+        ),
+        // Keep these as is
+        currentFile: currentFile ? { ...currentFile, content: '' } : null,
+        screenpipe,
+        textSelections,
+      };
+      return JSON.stringify(lightweightContext);
+    }
+    return JSON.stringify(contextItems);
+  }, [contextItems, isLightweightMode]);
   logger.debug("contextString", contextString);
 
   const chatBody = {

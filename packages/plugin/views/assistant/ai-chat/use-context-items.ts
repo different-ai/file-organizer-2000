@@ -78,6 +78,7 @@ type ContextCollections = {
 interface ContextItemsState extends ContextCollections {
   currentFile: FileContextItem | null;
   includeCurrentFile: boolean;
+  isLightweightMode: boolean;
 
   // Actions for each type
   addFile: (file: FileContextItem) => void;
@@ -93,6 +94,7 @@ interface ContextItemsState extends ContextCollections {
   setCurrentFile: (file: FileContextItem | null) => void;
   toggleCurrentFile: () => void;
   clearAll: () => void;
+  toggleLightweightMode: () => void;
 
   // Processing methods
   processFolderFiles: (
@@ -116,73 +118,105 @@ export const useContextItems = create<ContextItemsState>((set, get) => ({
   textSelections: {},
   currentFile: null,
   includeCurrentFile: true,
+  isLightweightMode: false,
 
-  // Updated add actions with reference checking
+  // Add toggle function
+  toggleLightweightMode: () => set(state => ({ isLightweightMode: !state.isLightweightMode })),
+
+  // Update addFile to handle lightweight mode
   addFile: file =>
     set(state => {
       const existingItemIndex = Object.values(state.files).findIndex(
         item => item.reference === file.reference
       );
 
+      const lightweightFile = state.isLightweightMode ? {
+        ...file,
+        content: '', // Remove content in lightweight mode
+      } : file;
+
       if (existingItemIndex !== -1) {
-        // Replace existing item
         return {
           files: {
             ...state.files,
-            [file.id]: { ...file, createdAt: Date.now() },
+            [file.id]: { ...lightweightFile, createdAt: Date.now() },
           },
         };
       }
 
       return {
-        files: { ...state.files, [file.id]: file },
+        files: { ...state.files, [file.id]: lightweightFile },
       };
     }),
 
+  // Update addFolder to handle lightweight mode
   addFolder: folder =>
     set(state => {
       const existingItemIndex = Object.values(state.folders).findIndex(
         item => item.reference === folder.reference
       );
 
+      const lightweightFolder = state.isLightweightMode ? {
+        ...folder,
+        files: folder.files.map(f => ({ ...f, content: '' })), // Remove content in lightweight mode
+      } : folder;
+
       if (existingItemIndex !== -1) {
         return {
           folders: {
             ...state.folders,
-            [folder.id]: { ...folder, createdAt: Date.now() },
+            [folder.id]: { ...lightweightFolder, createdAt: Date.now() },
           },
         };
       }
 
       return {
-        folders: { ...state.folders, [folder.id]: folder },
+        folders: { ...state.folders, [folder.id]: lightweightFolder },
       };
     }),
 
+  // Add YouTube video without lightweight mode
   addYouTubeVideo: video =>
     set(state => ({
       youtubeVideos: { ...state.youtubeVideos, [video.id]: video },
     })),
 
-  addTag: tag =>
-    set(state => ({
-      tags: { ...state.tags, [tag.id]: tag },
-    })),
-
+  // Add Screenpipe data without lightweight mode
   addScreenpipe: data =>
     set(state => ({
       screenpipe: { ...state.screenpipe, [data.id]: data },
     })),
 
-  addSearchResults: search =>
-    set(state => ({
-      searchResults: { ...state.searchResults, [search.id]: search },
-    })),
+  // Update addTag to handle lightweight mode
+  addTag: tag =>
+    set(state => {
+      const lightweightTag = state.isLightweightMode ? {
+        ...tag,
+        files: tag.files.map(f => ({ ...f, content: '' })), // Remove content in lightweight mode
+      } : tag;
 
+      return {
+        tags: { ...state.tags, [tag.id]: lightweightTag },
+      };
+    }),
+
+  // Update addSearchResults to handle lightweight mode
+  addSearchResults: search =>
+    set(state => {
+      const lightweightSearch = state.isLightweightMode ? {
+        ...search,
+        results: search.results.map(r => ({ ...r, content: '' })), // Remove content in lightweight mode
+      } : search;
+
+      return {
+        searchResults: { ...state.searchResults, [search.id]: lightweightSearch },
+      };
+    }),
+
+  // Add text selection without lightweight mode
   addTextSelection: selection =>
     set(state => {
       const reference = selection.reference;
-      // Remove any existing items with same reference first
       get().removeByReference(reference);
       
       return {
