@@ -2,25 +2,32 @@ import { clerkMiddleware, createRouteMatcher } from "@clerk/nextjs/server";
 import { NextFetchEvent, NextRequest, NextResponse } from "next/server";
 
 const isApiRoute = createRouteMatcher(["/api(.*)"]);
-const isAuthRoute = createRouteMatcher(["/(.*)"]);
-const isCheckoutApiRoute = createRouteMatcher(["/api/create-checkout-session"]);
-const isWebhookRoute = createRouteMatcher([
+
+const isPublicRoute = createRouteMatcher([
+  "/api(.*)",
+  "/sign-in(.*)",
+  "/webhook(.*)",
   "/top-up-success",
   "/top-up-cancelled",
 ]);
 
-const isCheckoutRedirectRoute = createRouteMatcher(["/api/checkout-complete"]);
+const isClerkProtectedRoute = createRouteMatcher(["/(.*)"]);
+
 const userManagementMiddleware = () =>
   clerkMiddleware(async (auth, req) => {
-    if (
-      isWebhookRoute(req) ||
-      isApiRoute(req) ||
-      isCheckoutRedirectRoute(req)
-    ) {
+    console.log("userManagementMiddleware");
+
+    if (isPublicRoute(req)) {
+      console.log("isPublicRoute");
       return NextResponse.next();
     }
-    if (isCheckoutApiRoute(req) || isAuthRoute(req)) {
-      auth.protect();
+    if (isClerkProtectedRoute(req)) {
+      console.log("isClerkProtectedRoute");
+      const { userId } = await auth();
+      console.log("userId", userId);
+      if (!userId) {
+        // (await auth()).redirectToSignIn();
+      }
     }
     return NextResponse.next();
   });
@@ -28,6 +35,7 @@ const userManagementMiddleware = () =>
 const soloApiKeyMiddleware = (req: NextRequest) => {
   if (isApiRoute(req)) {
     const header = req.headers.get("authorization");
+    console.log("header", header);
     if (!header) {
       return new Response("No Authorization header", { status: 401 });
     }
@@ -75,6 +83,7 @@ export default async function middleware(
     process.env.SOLO_API_KEY && process.env.SOLO_API_KEY.length > 0;
 
   if (enableUserManagement) {
+    console.log("enableUserManagement", req.url);
     return userManagementMiddleware()(req, event);
   } else if (isSoloInstance) {
     return soloApiKeyMiddleware(req);

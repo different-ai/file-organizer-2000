@@ -1,4 +1,4 @@
-import { ClerkProvider } from "@clerk/nextjs";
+import { ClerkProvider, SignedIn, SignedOut, SignIn, SignInButton, UserButton } from "@clerk/nextjs";
 import type { Metadata } from "next";
 import { PHProvider } from "./providers";
 import dynamic from "next/dynamic";
@@ -7,7 +7,7 @@ import { Toaster } from "react-hot-toast";
 
 import "./globals.css";
 import Link from "next/link";
-import UserManagement from "@/components/user-management";
+import ExtraUserSettings from "@/components/user-management";
 
 export const metadata: Metadata = {
   title: "File Organizer 2000 - Dashboard",
@@ -20,25 +20,40 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return process.env.ENABLE_USER_MANAGEMENT == "true" ? (
-    <ClerkProvider>
+    <ClerkProvider afterSignOutUrl="/sign-in">
       <html lang="en">
         <PHProvider>
-          <body className="">
-            <Toaster />
-            <header className="p-4 border-b border-stone-300">
-              <nav className="max-w-9xl mx-auto flex items-center space-x-6 justify-between w-full">
-                <div className=" sm:block">
-                  <Link href="/">
-                    <Logo />
-                  </Link>
+          <SignedIn>
+            <body className="">
+              <Toaster />
+              <header className="p-4 border-b border-stone-300">
+                <nav className="max-w-9xl mx-auto flex items-center space-x-6 justify-between w-full">
+                  <div className=" sm:block">
+                    <Link href="/">
+                      <Logo />
+                    </Link>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <ExtraUserSettings />
+                    <UserButton />
+                  </div>
+                </nav>
+              </header>
+              <main className="min-h-screen text-stone-900 font-sans">
+                {children}
+              </main>
+            </body>
+          </SignedIn>
+          <SignedOut>
+            <body className="">
+              <Toaster />
+              <main className="min-h-screen text-stone-900 font-sans">
+                <div className="flex items-center justify-center h-screen">
+                  <SignIn />
                 </div>
-                <UserManagement />
-              </nav>
-            </header>
-            <main className="min-h-screen text-stone-900 font-sans">
-              {children}
-            </main>
-          </body>
+              </main>
+            </body>
+          </SignedOut>
         </PHProvider>
       </html>
     </ClerkProvider>
