@@ -84,48 +84,92 @@ jobs:
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
         run: |
           # Build all packages including release-notes
+          echo "Building packages..."
           pnpm build --filter "@file-organizer/release-notes"
           
-          # Use the optimized release process
-          RELEASE_DATA=$(node -e "
+          # Create a temporary file for the release data
+          echo "Preparing release data..."
+          node -e "
             const { updateVersions, generateReleaseArtifacts, prepareReleaseArtifacts, generateReleaseNotes } = require('./packages/release-notes/dist');
             
             async function run() {
-              const versionInfo = await updateVersions('${{ github.event.inputs.increment }}');
-              console.log('Version info:', JSON.stringify(versionInfo));
-              
-              await generateReleaseArtifacts(versionInfo.previous, {
-                repoRoot: process.cwd(),
-                openAIApiKey: process.env.OPENAI_API_KEY
-              });
-              
-              const artifacts = await prepareReleaseArtifacts(versionInfo.new);
-              console.log('Generated artifacts:', artifacts);
-              
-              const notes = await generateReleaseNotes(versionInfo.previous, {
-                repoRoot: process.cwd(),
-                openAIApiKey: process.env.OPENAI_API_KEY
-              });
-              
-              return { versionInfo, notes };
+              try {
+                // Step 1: Update versions
+                console.log('Updating versions...');
+                const versionInfo = await updateVersions('${{ github.event.inputs.increment }}');
+                console.log('Version info:', JSON.stringify(versionInfo));
+                
+                // Step 2: Build plugin and prepare directory
+                console.log('Building plugin...');
+                await generateReleaseArtifacts(versionInfo.previous, {
+                  repoRoot: process.cwd(),
+                  openAIApiKey: process.env.OPENAI_API_KEY
+                });
+                
+                // Step 3: Generate release notes
+                console.log('Generating release notes...');
+                const notes = await generateReleaseNotes(versionInfo.previous, {
+                  repoRoot: process.cwd(),
+                  openAIApiKey: process.env.OPENAI_API_KEY
+                });
+                
+                // Step 4: Prepare artifacts and generate checksums
+                console.log('Preparing artifacts...');
+                const artifacts = await prepareReleaseArtifacts(versionInfo.new);
+                console.log('Generated artifacts:', artifacts);
+                
+                // Write the complete release data to a file
+                const releaseData = { versionInfo, notes };
+                require('fs').writeFileSync('release-data.json', JSON.stringify(releaseData, null, 2));
+                console.log('Release data written to release-data.json');
+              } catch (error) {
+                console.error('Error during release preparation:', error);
+                process.exit(1);
+              }
             }
             
-            run().catch(console.error);
-          ")
+            run().catch(error => {
+              console.error('Fatal error:', error);
+              process.exit(1);
+            });
+          "
           
+          # Check if release-data.json exists
+          if [ ! -f "release-data.json" ]; then
+            echo "Error: release-data.json was not created"
+            exit 1
+          fi
+          
+          # Export the release data to GITHUB_ENV
           echo "RELEASE_DATA<<EOF" >> $GITHUB_ENV
-          echo "$RELEASE_DATA" >> $GITHUB_ENV
+          cat release-data.json >> $GITHUB_ENV
           echo "EOF" >> $GITHUB_ENV
+
+      - name: Verify artifacts
+        run: |
+          # Check if required files exist
+          for file in main.js styles.css manifest.json checksums.txt; do
+            if [ ! -f "release-artifacts/$file" ]; then
+              echo "Error: release-artifacts/$file is missing"
+              exit 1
+            fi
+          done
 
       - name: Create Release
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           # Parse release data
-          VERSION=$(echo "$RELEASE_DATA" | jq -r '.versionInfo.new')
-          RELEASE_NAME=$(echo "$RELEASE_DATA" | jq -r '.notes.name')
-          RELEASE_DESC=$(echo "$RELEASE_DATA" | jq -r '.notes.description')
-          TECHNICAL_CHANGES=$(echo "$RELEASE_DATA" | jq -r '.notes.technicalChanges | join("\n- ")')
+          VERSION=$(cat release-data.json | jq -r '.versionInfo.new')
+          RELEASE_NAME=$(cat release-data.json | jq -r '.notes.name')
+          RELEASE_DESC=$(cat release-data.json | jq -r '.notes.description')
+          TECHNICAL_CHANGES=$(cat release-data.json | jq -r '.notes.technicalChanges | join("\n- ")')
+          
+          # Verify all required variables
+          if [ -z "$VERSION" ] || [ -z "$RELEASE_NAME" ] || [ -z "$RELEASE_DESC" ] || [ -z "$TECHNICAL_CHANGES" ]; then
+            echo "Error: Missing required release information"
+            exit 1
+          fi
           
           # Create release notes markdown
           {
@@ -139,6 +183,12 @@ jobs:
             echo "## SHA-256 Checksums"
             cat release-artifacts/checksums.txt
           } > release-notes.md
+          
+          # Verify release notes were created
+          if [ ! -f "release-notes.md" ]; then
+            echo "Error: Failed to create release notes"
+            exit 1
+          fi
           
           # Create the GitHub release
           gh release create "$VERSION" \
