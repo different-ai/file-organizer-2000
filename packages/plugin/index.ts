@@ -327,6 +327,9 @@ export default class FileOrganizer extends Plugin {
       return "";
     }
   }
+  getApiKey(): string {
+    return this.settings.API_KEY;
+  }
 
   async formatStream(
     content: string,

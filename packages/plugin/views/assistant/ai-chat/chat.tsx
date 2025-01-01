@@ -106,7 +106,7 @@ export const ChatComponent: React.FC<ChatComponentProps> = ({
     experimental_throttle: 100,
     headers: {
       "Content-Type": "application/json",
-      Authorization: `Bearer ${apiKey}`,
+      Authorization: `Bearer ${plugin.getApiKey()}`,
     },
     fetch: async (url, options) => {
       logMessage(plugin.settings.showLocalLLMInChat, "showLocalLLMInChat");
