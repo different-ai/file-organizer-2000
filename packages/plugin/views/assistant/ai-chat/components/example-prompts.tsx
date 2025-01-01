@@ -31,15 +31,48 @@ const examples: Example[] = [
     prompt: "Tag my book notes with relevant categories",
     description: "Auto-tagging",
     icon: "🏷️"
+  },
+  {
+    prompt: "Analyze my vault structure and suggest improvements",
+    description: "Vault analysis",
+    icon: "📊"
+  },
+  {
+    prompt: "Get a summary of my day from Screenpipe",
+    description: "Daily summary",
+    icon: "📅"
+  },
+  {
+    prompt: "Help me set up my vault organization settings",
+    description: "Vault setup",
+    icon: "⚙️"
+  },
+  {
+    prompt: "Show me my recently modified files",
+    description: "Recent activity",
+    icon: "🕒"
+  },
+  {
+    prompt: "Add notes from this YouTube video",
+    description: "Content import",
+    icon: "▶️"
   }
 ];
+
+// Function to get random examples
+const getRandomExamples = (count: number = 5): Example[] => {
+  const shuffled = [...examples].sort(() => 0.5 - Math.random());
+  return shuffled.slice(0, count);
+};
 
 export const ExamplePrompts: React.FC<{
   onExampleClick: (prompt: string) => void;
 }> = ({ onExampleClick }) => {
+  const [displayedExamples] = React.useState(() => getRandomExamples());
+
   return (
     <div className="flex flex-col gap-4 p-4 mx-auto max-w-xl">
-      {examples.map((example, index) => (
+      {displayedExamples.map((example, index) => (
         <button
           key={index}
           onClick={() => onExampleClick(example.prompt)}
