@@ -150,6 +150,40 @@ export async function generateReleaseNotes(
         prompt: `You are a release notes generator for an Obsidian plugin called File Organizer 2000.
 Given the following git diff between versions, generate a user-friendly release name and description.
 Focus on the user-facing changes and new features that will benefit users.
+File Organizer 2000 is an Obsidian plugin that helps you organize your files and notes.
+
+It has a sidebar with a ai chat interface that interfaces with many obsidian capabilities.
+
+Chat interface is in:
+/views/assistant/ai-chat/chat.tsx
+
+Organizer is in:
+/views/assistant/organizer/organizer.tsx
+
+
+
+You can do things like:
+- Tag my book notes with relevant categories
+- Analyze my vault structure and suggest improvements
+- Get a summary of my day from Screenpipe
+- Help me set up my vault organization settings
+- Show me my recently modified files
+- Add notes from this YouTube video (and more)
+
+In the side bar there's also an "organizer" tab that allows you to organize your files and notes.
+It does things like:
+- Suggest new file names
+- Tag my files with relevant categories
+- Move files to different folders
+
+On top of that there's a special "inbox" functionality that automatically tags and categorizes files based on their content.
+
+When users drop files in their Obsidian vault special inbox folder, File Organizer 2000 will automatically tag and categorize them.
+They then can view in the "inbox" tab. the changes that were made to the files.
+
+
+
+
 
 ${diff.slice(0, 100000)}`,
       });
