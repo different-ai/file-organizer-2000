@@ -50,8 +50,9 @@ function ToolInvocationHandler({
       executeActionsOnFileBasedOnPrompt: "Execute Actions on Files",
       addTextToDocument: "Adding Text to Document",
       modifyDocumentText: "Modifying Document Text",
+      onboardUser: "Onboarding User",
     };
-    return toolTitles[toolName] || "Tool Invocation";
+    return toolTitles[toolName] ;
   };
 
   const renderContent = () => {

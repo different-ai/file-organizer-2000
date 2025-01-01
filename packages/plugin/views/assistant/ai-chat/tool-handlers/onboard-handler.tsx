@@ -101,7 +101,7 @@ export function OnboardHandler({
       };
 
       console.log("analysisData", analysisData);
-      handleAddResult("goodbye");
+      handleAddResult(JSON.stringify(analysisData));
     } catch (error) {
       console.error("Analysis error:", error);
       handleAddResult(

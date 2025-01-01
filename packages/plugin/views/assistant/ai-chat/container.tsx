@@ -21,12 +21,30 @@ const AIChatSidebar: React.FC<AIChatSidebarProps> = ({ plugin, apiKey }) => {
     setCurrentConversationIndex(conversations.length);
   };
 
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      // Check if Ctrl/Cmd + N is pressed and the input ref is focused
+      if ((e.ctrlKey || e.metaKey) && e.key === 'n') {
+        e.preventDefault(); // Prevent default browser behavior
+        startNewConversation();
+      }
+    };
+
+    // Add event listener
+    document.addEventListener('keydown', handleKeyDown);
+
+    // Cleanup
+    return () => {
+      document.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [conversations]); // Include conversations in dependencies since startNewConversation uses it
+
   return (
     <Card className="flex flex-col h-full max-h-screen bg-[--ai-chat-background] text-[--ai-chat-text] p-0 m-0">
       <div className="flex justify-end">
         <Button
           onClick={startNewConversation}
-          className="h-6 w-6 p-1 rounded-full bg-[--interactive-accent] text-[--text-on-accent] hover:bg-[--interactive-accent-hover] transition-colors duration-200"
+          className="h-6 w-6 p-1 rounded-full bg-[--interactive-accent] text-[--text-on-accent] hover:bg-[--interactive-accent-hover] transition-colors duration-200 absolute top-2 right-2"
           aria-label="New Conversation"
         >
           <svg

@@ -262,3 +262,156 @@ and one call to apply the recommendation. add tag after tagging , move file afte
 when you classify apply a tag to the document there's append tag funciton on plugin 
 only format if 1. there's a classification 2. there's no tag with the classification presetn
 
+
+
+# Tool Calling
+
+Tools are objects that can be invoked by the model to perform specific tasks. AI SDK Core tools consist of three key elements:
+
+1. **Description**: Optional. Describes the tool's purpose and influences when it is selected.
+2. **Parameters**: A Zod schema or JSON schema that defines the tool's parameters. Used to validate tool calls.
+3. **Execute**: An optional async function that processes tool calls and returns a result of type `RESULT`.
+
+## Defining Tools
+
+Use the `tool` helper function to define tools:
+
+```javascript
+import { z } from 'zod';
+import { generateText, tool } from 'ai';
+
+const result = await generateText({
+  model: yourModel,
+  tools: {
+    weather: tool({
+      description: 'Get the weather in a location',
+      parameters: z.object({
+        location: z.string().describe('The location to get the weather for'),
+      }),
+      execute: async ({ location }) => ({
+        location,
+        temperature: 72 + Math.floor(Math.random() * 21) - 10,
+      }),
+    }),
+  },
+  prompt: 'What is the weather in San Francisco?',
+});
+
+When a tool is used, the process is called a tool call, and its output is the tool result.
+
+Multi-Step Calls
+
+Enable multi-step calls with the maxSteps setting in generateText or streamText. Each step can include a text generation or tool call, looping until no further calls are needed or the maximum number of steps is reached.
+
+Example
+
+import { z } from 'zod';
+import { generateText, tool } from 'ai';
+
+const { text, steps } = await generateText({
+  model: yourModel,
+  tools: {
+    weather: tool({
+      description: 'Get the weather in a location',
+      parameters: z.object({
+        location: z.string().describe('The location to get the weather for'),
+      }),
+      execute: async ({ location }) => ({
+        location,
+        temperature: 72 + Math.floor(Math.random() * 21) - 10,
+      }),
+    }),
+  },
+  maxSteps: 5,
+  prompt: 'What is the weather in San Francisco?',
+});
+
+Accessing Steps
+
+Retrieve intermediate tool calls and results using the steps property:
+
+const allToolCalls = steps.flatMap(step => step.toolCalls);
+
+onStepFinish Callback
+
+Use onStepFinish to execute logic after each step:
+
+const result = await generateText({
+  onStepFinish({ text, toolCalls, toolResults }) {
+    // Save chat history or log usage
+  },
+});
+
+Tool Choice
+
+Control tool selection with the toolChoice setting:
+	•	auto (default): Model decides when and which tool to use.
+	•	required: Model must call a tool.
+	•	none: Model must not use tools.
+	•	{ type: 'tool', toolName: string }: Model must call the specified tool.
+
+Example
+
+const result = await generateText({
+  tools: {
+    weather: tool({
+      description: 'Get the weather in a location',
+      parameters: z.object({ location: z.string() }),
+      execute: async ({ location }) => ({ location, temperature: 72 }),
+    }),
+  },
+  toolChoice: 'required',
+  prompt: 'What is the weather in San Francisco?',
+});
+
+Error Handling
+
+AI SDK handles the following tool-call errors:
+	1.	NoSuchToolError: Tool not defined in the tools object.
+	2.	InvalidToolArgumentsError: Invalid arguments for the tool’s parameters.
+	3.	ToolExecutionError: Error during tool execution.
+
+Handling Errors
+
+try {
+  const result = await generateText({
+    // ...
+  });
+} catch (error) {
+  if (NoSuchToolError.isInstance(error)) {
+    // Handle missing tool
+  } else if (InvalidToolArgumentsError.isInstance(error)) {
+    // Handle invalid arguments
+  } else if (ToolExecutionError.isInstance(error)) {
+    // Handle execution error
+  }
+}
+
+Tool Call Repair
+
+Use experimental_repairToolCall to attempt repairs for invalid tool calls:
+
+const result = await generateText({
+  experimental_repairToolCall: async ({ toolCall, parameterSchema }) => {
+    // Repair logic here
+  },
+});
+
+Active Tools
+
+Limit active tools using experimental_activeTools:
+
+const { text } = await generateText({
+  tools: myToolSet,
+  experimental_activeTools: ['firstTool'],
+});
+
+Types
+
+Ensure type safety with helper types:
+
+import { CoreToolCallUnion, CoreToolResultUnion } from 'ai';
+
+type MyToolCall = CoreToolCallUnion<typeof myToolSet>;
+type MyToolResult = CoreToolResultUnion<typeof myToolSet>;
+

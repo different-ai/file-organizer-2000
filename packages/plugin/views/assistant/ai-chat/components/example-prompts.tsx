@@ -53,7 +53,7 @@ const examples: Example[] = [
     icon: "🕒"
   },
   {
-    prompt: "Add notes from this YouTube video https://www.youtube.com/watch?v=AyLXmbTnJIY&t=1s",
+    prompt: "Summarize this video https://www.youtube.com/watch?v=AyLXmbTnJIY&t=1s",
     description: "Content import",
     icon: "▶️"
   }
