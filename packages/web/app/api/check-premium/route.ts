@@ -11,7 +11,8 @@ async function checkCatalyst(userId: string): Promise<boolean> {
       .where(eq(UserUsageTable.userId, userId))
       .limit(1);
 
-    return result[0]?.hasCatalystAccess || false;
+    // disable for now because of bug
+    return true;
   } catch (error) {
     console.error('Error checking catalyst access:', error);
     return false;

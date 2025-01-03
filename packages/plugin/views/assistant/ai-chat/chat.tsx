@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useCallback } from "react";
 import { useChat, UseChatOptions } from "@ai-sdk/react";
 import { moment } from "obsidian";
 
@@ -29,6 +29,8 @@ import {
   SearchResultsAnnotation,
 } from "./types/annotations";
 import { ExamplePrompts } from "./components/example-prompts";
+import { AttachmentHandler } from './components/attachment-handler';
+import { LocalAttachment } from './types/attachments';
 
 interface ChatComponentProps {
   plugin: FileOrganizer;
@@ -203,6 +205,12 @@ export const ChatComponent: React.FC<ChatComponentProps> = ({
     },
   } as UseChatOptions);
 
+  const [attachments, setAttachments] = useState<LocalAttachment[]>([]);
+
+  const handleAttachmentsChange = useCallback((newAttachments: LocalAttachment[]) => {
+    setAttachments(newAttachments);
+  }, []);
+
   const handleSendMessage = (e: React.FormEvent<HTMLFormElement>) => {
     logger.debug("handleSendMessage", e, input);
     e.preventDefault();
@@ -211,7 +219,18 @@ export const ChatComponent: React.FC<ChatComponentProps> = ({
       return;
     }
 
-    handleSubmit(e, { body: chatBody });
+    const messageBody = {
+      ...chatBody,
+      experimental_attachments: attachments.map(({ id, size, ...attachment }) => ({
+        name: attachment.name,
+        contentType: attachment.contentType,
+        url: attachment.url,
+      })),
+    };
+
+    handleSubmit(e, { body: messageBody });
+    // Clear attachments after sending
+    setAttachments([]);
   };
 
   const handleCancelGeneration = () => {
@@ -275,7 +294,7 @@ export const ChatComponent: React.FC<ChatComponentProps> = ({
       <div className="flex-grow overflow-y-auto p-4 h-full">
         <div className="flex flex-col min-h-min-content">
           {errorMessage && (
-            <div className="bg-[--background-modifier-error] bg-opacity-10 text-[--text-error] p-4 rounded-md mb-4 flex items-center justify-between">
+            <div className=" bg-opacity-10 text-[--text-error] p-4 rounded-md mb-4 flex items-center justify-between">
               <span className="flex items-center">
                 <svg
                   className="w-5 h-5 mr-2"
@@ -351,7 +370,7 @@ export const ChatComponent: React.FC<ChatComponentProps> = ({
           )}
 
           {isGenerating && (
-            <div className="flex items-center text-[--text-muted] text-sm mt-4">
+            <div className="ml-3 flex items-center text-[--text-muted] text-sm mt-4">
               <svg
                 className="animate-spin -ml-1 mr-3 h-4 w-4"
                 xmlns="http://www.w3.org/2000/svg"
@@ -389,20 +408,25 @@ export const ChatComponent: React.FC<ChatComponentProps> = ({
           <ClearAllButton />
         </div>
 
-        <form onSubmit={handleSendMessage} className="flex items-stretch min-h-min max-h-full">
+        <form onSubmit={handleSendMessage} className="flex flex-col space-y-4">
           <div
             className={`flex flex-grow ${
               error ? "opacity-50 pointer-events-none" : ""
             }`}
           >
-            <div className="overflow-y-auto relative w-full " ref={inputRef}>
+            <div className="overflow-y-auto relative w-full" ref={inputRef}>
               <Tiptap
                 value={input}
                 onChange={handleTiptapChange}
                 onKeyDown={handleKeyDown}
               />
 
-              <div className="absolute bottom-0 right-0 h-full flex items-center">
+              <div className="absolute bottom-0 right-12 h-full flex items-center space-x-2">
+                {/* <AttachmentHandler
+                  onAttachmentsChange={handleAttachmentsChange}
+                  maxFileSize={4 * 1024 * 1024} // 4MB
+                  acceptedTypes={['image/*']}
+                /> */}
                 <AudioRecorder
                   onTranscriptionComplete={handleTranscriptionComplete}
                 />
@@ -410,9 +434,68 @@ export const ChatComponent: React.FC<ChatComponentProps> = ({
             </div>
             <SubmitButton isGenerating={isGenerating} />
           </div>
+
+          {/* Show attachment previews if any */}
+          {attachments.length > 0 && (
+            <div className="flex flex-wrap gap-2">
+              {attachments.map((attachment) => (
+                <div
+                  key={attachment.id}
+                  className="flex items-center space-x-2 bg-[--background-secondary] rounded-lg p-2"
+                >
+                  {attachment.contentType.startsWith('image/') ? (
+                    <img
+                      src={attachment.url}
+                      alt={attachment.name}
+                      className="h-8 w-8 object-cover rounded"
+                    />
+                  ) : (
+                    <div className="h-8 w-8 flex items-center justify-center bg-[--background-modifier-border] rounded">
+                      <svg
+                        className="h-4 w-4 text-[--text-muted]"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"
+                        />
+                      </svg>
+                    </div>
+                  )}
+                  <span className="text-sm text-[--text-normal] truncate max-w-[100px]">
+                    {attachment.name}
+                  </span>
+                  <button
+                    onClick={() => {
+                      setAttachments(attachments.filter(a => a.id !== attachment.id));
+                    }}
+                    className="p-1 hover:bg-[--background-modifier-hover] rounded-full"
+                  >
+                    <svg
+                      className="h-4 w-4 text-[--text-muted]"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M6 18L18 6M6 6l12 12"
+                      />
+                    </svg>
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
         </form>
 
-        <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between mt-4">
           <ContextLimitIndicator
             unifiedContext={contextString}
             maxContextSize={maxContextSize}

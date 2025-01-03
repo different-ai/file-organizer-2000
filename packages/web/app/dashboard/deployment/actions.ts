@@ -17,12 +17,14 @@ export async function updateKeys({
   visionModelName,
   openaiKey,
   anthropicKey,
+  googleKey,
   generateNewLicenseKey,
 }: {
   modelName: string;
   visionModelName?: string;
   openaiKey?: string;
   anthropicKey?: string;
+  googleKey?: string;
   generateNewLicenseKey?: boolean;
 }): Promise<UpdateKeysResult> {
   try {
@@ -85,6 +87,15 @@ export async function updateKeys({
       envVars.push({
         key: 'ANTHROPIC_API_KEY',
         value: anthropicKey,
+        type: "encrypted",
+        target: ["production"],
+      });
+    }
+
+    if (googleKey?.trim()) {
+      envVars.push({
+        key: 'GOOGLE_API_KEY',
+        value: googleKey,
         type: "encrypted",
         target: ["production"],
       });

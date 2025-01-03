@@ -9,7 +9,6 @@ This works like this
 in the ./plugin use this values inside of tailwind classes like so
 
 example:
-text[--text-error]
 
 
 - three plans
@@ -31,9 +30,6 @@ here's the list of variables you can use:
     --background-modifier-border: var(--color-base-30);
     --background-modifier-border-hover: var(--color-base-35);
     --background-modifier-border-focus: var(--color-base-40);
-    --background-modifier-error-rgb: var(--color-red-rgb);
-    --background-modifier-error: var(--color-red);
-    --background-modifier-error-hover: var(--color-red);
     --background-modifier-success-rgb: var(--color-green-rgb);
     --background-modifier-success: var(--color-green);
     --background-modifier-message: rgba(0, 0, 0, 0.9);
@@ -43,7 +39,6 @@ here's the list of variables you can use:
     --text-faint: var(--color-base-50);
     --text-on-accent: white;
     --text-on-accent-inverted: black;
-    --text-error: var(--color-red);
     --text-warning: var(--color-orange);
     --text-success: var(--color-green);
     --text-selection: hsla(var(--color-accent-hsl), 0.2);

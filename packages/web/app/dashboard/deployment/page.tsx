@@ -36,6 +36,7 @@ const formSchema = z.object({
   visionModelName: z.string().min(1, "Vision model name is required"),
   openaiKey: z.string().optional(),
   anthropicKey: z.string().optional(),
+  googleKey: z.string().optional(),
 });
 
 type FormValues = z.infer<typeof formSchema>;
@@ -55,6 +56,7 @@ export default function DeploymentDashboard() {
       visionModelName: "",
       openaiKey: "",
       anthropicKey: "",
+      googleKey: "",
     },
   });
 
@@ -135,6 +137,7 @@ export default function DeploymentDashboard() {
       if (values.visionModelName) updates.push('Vision Model');
       if (values.openaiKey) updates.push('OpenAI Key');
       if (values.anthropicKey) updates.push('Anthropic Key');
+      if (values.googleKey) updates.push('Google Key');
 
       toast.success(
         <div className="space-y-2">
@@ -154,6 +157,7 @@ export default function DeploymentDashboard() {
       // Clear API keys
       form.setValue('openaiKey', '');
       form.setValue('anthropicKey', '');
+      form.setValue('googleKey', '');
       
       await fetchDeploymentStatus();
     } catch (error) {
@@ -399,6 +403,29 @@ export default function DeploymentDashboard() {
                             <Input
                               type="password"
                               placeholder="Enter Anthropic API key (optional)"
+                              {...field}
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    <FormField
+                      control={form.control}
+                      name="googleKey"
+                      render={({ field }) => (
+                        <FormItem>
+                          <div className="flex items-center justify-between">
+                            <FormLabel>Google API Key</FormLabel>
+                            <Badge variant={deployment?.googleKeyPresent ? "success" : "secondary"}>
+                              {deployment?.googleKeyPresent ? "Configured" : "Not Set"}
+                            </Badge>
+                          </div>
+                          <FormControl>
+                            <Input
+                              type="password"
+                              placeholder="Enter Google API key (optional)"
                               {...field}
                             />
                           </FormControl>
