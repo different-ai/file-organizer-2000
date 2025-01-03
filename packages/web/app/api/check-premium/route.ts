@@ -1,28 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
-import { handleAuthorizationV2 } from "@/lib/handleAuthorization";
-import { db, UserUsageTable } from '@/drizzle/schema';
-import { eq } from 'drizzle-orm';
 
-async function checkCatalyst(userId: string): Promise<boolean> {
-  try {
-    const result = await db
-      .select({ hasCatalystAccess: UserUsageTable.hasCatalystAccess })
-      .from(UserUsageTable)
-      .where(eq(UserUsageTable.userId, userId))
-      .limit(1);
-
-    // disable for now because of bug
-    return true;
-  } catch (error) {
-    console.error('Error checking catalyst access:', error);
-    return false;
-  }
-}
 
 export async function GET(request: NextRequest) {
   try {
-    const { userId } = await handleAuthorizationV2(request);
-    const hasCatalystAccess = await checkCatalyst(userId);
+    // const { userId } = await handleAuthorizationV2(request);
+    const hasCatalystAccess = true
 
     return NextResponse.json({ hasCatalystAccess });
   } catch (error) {
