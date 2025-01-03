@@ -1,6 +1,12 @@
 
-**Q: Whad is meant by “Unlimited usage” included in the Lifetime Plan?**
+**Q: What is meant by “Unlimited usage” included in the Lifetime Plan?**
 A: If you purchase lifetime license. You'll use your own openAI API key, linked directly to your account and credits.
+
+**Q: What is the difference between the plans One Year of Updates and Lifetime of Updates?**
+
+One year of updates means that you will keep getting updates for one year, as we keep adding features and improving the app. But after that year, you'll keep the app in that state. It will be a functioning version of the app, but you will not get the latest updates past that date. 
+
+Whereas the lifetime version means you'll always get new updates.
 
 
 **Q: I’m interested in “Early access features”, will the new license key provide me with a different Plugin version?**
