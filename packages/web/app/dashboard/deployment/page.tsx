@@ -1,152 +1,108 @@
 "use client";
-import { useState, useEffect } from "react";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+
+import { useState, useEffect, useCallback } from "react";
 import { toast } from "react-hot-toast";
-import { Loader2, RefreshCw, Settings2, Key, Wand2, AlertCircle, ExternalLink } from "lucide-react";
-import { updateKeys, getDeploymentStatus } from "./actions";
-import { Switch } from "@/components/ui/switch";
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { Badge } from "@/components/ui/badge";
-import { Separator } from "@/components/ui/separator";
-import { getAvailableModels } from "@/lib/models";
-import { useForm } from "react-hook-form";
-import { z } from "zod";
-import { zodResolver } from "@hookform/resolvers/zod";
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@/components/ui/form";
+import { Loader2 } from "lucide-react";
+import { updateKeysAndRedeploy, getDeploymentStatus, type DeploymentStatus } from "./actions";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { AlertCircle } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { DeploymentStatus as DeploymentStatusComponent } from "./_components/deployment-status";
+import { ConfigurationForm } from "./_components/configuration-form";
+import { WizardSteps, StepContent } from "./_components/wizard-steps";
 
-const formSchema = z.object({
-  modelName: z.string().min(1, "Model name is required"),
-  visionModelName: z.string().min(1, "Vision model name is required"),
-  openaiKey: z.string().optional(),
-  anthropicKey: z.string().optional(),
-  googleKey: z.string().optional(),
-});
-
-type FormValues = z.infer<typeof formSchema>;
+type FormValues = {
+  modelName: string;
+  visionModelName: string;
+  openaiKey?: string;
+  anthropicKey?: string;
+  googleKey?: string;
+  generateNewLicenseKey: boolean;
+};
 
 export default function DeploymentDashboard() {
-  const [deployment, setDeployment] = useState(null);
+  const [deployment, setDeployment] = useState<DeploymentStatus | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isRedeploying, setIsRedeploying] = useState(false);
   const [isGeneratingNewLicense, setIsGeneratingNewLicense] = useState(false);
-  const [availableModels] = useState(() => getAvailableModels());
   const [newLicenseKey, setNewLicenseKey] = useState<string | null>(null);
+  const [currentStep, setCurrentStep] = useState(0);
+  const [pendingChanges, setPendingChanges] = useState<FormValues | null>(null);
+  const [pollInterval, setPollInterval] = useState<number | null>(null);
 
-  const form = useForm<FormValues>({
-    resolver: zodResolver(formSchema),
-    defaultValues: {
-      modelName: "",
-      visionModelName: "",
-      openaiKey: "",
-      anthropicKey: "",
-      googleKey: "",
-    },
-  });
-
-  useEffect(() => {
-    fetchDeploymentStatus();
-  }, []);
-
-  useEffect(() => {
-    if (deployment) {
-      const defaultValues = {
-        modelName: deployment.modelName || 'gpt-4o',
-        visionModelName: deployment.visionModelName || 'gpt-4o',
-        openaiKey: "",
-        anthropicKey: "",
-      };
-
-      const currentValues = form.getValues();
-      if (
-        currentValues.modelName !== defaultValues.modelName ||
-        currentValues.visionModelName !== defaultValues.visionModelName
-      ) {
-        form.reset(defaultValues);
-      }
-    }
-  }, [deployment]);
-
-  const fetchDeploymentStatus = async () => {
+  const fetchDeploymentStatus = useCallback(async () => {
     try {
       const data = await getDeploymentStatus();
       if ('error' in data) {
         throw new Error(data.error);
       }
       setDeployment(data);
+
+      // If deployment is in progress, poll every 5 seconds
+      if (data.isDeploying && !pollInterval) {
+        const interval = window.setInterval(() => {
+          fetchDeploymentStatus();
+        }, 5000);
+        setPollInterval(interval);
+      } else if (!data.isDeploying && pollInterval) {
+        // Stop polling if deployment is complete
+        window.clearInterval(pollInterval);
+        setPollInterval(null);
+      }
     } catch (error) {
       toast.error('Failed to fetch deployment status');
+      if (pollInterval) {
+        window.clearInterval(pollInterval);
+        setPollInterval(null);
+      }
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [pollInterval]);
+
+  useEffect(() => {
+    fetchDeploymentStatus();
+    return () => {
+      if (pollInterval) {
+        window.clearInterval(pollInterval);
+      }
+    };
+  }, [fetchDeploymentStatus]);
 
   const handleRedeploy = async () => {
-    setIsRedeploying(true);
-    try {
-      const response = await fetch('/api/redeploy', {
-        method: 'POST',
-      });
-      
-      if (!response.ok) throw new Error('Failed to redeploy');
-      
-      toast.success('Redeployment triggered successfully');
-      await fetchDeploymentStatus();
-    } catch (error) {
-      toast.error('Failed to trigger redeployment');
-    } finally {
-      setIsRedeploying(false);
+    if (!pendingChanges) {
+      toast.error('No changes to deploy');
+      return;
     }
-  };
 
-  const onSubmit = async (values: FormValues) => {
-    const loadingToast = toast.loading('Updating configuration...');
-    
+    setIsRedeploying(true);
+    const loadingToast = toast.loading('Updating configuration and deploying...');
+
     try {
-      const result = await updateKeys({
-        modelName: values.modelName,
-        visionModelName: values.visionModelName,
-        openaiKey: values.openaiKey,
-        anthropicKey: values.anthropicKey,
-        googleKey: values.googleKey,
-        generateNewLicenseKey: isGeneratingNewLicense,
-      });
-
+      const result = await updateKeysAndRedeploy(pendingChanges);
+      
       if (!result.success) {
         throw new Error(result.error);
       }
 
-      toast.dismiss(loadingToast);
-
       // Show what was updated
       const updates = [];
-      if (values.modelName) updates.push('Text Model');
-      if (values.visionModelName) updates.push('Vision Model');
-      if (values.openaiKey) updates.push('OpenAI Key');
-      if (values.anthropicKey) updates.push('Anthropic Key');
-      if (values.googleKey) updates.push('Google Key');
+      if (pendingChanges.modelName) updates.push('Text Model');
+      if (pendingChanges.visionModelName) updates.push('Vision Model');
+      if (pendingChanges.openaiKey) updates.push('OpenAI Key');
+      if (pendingChanges.anthropicKey) updates.push('Anthropic Key');
+      if (pendingChanges.googleKey) updates.push('Google Key');
 
+      toast.dismiss(loadingToast);
       toast.success(
         <div className="space-y-2">
           <p className="font-medium">Configuration updated successfully</p>
           <p className="text-sm text-muted-foreground">
             Updated: {updates.join(', ')}
+          </p>
+          <p className="text-sm text-muted-foreground">
+            Deployment started. This may take a few minutes.
           </p>
         </div>,
         { duration: 5000, icon: '✅' }
@@ -157,20 +113,17 @@ export default function DeploymentDashboard() {
         setNewLicenseKey(result.newLicenseKey);
       }
       
-      // Clear API keys
-      form.setValue('openaiKey', '');
-      form.setValue('anthropicKey', '');
-      form.setValue('googleKey', '');
+      // Reset state
+      setPendingChanges(null);
+      setCurrentStep(0);
       
+      // Start polling for deployment status
       await fetchDeploymentStatus();
     } catch (error) {
-      // Dismiss loading toast
       toast.dismiss(loadingToast);
-      
-      // Show error toast
       toast.error(
         <div className="space-y-2">
-          <p className="font-medium">Failed to update configuration</p>
+          <p className="font-medium">Failed to update and redeploy</p>
           <p className="text-sm text-destructive/80">
             {error.message || 'Please try again'}
           </p>
@@ -180,7 +133,25 @@ export default function DeploymentDashboard() {
           icon: '❌',
         }
       );
+    } finally {
+      setIsRedeploying(false);
     }
+  };
+
+  const handleConfigurationSubmit = (values: FormValues) => {
+    setPendingChanges(values);
+    setCurrentStep(1);
+  };
+
+  const isStepComplete = (step: number) => {
+    if (step === 0) return !!pendingChanges;
+    return false;
+  };
+
+  const isStepEnabled = (step: number) => {
+    if (step === 0) return true;
+    if (step === 1) return !!pendingChanges;
+    return false;
   };
 
   if (isLoading) {
@@ -200,287 +171,88 @@ export default function DeploymentDashboard() {
         </p>
       </div>
 
-      <div className="grid gap-6">
-        {/* Status Overview */}
-        <Card>
-          <CardHeader>
-            <div className="flex items-center justify-between">
-              <div className="space-y-1">
-                <CardTitle className="flex items-center gap-2">
-                  Deployment Status
-                  <Badge variant={deployment?.lastDeployment ? "success" : "secondary"}>
-                    {deployment?.lastDeployment ? "Active" : "Not Deployed"}
-                  </Badge>
-                </CardTitle>
-                <CardDescription>
-                  Your instance details and deployment controls
-                </CardDescription>
-              </div>
+      {deployment?.deploymentError && (
+        <Alert variant="destructive">
+          <AlertCircle className="h-4 w-4" />
+          <AlertTitle>Deployment Error</AlertTitle>
+          <AlertDescription>
+            {deployment.deploymentError}
+          </AlertDescription>
+        </Alert>
+      )}
+
+      <WizardSteps
+        currentStep={currentStep}
+        onStepClick={setCurrentStep}
+        isStepComplete={isStepComplete}
+        isStepEnabled={isStepEnabled}
+        deployment={deployment}
+      />
+
+      <StepContent step={currentStep}>
+        {currentStep === 0 ? (
+          <ConfigurationForm
+            deployment={deployment}
+            isGeneratingNewLicense={isGeneratingNewLicense}
+            onGenerateLicenseChange={setIsGeneratingNewLicense}
+            onSubmit={handleConfigurationSubmit}
+          />
+        ) : (
+          <div className="space-y-8">
+            <DeploymentStatusComponent
+              deployment={deployment}
+              isRedeploying={isRedeploying || !!deployment?.isDeploying}
+              onRedeploy={handleRedeploy}
+            />
+
+            {pendingChanges && (
+              <Alert>
+                <AlertCircle className="h-4 w-4" />
+                <AlertTitle>Review Your Changes</AlertTitle>
+                <AlertDescription className="space-y-2">
+                  <p>The following changes will be applied:</p>
+                  <ul className="list-disc list-inside space-y-1">
+                    {pendingChanges.modelName && (
+                      <li>Text Model: {pendingChanges.modelName}</li>
+                    )}
+                    {pendingChanges.visionModelName && (
+                      <li>Vision Model: {pendingChanges.visionModelName}</li>
+                    )}
+                    {pendingChanges.openaiKey && <li>OpenAI API Key: Updated</li>}
+                    {pendingChanges.anthropicKey && <li>Anthropic API Key: Updated</li>}
+                    {pendingChanges.googleKey && <li>Google API Key: Updated</li>}
+                    {pendingChanges.generateNewLicenseKey && (
+                      <li>Generate New License Key: Yes</li>
+                    )}
+                  </ul>
+                </AlertDescription>
+              </Alert>
+            )}
+
+            <div className="flex justify-between">
+              <Button
+                variant="outline"
+                onClick={() => setCurrentStep(0)}
+              >
+                Back to Configuration
+              </Button>
+              <Button
+                onClick={handleRedeploy}
+                disabled={isRedeploying || deployment?.isDeploying || !pendingChanges}
+              >
+                {isRedeploying || deployment?.isDeploying ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    {isRedeploying ? 'Deploying...' : 'Deployment in Progress...'}
+                  </>
+                ) : (
+                  'Save & Deploy'
+                )}
+              </Button>
             </div>
-          </CardHeader>
-          <CardContent className="space-y-6">
-            <div className="grid sm:grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <label className="text-sm font-medium">Project URL</label>
-                <div className="flex items-center gap-2">
-                  <code className="flex-1 px-3 py-1 bg-muted rounded text-sm font-mono break-all">
-                    {deployment?.projectUrl || 'Not deployed'}
-                  </code>
-                  {deployment?.projectUrl && (
-                    <Button size="icon" variant="outline" onClick={() => window.open(deployment.projectUrl, '_blank')}>
-                      <ExternalLink className="h-4 w-4" />
-                    </Button>
-                  )}
-                </div>
-              </div>
-              <div className="space-y-2">
-                <label className="text-sm font-medium">Last Deployed</label>
-                <p className="text-sm text-muted-foreground">
-                  {deployment?.lastDeployment 
-                    ? new Date(deployment.lastDeployment).toLocaleString()
-                    : 'Never'}
-                </p>
-              </div>
-            </div>
-
-            <Alert>
-              <AlertCircle className="h-4 w-4" />
-              <AlertTitle>Deployment Required</AlertTitle>
-              <AlertDescription>
-                After updating your configuration, you'll need to redeploy your instance for changes to take effect.
-              </AlertDescription>
-            </Alert>
-
-            <Button
-              onClick={handleRedeploy}
-              disabled={isRedeploying}
-              className="w-full"
-              size="lg"
-            >
-              {isRedeploying ? (
-                <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Redeploying Instance...
-                </>
-              ) : (
-                <>
-                  <RefreshCw className="mr-2 h-4 w-4" />
-                  Redeploy Instance
-                </>
-              )}
-            </Button>
-          </CardContent>
-        </Card>
-
-        {/* Configuration */}
-        <Card>
-          <CardHeader>
-            <div className="space-y-1">
-              <CardTitle className="flex items-center gap-2">
-                <Settings2 className="h-5 w-5" />
-                Model Configuration
-              </CardTitle>
-              <CardDescription>
-                Configure your AI models and API keys
-              </CardDescription>
-            </div>
-          </CardHeader>
-          <CardContent className="space-y-8">
-            <Form {...form}>
-              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
-                {/* Models */}
-                <div className="space-y-6">
-                  <h3 className="text-sm font-medium text-muted-foreground">Models</h3>
-                  <div className="grid gap-6">
-                    <FormField
-                      control={form.control}
-                      name="modelName"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Text Model</FormLabel>
-                          <Select
-                            value={field.value}
-                            onValueChange={field.onChange}
-                          >
-                            <FormControl>
-                              <SelectTrigger className="font-mono">
-                                <SelectValue placeholder="Select a model" />
-                              </SelectTrigger>
-                            </FormControl>
-                            <SelectContent>
-                              {availableModels.map(model => (
-                                <SelectItem key={model} value={model} className="font-mono">
-                                  {model}
-                                </SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
-                          <p className="text-xs text-muted-foreground flex items-center gap-1">
-                            Current model (from env): 
-                            <code className="px-1 py-0.5 bg-muted rounded text-xs">
-                              {deployment?.modelName || 'gpt-4o (default)'}
-                            </code>
-                          </p>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-
-                    <FormField
-                      control={form.control}
-                      name="visionModelName"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Vision Model</FormLabel>
-                          <Select
-                            value={field.value}
-                            onValueChange={field.onChange}
-                          >
-                            <FormControl>
-                              <SelectTrigger className="font-mono">
-                                <SelectValue placeholder="Select a model" />
-                              </SelectTrigger>
-                            </FormControl>
-                            <SelectContent>
-                              {availableModels.map(model => (
-                                <SelectItem key={model} value={model} className="font-mono">
-                                  {model}
-                                </SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
-                          <p className="text-xs text-muted-foreground flex items-center gap-1">
-                            Current model (from env): 
-                            <code className="px-1 py-0.5 bg-muted rounded text-xs">
-                              {deployment?.visionModelName || 'gpt-4o (default)'}
-                            </code>
-                          </p>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                  </div>
-                </div>
-
-                <Separator />
-
-                {/* API Keys */}
-                <div className="space-y-6">
-                  <h3 className="text-sm font-medium text-muted-foreground">API Keys</h3>
-                  <div className="grid gap-6">
-                    <FormField
-                      control={form.control}
-                      name="openaiKey"
-                      render={({ field }) => (
-                        <FormItem>
-                          <div className="flex items-center justify-between">
-                            <FormLabel>OpenAI API Key</FormLabel>
-                            <Badge variant={deployment?.openaiKeyPresent ? "success" : "secondary"}>
-                              {deployment?.openaiKeyPresent ? "Configured" : "Not Set"}
-                            </Badge>
-                          </div>
-                          <FormControl>
-                            <Input
-                              type="password"
-                              placeholder="Enter OpenAI API key (optional)"
-                              {...field}
-                            />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-
-                    <FormField
-                      control={form.control}
-                      name="anthropicKey"
-                      render={({ field }) => (
-                        <FormItem>
-                          <div className="flex items-center justify-between">
-                            <FormLabel>Anthropic API Key</FormLabel>
-                            <Badge variant={deployment?.anthropicKeyPresent ? "success" : "secondary"}>
-                              {deployment?.anthropicKeyPresent ? "Configured" : "Not Set"}
-                            </Badge>
-                          </div>
-                          <FormControl>
-                            <Input
-                              type="password"
-                              placeholder="Enter Anthropic API key (optional)"
-                              {...field}
-                            />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-
-                    <FormField
-                      control={form.control}
-                      name="googleKey"
-                      render={({ field }) => (
-                        <FormItem>
-                          <div className="flex items-center justify-between">
-                            <FormLabel>Google API Key</FormLabel>
-                            <Badge variant={deployment?.googleKeyPresent ? "success" : "secondary"}>
-                              {deployment?.googleKeyPresent ? "Configured" : "Not Set"}
-                            </Badge>
-                          </div>
-                          <FormControl>
-                            <Input
-                              type="password"
-                              placeholder="Enter Google API key (optional)"
-                              {...field}
-                            />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                  </div>
-                </div>
-
-                <Separator />
-
-                {/* License Key Generation */}
-                <div className="space-y-4">
-                  <div className="flex items-center justify-between">
-                    <div className="space-y-0.5">
-                      <label className="text-sm font-medium">Generate New License Key</label>
-                      <p className="text-xs text-muted-foreground">
-                        Create a new license key for your instance
-                      </p>
-                    </div>
-                    <Switch
-                      checked={isGeneratingNewLicense}
-                      onCheckedChange={setIsGeneratingNewLicense}
-                    />
-                  </div>
-
-                  {isGeneratingNewLicense && (
-                    <Alert variant="warning">
-                      <Wand2 className="h-4 w-4" />
-                      <AlertTitle>New License Key Generation</AlertTitle>
-                      <AlertDescription>
-                        This will create a new license key and update your deployment. 
-                        Make sure to update your plugin settings afterward.
-                      </AlertDescription>
-                    </Alert>
-                  )}
-                </div>
-
-                <Button
-                  type="submit"
-                  size="lg"
-                  className="w-full"
-                >
-                  <Key className="mr-2 h-4 w-4" />
-                  {isGeneratingNewLicense ? 'Update Configuration & Generate Key' : 'Update Configuration'}
-                </Button>
-              </form>
-            </Form>
-          </CardContent>
-        </Card>
-        </div>
+          </div>
+        )}
+      </StepContent>
 
       <Dialog open={!!newLicenseKey} onOpenChange={() => setNewLicenseKey(null)}>
         <DialogContent className="sm:max-w-md">
@@ -537,6 +309,5 @@ export default function DeploymentDashboard() {
         </DialogContent>
       </Dialog>
     </div>
-
   );
 } 
