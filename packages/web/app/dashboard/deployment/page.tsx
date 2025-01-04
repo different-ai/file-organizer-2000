@@ -122,6 +122,7 @@ export default function DeploymentDashboard() {
         visionModelName: values.visionModelName,
         openaiKey: values.openaiKey,
         anthropicKey: values.anthropicKey,
+        googleKey: values.googleKey,
         generateNewLicenseKey: isGeneratingNewLicense,
       });
 

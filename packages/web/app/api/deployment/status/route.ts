@@ -34,6 +34,7 @@ export async function GET() {
     // Find environment variables
     const openaiKeyPresent = envs.some(env => env.key === "OPENAI_API_KEY");
     const anthropicKeyPresent = envs.some(env => env.key === "ANTHROPIC_API_KEY");
+    const googleKeyPresent = envs.some(env => env.key === "GOOGLE_API_KEY");
     const currentModelName = envs.find(env => env.key === "MODEL_NAME")?.value || 'gpt-4o';
     const currentVisionModelName = envs.find(env => env.key === "VISION_MODEL_NAME")?.value || 'gpt-4o';
 
@@ -46,6 +47,7 @@ export async function GET() {
       lastApiKeyUpdate: deployment.lastApiKeyUpdate,
       openaiKeyPresent,
       anthropicKeyPresent,
+      googleKeyPresent,
     });
   } catch (error) {
     console.error("Error fetching deployment status:", error);
