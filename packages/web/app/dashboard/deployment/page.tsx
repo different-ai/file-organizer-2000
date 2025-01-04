@@ -12,7 +12,7 @@ import {
 } from "@/components/ui/select";
 import { toast } from "react-hot-toast";
 import { Loader2, RefreshCw, Settings2, Key, Wand2, AlertCircle, ExternalLink } from "lucide-react";
-import { updateKeys } from "./actions";
+import { updateKeys, getDeploymentStatus } from "./actions";
 import { Switch } from "@/components/ui/switch";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
@@ -85,8 +85,10 @@ export default function DeploymentDashboard() {
 
   const fetchDeploymentStatus = async () => {
     try {
-      const response = await fetch('/api/deployment/status');
-      const data = await response.json();
+      const data = await getDeploymentStatus();
+      if ('error' in data) {
+        throw new Error(data.error);
+      }
       setDeployment(data);
     } catch (error) {
       toast.error('Failed to fetch deployment status');

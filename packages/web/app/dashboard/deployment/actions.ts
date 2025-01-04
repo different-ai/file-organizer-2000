@@ -141,3 +141,54 @@ export async function updateKeys({
     };
   }
 }
+
+export async function getDeploymentStatus() {
+  try {
+    const { userId } = await auth();
+    if (!userId) {
+      return { error: "Unauthorized", status: 401 };
+    }
+
+    const [deployment] = await db
+      .select()
+      .from(vercelTokens)
+      .where(eq(vercelTokens.userId, userId))
+      .limit(1);
+
+    if (!deployment) {
+      return { error: "No deployment found", status: 404 };
+    }
+
+    // Check for API keys and model names in Vercel environment
+    const vercel = new Vercel({
+      bearerToken: deployment.token,
+    });
+
+    // @ts-ignore
+    const { envs } = await vercel.projects.filterProjectEnvs({
+      idOrName: deployment.projectId,
+    });
+
+    // Find environment variables
+    const openaiKeyPresent = envs.some(env => env.key === "OPENAI_API_KEY");
+    const anthropicKeyPresent = envs.some(env => env.key === "ANTHROPIC_API_KEY");
+    const googleKeyPresent = envs.some(env => env.key === "GOOGLE_API_KEY");
+    const currentModelName = envs.find(env => env.key === "MODEL_NAME")?.value || 'gpt-4o';
+    const currentVisionModelName = envs.find(env => env.key === "VISION_MODEL_NAME")?.value || 'gpt-4o';
+
+    return {
+      projectUrl: deployment.projectUrl,
+      deploymentUrl: deployment.deploymentUrl,
+      lastDeployment: deployment.lastDeployment,
+      modelName: currentModelName,
+      visionModelName: currentVisionModelName,
+      lastApiKeyUpdate: deployment.lastApiKeyUpdate,
+      openaiKeyPresent,
+      anthropicKeyPresent,
+      googleKeyPresent,
+    };
+  } catch (error) {
+    console.error("Error fetching deployment status:", error);
+    return { error: "Failed to fetch deployment status", status: 500 };
+  }
+}
