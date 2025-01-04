@@ -3,14 +3,28 @@
 import { useState, useEffect, useCallback } from "react";
 import { toast } from "react-hot-toast";
 import { Loader2 } from "lucide-react";
-import { updateKeysAndRedeploy, getDeploymentStatus, type DeploymentStatus } from "./actions";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
+import {
+  updateKeysAndRedeploy,
+  getDeploymentStatus,
+  type DeploymentStatus,
+} from "./actions";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from "@/components/ui/dialog";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { AlertCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { DeploymentStatus as DeploymentStatusComponent } from "./_components/deployment-status";
 import { ConfigurationForm } from "./_components/configuration-form";
 import { WizardSteps, StepContent } from "./_components/wizard-steps";
+import { Card } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Settings2, Key, Clock } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 type FormValues = {
   modelName: string;
@@ -34,7 +48,7 @@ export default function DeploymentDashboard() {
   const fetchDeploymentStatus = useCallback(async () => {
     try {
       const data = await getDeploymentStatus();
-      if ('error' in data) {
+      if ("error" in data) {
         throw new Error(data.error);
       }
       setDeployment(data);
@@ -51,7 +65,7 @@ export default function DeploymentDashboard() {
         setPollInterval(null);
       }
     } catch (error) {
-      toast.error('Failed to fetch deployment status');
+      toast.error("Failed to fetch deployment status");
       if (pollInterval) {
         window.clearInterval(pollInterval);
         setPollInterval(null);
@@ -72,51 +86,53 @@ export default function DeploymentDashboard() {
 
   const handleRedeploy = async () => {
     if (!pendingChanges) {
-      toast.error('No changes to deploy');
+      toast.error("No changes to deploy");
       return;
     }
 
     setIsRedeploying(true);
-    const loadingToast = toast.loading('Updating configuration and deploying...');
+    const loadingToast = toast.loading(
+      "Updating configuration and deploying..."
+    );
 
     try {
       const result = await updateKeysAndRedeploy(pendingChanges);
-      
+
       if (!result.success) {
         throw new Error(result.error);
       }
 
       // Show what was updated
       const updates = [];
-      if (pendingChanges.modelName) updates.push('Text Model');
-      if (pendingChanges.visionModelName) updates.push('Vision Model');
-      if (pendingChanges.openaiKey) updates.push('OpenAI Key');
-      if (pendingChanges.anthropicKey) updates.push('Anthropic Key');
-      if (pendingChanges.googleKey) updates.push('Google Key');
+      if (pendingChanges.modelName) updates.push("Text Model");
+      if (pendingChanges.visionModelName) updates.push("Vision Model");
+      if (pendingChanges.openaiKey) updates.push("OpenAI Key");
+      if (pendingChanges.anthropicKey) updates.push("Anthropic Key");
+      if (pendingChanges.googleKey) updates.push("Google Key");
 
       toast.dismiss(loadingToast);
       toast.success(
         <div className="space-y-2">
           <p className="font-medium">Configuration updated successfully</p>
           <p className="text-sm text-muted-foreground">
-            Updated: {updates.join(', ')}
+            Updated: {updates.join(", ")}
           </p>
           <p className="text-sm text-muted-foreground">
             Deployment started. This may take a few minutes.
           </p>
         </div>,
-        { duration: 5000, icon: '✅' }
+        { duration: 5000, icon: "✅" }
       );
 
       // If new license key was generated, show it in modal
       if (result.newLicenseKey) {
         setNewLicenseKey(result.newLicenseKey);
       }
-      
+
       // Reset state
       setPendingChanges(null);
       setCurrentStep(0);
-      
+
       // Start polling for deployment status
       await fetchDeploymentStatus();
     } catch (error) {
@@ -125,12 +141,12 @@ export default function DeploymentDashboard() {
         <div className="space-y-2">
           <p className="font-medium">Failed to update and redeploy</p>
           <p className="text-sm text-destructive/80">
-            {error.message || 'Please try again'}
+            {error.message || "Please try again"}
           </p>
         </div>,
         {
           duration: 5000,
-          icon: '❌',
+          icon: "❌",
         }
       );
     } finally {
@@ -170,14 +186,17 @@ export default function DeploymentDashboard() {
           Manage your self-hosted instance configuration and deployment
         </p>
       </div>
+      <DeploymentStatusComponent
+        deployment={deployment}
+        isRedeploying={isRedeploying || !!deployment?.isDeploying}
+        onRedeploy={handleRedeploy}
+      />
 
       {deployment?.deploymentError && (
         <Alert variant="destructive">
           <AlertCircle className="h-4 w-4" />
           <AlertTitle>Deployment Error</AlertTitle>
-          <AlertDescription>
-            {deployment.deploymentError}
-          </AlertDescription>
+          <AlertDescription>{deployment.deploymentError}</AlertDescription>
         </Alert>
       )}
 
@@ -189,6 +208,7 @@ export default function DeploymentDashboard() {
         deployment={deployment}
       />
 
+
       <StepContent step={currentStep}>
         {currentStep === 0 ? (
           <ConfigurationForm
@@ -199,12 +219,6 @@ export default function DeploymentDashboard() {
           />
         ) : (
           <div className="space-y-8">
-            <DeploymentStatusComponent
-              deployment={deployment}
-              isRedeploying={isRedeploying || !!deployment?.isDeploying}
-              onRedeploy={handleRedeploy}
-            />
-
             {pendingChanges && (
               <Alert>
                 <AlertCircle className="h-4 w-4" />
@@ -218,9 +232,15 @@ export default function DeploymentDashboard() {
                     {pendingChanges.visionModelName && (
                       <li>Vision Model: {pendingChanges.visionModelName}</li>
                     )}
-                    {pendingChanges.openaiKey && <li>OpenAI API Key: Updated</li>}
-                    {pendingChanges.anthropicKey && <li>Anthropic API Key: Updated</li>}
-                    {pendingChanges.googleKey && <li>Google API Key: Updated</li>}
+                    {pendingChanges.openaiKey && (
+                      <li>OpenAI API Key: Updated</li>
+                    )}
+                    {pendingChanges.anthropicKey && (
+                      <li>Anthropic API Key: Updated</li>
+                    )}
+                    {pendingChanges.googleKey && (
+                      <li>Google API Key: Updated</li>
+                    )}
                     {pendingChanges.generateNewLicenseKey && (
                       <li>Generate New License Key: Yes</li>
                     )}
@@ -230,23 +250,24 @@ export default function DeploymentDashboard() {
             )}
 
             <div className="flex justify-between">
-              <Button
-                variant="outline"
-                onClick={() => setCurrentStep(0)}
-              >
+              <Button variant="outline" onClick={() => setCurrentStep(0)}>
                 Back to Configuration
               </Button>
               <Button
                 onClick={handleRedeploy}
-                disabled={isRedeploying || deployment?.isDeploying || !pendingChanges}
+                disabled={
+                  isRedeploying || deployment?.isDeploying || !pendingChanges
+                }
               >
                 {isRedeploying || deployment?.isDeploying ? (
                   <>
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    {isRedeploying ? 'Deploying...' : 'Deployment in Progress...'}
+                    {isRedeploying
+                      ? "Deploying..."
+                      : "Deployment in Progress..."}
                   </>
                 ) : (
-                  'Save & Deploy'
+                  "Save & Deploy"
                 )}
               </Button>
             </div>
@@ -254,7 +275,10 @@ export default function DeploymentDashboard() {
         )}
       </StepContent>
 
-      <Dialog open={!!newLicenseKey} onOpenChange={() => setNewLicenseKey(null)}>
+      <Dialog
+        open={!!newLicenseKey}
+        onOpenChange={() => setNewLicenseKey(null)}
+      >
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
             <DialogTitle>New License Key Generated</DialogTitle>
@@ -262,7 +286,7 @@ export default function DeploymentDashboard() {
               Copy your new license key and update it in your plugin settings.
             </DialogDescription>
           </DialogHeader>
-          
+
           <div className="space-y-4 py-4">
             <div className="space-y-2">
               <label className="text-sm font-medium">License Key</label>
@@ -274,8 +298,8 @@ export default function DeploymentDashboard() {
                   size="icon"
                   variant="outline"
                   onClick={() => {
-                    navigator.clipboard.writeText(newLicenseKey || '');
-                    toast.success('License key copied to clipboard');
+                    navigator.clipboard.writeText(newLicenseKey || "");
+                    toast.success("License key copied to clipboard");
                   }}
                 >
                   <svg
@@ -296,7 +320,7 @@ export default function DeploymentDashboard() {
                 </Button>
               </div>
             </div>
-            
+
             <Alert>
               <AlertCircle className="h-4 w-4" />
               <AlertTitle>Important</AlertTitle>
@@ -310,4 +334,4 @@ export default function DeploymentDashboard() {
       </Dialog>
     </div>
   );
-} 
+}
