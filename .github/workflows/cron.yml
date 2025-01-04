@@ -1,0 +1,42 @@
+name: Scheduled Tasks
+
+on:
+  schedule:
+    # Reset tokens at midnight on the first day of each month
+    - cron: '0 0 1 * *'
+    # Redeploy at midnight every day
+    - cron: '0 0 * * *'
+  workflow_dispatch:
+    inputs:
+      job_to_run:
+        description: 'Which job to run'
+        required: true
+        type: choice
+        options:
+          - reset-tokens
+          - deploy-latest-server-version
+          - both
+
+env:
+  CRON_SECRET: ${{ secrets.CRON_SECRET }}
+
+jobs:
+  reset-tokens:
+    runs-on: ubuntu-latest
+    if: github.event.schedule == '0 0 1 * *' || github.event.inputs.job_to_run == 'reset-tokens' || github.event.inputs.job_to_run == 'both'
+    steps:
+      - name: Reset Tokens
+        run: |
+          curl -X GET \
+            -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}" \
+            ${{ secrets.VERCEL_URL }}/api/cron/reset-tokens
+
+  deploy-latest-server-version:
+    runs-on: ubuntu-latest
+    if: github.event.schedule == '0 0 * * *' || github.event.inputs.job_to_run == 'deploy-latest-server-version' || github.event.inputs.job_to_run == 'both'
+    steps:
+      - name: Deploy latest server version
+        run: |
+          curl -X GET \
+            -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}" \
+            ${{ secrets.VERCEL_URL }}/api/cron/redeploy 
