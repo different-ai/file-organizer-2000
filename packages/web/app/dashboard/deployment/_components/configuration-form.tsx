@@ -98,6 +98,15 @@ export function ConfigurationForm({
                   <Bot className="h-4 w-4 text-primary" />
                   <h4 className="font-medium">AI Models</h4>
                 </div>
+                
+                <Alert className="bg-primary/5 border-primary/10 text-primary/90">
+                  <Bot className="h-4 w-4" />
+                  <AlertDescription className="text-sm">
+                    The chat will use the Text Model by default. However, when <span className="font-medium">Internet Search</span> is enabled in the plugin settings, 
+                    it will automatically switch to using Gemini Flash. To use the search functionality, you'll need to have a Google API key configured.
+                  </AlertDescription>
+                </Alert>
+
                 <div className="grid gap-6 md:grid-cols-2">
                   <FormField
                     control={form.control}
