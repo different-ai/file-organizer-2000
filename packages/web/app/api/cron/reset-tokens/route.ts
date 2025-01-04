@@ -1,5 +1,4 @@
 import { db, UserUsageTable } from "@/drizzle/schema";
-import { PRODUCTS } from "@/srm.config";
 import { eq, and } from "drizzle-orm";
 import { NextResponse } from "next/server";
 
@@ -9,7 +8,7 @@ async function resetTokenUsage() {
   const monthlyTokenLimit = 5000 * 1000; // 5M tokens
 
   // Reset tokens for active subscribers with valid plans
-  await db
+  const result = await db
     .update(UserUsageTable)
     .set({
       tokenUsage: 0,
@@ -22,7 +21,11 @@ async function resetTokenUsage() {
       )
     );
 
-  return { success: true, message: "Token usage reset successful" };
+  // Get number of affected rows
+  const affectedRows = result.rowCount;
+
+  // return amount of users reset
+  return { success: true, message: "Token usage reset successful", usersReset: affectedRows };
 }
 
 export async function GET(request: Request) {
