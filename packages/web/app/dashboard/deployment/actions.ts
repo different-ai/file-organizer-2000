@@ -31,7 +31,7 @@ export type DeploymentResult = {
   id: string;
   url: string;
   createdAt: number;
-  state: "BUILDING" | "ERROR" | "READY" | "CANCELED";
+  state: "BUILDING" | "ERROR" | "READY" | "CANCELED" | "QUEUED" | "INITIALIZING";
 };
 
 export type UpdateKeysInput = {
@@ -291,6 +291,7 @@ export async function redeploy(): Promise<{
         },
         projectSettings: {
           framework: "nextjs",
+          
           buildCommand: "pnpm build:self-host",
           installCommand: "pnpm install",
           outputDirectory: ".next",
@@ -314,7 +315,7 @@ export async function redeploy(): Promise<{
         id: deploymentResult.id,
         url: deploymentResult.url,
         createdAt: deploymentResult.createdAt,
-        state: deploymentResult.state,
+        state: deploymentResult.status,
       },
     };
   } catch (error) {

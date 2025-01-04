@@ -1,4 +1,5 @@
 "use client";
+
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useState, useEffect } from "react";
@@ -14,9 +15,23 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { CheckCircle2, ChevronRight, ExternalLink, Clock, Loader2, RefreshCw, AlertCircle } from "lucide-react";
-import { toast, Toaster } from "react-hot-toast";
+import { Card } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { 
+  CheckCircle2, 
+  ChevronRight, 
+  ExternalLink, 
+  Clock, 
+  Loader2, 
+  RefreshCw, 
+  AlertCircle,
+  Globe,
+  Key,
+  Lock
+} from "lucide-react";
+import { toast } from "react-hot-toast";
+import { cn } from "@/lib/utils";
 
 const formSchema = z.object({
   vercelToken: z.string().min(1, "Vercel token is required").trim(),
@@ -24,11 +39,14 @@ const formSchema = z.object({
     .string()
     .min(1, "OpenAI API key is required")
     .trim()
-    // must start with sk- simple
     .regex(/^sk-/, "OpenAI API key must start with 'sk-'"),
 });
 
 type FormValues = z.infer<typeof formSchema>;
+
+interface DeploymentError extends Error {
+  message: string;
+}
 
 export function AutomatedSetup() {
   const [currentStep, setCurrentStep] = useState(1);
@@ -119,105 +137,103 @@ export function AutomatedSetup() {
 
   if (existingDeployment) {
     return (
-      <div className="space-y-6">
-        <Card className="border-none bg-gradient-to-b from-background to-muted/50 rounded-md p-4">
-          <CardHeader className="p-4">
-            <CardTitle className="flex items-center gap-2">
-              Deployment Status
-              <div className="flex h-2 w-2">
-                <span className="animate-ping absolute inline-flex h-2 w-2 rounded-full bg-green-400 opacity-75"></span>
-                <span className="relative inline-flex rounded-full h-2 w-2 bg-green-500"></span>
-              </div>
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-6 p-4">
-            {/* Project URL */}
+      <Card className="bg-gradient-to-br from-background to-muted/30">
+        <div className="grid gap-6 border rounded-lg p-4">
+          {/* Project URL */}
+          <div className="flex items-center gap-4">
+            <code className="flex-1 px-4 py-2 bg-muted/50 rounded-md text-sm font-mono break-all">
+              {existingDeployment.projectUrl}
+            </code>
+            <Button 
+              variant="outline" 
+              onClick={() => window.open(existingDeployment.projectUrl, '_blank')}
+              className="h-9 gap-2 bg-background/50 backdrop-blur-sm border-muted-foreground/20"
+            >
+              <Globe className="h-4 w-4" />
+              Visit Site
+              <ExternalLink className="h-3 w-3 ml-0.5 opacity-70" />
+            </Button>
+          </div>
+
+          <div className="grid md:grid-cols-2 gap-6">
+            {/* Deployment Status */}
             <div className="space-y-2">
-              <h3 className="text-sm font-medium text-muted-foreground">Project URL</h3>
-              <div className="flex items-center gap-2">
-                <code className="px-2 py-1 bg-muted rounded text-sm break-all">
-                  {existingDeployment.projectUrl}
-                </code>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => {
-                    window.open(existingDeployment.projectUrl, '_blank');
-                  }}
-                >
-                  <ExternalLink className="h-4 w-4" />
-                </Button>
+              <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                <Globe className="h-4 w-4" />
+                <span>Deployment</span>
               </div>
-            </div>
-
-            {/* Actions */}
-            <div className="space-y-2">
-              <h3 className="text-sm font-medium text-muted-foreground">Actions</h3>
-              <div className="flex gap-2">
-                <Button
-                  variant="outline"
-                  onClick={handleRedeploy}
-                  disabled={isRedeploying}
-                  className="gap-2"
-                >
-                  {isRedeploying ? (
-                    <Loader2 className="h-4 w-4 animate-spin" />
-                  ) : (
-                    <RefreshCw className="h-4 w-4" />
-                  )}
-                  {isRedeploying ? "Redeploying..." : "Redeploy Instance"}
-                </Button>
-              </div>
-            </div>
-
-            {/* Status Information */}
-            <div className="rounded-lg bg-muted/50 p-4 space-y-4">
-              <div className="flex items-start gap-3 text-muted-foreground">
-                <AlertCircle className="h-5 w-5 flex-shrink-0 mt-0.5" />
-                <div className="space-y-1">
-                  <p className="text-sm font-medium">Automatic Updates</p>
-                  <p className="text-sm">
-                    Your instance is automatically updated daily at midnight UTC. You can also
-                    manually trigger an update using the redeploy button above.
-                  </p>
-                </div>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Plugin Setup Reminder */}
-        <Card className="rounded-md p-4">
-          <CardHeader className="p-4">
-            <CardTitle>Plugin Setup</CardTitle>
-          </CardHeader>
-          <CardContent className="p-4">
-            <div className="space-y-4">
-              <p className="text-sm text-muted-foreground">
-                Make sure your Obsidian plugin is configured with these settings:
-              </p>
-              <div className="space-y-2">
+              <div className="space-y-1.5">
                 <div className="flex items-center justify-between">
-                  <span className="text-sm font-medium">Self-Hosting URL</span>
-                  <code className="px-2 py-1 bg-muted rounded text-xs">
-                    {existingDeployment.projectUrl}
-                  </code>
+                  <span className="text-xs text-muted-foreground">Status</span>
+                  <Badge 
+                    variant="default"
+                    className={cn(
+                      "text-xs bg-primary/15 text-primary hover:bg-primary/20"
+                    )}
+                  >
+                    Active
+                  </Badge>
+                </div>
+                {!isRedeploying && (
+                  <div className="flex items-center justify-between pt-1">
+                    <span className="text-xs text-muted-foreground">Action</span>
+                    <Button
+                      onClick={handleRedeploy}
+                      size="sm"
+                      variant="outline"
+                      className="h-6 text-xs gap-1.5 font-medium text-muted-foreground"
+                    >
+                      <RefreshCw className="h-3 w-3" />
+                      Redeploy
+                    </Button>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Plugin Setup */}
+            <div className="space-y-2">
+              <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                <Key className="h-4 w-4" />
+                <span>Plugin Setup</span>
+              </div>
+              <div className="space-y-1.5">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs text-muted-foreground">Self-Hosting URL</span>
+                  <Badge variant="outline" className="font-mono text-xs font-medium text-muted-foreground">
+                    Configured
+                  </Badge>
+                </div>
+                <div className="flex items-center justify-between pt-1">
+                  <span className="text-xs text-muted-foreground">Settings</span>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="h-6 text-xs gap-1.5 font-medium text-muted-foreground"
+                    asChild
+                  >
+                    <a href="obsidian://show-plugin?id=fileorganizer2000">
+                      Open Plugin
+                    </a>
+                  </Button>
                 </div>
               </div>
-              <Button
-                variant="outline"
-                size="sm"
-                asChild
-                className="w-full"
-              >
-                <a href="obsidian://show-plugin?id=fileorganizer2000">
-                  Open Plugin Settings
-                </a>
-              </Button>
             </div>
-          </CardContent>
-        </Card>
-      </div>
+          </div>
+
+          {/* Status Information */}
+          <div className="border-t border-background-modifier-border pt-4">
+            <Alert className="bg-primary/5 border-primary/10">
+              <AlertCircle className="h-4 w-4 text-primary" />
+              <AlertTitle className="text-primary">Automatic Updates</AlertTitle>
+              <AlertDescription className="text-primary/90">
+                Your instance is automatically updated daily at midnight UTC. You can also
+                manually trigger an update using the redeploy button above.
+              </AlertDescription>
+            </Alert>
+          </div>
+        </div>
+      </Card>
     );
   }
 
@@ -242,395 +258,123 @@ export function AutomatedSetup() {
         licenseKey: result.licenseKey,
         projectUrl: result.projectUrl,
       });
-      setCurrentStep(3); // Move to final step after successful deployment
-    } catch (error: any) {
+      setCurrentStep(3);
+    } catch (error: unknown) {
+      const deploymentError = error as DeploymentError;
       setDeploymentStatus({
         isDeploying: false,
-        error: error.message,
+        error: deploymentError.message,
         deploymentUrl: null,
         licenseKey: null,
         projectUrl: null,
       });
     }
   };
-  console.log(form.formState, "form state");
 
-  const TroubleshootingSection = () => (
-    <div className="mt-8 border-t pt-6">
-      <details className="group">
-        <summary className="flex items-center justify-between cursor-pointer">
-          <h4 className="font-medium text-muted-foreground">
-            Troubleshooting Guide
-          </h4>
-          <ChevronRight className="h-4 w-4 transition-transform group-open:rotate-90" />
-        </summary>
-        <div className="mt-4 space-y-4 text-sm text-muted-foreground">
-          <div className="space-y-2">
-            <h5 className="font-medium">Common Issues:</h5>
-            <ul className="list-disc list-inside space-y-2 ml-2">
-              <li>
-                <span className="font-medium">Deployment Stuck:</span> If your deployment seems stuck, check the build logs on Vercel by clicking on the deployment URL and navigating to the "Runtime Logs" tab.
-              </li>
-              <li>
-                <span className="font-medium">Invalid Project URL:</span> Make sure you're using the production URL from your Vercel deployment (usually ends with .vercel.app unless you've configured a custom domain).
-              </li>
-              <li>
-                <span className="font-medium">License Key Not Working:</span> Verify that you've copied the entire license key without any extra spaces.
-              </li>
-            </ul>
-          </div>
-          
-          <div className="bg-muted/50 p-4 rounded-lg mt-4">
-            <p>
-              If you continue experiencing issues, please email{" "}
-              <a 
-                href="mailto:alex@fileorganizer2000.com"
-                className="text-primary hover:underline"
-              >
-                alex@fileorganizer2000.com
-              </a>{" "}
-              with:
-            </p>
-            <ul className="list-disc list-inside mt-2 ml-2">
-              <li>Your deployment URL</li>
-              <li>Screenshots of any error messages</li>
-              <li>Steps you've tried so far</li>
-            </ul>
-          </div>
-        </div>
-      </details>
-    </div>
-  );
-
-  const steps = [
-    {
-      number: 1,
-      title: "Get Your Vercel Token",
-      isCompleted: currentStep > 1,
-      isCurrent: currentStep === 1,
-      content: (
-        <div className="space-y-4">
-          <ol className="list-decimal list-inside space-y-3 text-sm pl-4">
-            <li>
-              Create a free Vercel account if you don't have one at{" "}
-              <a
-                href="https://vercel.com/signup"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-primary hover:underline"
-              >
-                vercel.com/signup
-              </a>
-            </li>
-            <li>Go to your account settings → Tokens</li>
-            <li>
-              Create a new token with:
-              <ul className="list-disc list-inside ml-4 mt-2 text-muted-foreground">
-                <li>Scope: Select your personal account scope</li>
-                <li>Expiration: Never</li>
-              </ul>
-            </li>
-          </ol>
-          <Button onClick={() => setCurrentStep(2)} className="mt-4">
-            I have my token <ChevronRight className="ml-2 h-4 w-4" />
-          </Button>
-        </div>
-      ),
-    },
-    {
-      number: 2,
-      title: "Deploy Your Instance",
-      isCompleted: currentStep > 2,
-      isCurrent: currentStep === 2,
-      content: (
+  return (
+    <Card className="bg-gradient-to-br from-background to-muted/30">
+      <div className="grid gap-6 border rounded-lg p-4">
         <Form {...form}>
-          <form
-            onSubmit={form.handleSubmit(handleDeploy)}
-            className="space-y-4"
-          >
-            <FormField
-              control={form.control}
-              name="vercelToken"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Vercel Token</FormLabel>
-                  <FormControl>
-                    <Input
-                      type="password"
-                      placeholder="Enter your Vercel token"
-                      {...field}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+          <form onSubmit={form.handleSubmit(handleDeploy)} className="space-y-6">
+            {/* Vercel Token */}
+            <div className="space-y-4">
+              <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                <Key className="h-4 w-4" />
+                <span>Vercel Token</span>
+              </div>
 
-            <FormField
-              control={form.control}
-              name="openaiKey"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>OpenAI API Key</FormLabel>
-                  <FormControl>
-                    <Input type="password" placeholder="sk-..." {...field} />
-                  </FormControl>
-                  <FormMessage />
-                  <p className="text-sm text-muted-foreground">
-                    Get your API key from{" "}
-                    <a
-                      href="https://platform.openai.com/api-keys"
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-primary hover:underline"
-                    >
-                      OpenAI Dashboard
-                    </a>
-                  </p>
-                </FormItem>
-              )}
-            />
+              <FormField
+                control={form.control}
+                name="vercelToken"
+                render={({ field }) => (
+                  <FormItem className="space-y-1.5">
+                    <div className="relative">
+                      <FormControl>
+                        <Input
+                          type="password"
+                          placeholder="Enter your Vercel token"
+                          className="h-9 bg-background/50 backdrop-blur-sm border-muted-foreground/20 pr-9"
+                          {...field}
+                        />
+                      </FormControl>
+                      <Lock className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground/50" />
+                    </div>
+                    <FormMessage className="text-xs" />
+                  </FormItem>
+                )}
+              />
+            </div>
+
+            {/* OpenAI Key */}
+            <div className="space-y-4">
+              <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                <Key className="h-4 w-4" />
+                <span>OpenAI API Key</span>
+              </div>
+
+              <FormField
+                control={form.control}
+                name="openaiKey"
+                render={({ field }) => (
+                  <FormItem className="space-y-1.5">
+                    <div className="relative">
+                      <FormControl>
+                        <Input
+                          type="password"
+                          placeholder="sk-..."
+                          className="h-9 bg-background/50 backdrop-blur-sm border-muted-foreground/20 pr-9"
+                          {...field}
+                        />
+                      </FormControl>
+                      <Lock className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground/50" />
+                    </div>
+                    <FormMessage className="text-xs" />
+                    <p className="text-xs text-muted-foreground">
+                      Get your API key from{" "}
+                      <a
+                        href="https://platform.openai.com/api-keys"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-primary hover:underline"
+                      >
+                        OpenAI Dashboard
+                      </a>
+                    </p>
+                  </FormItem>
+                )}
+              />
+            </div>
 
             <Button
               type="submit"
               disabled={deploymentStatus.isDeploying || !form.formState.isValid}
-              className="w-full"
+              className="w-full h-9 text-sm font-medium"
             >
-              {deploymentStatus.isDeploying
-                ? "Deploying..."
-                : "Deploy to Vercel"}
+              {deploymentStatus.isDeploying ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Deploying...
+                </>
+              ) : (
+                "Deploy to Vercel"
+              )}
             </Button>
           </form>
         </Form>
-      ),
-    },
-    {
-      number: 3,
-      title: "Configure Plugin",
-      isCompleted: false,
-      isCurrent: currentStep === 3,
-      content: (
-        <div className="space-y-6">
-          {deploymentStatus.deploymentUrl && (
-            <Card className="border bg-muted/50 p-4 rounded-md">
-              <CardHeader className="p-4">
-                <CardTitle className="text-lg">Deployment Status</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4 p-4">
-                <div className="flex flex-col gap-2">
-                  <p className="text-sm text-muted-foreground">
-                    1. Click the link below to check your deployment status:
-                  </p>
-                  <a 
-                    href={deploymentStatus.deploymentUrl.startsWith('http') ? deploymentStatus.deploymentUrl : `https://${deploymentStatus.deploymentUrl}`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="inline-flex items-center gap-2 text-primary hover:underline"
-                  >
-                    <ExternalLink className="h-4 w-4" />
-                    View Deployment Status
-                  </a>
-                </div>
-                <div className="rounded-lg bg-primary/10 p-4">
-                  <p className="text-sm flex items-center gap-2">
-                    <Clock className="h-4 w-4" />
-                    Wait for the deployment to complete (usually takes 2-3 minutes)
-                  </p>
-                </div>
-              </CardContent>
-            </Card>
-          )}
 
-          {deploymentStatus.licenseKey && (
-            <Card className="border bg-muted/50 p-4 rounded-md">
-              <CardHeader className="p-4">
-                <CardTitle className="text-lg">Your License Key</CardTitle>
-              </CardHeader>
-              <CardContent className="p-4">
-                <div className="flex items-center gap-2">
-                  <code className="px-2 py-1 bg-muted rounded text-sm break-all">
-                    {deploymentStatus.licenseKey}
-                  </code>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => {
-                      navigator.clipboard.writeText(
-                        deploymentStatus.licenseKey!
-                      );
-                    }}
-                  >
-                    Copy
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
-          )}
-
-          <div className="space-y-4">
-            <h4 className="font-medium">Next Steps:</h4>
-            <ol className="list-decimal list-inside space-y-4 text-sm">
-              <li className="text-muted-foreground">
-                After deployment is complete, copy your project URL from the Vercel dashboard
-                {deploymentStatus.projectUrl && (
-                  <div className="mt-2">
-                    <code className="px-2 py-1 bg-muted rounded text-sm break-all">
-                      {deploymentStatus.projectUrl}
-                    </code>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="ml-2"
-                      onClick={() => navigator.clipboard.writeText(deploymentStatus.projectUrl!)}
-                    >
-                      Copy
-                    </Button>
-                  </div>
-                )}
-              </li>
-              <li>
-                Install the Obsidian plugin:
-                <div className="mt-2">
-                  <a href="obsidian://show-plugin?id=fileorganizer2000">
-                    <Button variant="outline" size="sm">
-                      Download Plugin
-                    </Button>
-                  </a>
-                </div>
-              </li>
-              <li>Open Obsidian settings and go to File Organizer settings</li>
-              <li>Click on Advanced and enable "Self-Hosting" toggle</li>
-              <li>Enter your project URL and license key in the settings</li>
-              <li>Click "Activate" to complete the setup</li>
-            </ol>
+        {/* Error message */}
+        {deploymentStatus.error && (
+          <div className="border-t border-background-modifier-border pt-4">
+            <Alert variant="destructive" className="bg-red-500/10 border-red-500/20">
+              <AlertCircle className="h-4 w-4 text-red-500" />
+              <AlertTitle className="text-red-500">Deployment Failed</AlertTitle>
+              <AlertDescription className="text-red-500/90">
+                {deploymentStatus.error}
+              </AlertDescription>
+            </Alert>
           </div>
-
-          <TroubleshootingSection />
-        </div>
-      ),
-    },
-  ];
-
-  return (
-    <div className="mx-auto">
-      <Toaster position="top-right" />
-      <Card className="border-none bg-gradient-to-b from-background to-muted/50 shadow-md p-4 rounded-md">
-        <CardHeader className="pb-8 text-center p-4">
-          <CardTitle className="text-3xl font-bold bg-gradient-to-r from-primary/90 to-primary bg-clip-text text-transparent">
-            Self-Hosting Setup
-          </CardTitle>
-          <p className="text-muted-foreground mt-2">
-            Follow these steps to set up your own instance
-          </p>
-        </CardHeader>
-        <CardContent className="p-4">
-          <div className="space-y-12">
-            {steps.map((step, index) => (
-              <div key={step.number} className="relative">
-                {/* Connection line between steps */}
-                {index < steps.length - 1 && (
-                  <div
-                    className={`absolute left-[27px] top-[44px] w-[2px] h-[calc(100%_-_32px)]
-                      ${
-                        step.isCompleted
-                          ? "bg-gradient-to-b from-primary to-primary/50"
-                          : "bg-border"
-                      }
-                    `}
-                  />
-                )}
-
-                <div className="relative">
-                  <div
-                    className={`
-                    flex items-center gap-6
-                    ${
-                      step.isCompleted
-                        ? "text-primary"
-                        : step.isCurrent
-                        ? "text-foreground"
-                        : "text-muted-foreground"
-                    }
-                  `}
-                  >
-                    <div
-                      className={`
-                      flex items-center justify-center w-14 h-14 rounded-full
-                      transition-all duration-300 relative z-10
-                      ${
-                        step.isCompleted
-                          ? "bg-primary text-primary-foreground shadow-lg shadow-primary/20"
-                          : step.isCurrent
-                          ? "bg-background border-2 border-primary shadow-lg"
-                          : "bg-muted border border-border"
-                      }
-                    `}
-                    >
-                      {step.isCompleted ? (
-                        <CheckCircle2 className="h-6 w-6" />
-                      ) : (
-                        <span className="text-lg font-semibold">
-                          {step.number}
-                        </span>
-                      )}
-                    </div>
-                    <h3
-                      className={`font-semibold transition-all duration-200
-                      ${
-                        step.isCompleted || step.isCurrent
-                          ? "text-xl"
-                          : "text-base opacity-80"
-                      }
-                    `}
-                    >
-                      {step.title}
-                    </h3>
-                  </div>
-
-                  {step.isCurrent && (
-                    <div className="mt-6 ml-20">
-                      <div className="bg-muted/50 rounded-lg p-6 border border-border/50 backdrop-blur-sm">
-                        {step.content}
-                      </div>
-                    </div>
-                  )}
-                </div>
-              </div>
-            ))}
-          </div>
-
-          {/* Error message */}
-          {deploymentStatus.error && (
-            <div className="mt-8">
-              <div className="rounded-lg bg-destructive/5 border border-destructive/20 p-4">
-                <div className="flex items-center gap-3">
-                  <div className="rounded-full bg-destructive/10 p-1">
-                    <svg
-                      className="h-5 w-5 text-destructive"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="2"
-                    >
-                      <circle cx="12" cy="12" r="10" />
-                      <line x1="12" y1="8" x2="12" y2="12" />
-                      <line x1="12" y1="16" x2="12.01" y2="16" />
-                    </svg>
-                  </div>
-                  <div>
-                    <p className="font-medium text-destructive">
-                      Deployment Error
-                    </p>
-                    <p className="mt-1 text-sm text-destructive/80">
-                      {deploymentStatus.error}
-                    </p>
-                  </div>
-                </div>
-              </div>
-            </div>
-          )}
-        </CardContent>
-      </Card>
-    </div>
+        )}
+      </div>
+    </Card>
   );
 }
