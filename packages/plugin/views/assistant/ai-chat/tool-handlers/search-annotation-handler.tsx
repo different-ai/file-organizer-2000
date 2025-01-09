@@ -38,12 +38,13 @@ export const SearchAnnotationHandler: React.FC<SearchAnnotationProps> = ({
   if (!groundingMetadata?.groundingSupports?.length) return null;
 
   return (
-    <div className="flex flex-col gap-2 p-2 rounded-md bg-[--background-primary-alt]">
+    <div className="flex flex-col gap-2 p-4 rounded-md bg-[--background-primary-alt] m-2">
       <div className="text-[--text-muted] text-sm">Search Results:</div>
       {groundingMetadata.groundingSupports.map((result, index) => {
-        const sources = result.groundingChunkIndices.map(
-          idx => groundingMetadata.groundingChunks[idx]?.web.title
-        ).filter(Boolean);
+        const sources = result.groundingChunkIndices.map(idx => {
+          const chunk = groundingMetadata.groundingChunks[idx]?.web;
+          return chunk ? { title: chunk.title, uri: chunk.uri } : null;
+        }).filter(Boolean);
         
         const maxScore = Math.max(...result.confidenceScores);
         
@@ -54,7 +55,19 @@ export const SearchAnnotationHandler: React.FC<SearchAnnotationProps> = ({
           >
             <div className="flex justify-between items-center">
               <span className="text-[--text-accent] text-sm">
-                {sources.join(', ')}
+                {sources.map((source, i) => (
+                  <React.Fragment key={i}>
+                    {i > 0 && ', '}
+                    <a 
+                      href={source.uri} 
+                      target="_blank" 
+                      rel="noopener noreferrer"
+                      className="hover:underline"
+                    >
+                      {source.title}
+                    </a>
+                  </React.Fragment>
+                ))}
               </span>
               <span className="text-[--text-muted] text-xs">
                 Score: {(maxScore * 100).toFixed(1)}%

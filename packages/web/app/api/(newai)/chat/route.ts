@@ -29,9 +29,24 @@ export async function POST(req: NextRequest) {
           currentDatetime,
           unifiedContext: oldUnifiedContext,
           model: bodyModel,
+          enableSearchGrounding = false,
         } = await req.json();
 
-        const chosenModelName = bodyModel;
+        let chosenModelName;
+        if (enableSearchGrounding) {
+          console.log("Enabling search grounding");
+          console.log("GOOGLE_API_KEY:", process.env.GOOGLE_API_KEY);
+          console.log("GOOGLE_GENERATIVE_AI_API_KEY:", process.env.GOOGLE_GENERATIVE_AI_API_KEY);
+          if (process.env.GOOGLE_API_KEY || process.env.GOOGLE_GENERATIVE_AI_API_KEY) {
+            console.log("Using Gemini model");
+            chosenModelName = "gemini-2.0-flash-exp";
+          } else {
+            console.log("Using GPT-4o model");
+            chosenModelName = "gpt-4o";
+          }
+        } else {
+          chosenModelName = "gpt-4o";
+        }
         console.log("Chat using model:", chosenModelName);
         const model = getModel(chosenModelName);
 

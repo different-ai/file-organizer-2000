@@ -47,7 +47,7 @@ export function SourcesSection({ groundingMetadata }: SourcesSectionProps) {
   const displayedSources = showAll ? sources : sources.slice(0, 3);
 
   return (
-    <div className="mt-6 space-y-4">
+    <div className="mt-6 space-y-4 m-2 z-50">
       <div className="flex justify-between items-center">
         <h3 className="text-base font-medium text-gray-900 dark:text-gray-100">Sources</h3>
         {sources.length > 3 && (
@@ -80,7 +80,14 @@ export function SourcesSection({ groundingMetadata }: SourcesSectionProps) {
             </div>
             <div className="flex-grow min-w-0">
               <h4 className="font-medium text-sm text-gray-900 dark:text-gray-100 truncate">
-                {source.title || source.domain}
+                <a 
+                  href={source.url} 
+                  target="_blank" 
+                  rel="noopener noreferrer" 
+                  className="text-blue-600 hover:underline"
+                >
+                  {source.title || source.domain}
+                </a>
               </h4>
               <p className="text-xs text-gray-500 dark:text-gray-400 truncate">
                 {source.domain}

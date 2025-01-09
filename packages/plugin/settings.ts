@@ -32,9 +32,10 @@ export class FileOrganizerSettings {
   enableFabric = false;
   useFolderEmbeddings = false;
   useVaultTitles = true;
+  enableSearchGrounding = false;
   showLocalLLMInChat = false;
   customFolderInstructions = "";
-  selectedModel: "gpt-4o" | "llama3.2" | "gemini-2.0-flash-exp" = "gpt-4o";
+  selectedModel: "gpt-4o" | "llama3.2" = "gpt-4o";
   customModelName = "llama3.2";
   tagScoreThreshold = 70;
   formatBehavior: "override" | "newFile" = "override";

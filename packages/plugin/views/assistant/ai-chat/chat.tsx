@@ -18,6 +18,7 @@ import { ModelSelector } from "./model-selector";
 import { ModelType } from "./types";
 import { AudioRecorder } from "./audio-recorder";
 import { logger } from "../../../services/logger";
+import { SearchToggle } from "./components/search-toggle";
 import { SubmitButton } from "./submit-button";
 import { getUniqueReferences, useContextItems } from "./use-context-items";
 import { ContextItems } from "./components/context-items";
@@ -127,6 +128,7 @@ export const ChatComponent: React.FC<ChatComponentProps> = ({
     enableScreenpipe: plugin.settings.enableScreenpipe,
     newUnifiedContext: contextString,
     model: plugin.settings.selectedModel, // Pass selected model to server
+    enableSearchGrounding: plugin.settings.enableSearchGrounding,
   };
 
   const [groundingMetadata, setGroundingMetadata] =
@@ -161,8 +163,7 @@ export const ChatComponent: React.FC<ChatComponentProps> = ({
       // Handle different model types
       if (
         !plugin.settings.showLocalLLMInChat ||
-        selectedModel === "gpt-4o" ||
-        selectedModel === "gemini-2.0-flash-exp"
+        selectedModel === "gpt-4o"
       ) {
         // Use server fetch for non-local models
         return fetch(url, options);
@@ -500,10 +501,13 @@ export const ChatComponent: React.FC<ChatComponentProps> = ({
             unifiedContext={contextString}
             maxContextSize={maxContextSize}
           />
-          <ModelSelector
-            selectedModel={selectedModel}
-            onModelSelect={setSelectedModel}
-          />
+          <div className="flex items-center space-x-2">
+            <SearchToggle selectedModel={selectedModel} />
+            <ModelSelector
+              selectedModel={selectedModel}
+              onModelSelect={setSelectedModel}
+            />
+          </div>
         </div>
       </div>
     </div>
