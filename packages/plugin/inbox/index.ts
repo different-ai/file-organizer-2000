@@ -689,10 +689,16 @@ async function recommendTagsStep(
 async function appendAttachmentStep(
   context: ProcessingContext
 ): Promise<ProcessingContext> {
-  if (context.attachmentFile) {
-    context.plugin.app.vault.append(
+  if (context.attachmentFile && context.containerFile) {
+    // Use Obsidian's link generation for guaranteed recognition:
+    const link = context.plugin.app.fileManager.generateMarkdownLink(
+      context.attachmentFile,
+      context.containerFile.parent?.path ?? ""
+    );
+    // Add '!' prefix to embed the audio file instead of just linking
+    await context.plugin.app.vault.append(
       context.containerFile,
-      `\n\n![[${context.attachmentFile.name}]]`
+      `\n\n!${link}`
     );
   }
   return context;
