@@ -225,7 +225,7 @@ export class Inbox {
           }
         }
       },
-      onComplete: () => {},
+      onComplete: () => { },
       onError: (error: Error) => {
         logger.error("Queue processing error:", error);
       },
@@ -698,7 +698,7 @@ async function appendAttachmentStep(
     // Add '!' prefix to embed the audio file instead of just linking
     await context.plugin.app.vault.append(
       context.containerFile,
-      `\n\n!${link}`
+      `\n\n${link}`
     );
   }
   return context;
