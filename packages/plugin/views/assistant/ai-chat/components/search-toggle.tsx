@@ -1,14 +1,24 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { usePlugin } from '../../provider';
+import { ModelType } from '../types';
 
-export function SearchToggle() {
+interface SearchToggleProps {
+  selectedModel: ModelType;
+}
+
+export function SearchToggle({ selectedModel }: SearchToggleProps) {
   const plugin = usePlugin();
-  const isEnabled = plugin.settings.enableSearchGrounding;
+  const [isEnabled, setIsEnabled] = useState(plugin.settings.enableSearchGrounding);
 
   const handleToggle = async () => {
     plugin.settings.enableSearchGrounding = !plugin.settings.enableSearchGrounding;
     await plugin.saveSettings();
+    setIsEnabled(!isEnabled);
   };
+
+  if (selectedModel !== 'gpt-4o') {
+    return null;
+  }
 
   return (
     <button

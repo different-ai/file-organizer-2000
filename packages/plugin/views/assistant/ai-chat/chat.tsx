@@ -128,6 +128,7 @@ export const ChatComponent: React.FC<ChatComponentProps> = ({
     enableScreenpipe: plugin.settings.enableScreenpipe,
     newUnifiedContext: contextString,
     model: plugin.settings.selectedModel, // Pass selected model to server
+    enableSearchGrounding: plugin.settings.enableSearchGrounding,
   };
 
   const [groundingMetadata, setGroundingMetadata] =
@@ -501,7 +502,7 @@ export const ChatComponent: React.FC<ChatComponentProps> = ({
             maxContextSize={maxContextSize}
           />
           <div className="flex items-center space-x-2">
-            <SearchToggle />
+            <SearchToggle selectedModel={selectedModel} />
             <ModelSelector
               selectedModel={selectedModel}
               onModelSelect={setSelectedModel}
