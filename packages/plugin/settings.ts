@@ -32,6 +32,7 @@ export class FileOrganizerSettings {
   enableFabric = false;
   useFolderEmbeddings = false;
   useVaultTitles = true;
+  enableSearchGrounding = false;
   showLocalLLMInChat = false;
   customFolderInstructions = "";
   selectedModel: "gpt-4o" | "llama3.2" = "gpt-4o";

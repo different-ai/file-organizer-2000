@@ -18,6 +18,7 @@ import { ModelSelector } from "./model-selector";
 import { ModelType } from "./types";
 import { AudioRecorder } from "./audio-recorder";
 import { logger } from "../../../services/logger";
+import { SearchToggle } from "./components/search-toggle";
 import { SubmitButton } from "./submit-button";
 import { getUniqueReferences, useContextItems } from "./use-context-items";
 import { ContextItems } from "./components/context-items";
@@ -499,10 +500,13 @@ export const ChatComponent: React.FC<ChatComponentProps> = ({
             unifiedContext={contextString}
             maxContextSize={maxContextSize}
           />
-          <ModelSelector
-            selectedModel={selectedModel}
-            onModelSelect={setSelectedModel}
-          />
+          <div className="flex items-center space-x-2">
+            <SearchToggle />
+            <ModelSelector
+              selectedModel={selectedModel}
+              onModelSelect={setSelectedModel}
+            />
+          </div>
         </div>
       </div>
     </div>

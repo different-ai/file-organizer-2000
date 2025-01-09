@@ -40,7 +40,7 @@ export async function POST(req: NextRequest) {
             chosenModelName = "gpt-4o";
           }
         } else {
-          chosenModelName = "gpt-4o-mini";
+          chosenModelName = "gpt-4o";
         }
         console.log("Chat using model:", chosenModelName);
         const model = getModel(chosenModelName);
