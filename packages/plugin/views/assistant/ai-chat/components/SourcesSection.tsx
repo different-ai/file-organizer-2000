@@ -80,7 +80,14 @@ export function SourcesSection({ groundingMetadata }: SourcesSectionProps) {
             </div>
             <div className="flex-grow min-w-0">
               <h4 className="font-medium text-sm text-gray-900 dark:text-gray-100 truncate">
-                {source.title || source.domain}
+                <a 
+                  href={source.url} 
+                  target="_blank" 
+                  rel="noopener noreferrer" 
+                  className="text-blue-600 hover:underline"
+                >
+                  {source.title || source.domain}
+                </a>
               </h4>
               <p className="text-xs text-gray-500 dark:text-gray-400 truncate">
                 {source.domain}

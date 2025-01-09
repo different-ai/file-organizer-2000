@@ -161,8 +161,7 @@ export const ChatComponent: React.FC<ChatComponentProps> = ({
       // Handle different model types
       if (
         !plugin.settings.showLocalLLMInChat ||
-        selectedModel === "gpt-4o" ||
-        selectedModel === "gemini-2.0-flash-exp"
+        selectedModel === "gpt-4o"
       ) {
         // Use server fetch for non-local models
         return fetch(url, options);

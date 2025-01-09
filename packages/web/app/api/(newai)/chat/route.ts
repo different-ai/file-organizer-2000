@@ -29,9 +29,19 @@ export async function POST(req: NextRequest) {
           currentDatetime,
           unifiedContext: oldUnifiedContext,
           model: bodyModel,
+          enableSearchGrounding = false,
         } = await req.json();
 
-        const chosenModelName = bodyModel;
+        let chosenModelName;
+        if (enableSearchGrounding) {
+          if (process.env.GOOGLE_API_KEY || process.env.GOOGLE_GENERATIVE_AI_API_KEY) {
+            chosenModelName = "gemini-2.0-flash-exp";
+          } else {
+            chosenModelName = "gpt-4o";
+          }
+        } else {
+          chosenModelName = "gpt-4o-mini";
+        }
         console.log("Chat using model:", chosenModelName);
         const model = getModel(chosenModelName);
 
