@@ -79,6 +79,7 @@
   },
   "packageManager": "pnpm@8.15.4",
   "devDependencies": {
+    "@jest/globals": "^29.7.0",
     "@jest/types": "^29.6.3",
     "@types/jest": "^29.5.14",
     "@types/react": "^18.2.28",
