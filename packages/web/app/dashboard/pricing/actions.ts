@@ -24,7 +24,8 @@ export async function createPayOnceLifetimeCheckout() {
   if (!userId) throw new Error("Not authenticated");
   const metadata = {
     userId,
-    type: "pay-once",
+    type: PRODUCTS.PayOnceLifetime.metadata.type,
+    plan: PRODUCTS.PayOnceLifetime.metadata.plan,
   };
 
   const { success, cancel, lifetime } = getUrls();

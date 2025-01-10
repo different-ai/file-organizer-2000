@@ -29,7 +29,12 @@ export type SubscriptionWebhookEvent =
 
 // Product and plan types for type safety
 export type ProductType = "subscription" | "lifetime" | "top_up";
-export type Plan = "monthly" | "yearly" | "lifetime" | "top_up";
+export type Plan =
+  | "monthly"
+  | "yearly"
+  | "lifetime_license"
+  | "one_year_license"
+  | "top_up";
 export type PlanType = "subscription" | "pay-once";
 
 // Pricing configuration
