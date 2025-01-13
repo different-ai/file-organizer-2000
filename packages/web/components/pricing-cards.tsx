@@ -62,16 +62,37 @@ export function PricingCards() {
     return (
       <Card
         className={twMerge(
-          "p-4 rounded-xl flex-1",
+          "p-4 rounded-xl flex-1 relative",
           !isSubscription && "!border-violet-500 !border-[1px]"
         )}
       >
+        {!isSubscription && isLifetime ? (
+          <div className="absolute -top-3 left-1/2 transform -translate-x-1/2">
+            <span className="bg-[hsl(258,88%,90%)] text-[hsl(258,88%,45%)] px-3 py-1 rounded-full text-sm font-medium">
+              Best Value
+            </span>
+          </div>
+        ) : (
+          isSubscription &&
+          !isYearly && (
+            <div className="absolute -top-3 left-1/2 transform -translate-x-1/2">
+              <span className="bg-emerald-100 text-emerald-600 px-3 py-1 rounded-full text-sm font-medium">
+                First month $9 with code ANIMUS
+              </span>
+            </div>
+          )
+        )}
+
         <CardHeader>
           <div className="flex justify-between items-center">
             <div>
               <CardTitle>{product.name}</CardTitle>
               <div className="flex items-center gap-2 mt-2 mb-2">
-                <span>{isSubscription ? "Monthly" : "Yours forever w/ 1 year of updates"}</span>
+                <span>
+                  {isSubscription
+                    ? "Monthly"
+                    : "Yours forever w/ 1 year of updates"}
+                </span>
                 <Switch
                   checked={isSubscription ? isYearly : isLifetime}
                   onCheckedChange={isSubscription ? setIsYearly : setIsLifetime}
