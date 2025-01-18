@@ -303,6 +303,63 @@ export default class FileOrganizer extends Plugin {
     }
   }
 
+  async streamFormatInCurrentNoteLineByLine({
+    file,
+    formattingInstruction,
+    content,
+    chunkMode = 'line',
+  }: {
+    file: TFile;
+    formattingInstruction: string;
+    content: string;
+    chunkMode?: 'line' | 'partial';
+  }): Promise<void> {
+    try {
+      new Notice("Formatting content line by line...", 3000);
+
+      // Backup the file before formatting
+      const backupFile = await this.backupTheFileAndAddReferenceToCurrentFile(file);
+
+      // Prepare streaming
+      let formattedContent = "";
+      let lastLineCount = 0;
+
+      const updateCallback = async (chunk: string) => {
+        if (chunkMode === 'line') {
+          // Split chunk into lines and only append new lines
+          const lines = chunk.split("\n");
+          const newLines = lines.slice(lastLineCount);
+          if (newLines.length > 0) {
+            formattedContent = lines.join("\n");
+            lastLineCount = lines.length;
+            await this.app.vault.modify(file, formattedContent);
+          }
+        } else {
+          // For partial mode, just append the new chunk
+          formattedContent = chunk;
+          await this.app.vault.modify(file, formattedContent);
+        }
+      };
+
+      await this.formatStream(
+        content,
+        formattingInstruction,
+        this.getServerUrl(),
+        this.getApiKey(),
+        updateCallback
+      );
+
+      // Insert reference to backup 
+      await this.appendBackupLinkToCurrentFile(file, backupFile);
+      new Notice("Line-by-line update done!", 3000);
+
+    } catch (error) {
+      logger.error("Error formatting content line by line:", error);
+      new Notice("An error occurred while formatting the content.", 6000);
+      throw error; // Re-throw to allow component to handle error state
+    }
+  }
+
   async createFileInInbox(title: string, content: string): Promise<void> {
     const fileName = `${title}.md`;
     const filePath = `${this.settings.pathToWatch}/${fileName}`;
