@@ -12,8 +12,20 @@ const defaultSettings = {
   aiModel: "gpt-4"
 };
 
-// Register meeting notes handler
+// Register meeting notes handler and initialize streams
 if (typeof window === 'undefined') {
+  console.log("Initializing transcription stream at server startup...");
+  pipe.streamTranscriptions({
+    onData: (data: TranscriptionData) => {
+      console.log("Received transcription data at startup:", {
+        transcription: data.transcription?.substring(0, 100) + "...",
+        confidence: data.confidence,
+        timestamp: data.timestamp
+      });
+    },
+    onError: (err) => console.error("Transcription error at startup:", err),
+  });
+
   console.log("Registering meeting notes handler from handlers/index.ts...");
   const handler = async (data: TranscriptionData) => {
     console.log("Meeting notes handler called with data:", {
