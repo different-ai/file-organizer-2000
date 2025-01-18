@@ -1,0 +1,260 @@
+$ next dev
+ ⚠ Port 3000 is in use, trying 3001 instead.
+ ⚠ Port 3001 is in use, trying 3002 instead.
+ ⚠ Port 3002 is in use, trying 3003 instead.
+   ▲ Next.js 15.1.0
+   - Local:        http://lo ○ Compiling /api/test-transcription ...
+ ✓ Compiled /api/test-transcription in 942ms (388 modules)
+Registering meeting notes handler from handlers/index.ts...
+Registering new transcription handler
+Total handlers: 1
+Handler 1: async (data)=>{
+        console.log("Meeting notes handler called with data:", {
+            transcription: data.transcription?.substring(0, 100) + "...",
+            confidence: data.confidence,
+            timestamp: data.timestamp
+        });
+        try {
+            // Get current settings
+            const settings = await _screenpipe_js__WEBPACK_IMPORTED_MODULE_1__.pipe.settings.getNamespaceSettings("obsidian");
+            const effectiveSettings = settings?.settings?.obsidian || settings || defaultSettings;
+            const notesPath = effectiveSettings.path || defaultSettings.path;
+            console.log("Using notes path:", notesPath);
+            // Ensure directory exists
+            const normalizedPath = path__WEBPACK_IMPORTED_MODULE_3__.normalize(notesPath);
+            const meetingNotesPath = path__WEBPACK_IMPORTED_MODULE_3__.join(normalizedPath, "meeting-notes");
+            await fs_promises__WEBPACK_IMPORTED_MODULE_2__.mkdir(meetingNotesPath, {
+                recursive: true
+            });
+            const today = new Date();
+            const filename = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, "0")}-${String(today.getDate()).padStart(2, "0")}-meeting.md`;
+            const filePath = path__WEBPACK_IMPORTED_MODULE_3__.join(meetingNotesPath, filename);
+            const vaultName = path__WEBPACK_IMPORTED_MODULE_3__.basename(path__WEBPACK_ ✓ Compiled in 179ms (323 modules)
+ ✓ Compiled in 119ms (323 modules)
+ ✓ Compiled in 130ms (323 modules)
+ ✓ Compiled in 120ms (323 modules)
+ ✓ Compiled in 135ms (323 modules)
+ ✓ Compiled in 160ms (323 modules)
+ ✓ Compiled in 111ms (323 modules)
+ ✓ Compiled in 122ms (323 modules)
+ ✓ Compiled in 129ms (323 modules)
+23 modules)
+ ✓ Compiled in 144ms (323 modules)
+ ✓ Compiled in 119ms (323 modules)
+ ✓ Compiled in 153ms (323 modules)
+ ✓ Compiled in 156ms (323 modules)
+ ✓ Compiled in 218ms (323 modules)
+ ✓ Compiled in 116ms (323 modules)
+ ✓ Compiled in 107ms (323 modules)
+ ✓ Compiled in 97ms (323 modules)
+ ✓ Compiled in 114ms (323 modules)
+ ✓ Compiled in 136ms (323 modules)
+ ✓ Compiled in 114ms (323 modules)
+ ✓ Compiled in 105ms (323 modules)
+ ✓ Compiled in 106ms (323 modules)
+ ✓ Compiled in 125ms (323 modules)
+ ✓ Compiled in 132ms (321 modules)
+ ✓ Compiled in 76ms (309 modules)
+URIComponent(`meeting-notes/${filename}`)}`;
+            console.log("Meeting notes synced successfully, deep link:", deepLink);
+            return deepLink;
+        } catch (error) {
+            console.error("Failed to sync meeting notes:", error);
+            throw error;
+        }
+    }
+Meeting notes handler registered successfully
+Registering test handler in test-transcription route...
+Registering new transcription handler
+Total handlers: 2
+Handler 1: async (data)=>{
+        console.log("Meeting notes handler called with data:", {
+            transcription: data.transcription?.substring(0, 100) + "...",
+            confidence: data.confidence,
+            timestamp: data.timestamp
+        });
+        try {
+            // Get current settings
+            const settings = await _screenpipe_js__WEBPACK_IMPORTED_MODULE_1__.pipe.settings.getNamespaceSettings("obsidian");
+            const effectiveSettings = settings?.settings?.obsidian || settings || defaultSettings;
+            const notesPath = effectiveSettings.path || defaultSettings.path;
+            console.log("Using notes path:", notesPath);
+            // Ensure directory exists
+            const normalizedPath = path__WEBPACK_IMPORTED_MODULE_3__.normalize(notesPath);
+            const meetingNotesPath = path__WEBPACK_IMPORTED_MODULE_3__.join(normalizedPath, "meeting-notes");
+            await fs_promises__WEBPACK_IMPORTED_MODULE_2__.mkdir(meetingNotesPath, {
+                recursive: true
+            });
+            const today = new Date();
+            const filename = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, "0")}-${String(today.getDate()).padStart(2, "0")}-meeting.md`;
+            const filePath = path__WEBPACK_IMPORTED_MODULE_3__.join(meetingNotesPath, filename);
+            const vaultName = path__WEBPACK_IMPORTED_MODULE_3__.basename(path__WEBPACK_IMPORTED_MODULE_3__.resolve(normalizedPath));
+            const timestamp = today.toLocaleTimeString();
+            const confidenceStr = data.confidence ? ` (confidence: ${(data.confidence * 100).toFixed(1)}%)` : '';
+            try {
+                await fs_promises__WEBPACK_IMPORTED_MODULE_2__.access(filePath);
+                await fs_promises__WEBPACK_IMPORTED_MODULE_2__.appendFile(filePath, `\n\n## ${timestamp}${confidenceStr}\n${data.transcription}`, "utf8");
+            } catch  {
+                const content = `---
+date: ${today.toISOString()}
+type: meeting-notes
+tags: [meeting, transcription]
+---
+
+# Meeting Notes - ${today.toLocaleDateString()}
+
+## ${timestamp}${confidenceStr}
+${data.transcription}`;
+                await fs_promises__WEBPACK_IMPORTED_MODULE_2__.writeFile(filePath, content, "utf8");
+            }
+            const deepLink = `obsidian://open?vault=${encodeURIComponent(vaultName)}&file=${encodeURIComponent(`meeting-notes/${filename}`)}`;
+            console.log("Meeting notes synced successfully, deep link:", deepLink);
+            return deepLink;
+        } catch (error) {
+            console.error("Failed to sync meeting notes:", error);
+            throw error;
+        }
+    }
+Handler 2: async (data)=>{
+        console.log("Test handler called with data:", data);
+        return "Test handler processed data";
+    }
+ GET /api/test-transcription 405 in 1112ms
+Received POST request to test-transcription
+Request body: {
+  transcription: 'Test meeting transcription with both handlers. Testing complete flow with file creation.',
+  confidence: 0.95,
+  timestamp: '2025-01-18T11:41:03+00:00'
+}
+Processing transcription with 2 handlers
+Available handlers: [
+  'async (data)=>{\n' +
+    '        console.log("Meeting notes handler called with data:", {\n' +
+    '            transcription: data.transcription?.substring(0, 100) + "...",\n' +
+    '            confidence: data.confidence,\n' +
+    '            timestamp: data.timestamp\n' +
+    '        });\n' +
+    '        try {\n' +
+    '            // Get current settings\n' +
+    '            const settings = await _screenpipe_js__WEBPACK_IMPORTED_MODULE_1__.pipe.settings.getNamespaceSettings("obsidian");\n' +
+    '            const effectiveSettings = settings?.settings?.obsidian || settings || defaultSettings;\n' +
+    '            const notesPath = effectiveSettings.path || defaultSettings.path;\n' +
+    '            console.log("Using notes path:", notesPath);\n' +
+    '            // Ensure directory exists\n' +
+    '            const normalizedPath = path__WEBPACK_IMPORTED_MODULE_3__.normalize(notesPath);\n' +
+    '            const meetingNotesPath = path__WEBPACK_IMPORTED_MODULE_3__.join(normalizedPath, "meeting-notes");\n' +
+    '            await fs_promises__WEBPACK_IMPORTED_MODULE_2__.mkdir(meetingNotesPath, {\n' +
+    '                recursive: true\n' +
+    '            });\n' +
+    '            const today = new Date();\n' +
+    '            const filename = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, "0")}-${String(today.getDate()).padStart(2, "0")}-meeting.md`;\n' +
+    '            const filePath = path__WEBPACK_IMPORTED_MODULE_3__.join(meetingNotesPath, filename);\n' +
+    '            const vaultName = path__WEBPACK_IMPORTED_MODULE_3__.basename(path__WEBPACK_IMPORTED_MODULE_3__.resolve(normalizedPath));\n' +
+    '            const timestamp = today.toLocaleTimeString();\n' +
+    "            const confidenceStr = data.confidence ? ` (confidence: ${(data.confidence * 100).toFixed(1)}%)` : '';\n" +
+    '            try {\n' +
+    '                await fs_promises__WEBPACK_IMPORTED_MODULE_2__.access(filePath);\n' +
+    '                await fs_promises__WEBPACK_IMPORTED_MODULE_2__.appendFile(filePath, `\\n\\n## ${timestamp}${confidenceStr}\\n${data.transcription}`, "utf8");\n' +
+    '            } catch  {\n' +
+    '                const content = `---\n' +
+    'date: ${today.toISOString()}\n' +
+    'type: meeting-notes\n' +
+    'tags: [meeting, transcription]\n' +
+    '---\n' +
+    '\n' +
+    '# Meeting Notes - ${today.toLocaleDateString()}\n' +
+    '\n' +
+    '## ${timestamp}${confidenceStr}\n' +
+    '${data.transcription}`;\n' +
+    '                await fs_promises__WEBPACK_IMPORTED_MODULE_2__.writeFile(filePath, content, "utf8");\n' +
+    '            }\n' +
+    '            const deepLink = `obsidian://open?vault=${encodeURIComponent(vaultName)}&file=${encodeURIComponent(`meeting-notes/${filename}`)}`;\n' +
+    '            console.log("Meeting notes synced successfully, deep link:", deepLink);\n' +
+    '            return deepLink;\n' +
+    '        } catch (error) {\n' +
+    '            console.error("Failed to sync meeting notes:", error);\n' +
+    '            throw error;\n' +
+    '        }\n' +
+    '    }',
+  'async (data)=>{\n' +
+    '        console.log("Test handler called with data:", data);\n' +
+    '        return "Test handler processed data";\n' +
+    '    }'
+]
+Executing handler...
+Handler function: async (data)=>{
+        console.log("Meeting notes handler called with data:", {
+            transcription: data.transcription?.substring(0, 100) + "...",
+            confidence: data.confidence,
+            timestamp: data.timestamp
+        });
+        try {
+            // Get current settings
+            const settings = await _screenpipe_js__WEBPACK_IMPORTED_MODULE_1__.pipe.settings.getNamespaceSettings("obsidian");
+            const effectiveSettings = settings?.settings?.obsidian || settings || defaultSettings;
+            const notesPath = effectiveSettings.path || defaultSettings.path;
+            console.log("Using notes path:", notesPath);
+            // Ensure directory exists
+            const normalizedPath = path__WEBPACK_IMPORTED_MODULE_3__.normalize(notesPath);
+            const meetingNotesPath = path__WEBPACK_IMPORTED_MODULE_3__.join(normalizedPath, "meeting-notes");
+            await fs_promises__WEBPACK_IMPORTED_MODULE_2__.mkdir(meetingNotesPath, {
+                recursive: true
+            });
+            const today = new Date();
+            const filename = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, "0")}-${String(today.getDate()).padStart(2, "0")}-meeting.md`;
+            const filePath = path__WEBPACK_IMPORTED_MODULE_3__.join(meetingNotesPath, filename);
+            const vaultName = path__WEBPACK_IMPORTED_MODULE_3__.basename(path__WEBPACK_IMPORTED_MODULE_3__.resolve(normalizedPath));
+            const timestamp = today.toLocaleTimeString();
+            const confidenceStr = data.confidence ? ` (confidence: ${(data.confidence * 100).toFixed(1)}%)` : '';
+            try {
+                await fs_promises__WEBPACK_IMPORTED_MODULE_2__.access(filePath);
+                await fs_promises__WEBPACK_IMPORTED_MODULE_2__.appendFile(filePath, `\n\n## ${timestamp}${confidenceStr}\n${data.transcription}`, "utf8");
+            } catch  {
+                const content = `---
+date: ${today.toISOString()}
+type: meeting-notes
+tags: [meeting, transcription]
+---
+
+# Meeting Notes - ${today.toLocaleDateString()}
+
+## ${timestamp}${confidenceStr}
+${data.transcription}`;
+                await fs_promises__WEBPACK_IMPORTED_MODULE_2__.writeFile(filePath, content, "utf8");
+            }
+            const deepLink = `obsidian://open?vault=${encodeURIComponent(vaultName)}&file=${encodeURIComponent(`meeting-notes/${filename}`)}`;
+            console.log("Meeting notes synced successfully, deep link:", deepLink);
+            return deepLink;
+        } catch (error) {
+            console.error("Failed to sync meeting notes:", error);
+            throw error;
+        }
+    }
+Meeting notes handler called with data: {
+  transcription: 'Test meeting transcription with both handlers. Testing complete flow with file creation....',
+  confidence: 0.95,
+  timestamp: '2025-01-18T11:41:03+00:00'
+}
+Using notes path: /home/ubuntu/repos/file-organizer-2000/pipes/file-organizer-notifications/test/obsidian
+Meeting notes synced successfully, deep link: obsidian://open?vault=obsidian&file=meeting-notes%2F2025-01-18-meeting.md
+Handler execution result: obsidian://open?vault=obsidian&file=meeting-notes%2F2025-01-18-meeting.md
+Executing handler...
+Handler function: async (data)=>{
+        console.log("Test handler called with data:", data);
+        return "Test handler processed data";
+    }
+Test handler called with data: {
+  transcription: 'Test meeting transcription with both handlers. Testing complete flow with file creation.',
+  timestamp: '2025-01-18T11:41:03+00:00',
+  confidence: 0.95
+}
+Handler execution result: Test handler processed data
+All handlers processed. Results: [
+  {
+    success: true,
+    result: 'obsidian://open?vault=obsidian&file=meeting-notes%2F2025-01-18-meeting.md'
+  },
+  { success: true, result: 'Test handler processed data' }
+]
+ POST /api/test-transcription 200 in 32ms
+ ✓ Compiled in 20ms

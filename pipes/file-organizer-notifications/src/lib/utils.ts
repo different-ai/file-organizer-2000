@@ -33,9 +33,9 @@ export const removeDuplicateSelections = (
     if (!item || !item.type) return;
 
     let content = "";
-    if (item.type === "OCR") content = item.content.text;
-    else if (item.type === "Audio") content = item.content.transcription;
-    else if (item.type === "UI") content = item.content.text;
+    if (item.type === "OCR") content = item.content.text || "";
+    else if (item.type === "Audio") content = item.content.transcription || "";
+    else if (item.type === "UI") content = item.content.text || "";
 
     if (!isDuplicate(content)) {
       seenContents.push(content);

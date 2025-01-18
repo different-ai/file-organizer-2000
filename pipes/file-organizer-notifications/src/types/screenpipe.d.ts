@@ -5,9 +5,24 @@ declare module "@screenpipe/js" {
     confidence?: number;
   }
 
+  export interface StreamEvent {
+    type: "transcription" | "error";
+    data: {
+      text?: string;
+      timestamp?: string;
+      confidence?: number;
+      deepLink?: string;
+      message?: string;
+      error?: string;
+    };
+  }
+
   export interface ContentItem {
-    type: string;
-    content: string;
+    type: "OCR" | "Audio" | "UI";
+    content: {
+      text?: string;
+      transcription?: string;
+    };
     timestamp: string;
     metadata?: Record<string, any>;
   }

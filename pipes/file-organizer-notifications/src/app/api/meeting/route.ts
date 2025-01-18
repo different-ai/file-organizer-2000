@@ -1,12 +1,6 @@
-import { NextResponse } from "next/server";
 import { pipe, VisionEvent } from "@screenpipe/js";
 import { z } from "zod";
-
-// Types for vision stream events
-interface StreamError {
-  message: string;
-  code?: string;
-}
+import { addVisionEventHandler } from "../handlers/vision";
 
 // Schema for meeting detection events
 const meetingEvent = z.object({
@@ -34,57 +28,71 @@ export async function GET() {
   try {
     // Initialize SSE response
     const encoder = new TextEncoder();
-    const stream = new TransformStream();
-    const writer = stream.writable.getWriter();
+    const stream = new ReadableStream({
+      async start(controller) {
+        try {
+          // Helper to send SSE events
+          const sendEvent = async (event: MeetingEvent) => {
+            try {
+              console.log("Sending SSE event:", event);
+              controller.enqueue(encoder.encode(`data: ${JSON.stringify(event)}\n\n`));
+            } catch (error) {
+              console.error("Failed to send SSE event:", error);
+              controller.error(error);
+            }
+          };
 
-    // Helper to send SSE events
-    const sendEvent = async (event: MeetingEvent) => {
-      try {
-        const data = encoder.encode(`data: ${JSON.stringify(event)}\n\n`);
-        await writer.write(data);
-      } catch (error) {
-        console.error("Failed to send SSE event:", error);
-      }
-    };
+          // Create and register handler for meeting detection
+          const handleVisionEvent = async (event: VisionEvent) => {
+            if (isZoomMeeting(event.app_name, event.window_name)) {
+              await sendEvent({
+                type: "meeting_started",
+                message: "A meeting just started open file organizer 2000",
+                timestamp: new Date().toISOString(),
+                app_name: event.app_name,
+                window_name: event.window_name,
+              });
+            }
+          };
 
-    // Start vision stream for app/window detection
-    pipe.streamVision({
-      onEvent: async (event: VisionEvent) => {
-        if (isZoomMeeting(event.app_name, event.window_name)) {
-          // Send meeting started event
+          // Register the handler
+          if (typeof window === 'undefined') {
+            addVisionEventHandler(handleVisionEvent);
+          }
+
+          // Send initial connection event
           await sendEvent({
             type: "meeting_started",
-            message: "A meeting just started open file organizer 2000",
+            message: "SSE connection established for meeting detection",
             timestamp: new Date().toISOString(),
-            app_name: event.app_name,
-            window_name: event.window_name,
           });
-
-          // Log notification
-          console.log("Meeting detected:", {
-            app: event.app_name,
-            window: event.window_name,
-            time: new Date().toISOString(),
-          });
+        } catch (error) {
+          console.error("Error in stream start:", error);
+          controller.error(error);
         }
       },
-      onError: (error: StreamError) => {
-        console.error("Vision stream error:", error.message);
-      },
+      cancel() {
+        console.log("SSE connection closed");
+      }
     });
 
-    return new NextResponse(stream.readable, {
+    return new Response(stream, {
       headers: {
         "Content-Type": "text/event-stream",
-        "Cache-Control": "no-cache",
-        Connection: "keep-alive",
+        "Cache-Control": "no-cache, no-transform",
+        "Connection": "keep-alive",
+        "X-Accel-Buffering": "no",
+        "Access-Control-Allow-Origin": "*"
       },
     });
   } catch (error) {
     console.error("Error in meeting detection api:", error);
-    return NextResponse.json(
-      { error: `Failed to process meeting detection: ${error}` },
-      { status: 500 }
+    return new Response(
+      JSON.stringify({ error: `Failed to process meeting detection: ${error}` }),
+      { 
+        status: 500,
+        headers: { "Content-Type": "application/json" }
+      }
     );
   }
 }

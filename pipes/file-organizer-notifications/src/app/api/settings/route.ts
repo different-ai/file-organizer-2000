@@ -1,9 +1,16 @@
 // app/api/settings/route.ts
 import { pipe } from "@screenpipe/js";
-import { NextResponse } from "next/server";
 import { promises as fs } from "fs";
 import path from "path";
 import os from "os";
+
+interface NamespaceSettings {
+  [key: string]: any;
+}
+
+interface Settings {
+  [namespace: string]: NamespaceSettings;
+}
 // Force Node.js runtime
 export const runtime = "nodejs"; // Add this line
 export const dynamic = "force-dynamic";
@@ -84,41 +91,53 @@ export async function GET() {
       const settingsContent = await fs.readFile(settingsPath, "utf8");
       const persistedSettings = JSON.parse(settingsContent);
 
-      // Merge with current settings
-      const rawSettings = await settingsManager.getAll();
-      return NextResponse.json({
-        ...rawSettings,
+      // Get obsidian namespace settings
+      const obsidianSettings = await settingsManager.getNamespaceSettings("obsidian") || {};
+      return new Response(JSON.stringify({
         customSettings: {
-          ...rawSettings.customSettings,
           obsidian: {
-            ...(rawSettings.customSettings?.obsidian || {}),
+            ...obsidianSettings,
             ...persistedSettings,
           },
         },
+      }), {
+        headers: { "Content-Type": "application/json" }
       });
     } catch (err) {
-      // If no persisted settings, return normal settings
-      const rawSettings = await settingsManager.getAll();
-      return NextResponse.json(rawSettings);
+      // If no persisted settings, return just namespace settings
+      const obsidianSettings = await settingsManager.getNamespaceSettings("obsidian") || {};
+      return new Response(JSON.stringify({
+        customSettings: {
+          obsidian: obsidianSettings
+        }
+      }), {
+        headers: { "Content-Type": "application/json" }
+      });
     }
   } catch (error) {
     console.error("failed to get settings:", error);
-    return NextResponse.json(
-      { error: "failed to get settings" },
-      { status: 500 }
-    );
+    return new Response(
+      JSON.stringify({ error: "failed to get settings" }),
+      { 
+        status: 500,
+        headers: { "Content-Type": "application/json" }
+      });
   }
 }
 
 export async function PUT(request: Request) {
   try {
-    const settingsManager = pipe.settings;
-    if (!settingsManager) {
-      throw new Error("settingsManager not found");
-    }
-
     const body = await request.json();
     const { key, value, isPartialUpdate, reset, namespace } = body;
+
+    // Get settings file path
+    const screenpipeDir = process.env.SCREENPIPE_DIR || getAppDataDir();
+    const settingsPath = path.join(
+      screenpipeDir,
+      "pipes",
+      "obsidian",
+      "settings.json"
+    );
 
     // Handle obsidian namespace updates
     if (namespace === "obsidian" && isPartialUpdate) {
@@ -129,50 +148,58 @@ export async function PUT(request: Request) {
       console.log(`setting interval to ${intervalMinutes} minutes`);
     }
 
+    // Load current settings
+    let settings: Settings = {};
+    try {
+      const content = await fs.readFile(settingsPath, "utf8");
+      settings = JSON.parse(content) as Settings;
+    } catch (err) {
+      console.log("No existing settings found, creating new file");
+    }
+
     if (reset) {
       if (namespace) {
         if (key) {
           // Reset single key in namespace
-          await settingsManager.setCustomSetting(namespace, key, undefined);
+          const namespaceSettings = settings[namespace] || {};
+          const { [key]: _, ...rest } = namespaceSettings;
+          settings[namespace] = rest;
         } else {
           // Reset entire namespace
-          await settingsManager.updateNamespaceSettings(namespace, {});
-        }
-      } else {
-        if (key) {
-          await settingsManager.resetKey(key);
-        } else {
-          await settingsManager.reset();
+          settings[namespace] = {};
         }
       }
-      return NextResponse.json({ success: true });
-    }
-
-    if (namespace) {
+    } else if (namespace) {
       if (isPartialUpdate) {
-        const currentSettings =
-          (await settingsManager.getNamespaceSettings(namespace)) || {};
-        await settingsManager.updateNamespaceSettings(namespace, {
-          ...currentSettings,
+        // Update namespace with merged settings
+        settings[namespace] = {
+          ...(settings[namespace] || {}),
           ...value,
-        });
+        };
       } else {
-        await settingsManager.setCustomSetting(namespace, key, value);
+        // Update single key in namespace
+        settings[namespace] = {
+          ...(settings[namespace] || {}),
+          [key]: value,
+        };
       }
-    } else if (isPartialUpdate) {
-      const serializedSettings = JSON.parse(JSON.stringify(value));
-      await settingsManager.update(serializedSettings);
-    } else {
-      const serializedValue = JSON.parse(JSON.stringify(value));
-      await settingsManager.set(key, serializedValue);
     }
 
-    return NextResponse.json({ success: true });
+    // Save settings to file
+    await fs.mkdir(path.dirname(settingsPath), { recursive: true });
+    await fs.writeFile(settingsPath, JSON.stringify(settings, null, 2));
+
+    return new Response(JSON.stringify({ success: true }), {
+      headers: { "Content-Type": "application/json" }
+    });
   } catch (error) {
     console.error("failed to update settings:", error);
-    return NextResponse.json(
-      { error: "failed to update settings" },
-      { status: 500 }
+    return new Response(
+      JSON.stringify({ error: "failed to update settings" }),
+      { 
+        status: 500,
+        headers: { "Content-Type": "application/json" }
+      }
     );
   }
 }

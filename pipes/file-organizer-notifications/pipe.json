@@ -1,12 +1,10 @@
 {
-    "crons": [
-        {
-            "path": "/api/log",
-            "schedule": "0 */5 * * * *"
-        },
-        {
-            "path": "/api/intelligence",
-            "schedule": "0 0 */1 * * *"
-        }
-    ]
+  "settings": {
+    "obsidian": {
+      "path": "/home/ubuntu/repos/file-organizer-2000/pipes/file-organizer-notifications/test/obsidian",
+      "interval": 3600000,
+      "pageSize": 100,
+      "aiModel": "gpt-4"
+    }
+  }
 }
