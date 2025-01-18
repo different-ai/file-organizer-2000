@@ -303,6 +303,60 @@ export default class FileOrganizer extends Plugin {
     }
   }
 
+  async streamFormatInCurrentNoteLineByLine({
+    file,
+    formattingInstruction,
+    content,
+    chunkMode = 'line',
+  }: {
+    file: TFile;
+    formattingInstruction: string;
+    content: string;
+    chunkMode?: 'line' | 'partial';
+  }): Promise<void> {
+    try {
+      new Notice("Formatting content line by line...", 3000);
+
+      // Backup the file before formatting
+      const backupFile = await this.backupTheFileAndAddReferenceToCurrentFile(file);
+
+      // Prepare streaming
+      let partialContent = "";
+
+      const updateCallback = async (chunk: string) => {
+        if (chunkMode === 'line') {
+          // Option 1: break chunk into lines 
+          const lines = chunk.split("\n");
+          for (const line of lines) {
+            partialContent += line + "\n";
+            await this.app.vault.modify(file, partialContent);
+          }
+        } else {
+          // Option 2: use partial increments directly
+          partialContent += chunk;
+          await this.app.vault.modify(file, partialContent);
+        }
+      };
+
+      await this.formatStream(
+        content,
+        formattingInstruction,
+        this.getServerUrl(),
+        this.getApiKey(),
+        updateCallback
+      );
+
+      // Insert reference to backup 
+      await this.appendBackupLinkToCurrentFile(file, backupFile);
+      new Notice("Line-by-line update done!", 3000);
+
+    } catch (error) {
+      logger.error("Error formatting content line by line:", error);
+      new Notice("An error occurred while formatting the content.", 6000);
+      throw error; // Re-throw to allow component to handle error state
+    }
+  }
+
   async createFileInInbox(title: string, content: string): Promise<void> {
     const fileName = `${title}.md`;
     const filePath = `${this.settings.pathToWatch}/${fileName}`;
