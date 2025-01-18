@@ -1,6 +1,13 @@
 # File Organizer 2000
 
-Transform your Obsidian workflow with AI-powered organization and note management.
+Transform your Obsidian workflow with AI-powered organization and note management. 
+
+Features:
+- Agentic Chat
+- File Organization
+- Meetings
+
+<img width="1840" alt="Screenshot 2025-01-18 at 09 07 18" src="https://github.com/user-attachments/assets/efce35ad-fbf9-47c2-a6e8-a509709e7b7c" />
 
 ## 🌟 Key Use Cases
 
