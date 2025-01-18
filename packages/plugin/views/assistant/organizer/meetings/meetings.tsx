@@ -20,9 +20,36 @@ export const Meetings: React.FC<MeetingsProps> = ({
   const [minutes, setMinutes] = React.useState(5);
   const [loading, setLoading] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
+  const [isScreenpipeAvailable, setIsScreenpipeAvailable] = React.useState<boolean>(false);
+
+  // Check Screenpipe availability on component mount
+  React.useEffect(() => {
+    checkScreenpipeHealth();
+  }, []);
+
+  const checkScreenpipeHealth = async () => {
+    try {
+      const response = await fetch('http://localhost:3030/health');
+      if (response.ok) {
+        setIsScreenpipeAvailable(true);
+        setError(null);
+      } else {
+        throw new Error('Screenpipe service is not responding');
+      }
+    } catch (err) {
+      setIsScreenpipeAvailable(false);
+      setError(
+        'Screenpipe is not running. Please install it from https://screenpi.pe and ensure it is running locally.'
+      );
+    }
+  };
 
   const enhanceMeetingNotes = async () => {
     if (!file) return;
+    if (!isScreenpipeAvailable) {
+      new Notice('Please install and start Screenpipe first');
+      return;
+    }
 
     setLoading(true);
     setError(null);
@@ -92,9 +119,26 @@ export const Meetings: React.FC<MeetingsProps> = ({
       ) : error ? (
         <div className="error-container">
           <p>Error: {error}</p>
-          <button onClick={() => setError(null)} className="retry-button">
-            Retry
-          </button>
+          {!isScreenpipeAvailable && (
+            <div className="mt-2">
+              <p className="text-sm">
+                To use this feature, you need to:
+              </p>
+              <ol className="list-decimal ml-4 text-sm">
+                <li>Visit <a href="https://screenpi.pe" className="text-[--text-accent] hover:underline">screenpi.pe</a></li>
+                <li>Download and install Screenpipe</li>
+                <li>Start the Screenpipe application</li>
+              </ol>
+              <button onClick={checkScreenpipeHealth} className="mt-2 mod-cta">
+                Check Again
+              </button>
+            </div>
+          )}
+          {isScreenpipeAvailable && (
+            <button onClick={() => setError(null)} className="retry-button">
+              Retry
+            </button>
+          )}
         </div>
       ) : (
         <>
@@ -108,9 +152,18 @@ export const Meetings: React.FC<MeetingsProps> = ({
               className="input-minutes"
             />
           </div>
-          <button onClick={enhanceMeetingNotes} className="mod-cta">
+          <button 
+            onClick={enhanceMeetingNotes} 
+            className="mod-cta"
+            disabled={!isScreenpipeAvailable}
+          >
             Enhance Meeting Notes
           </button>
+          {!isScreenpipeAvailable && (
+            <p className="text-sm mt-2 text-[--text-muted]">
+              Please install and start Screenpipe to use this feature
+            </p>
+          )}
         </>
       )}
     </div>
