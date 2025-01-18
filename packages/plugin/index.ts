@@ -321,20 +321,23 @@ export default class FileOrganizer extends Plugin {
       const backupFile = await this.backupTheFileAndAddReferenceToCurrentFile(file);
 
       // Prepare streaming
-      let partialContent = "";
+      let formattedContent = "";
+      let lastLineCount = 0;
 
       const updateCallback = async (chunk: string) => {
         if (chunkMode === 'line') {
-          // Option 1: break chunk into lines 
+          // Split chunk into lines and only append new lines
           const lines = chunk.split("\n");
-          for (const line of lines) {
-            partialContent += line + "\n";
-            await this.app.vault.modify(file, partialContent);
+          const newLines = lines.slice(lastLineCount);
+          if (newLines.length > 0) {
+            formattedContent = lines.join("\n");
+            lastLineCount = lines.length;
+            await this.app.vault.modify(file, formattedContent);
           }
         } else {
-          // Option 2: use partial increments directly
-          partialContent += chunk;
-          await this.app.vault.modify(file, partialContent);
+          // For partial mode, just append the new chunk
+          formattedContent = chunk;
+          await this.app.vault.modify(file, formattedContent);
         }
       };
 

@@ -3,7 +3,6 @@ import { Notice, TFile } from "obsidian";
 import FileOrganizer from "../../../../index";
 import { SkeletonLoader } from "../components/skeleton-loader";
 import { logger } from "../../../../services/logger";
-import { makeApiRequest } from "../../../../apiUtils";
 
 interface MeetingsProps {
   plugin: FileOrganizer;
@@ -33,35 +32,24 @@ export const Meetings: React.FC<MeetingsProps> = ({
       const endTime = new Date().toISOString();
       const startTime = new Date(Date.now() - minutes * 60_000).toISOString();
 
-      // Use plugin's secure API methods for data fetching
+      // Fetch transcripts from Screenpipe
       let transcriptions = '';
       let hasContent = false;
       
-      const updateCallback = (chunk: string) => {
-        try {
-          const data = JSON.parse(chunk);
-          if (data.transcription) {
-            transcriptions += data.transcription + '\n';
-            hasContent = true;
-          }
-        } catch (e) {
-          // Handle non-JSON chunks (e.g., partial data)
-          if (chunk.trim()) {
-            transcriptions += chunk;
-            hasContent = true;
-          }
-        }
-      };
+      const queryUrl = `http://localhost:3030/search?content_type=audio&start_time=${startTime}&end_time=${endTime}`;
+      const response = await fetch(queryUrl);
+      
+      if (!response.ok) {
+        throw new Error(`HTTP error: status ${response.status}`);
+      }
 
-      // Use the plugin's secure API request method
-      // Use plugin's formatStream method for secure API communication
-      await plugin.formatStream(
-        JSON.stringify({ startTime, endTime }),
-        'fetch_audio_transcripts',
-        plugin.getServerUrl(),
-        plugin.getApiKey(),
-        updateCallback
-      );
+      const data = await response.json();
+      // Combine all transcriptions from the results
+      transcriptions = data.data
+        .map((item: any) => item.content.transcription)
+        .join("\n");
+      
+      hasContent = transcriptions.trim().length > 0;
 
       if (!hasContent) {
         throw new Error("No recent audio data found in the last " + minutes + " minutes");
