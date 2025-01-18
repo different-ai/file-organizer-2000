@@ -1,12 +1,21 @@
 This works like this
 
-./web - nextjs app router includes everything to related to user accounts 
-./web/app/api/(new-ai) containts all the ai related functions
-./plugin - obsidian plugin 
+./packages/web - nextjs app router includes everything to related to user accounts 
+./packages/web/app/api/(new-ai) containts all the ai related functions
+./packages/plugin - obsidian plugin 
+./packages/plugin/index.ts - the main file for the plugin
 
 
 
-in the ./plugin use this values inside of tailwind classes like so
+
+core way the app works:
+- inbox (a special folder in the vault, which is on the fs)
+- the inbox folder is processed by the plugin, which will move the files to the correct folder based on the classification
+-  there's an ai chat that has access to a whole lot of functioncals be used to chat with context of files and to do certain actions as defined in ./packages/web/app/api/(new-ai)/tools.ts
+
+
+
+
 
 example:
 
