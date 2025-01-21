@@ -1,5 +1,5 @@
 import * as React from "react";
-import { Notice, TFile } from "obsidian";
+import { getLinkpath, Notice, TFile } from "obsidian";
 import FileOrganizer from "../../../../index";
 import { SkeletonLoader } from "../components/skeleton-loader";
 import { logger } from "../../../../services/logger";
@@ -82,6 +82,40 @@ export const Meetings: React.FC<MeetingsProps> = ({
         throw new Error("No recent audio data found in the last " + minutes + " minutes");
       }
 
+      // Get the file's metadata cache to resolve links
+      const fileCache = plugin.app.metadataCache.getFileCache(file);
+      if (!fileCache || !fileCache.links) {
+        logger.debug("No links found in file cache");
+        return;
+      }
+
+      // Get resolved links for the current file
+      const resolvedLinks = plugin.app.metadataCache.resolvedLinks[file.path] || {};
+      const linkedFiles: TFile[] = [];
+
+      // Collect all valid linked files
+      Object.keys(resolvedLinks).forEach(linkPath => {
+        const linkedFile = plugin.app.vault.getAbstractFileByPath(linkPath);
+        if (linkedFile instanceof TFile) {
+          linkedFiles.push(linkedFile);
+        }
+      });
+
+      // Get content from linked files
+      const linkContents = await Promise.all(
+        linkedFiles.map(async (linkedFile) => {
+          try {
+            const content = await plugin.app.vault.read(linkedFile);
+            return `# ${linkedFile.basename}\n\n${content}`;
+          } catch (err) {
+            logger.error(`Error reading linked file ${linkedFile.path}:`, err);
+            return '';
+          }
+        })
+      );
+
+      const linkContentsString = linkContents.filter(content => content.length > 0).join("\n\n");
+
       // Format the instruction for merging transcripts
       const formattingInstruction = `
         You have the following recent transcript from the meeting:
@@ -89,25 +123,18 @@ export const Meetings: React.FC<MeetingsProps> = ({
         
         Merge/improve the current meeting notes below with any details from the new transcript:
         ${content}
+
+        Extra context that are from linked notes:
+        ${linkContentsString}
         
         Provide an updated version of these meeting notes in a cohesive style.
       `;
-
-      const links = await plugin.getCurrentFileLinks(file);
-      // files from all links
-      const linksFiles = links.map(link => plugin.app.vault.getFileByPath(link.link));
-      // get file from link
-      console.log("links", links);
-      // get all link content and inject into the content
-      const linkContents = await Promise.all(linksFiles.map(link => plugin.app.vault.read(link)));
-      const linkContentsString = linkContents.join("\n\n");
-      const contentWithLinks = `${content}\n\n${linkContentsString}`;
 
       // Stream the formatted content into the current note line by line
       await plugin.streamFormatInCurrentNoteLineByLine({
         file,
         formattingInstruction,
-        content: contentWithLinks,
+        content: content,
         chunkMode: 'line', // Use line-by-line mode for more granular updates
       });
 
