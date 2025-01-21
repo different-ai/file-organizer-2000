@@ -93,11 +93,18 @@ export const Meetings: React.FC<MeetingsProps> = ({
         Provide an updated version of these meeting notes in a cohesive style.
       `;
 
+      const links = await plugin.getCurrentFileLinks(file);
+      console.log("links", links);
+      // get all link content and inject into the content
+      const linkContents = await Promise.all(links.map(link => plugin.app.vault.read(link)));
+      const linkContentsString = linkContents.join("\n\n");
+      const contentWithLinks = `${content}\n\n${linkContentsString}`;
+
       // Stream the formatted content into the current note line by line
       await plugin.streamFormatInCurrentNoteLineByLine({
         file,
         formattingInstruction,
-        content,
+        content: contentWithLinks,
         chunkMode: 'line', // Use line-by-line mode for more granular updates
       });
 

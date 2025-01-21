@@ -9,6 +9,8 @@ import {
   normalizePath,
   loadPdfJs,
   arrayBufferToBase64,
+  CachedMetadata,
+  LinkCache,
 } from "obsidian";
 import { logMessage, sanitizeTag } from "./someUtils";
 import { FileOrganizerSettingTab } from "./views/settings/view";
@@ -286,7 +288,6 @@ export default class FileOrganizer extends Plugin {
         formattedContent = partialContent;
         await this.app.vault.modify(file, formattedContent);
       };
-
       await this.formatStream(
         content,
         formattingInstruction,
@@ -307,25 +308,27 @@ export default class FileOrganizer extends Plugin {
     file,
     formattingInstruction,
     content,
-    chunkMode = 'line',
+    chunkMode = "line",
   }: {
     file: TFile;
     formattingInstruction: string;
     content: string;
-    chunkMode?: 'line' | 'partial';
+    chunkMode?: "line" | "partial";
   }): Promise<void> {
     try {
       new Notice("Formatting content line by line...", 3000);
 
       // Backup the file before formatting
-      const backupFile = await this.backupTheFileAndAddReferenceToCurrentFile(file);
+      const backupFile = await this.backupTheFileAndAddReferenceToCurrentFile(
+        file
+      );
 
       // Prepare streaming
       let formattedContent = "";
       let lastLineCount = 0;
 
       const updateCallback = async (chunk: string) => {
-        if (chunkMode === 'line') {
+        if (chunkMode === "line") {
           // Split chunk into lines and only append new lines
           const lines = chunk.split("\n");
           const newLines = lines.slice(lastLineCount);
@@ -349,10 +352,9 @@ export default class FileOrganizer extends Plugin {
         updateCallback
       );
 
-      // Insert reference to backup 
+      // Insert reference to backup
       await this.appendBackupLinkToCurrentFile(file, backupFile);
       new Notice("Line-by-line update done!", 3000);
-
     } catch (error) {
       logger.error("Error formatting content line by line:", error);
       new Notice("An error occurred while formatting the content.", 6000);
@@ -387,6 +389,12 @@ export default class FileOrganizer extends Plugin {
   getApiKey(): string {
     return this.settings.API_KEY;
   }
+  async getCurrentFileLinks(file: TFile): Promise<LinkCache[]> {
+    // force metadata cache to be loaded
+    await this.app.vault.read(file);
+    const cache = this.app.metadataCache.getFileCache(file);
+    return cache?.links || [];
+  }
 
   async formatStream(
     content: string,
@@ -399,6 +407,7 @@ export default class FileOrganizer extends Plugin {
       content,
       formattingInstruction,
       enableFabric: this.settings.enableFabric,
+
     };
 
     const response = await fetch(`${serverUrl}/api/format-stream`, {
