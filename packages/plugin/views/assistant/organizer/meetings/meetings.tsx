@@ -94,9 +94,12 @@ export const Meetings: React.FC<MeetingsProps> = ({
       `;
 
       const links = await plugin.getCurrentFileLinks(file);
+      // files from all links
+      const linksFiles = links.map(link => plugin.app.vault.getFileByPath(link.link));
+      // get file from link
       console.log("links", links);
       // get all link content and inject into the content
-      const linkContents = await Promise.all(links.map(link => plugin.app.vault.read(link)));
+      const linkContents = await Promise.all(linksFiles.map(link => plugin.app.vault.read(link)));
       const linkContentsString = linkContents.join("\n\n");
       const contentWithLinks = `${content}\n\n${linkContentsString}`;
 
