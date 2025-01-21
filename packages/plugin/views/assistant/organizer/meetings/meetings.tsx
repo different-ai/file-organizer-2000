@@ -20,7 +20,8 @@ export const Meetings: React.FC<MeetingsProps> = ({
   const [minutes, setMinutes] = React.useState(5);
   const [loading, setLoading] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
-  const [isScreenpipeAvailable, setIsScreenpipeAvailable] = React.useState<boolean>(false);
+  const [isScreenpipeAvailable, setIsScreenpipeAvailable] =
+    React.useState<boolean>(false);
 
   // Check Screenpipe availability on component mount
   React.useEffect(() => {
@@ -29,17 +30,17 @@ export const Meetings: React.FC<MeetingsProps> = ({
 
   const checkScreenpipeHealth = async () => {
     try {
-      const response = await fetch('http://localhost:3030/health');
+      const response = await fetch("http://localhost:3030/health");
       if (response.ok) {
         setIsScreenpipeAvailable(true);
         setError(null);
       } else {
-        throw new Error('Screenpipe service is not responding');
+        throw new Error("Screenpipe service is not responding");
       }
     } catch (err) {
       setIsScreenpipeAvailable(false);
       setError(
-        'Screenpipe is not running. Please install it from https://screenpi.pe and ensure it is running locally.'
+        "Screenpipe is not running. Please install it from https://screenpi.pe and ensure it is running locally."
       );
     }
   };
@@ -47,7 +48,7 @@ export const Meetings: React.FC<MeetingsProps> = ({
   const enhanceMeetingNotes = async () => {
     if (!file) return;
     if (!isScreenpipeAvailable) {
-      new Notice('Please install and start Screenpipe first');
+      new Notice("Please install and start Screenpipe first");
       return;
     }
 
@@ -60,12 +61,12 @@ export const Meetings: React.FC<MeetingsProps> = ({
       const startTime = new Date(Date.now() - minutes * 60_000).toISOString();
 
       // Fetch transcripts from Screenpipe
-      let transcriptions = '';
+      let transcriptions = "";
       let hasContent = false;
-      
+
       const queryUrl = `http://localhost:3030/search?content_type=audio&start_time=${startTime}&end_time=${endTime}`;
       const response = await fetch(queryUrl);
-      
+
       if (!response.ok) {
         throw new Error(`HTTP error: status ${response.status}`);
       }
@@ -75,11 +76,13 @@ export const Meetings: React.FC<MeetingsProps> = ({
       transcriptions = data.data
         .map((item: any) => item.content.transcription)
         .join("\n");
-      
+
       hasContent = transcriptions.trim().length > 0;
 
       if (!hasContent) {
-        throw new Error("No recent audio data found in the last " + minutes + " minutes");
+        throw new Error(
+          "No recent audio data found in the last " + minutes + " minutes"
+        );
       }
 
       // Get the file's metadata cache to resolve links
@@ -90,7 +93,8 @@ export const Meetings: React.FC<MeetingsProps> = ({
       }
 
       // Get resolved links for the current file
-      const resolvedLinks = plugin.app.metadataCache.resolvedLinks[file.path] || {};
+      const resolvedLinks =
+        plugin.app.metadataCache.resolvedLinks[file.path] || {};
       const linkedFiles: TFile[] = [];
 
       // Collect all valid linked files
@@ -100,42 +104,50 @@ export const Meetings: React.FC<MeetingsProps> = ({
           linkedFiles.push(linkedFile);
         }
       });
+      console.log('content', content);
 
       // Get content from linked files
       const linkContents = await Promise.all(
-        linkedFiles.map(async (linkedFile) => {
+        linkedFiles.map(async linkedFile => {
           try {
             const content = await plugin.app.vault.read(linkedFile);
             return `# ${linkedFile.basename}\n\n${content}`;
           } catch (err) {
             logger.error(`Error reading linked file ${linkedFile.path}:`, err);
-            return '';
+            return "";
           }
         })
       );
+      console.log("content after", content);
 
-      const linkContentsString = linkContents.filter(content => content.length > 0).join("\n\n");
+      const linkContentsString = linkContents
+        .filter(content => content.length > 0)
+        .join("\n\n");
 
       // Format the instruction for merging transcripts
       const formattingInstruction = `
-        You have the following recent transcript from the meeting:
+      You're enhancer of meeting note you have access to the following context:
+
+      Transcript
         ${transcriptions}
         
-        Merge/improve the current meeting notes below with any details from the new transcript:
-        ${content}
-
-        Extra context that are from linked notes:
+        Extra context from linked notes (only use this if it is relevant to the meeting):
         ${linkContentsString}
         
         Provide an updated version of these meeting notes in a cohesive style.
+
+        Output directly in the note, without any additional text.
+        Do not use backquotes or any other formatting. Just raw markdown.
       `;
+      const fileContent = await plugin.app.vault.read(file);
+      console.log("fileContent", fileContent);
 
       // Stream the formatted content into the current note line by line
       await plugin.streamFormatInCurrentNoteLineByLine({
         file,
         formattingInstruction,
-        content: content,
-        chunkMode: 'line', // Use line-by-line mode for more granular updates
+        content: fileContent,
+        chunkMode: "line", // Use line-by-line mode for more granular updates
       });
 
       new Notice("Meeting notes successfully enhanced!");
@@ -158,11 +170,17 @@ export const Meetings: React.FC<MeetingsProps> = ({
           <p>Error: {error}</p>
           {!isScreenpipeAvailable && (
             <div className="mt-2">
-              <p className="text-sm">
-                To use this feature, you need to:
-              </p>
+              <p className="text-sm">To use this feature, you need to:</p>
               <ol className="list-decimal ml-4 text-sm">
-                <li>Visit <a href="https://screenpi.pe" className="text-[--text-accent] hover:underline">screenpi.pe</a></li>
+                <li>
+                  Visit{" "}
+                  <a
+                    href="https://screenpi.pe"
+                    className="text-[--text-accent] hover:underline"
+                  >
+                    screenpi.pe
+                  </a>
+                </li>
                 <li>Download and install Screenpipe</li>
                 <li>Start the Screenpipe application</li>
               </ol>
@@ -184,13 +202,13 @@ export const Meetings: React.FC<MeetingsProps> = ({
             <input
               type="number"
               value={minutes}
-              onChange={(e) => setMinutes(Number(e.target.value))}
+              onChange={e => setMinutes(Number(e.target.value))}
               min={1}
               className="input-minutes"
             />
           </div>
-          <button 
-            onClick={enhanceMeetingNotes} 
+          <button
+            onClick={enhanceMeetingNotes}
             className="mod-cta"
             disabled={!isScreenpipeAvailable}
           >
