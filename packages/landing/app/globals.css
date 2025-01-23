@@ -2,83 +2,12 @@
 @tailwind components;
 @tailwind utilities;
 
-@keyframes gradientRotate {
-  from {
-    --gradient-deg: 20deg;
-  }
-  to {
-    --gradient-deg: 380deg; /* 360 + 20 to maintain smoothness */
-  }
-}
 
-@keyframes highlightHue {
-  from {
-    --highlight-hue: 156deg;
-  }
-  to {
-    --highlight-hue: 516deg; /* 360 + 156 to maintain smoothness */
-  }
-}
 
-:root {
-  --font-color: hsl(156deg, 30%, 10%);
-  --highlight-color: hsl(var(--highlight-hue, 156deg), 80%, 70%);
-  --art-foreground: hsl(156deg, 40%, 96%);
-  --background-color: #e8e8e8;
-  --border-color-light: #1e1e1e44;
-  --border-color: #1e1e1e;
-  --inactive-color: #8d8d8d;
-  --gradient-deg: 20deg;
-  
-  --background: 0 0% 100%;
-  --foreground: 0 0% 3.9%;
-  --card: 0 0% 100%;
-  --card-foreground: 0 0% 3.9%;
-  --popover: 0 0% 100%;
-  --popover-foreground: 0 0% 3.9%;
-  --primary: 272 56% 66%;
-  --primary-foreground: 0 0% 98%;
-  --secondary: 0 0% 96.1%;
-  --secondary-foreground: 0 0% 9%;
-  --muted: 0 0% 96.1%;
-  --muted-foreground: 0 0% 45.1%;
-  --accent: 0 0% 96.1%;
-  --accent-foreground: 0 0% 9%;
-  --radius: 0px;
+.tiptap p.is-editor-empty:first-child::before {
+  color: #adb5bd;
+  content: attr(data-placeholder);
+  float: left;
+  height: 0;
+  pointer-events: none;
 }
-
-body {
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
-  background-image: linear-gradient(
-    var(--gradient-deg),
-    rgb(249, 246, 241),
-    rgb(241, 249, 246),
-    rgb(246, 241, 249)
-  );
-  animation: gradientRotate 30s linear infinite;
-  color: var(--font-color);
-}
-
-.highlight-text {
-  color: var(--highlight-color);
-  animation: highlightHue 30s linear infinite;
-}
-
-.mono {
-  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
-}
-
-.tech-border {
-  border: 1px solid var(--border-color-light);
-}
-
-.stats-ticker {
-  white-space: nowrap;
-  animation: ticker 20s linear infinite;
-}
-
-@keyframes ticker {
-  0% { transform: translateX(0); }
-  100% { transform: translateX(-50%); }
-}
-
