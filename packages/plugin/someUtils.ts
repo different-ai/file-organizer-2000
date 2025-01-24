@@ -27,8 +27,8 @@ export function sanitizeTag(tag: string): string {
   // Remove any leading '#' symbols
   let sanitized = tag.replace(/^#+/, "");
 
-  // Replace spaces and special characters with underscores, allowing Unicode word characters and forward slashes
-  sanitized = sanitized.replace(/[^\p{L}\p{N}\-\/]+/gu, "_");
+  // Replace spaces with underscores, but preserve emojis and other Unicode characters
+  sanitized = sanitized.replace(/\s+/g, "_");
 
   // Remove any leading or trailing underscores
   sanitized = sanitized.replace(/^_+|_+$/g, "");

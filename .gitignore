@@ -27,3 +27,5 @@ data.json
 # Turbo build cache
 .turbo/
 **/.turbo/
+.vercel
+.env*.local
