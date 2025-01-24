@@ -1,5 +1,4 @@
-import { PipeIcon } from '@hypr/shared';
-import { RequestLogo } from '../components/request-logo';
+import { ReactNode } from 'react'
 
 interface Integration {
   name: string;
@@ -8,12 +7,12 @@ interface Integration {
   icon?: string | React.ComponentType<{ className?: string }>;
 }
 
-export const enterpriseIntegrations: Integration[] = [
+// Type-safe enterprise integrations
+export const enterpriseIntegrations: readonly Integration[] = [
   {
     name: 'Obsidian Plugin',
     status: 'active',
     description: 'Seamlessly organize your notes and files within Obsidian.',
-    icon: PipeIcon,
   },
   {
     name: 'AI-Powered Classification',
@@ -54,4 +53,7 @@ export const enterpriseIntegrations: Integration[] = [
       <path d="M23.3333 12.6667L16 8L8.66667 12.6667M23.3333 12.6667L16 17.3333M23.3333 12.6667V19.3333L16 24M16 17.3333L8.66667 12.6667M16 17.3333V24M8.66667 12.6667V19.3333L16 24" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
     </svg>`,
   },
-];    
+] as const;
+
+// Export type for use in other components
+export type IntegrationType = typeof enterpriseIntegrations[number];    

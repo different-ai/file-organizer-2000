@@ -91,12 +91,7 @@ export default function Page() {
               Connect with your favorite tools and services to supercharge your workflow.
             </p>
           </div>
-          <IntegrationsGrid
-            title="Enterprise-grade tools"
-            subtitle="Seamlessly integrate with your existing workflow"
-            integrations={enterpriseIntegrations}
-          />
-        </div>
+       </div>
       </div>
 
       {/* Pricing Section */}
