@@ -8,22 +8,24 @@ const plans = [
   {
     name: 'Self-Hosted',
     price: 'Free',
-    description: 'For developers who want full control',
+    description: 'Ultimate privacy and control',
     features: [
       'Ultimate privacy',
       'Use your own AI models',
       'Community support',
-      'GitHub source access',
+      'Source code access',
     ],
     cta: 'Get Started',
-    href: 'https://github.com/yourusername/file-organizer',
+    href: 'https://github.com/different-ai/file-organizer-2000',
     variant: 'outline' as const,
   },
   {
     name: 'Subscription',
     price: '$15',
     period: '/month',
-    description: 'For individuals and small teams',
+    yearlyPrice: '$119',
+    period2: '/year',
+    description: 'No setup required',
     features: [
       'No setup required',
       'Managed API keys',
@@ -34,23 +36,22 @@ const plans = [
     cta: 'Start Free Trial',
     href: '/dashboard/subscription/automated-setup',
     variant: 'default' as const,
-    popular: true,
   },
   {
-    name: 'Lifetime',
+    name: 'Pay Once',
     price: '$300',
-    description: 'For power users and privacy enthusiasts',
+    description: 'Lifetime access with full control',
     features: [
       'One-time payment',
       'Lifetime updates',
-      'Unlimited usage',
+      'Multiple licenses',
       'Premium support',
-      'Multiple devices',
       'Use your own API keys',
     ],
-    cta: 'Buy Now',
+    cta: 'Get Lifetime Access',
     href: '/dashboard/lifetime/automated-setup',
     variant: 'default' as const,
+    popular: true,
   },
 ];
 
@@ -79,6 +80,11 @@ export function PricingCards() {
                 <span className="ml-1 text-muted-foreground">{plan.period}</span>
               )}
             </div>
+            {plan.yearlyPrice && (
+              <div className="mt-1 text-sm text-muted-foreground">
+                or {plan.yearlyPrice}{plan.period2} (save ~33%)
+              </div>
+            )}
             <p className="mt-2 text-sm text-muted-foreground">
               {plan.description}
             </p>

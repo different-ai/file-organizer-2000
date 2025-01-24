@@ -547,56 +547,13 @@ export const Demo = () => {
     );
   };
 
-  const renderActiveAgents = () => {
-    return (
-      <div className="bg-[#1C1D21] rounded-lg p-6">
-        <div className="flex justify-between items-center mb-4">
-          <h2 className="text-xl font-semibold">Active Agents</h2>
-          <div className="flex items-center space-x-2">
-            <span className="text-sm text-gray-400">2 Active</span>
-          </div>
-        </div>
-        <div className="space-y-4">
-          <div className="border border-gray-800 rounded-lg p-4">
-            <div className="flex items-center space-x-3">
-              <Monitor className="h-5 w-5 text-[#6E45FE]" />
-              <div>
-                <h3 className="font-medium">Finance Agent</h3>
-                <p className="text-sm text-gray-400">
-                  Detects and processes financial tasks from screen content
-                </p>
-              </div>
-            </div>
-            <div className="mt-2 flex justify-between text-sm text-gray-400">
-              <span>Today: 5</span>
-              <span>Total: 5</span>
-            </div>
-          </div>
-          <div className="border border-gray-800 rounded-lg p-4">
-            <div className="flex items-center space-x-3">
-              <Wallet className="h-5 w-5 text-[#6E45FE]" />
-              <div>
-                <h3 className="font-medium">Treasury Agent</h3>
-                <p className="text-sm text-gray-400">
-                  Monitors and optimizes treasury positions
-                </p>
-              </div>
-            </div>
-            <div className="mt-2 flex justify-between text-sm text-gray-400">
-              <span>Today: 3</span>
-              <span>Total: 3</span>
-            </div>
-          </div>
-        </div>
-      </div>
-    );
-  };
+  
 
     return (
     <BrowserWindow>
       <div className="flex">
         {/* Left Sidebar - Markdown Editor */}
-        <div className="w-[400px] border-r border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+        <div className="hidden md:block w-[600px] border-r border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
           <div className="h-full flex flex-col">
             {/* File Header */}
             <div className="border-b border-border p-4">
