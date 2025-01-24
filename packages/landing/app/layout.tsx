@@ -8,12 +8,12 @@ import Providers from './providers';
 import { Metadata } from 'next';
 
 export const metadata: Metadata = {
-  metadataBase: new URL('https://hyprsqrl.com'),
+  metadataBase: new URL('https://notecompanion.com'),
   title: {
-    default: 'HyprSqrl - AI Agents for your Business Finance Automation',
-    template: '%s | HyprSqrl',
+    default: 'Note Companion - Your AI-powered Knowledge Partner',
+    template: '%s | Note Companion',
   },
-  description: 'AI agents that automate your business tasks and workflows.',
+  description: 'Your AI-powered assistant that turns scattered notes into actionable knowledge. Seamless meeting notes, instant organization, and the smartest AI chat for your Obsidian workflow.',
   icons: {
     icon: '/favicon.ico',
     shortcut: '/favicon.ico',
@@ -22,15 +22,15 @@ export const metadata: Metadata = {
   openGraph: {
     type: 'website',
     locale: 'en_US',
-    url: 'https://hyprsqrl.com',
-    siteName: 'HyprSqrl',
-    images: ['/og-new-hyprsqrlcrypto.png'],
+    url: 'https://notecompanion.com',
+    siteName: 'Note Companion',
+    images: ['/notecompanion.png'],
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'HyprSqrl - AI Agents for your Business Finance Automation',
-    description: 'AI agents that automate your business tasks and workflows.',
-    images: ['/og-new-hyprsqrlcrypto.png'],
+    title: 'Note Companion - Your AI-powered Knowledge Partner',
+    description: 'Your AI-powered assistant that turns scattered notes into actionable knowledge. Seamless meeting notes, instant organization, and the smartest AI chat for your Obsidian workflow.',
+    images: ['/notecompanion.png'],
   },
 };
 
