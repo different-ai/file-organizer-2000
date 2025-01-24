@@ -47,10 +47,11 @@ export const chatTools = {
     }),
   },
   modifyDocumentText: {
-    description: "Edit existing note content while maintaining consistency and structure",
+    description: "Edit existing note content while maintaining consistency and structure. Can modify selected text or entire document.",
     parameters: z.object({
       content: z.string().describe("The new formatted content to replace existing content"),
       path: z.string().optional().describe("Optional path to the document. If not provided, uses current document"),
+      instructions: z.string().optional().describe("Optional specific instructions for how to modify the content"),
     }),
   },
   generateSettings: {

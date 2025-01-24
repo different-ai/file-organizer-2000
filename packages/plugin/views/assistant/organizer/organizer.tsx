@@ -15,7 +15,6 @@ import { EmptyState } from "./components/empty-state";
 import { logMessage } from "../../../someUtils";
 import { LicenseValidator } from "./components/license-validator";
 import { VALID_MEDIA_EXTENSIONS } from "../../../constants";
-import { Meetings } from "./meetings/meetings";
 import { logger } from "../../../services/logger";
 
 interface AssistantViewProps {
@@ -227,7 +226,6 @@ export const AssistantView: React.FC<AssistantViewProps> = ({
         "Error loading folder suggestions"
       )}
 
-
       {plugin.settings.enableAtomicNotes && (
         <>
           <SectionHeader text="Atomic notes" icon="✂️ " />
@@ -250,17 +248,6 @@ export const AssistantView: React.FC<AssistantViewProps> = ({
             "Error loading transcription button"
           )}
         </>
-      )}
-
-      <SectionHeader text="Meetings" icon="📅 " />
-      {renderSection(
-        <Meetings
-          plugin={plugin}
-          file={activeFile}
-          content={noteContent}
-          refreshKey={refreshKey}
-        />,
-        "Error loading meetings section"
       )}
     </div>
   );

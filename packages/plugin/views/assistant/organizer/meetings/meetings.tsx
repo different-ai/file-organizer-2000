@@ -89,7 +89,6 @@ export const Meetings: React.FC<MeetingsProps> = ({
       const fileCache = plugin.app.metadataCache.getFileCache(file);
       if (!fileCache || !fileCache.links) {
         logger.debug("No links found in file cache");
-        return;
       }
 
       // Get resolved links for the current file

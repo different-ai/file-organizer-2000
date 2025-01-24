@@ -13,20 +13,21 @@
   "author": "",
   "license": "MIT",
   "devDependencies": {
-    "esbuild": "0.17.3",
-    "builtin-modules": "3.3.0",
-    "esbuild-postcss": "^0.0.4",
-    "typescript": "^5.2.2",
-    "postcss": "^8.4.31",
     "autoprefixer": "^10.4.20",
+    "builtin-modules": "3.3.0",
+    "esbuild": "0.17.3",
+    "esbuild-postcss": "^0.0.4",
+    "obsidian": "^1.7.2",
+    "postcss": "^8.4.31",
     "tailwindcss": "^3.4.14",
     "ts-node": "^10.9.2",
-    "obsidian": "^1.7.2"
+    "typescript": "^5.2.2"
   },
   "dependencies": {
     "@ai-sdk/openai": "^1.0.6",
     "@ai-sdk/react": "^1.0.6",
     "@emotion/styled": "^11.13.0",
+    "@radix-ui/react-tooltip": "^1.0.7",
     "@tiptap/core": "^2.5.7",
     "@tiptap/extension-mention": "^2.5.8",
     "@tiptap/pm": "^2.5.7",

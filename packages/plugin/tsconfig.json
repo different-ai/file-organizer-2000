@@ -4,7 +4,11 @@
     "baseUrl": ".",
     "outDir": "./dist",
     "rootDir": "./src",
-    "composite": true
+    "composite": true,
+    "paths": {
+      "@/*": ["*"],
+      "@/components/*": ["components/*"]
+    }
   },
   "include": ["src/**/*"],
   "exclude": ["node_modules"],

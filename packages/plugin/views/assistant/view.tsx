@@ -7,10 +7,12 @@ import { InboxLogs } from "./inbox-logs";
 import { SectionHeader } from "./section-header";
 import { AppContext } from "./provider";
 import AIChatSidebar from "./ai-chat/container";
+import { TooltipProvider } from "@radix-ui/react-tooltip";
+import { Meetings } from "./organizer/meetings/meetings";
 
 export const ORGANIZER_VIEW_TYPE = "fo2k.assistant.sidebar2";
 
-type Tab = "organizer" | "inbox" | "chat";
+type Tab = "organizer" | "inbox" | "chat" | "meetings";
 
 function TabContent({
   activeTab,
@@ -21,6 +23,34 @@ function TabContent({
   plugin: FileOrganizer;
   leaf: WorkspaceLeaf;
 }) {
+  const [activeFile, setActiveFile] = React.useState<TFile | null>(null);
+  const [noteContent, setNoteContent] = React.useState<string>("");
+  const [refreshKey, setRefreshKey] = React.useState<number>(0);
+
+  React.useEffect(() => {
+    const updateActiveFile = async () => {
+      const file = plugin.app.workspace.getActiveFile();
+      if (file) {
+        const content = await plugin.app.vault.read(file);
+        setNoteContent(content);
+        setActiveFile(file);
+      }
+    };
+    updateActiveFile();
+
+    const handler = () => {
+      updateActiveFile();
+    };
+
+    plugin.app.workspace.on("file-open", handler);
+    plugin.app.workspace.on("active-leaf-change", handler);
+
+    return () => {
+      plugin.app.workspace.off("file-open", handler);
+      plugin.app.workspace.off("active-leaf-change", handler);
+    };
+  }, [plugin.app.workspace, plugin.app.vault]);
+
   return (
     <div className="relative h-full">
       <div
@@ -46,6 +76,22 @@ function TabContent({
         }`}
       >
         <AIChatSidebar plugin={plugin} apiKey={plugin.settings.API_KEY} />
+      </div>
+
+      <div
+        className={`absolute inset-0 ${
+          activeTab === "meetings" ? "block" : "hidden"
+        }`}
+      >
+        <div className="p-4">
+          <SectionHeader text="Meeting Notes" icon="📅 " />
+          <Meetings
+            plugin={plugin}
+            file={activeFile}
+            content={noteContent}
+            refreshKey={refreshKey}
+          />
+        </div>
       </div>
     </div>
   );
@@ -115,6 +161,12 @@ function AssistantContent({
         >
           Chat
         </TabButton>
+        <TabButton
+          isActive={activeTab === "meetings"}
+          onClick={() => setActiveTab("meetings")}
+        >
+          Meetings
+        </TabButton>
       </div>
 
       <div className="pt-4 h-full">
@@ -152,6 +204,12 @@ export class AssistantViewWrapper extends ItemView {
       name: "Open Chat Tab",
       callback: () => this.activateTab("chat"),
     });
+
+    this.plugin.addCommand({
+      id: "open-meetings-tab",
+      name: "Open Meetings Tab",
+      callback: () => this.activateTab("meetings"),
+    });
   }
 
   activateTab(tab: Tab) {
@@ -186,6 +244,7 @@ export class AssistantViewWrapper extends ItemView {
     this.root?.render(
       <AppContext.Provider value={{ plugin: this.plugin, root: this.root }}>
         <React.StrictMode>
+          <TooltipProvider>
             <AssistantContent
               plugin={this.plugin}
               leaf={this.leaf}
@@ -194,6 +253,7 @@ export class AssistantViewWrapper extends ItemView {
                 this.setActiveTab = setTab;
               }}
             />
+          </TooltipProvider>
         </React.StrictMode>
       </AppContext.Provider>
     );

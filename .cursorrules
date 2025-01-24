@@ -1,3 +1,4 @@
+
 This works like this
 
 ./packages/web - nextjs app router includes everything to related to user accounts 
@@ -15,15 +16,145 @@ core way the app works:
 
 
 
+hyprqrl Logo
+Note Companion for Obsidian
+Your AI-powered assistant that turns scattered notes into actionable knowledge.
+
+Start 7-Day Free Trial
+Meet Your All-in-One Workflow Buddy
+Inbox
+Instantly organize any dragged-and-dropped file. Note Companion automatically detects relevant tags and suggests the best folder or location.
+
+Meetings
+Supercharge your meeting notes using ScreenPipe, which continuously records your conversation. Tap "Enhance Meeting Note" and watch as it merges the last few minutes of discussion with your current file for perfectly contextualized notes.
+
+Chat
+Chat directly with your notes and bring other documents or folders into the conversation with a simple @ mention. Ask Note Companion to modify text, add summaries, rename files, or even split your notes—all in real time.
+
+Why Note Companion?
+Automated Organization
+No more manual tagging or folder wrangling. Let AI do the heavy lifting.
+
+Instant Insight
+Seamlessly merge new discussions or files with existing notes, so everything stays updated and easy to find.
+
+Powerful Editing Tools
+Rename, split, or refine notes with a quick command.
+
+Deep Context
+AI suggestions factor in the content of your entire vault, ensuring you always get the most relevant tags and folders.
+
+See it in Action
+Experience how Note Companion transforms your workflow
 
 
-example:
 
 
-- three plans
-  - self-hosted (no license key)
-  - lifetime (license key that also acts as api key with selfhostingurl)
-  - subscription (license key that also acts as api key)
+
+
+📝 team-sync-notes.md
+# Team Sync - Product Review
+## Meeting Details
+**Date**: March 15, 2024**Attendees**: John, Sarah, Mike, Lisa
+## Key Discussions
+1. **Mobile App Redesign Priority**
+- User engagement metrics show increasing mobile usage - Need to focus on improving mobile experience - Adopt mobile-first approach
+2. **User Feedback Analysis**
+- Navigation complexity issues identified - Performance concerns on older devices - Simplified navigation structure proposed
+## Action Items
+- [ ] Schedule follow-up with design team- [x] Share meeting notes with stakeholders- [ ] Update project timeline- [ ] Conduct detailed user feedback review
+## Next Steps
+1. Implement mobile-first approach2. Redesign navigation structure3. Plan performance optimization sprint
+## Related Notes
+[[Q4 Planning]][[Mobile App Redesign]][[User Feedback Q1 2024]]
+## Tags
+#product#mobile#q4-2024#user-feedback
+Organizer
+Inbox
+Meetings
+Chat
+🎯
+AI-Powered File Organization
+Your personal file librarian that understands context
+
+Turn messy notes into clean, structured docs
+Auto-tag everything based on content
+Split long docs into atomic notes
+🤖
+AI Templates
+Apply Template
+Current Template:
+Meeting Notes Pro
+This template will:
+
+Structure content with clear headings
+Extract and format action items
+Highlight key decisions
+Add metadata (date, attendees)
+🏷️
+AI Tags
+3 suggestions
+#mobile-app
+#user-feedback
+#q4-planning
+Tags suggested based on note content analysis
+
+📁
+Suggested Location
+Move
+Projects/Mobile App/Meetings
+Based on content similarity and existing structure
+
+✂️
+Atomic Notes
+4 chunks detected
+Suggested splits:
+Mobile App Redesign Requirements
+Q4 Timeline Updates
+User Feedback Analysis
+Performance Optimization Plan
+Split into Atomic Notes
+Simple, Flexible Pricing
+Whether you're a solo note-taker or a power user looking for advanced features, we've got you covered.
+
+Self-Hosted
+Free
+Ultimate privacy and control
+
+Ultimate privacy
+Use your own AI models
+Community support
+Source code access
+Get Started
+Subscription
+$15
+/month
+or $119/year (save ~33%)
+No setup required
+
+No setup required
+Managed API keys
+~1000 files per month
+Premium support
+Regular updates
+Start Free Trial
+Most Popular
+Pay Once
+$300
+Lifetime access with full control
+
+One-time payment
+Lifetime updates
+Multiple licenses
+Premium support
+Use your own API keys
+Get Lifetime Access
+Ready to revolutionize your note-taking?
+Get Note Companion and enjoy a 7-day free trial on any paid plan. Bring order to your Obsidian vault. Stop wrestling with messy notes and let AI handle the tedious tasks—so you can focus on what really matters.
+
+Start Free Trial
+Different AI Inc - Privacy-first AI solutions
+
 
 
 
