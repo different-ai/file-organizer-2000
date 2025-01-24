@@ -54,7 +54,7 @@ export default function RootLayout({
                         className="flex items-center gap-2 text-2xl"
                       >
                         <Image
-                          src="/hsql.png"
+                          src="/notecompanion.png"
                           alt="hyprqrl Logo"
                           width={30}
                           height={30}
