@@ -3,6 +3,16 @@ import { getLinkpath, Notice, TFile } from "obsidian";
 import FileOrganizer from "../../../../index";
 import { SkeletonLoader } from "../components/skeleton-loader";
 import { logger } from "../../../../services/logger";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Clock, ChevronDown } from "lucide-react";
+import { cn } from "@/components/ui/utils";
+
+interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
+  variant?: "default" | "destructive" | "outline" | "secondary" | "ghost" | "link";
+  size?: "default" | "sm" | "lg" | "icon";
+  asChild?: boolean;
+}
 
 interface MeetingsProps {
   plugin: FileOrganizer;
@@ -11,17 +21,30 @@ interface MeetingsProps {
   refreshKey: number;
 }
 
+interface TimeOption {
+  label: string;
+  value: number;
+}
+
+const timeOptions: TimeOption[] = [
+  { label: "Last 15 minutes", value: 15 },
+  { label: "Last 30 minutes", value: 30 },
+  { label: "Last hour", value: 60 },
+  { label: "Last 2 hours", value: 120 },
+  { label: "Last 3 hours", value: 180 },
+];
+
 export const Meetings: React.FC<MeetingsProps> = ({
   plugin,
   file,
   content,
   refreshKey,
 }) => {
-  const [minutes, setMinutes] = React.useState(5);
+  const [minutes, setMinutes] = React.useState(60); // Default to last hour
   const [loading, setLoading] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
-  const [isScreenpipeAvailable, setIsScreenpipeAvailable] =
-    React.useState<boolean>(false);
+  const [isScreenpipeAvailable, setIsScreenpipeAvailable] = React.useState<boolean>(false);
+  const [isTimeDropdownOpen, setIsTimeDropdownOpen] = React.useState(false);
 
   // Check Screenpipe availability on component mount
   React.useEffect(() => {
@@ -103,7 +126,6 @@ export const Meetings: React.FC<MeetingsProps> = ({
           linkedFiles.push(linkedFile);
         }
       });
-      console.log('content', content);
 
       // Get content from linked files
       const linkContents = await Promise.all(
@@ -117,7 +139,6 @@ export const Meetings: React.FC<MeetingsProps> = ({
           }
         })
       );
-      console.log("content after", content);
 
       const linkContentsString = linkContents
         .filter(content => content.length > 0)
@@ -139,7 +160,6 @@ export const Meetings: React.FC<MeetingsProps> = ({
         Do not use backquotes or any other formatting. Just raw markdown.
       `;
       const fileContent = await plugin.app.vault.read(file);
-      console.log("fileContent", fileContent);
 
       // Stream the formatted content into the current note line by line
       await plugin.streamFormatInCurrentNoteLineByLine({
@@ -160,22 +180,35 @@ export const Meetings: React.FC<MeetingsProps> = ({
     }
   };
 
+  const getCurrentTimeOptionLabel = () => {
+    const option = timeOptions.find(opt => opt.value === minutes);
+    return option ? option.label : `Last ${minutes} minutes`;
+  };
+
   return (
-    <div className="bg-[--background-primary-alt] text-[--text-normal] p-4 rounded-lg shadow-md">
-      {loading ? (
-        <SkeletonLoader count={1} rows={4} width="100%" />
-      ) : error ? (
-        <div className="error-container">
-          <p>Error: {error}</p>
-          {!isScreenpipeAvailable && (
-            <div className="mt-2">
+    <div className="p-4">
+      <div className="bg-background rounded-lg p-6 border border-border">
+        <div className="flex flex-col space-y-6">
+          <div className="flex items-center justify-between">
+            <h3 className="text-lg font-medium">Enhance Meeting Note</h3>
+            {error && (
+              <Badge variant="destructive" className="text-xs">
+                {error}
+              </Badge>
+            )}
+          </div>
+
+          {loading ? (
+            <SkeletonLoader count={1} rows={4} width="100%" />
+          ) : error && !isScreenpipeAvailable ? (
+            <div className="space-y-4">
               <p className="text-sm">To use this feature, you need to:</p>
-              <ol className="list-decimal ml-4 text-sm">
+              <ol className="list-decimal ml-4 text-sm space-y-2">
                 <li>
                   Visit{" "}
                   <a
                     href="https://screenpi.pe"
-                    className="text-[--text-accent] hover:underline"
+                    className="text-accent hover:underline"
                   >
                     screenpi.pe
                   </a>
@@ -183,43 +216,54 @@ export const Meetings: React.FC<MeetingsProps> = ({
                 <li>Download and install Screenpipe</li>
                 <li>Start the Screenpipe application</li>
               </ol>
-              <button onClick={checkScreenpipeHealth} className="mt-2 mod-cta">
+              <Button onClick={checkScreenpipeHealth} className="mt-4">
                 Check Again
-              </button>
+              </Button>
+            </div>
+          ) : (
+            <div className="flex items-center space-x-4">
+              <div className="relative">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setIsTimeDropdownOpen(!isTimeDropdownOpen)}
+                  className="flex items-center space-x-2"
+                >
+                  <Clock className="h-4 w-4" />
+                  <span>{getCurrentTimeOptionLabel()}</span>
+                  <ChevronDown className="h-4 w-4 ml-2" />
+                </Button>
+                {isTimeDropdownOpen && (
+                  <div className="absolute top-full left-0 mt-1 w-48 py-1 bg-background border border-border rounded-lg shadow-lg z-10">
+                    {timeOptions.map((option) => (
+                      <button
+                        key={option.value}
+                        className={cn(
+                          "w-full px-4 py-2 text-left hover:bg-muted",
+                          minutes === option.value ? "bg-muted" : ""
+                        )}
+                        onClick={() => {
+                          setMinutes(option.value);
+                          setIsTimeDropdownOpen(false);
+                        }}
+                      >
+                        {option.label}
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+              <Button
+                onClick={enhanceMeetingNotes}
+                disabled={!isScreenpipeAvailable}
+                className="flex-1"
+              >
+                Enhance Notes
+              </Button>
             </div>
           )}
-          {isScreenpipeAvailable && (
-            <button onClick={() => setError(null)} className="retry-button">
-              Retry
-            </button>
-          )}
         </div>
-      ) : (
-        <>
-          <div className="flex items-center gap-2 mb-2">
-            <label>Last X minutes:</label>
-            <input
-              type="number"
-              value={minutes}
-              onChange={e => setMinutes(Number(e.target.value))}
-              min={1}
-              className="input-minutes"
-            />
-          </div>
-          <button
-            onClick={enhanceMeetingNotes}
-            className="mod-cta"
-            disabled={!isScreenpipeAvailable}
-          >
-            Enhance Meeting Notes
-          </button>
-          {!isScreenpipeAvailable && (
-            <p className="text-sm mt-2 text-[--text-muted]">
-              Please install and start Screenpipe to use this feature
-            </p>
-          )}
-        </>
-      )}
+      </div>
     </div>
   );
 };

@@ -1,6 +1,8 @@
 import React, { useState, useEffect, useRef, useCallback } from "react";
 import { useChat, UseChatOptions } from "@ai-sdk/react";
 import { moment } from "obsidian";
+import { Button } from "@/components/ui/button";
+import { RefreshCw } from "lucide-react";
 
 import FileOrganizer from "../../..";
 import { GroundingMetadata, DataChunk } from "./types/grounding";
@@ -32,6 +34,7 @@ import {
 import { ExamplePrompts } from "./components/example-prompts";
 import { AttachmentHandler } from './components/attachment-handler';
 import { LocalAttachment } from './types/attachments';
+import { AlertCircle } from "lucide-react";
 
 interface ChatComponentProps {
   plugin: FileOrganizer;
@@ -292,51 +295,57 @@ export const ChatComponent: React.FC<ChatComponentProps> = ({
 
   return (
     <div className="flex flex-col h-full">
-      <div className="flex-grow overflow-y-auto p-4 h-full">
-        <div className="flex flex-col min-h-min-content">
+      {/* Chat Header */}
+      <div className="border-b border-[--background-modifier-border] p-4">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center space-x-3">
+            <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center">
+              <span role="img" aria-label="ai" className="text-lg">🤖</span>
+            </div>
+            <div>
+              <h2 className="text-lg font-medium">AI Assistant</h2>
+              <p className="text-sm text-[--text-muted]">
+                {isGenerating ? "Processing..." : "Ready to help"}
+              </p>
+            </div>
+          </div>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => {
+              window.location.reload();
+            }}
+          >
+            <RefreshCw className="h-4 w-4 mr-2" />
+            New Chat
+          </Button>
+        </div>
+      </div>
+
+      {/* Chat Messages */}
+      <div className="flex-grow overflow-y-auto p-4">
+        <div className="flex flex-col space-y-4">
           {errorMessage && (
-            <div className=" bg-opacity-10 text-[--text-error] p-4 rounded-md mb-4 flex items-center justify-between">
+            <div className="bg-[--background-modifier-error] bg-opacity-10 text-[--text-error] p-4 rounded-lg flex items-center justify-between">
               <span className="flex items-center">
-                <svg
-                  className="w-5 h-5 mr-2"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-                  />
-                </svg>
+                <AlertCircle className="w-5 h-5 mr-2" />
                 {errorMessage}
               </span>
-              <button
+              <Button
                 onClick={handleRetry}
-                className="px-3 py-1 bg-[--interactive-accent] hover:bg-[--interactive-accent-hover] text-[--text-on-accent] rounded-md text-sm flex items-center"
+                variant="outline"
+                size="sm"
+                className="text-[--text-error]"
               >
-                <svg
-                  className="w-4 h-4 mr-1"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
-                  />
-                </svg>
+                <RefreshCw className="w-4 h-4 mr-1" />
                 Retry
-              </button>
+              </Button>
             </div>
           )}
 
           {messages.length === 0 ? (
-            <div className="flex flex-col items-center justify-center h-full">
-              <h3 className="text-[--text-normal] mb-4">Try these examples</h3>
+            <div className="flex flex-col items-center justify-center py-12">
+              <h3 className="text-[--text-normal] mb-4 text-lg font-medium">Try these examples</h3>
               <ExamplePrompts onExampleClick={handleExampleClick} />
             </div>
           ) : (
@@ -371,28 +380,21 @@ export const ChatComponent: React.FC<ChatComponentProps> = ({
           )}
 
           {isGenerating && (
-            <div className="ml-3 flex items-center text-[--text-muted] text-sm mt-4">
-              <svg
-                className="animate-spin -ml-1 mr-3 h-4 w-4"
-                xmlns="http://www.w3.org/2000/svg"
-                fill="none"
-                viewBox="0 0 24 24"
-              >
-                <circle
-                  className="opacity-25"
-                  cx="12"
-                  cy="12"
-                  r="10"
-                  stroke="currentColor"
-                  strokeWidth="4"
-                ></circle>
-                <path
-                  className="opacity-75"
-                  fill="currentColor"
-                  d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                ></path>
-              </svg>
-              Generating response...
+            <div className="flex items-center space-x-4 bg-[--background-primary-alt] border border-[--background-modifier-border] rounded-lg p-3">
+              <div className="flex items-center space-x-2">
+                <div className="h-2 w-2 bg-primary rounded-full animate-pulse"></div>
+                <span className="text-sm">Processing request</span>
+              </div>
+              <div className="text-sm text-[--text-muted]">|</div>
+              <div className="flex items-center space-x-2">
+                <div className="h-2 w-2 bg-[--text-muted] rounded-full"></div>
+                <span className="text-sm text-[--text-muted]">Analyzing context</span>
+              </div>
+              <div className="text-sm text-[--text-muted]">|</div>
+              <div className="flex items-center space-x-2">
+                <div className="h-2 w-2 bg-[--text-muted] rounded-full"></div>
+                <span className="text-sm text-[--text-muted]">Generating response</span>
+              </div>
             </div>
           )}
 
@@ -403,6 +405,7 @@ export const ChatComponent: React.FC<ChatComponentProps> = ({
         </div>
       </div>
 
+      {/* Chat Input Section */}
       <div className="border-t border-[--background-modifier-border] p-4">
         <div className="flex items-center space-x-2 mb-4">
           <ContextItems />
@@ -410,11 +413,7 @@ export const ChatComponent: React.FC<ChatComponentProps> = ({
         </div>
 
         <form onSubmit={handleSendMessage} className="flex flex-col space-y-4">
-          <div
-            className={`flex flex-grow ${
-              error ? "opacity-50 pointer-events-none" : ""
-            }`}
-          >
+          <div className={`flex flex-grow ${error ? "opacity-50 pointer-events-none" : ""}`}>
             <div className="overflow-y-auto relative w-full" ref={inputRef}>
               <Tiptap
                 value={input}
@@ -423,77 +422,39 @@ export const ChatComponent: React.FC<ChatComponentProps> = ({
               />
 
               <div className="absolute bottom-0 right-12 h-full flex items-center space-x-2">
-                {/* <AttachmentHandler
-                  onAttachmentsChange={handleAttachmentsChange}
-                  maxFileSize={4 * 1024 * 1024} // 4MB
-                  acceptedTypes={['image/*']}
-                /> */}
-                <AudioRecorder
-                  onTranscriptionComplete={handleTranscriptionComplete}
-                />
+                <AudioRecorder onTranscriptionComplete={handleTranscriptionComplete} />
               </div>
             </div>
             <SubmitButton isGenerating={isGenerating} />
           </div>
 
-          {/* Show attachment previews if any */}
-          {attachments.length > 0 && (
-            <div className="flex flex-wrap gap-2">
-              {attachments.map((attachment) => (
-                <div
-                  key={attachment.id}
-                  className="flex items-center space-x-2 bg-[--background-secondary] rounded-lg p-2"
-                >
-                  {attachment.contentType.startsWith('image/') ? (
-                    <img
-                      src={attachment.url}
-                      alt={attachment.name}
-                      className="h-8 w-8 object-cover rounded"
-                    />
-                  ) : (
-                    <div className="h-8 w-8 flex items-center justify-center bg-[--background-modifier-border] rounded">
-                      <svg
-                        className="h-4 w-4 text-[--text-muted]"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"
-                        />
-                      </svg>
-                    </div>
-                  )}
-                  <span className="text-sm text-[--text-normal] truncate max-w-[100px]">
-                    {attachment.name}
-                  </span>
-                  <button
-                    onClick={() => {
-                      setAttachments(attachments.filter(a => a.id !== attachment.id));
-                    }}
-                    className="p-1 hover:bg-[--background-modifier-hover] rounded-full"
-                  >
-                    <svg
-                      className="h-4 w-4 text-[--text-muted]"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M6 18L18 6M6 6l12 12"
-                      />
-                    </svg>
-                  </button>
-                </div>
-              ))}
-            </div>
-          )}
+          {/* Enhancement Options */}
+          <div className="grid grid-cols-3 gap-4">
+            <Button
+              variant="outline"
+              className="flex items-center justify-center space-x-2 bg-[--background-primary-alt]"
+              onClick={() => handleExampleClick("Can you summarize this for me?")}
+            >
+              <span role="img" aria-label="summary" className="text-lg">📝</span>
+              <span>Quick Summary</span>
+            </Button>
+            <Button
+              variant="outline"
+              className="flex items-center justify-center space-x-2 bg-[--background-primary-alt]"
+              onClick={() => handleExampleClick("What are the key points?")}
+            >
+              <span role="img" aria-label="key points" className="text-lg">🎯</span>
+              <span>Key Points</span>
+            </Button>
+            <Button
+              variant="outline"
+              className="flex items-center justify-center space-x-2 bg-[--background-primary-alt]"
+              onClick={() => handleExampleClick("Extract action items from this.")}
+            >
+              <span role="img" aria-label="action items" className="text-lg">✅</span>
+              <span>Action Items</span>
+            </Button>
+          </div>
         </form>
 
         <div className="flex items-center justify-between mt-4">

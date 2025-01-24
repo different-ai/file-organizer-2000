@@ -5,24 +5,48 @@ module.exports = {
     '!./node_modules/**/*',
   ],
   theme: {
-      extend: {
-          // Extend theme to use Obsidian CSS variables
-          colors: {
-              'obsidian': {
-                  'text': 'var(--text-normal)',
-                  'muted': 'var(--text-muted)',
-              'faint': 'var(--text-faint)',
-                  'accent': 'var(--text-accent)',
-                  'background': 'var(--background-primary)',
-                  'error': 'var(--text-error)',
-                  'success': 'var(--text-success)',
-              }
-          },
+    extend: {
+      colors: {
+        border: "var(--background-modifier-border)",
+        input: "var(--background-modifier-form-field)",
+        ring: "var(--background-modifier-border-focus)",
+        background: "var(--background-primary)",
+        foreground: "var(--text-normal)",
+        primary: {
+          DEFAULT: "var(--interactive-accent)",
+          foreground: "var(--text-on-accent)",
+        },
+        secondary: {
+          DEFAULT: "var(--background-secondary)",
+          foreground: "var(--text-normal)",
+        },
+        muted: {
+          DEFAULT: "var(--background-secondary)",
+          foreground: "var(--text-muted)",
+        },
+        accent: {
+          DEFAULT: "var(--interactive-accent)",
+          foreground: "var(--text-on-accent)",
+        },
+        destructive: {
+          DEFAULT: "var(--text-error)",
+          foreground: "var(--text-on-accent)",
+        },
       },
+      borderRadius: {
+        lg: "var(--radius)",
+        md: "calc(var(--radius) - 2px)",
+        sm: "calc(var(--radius) - 4px)",
+      },
+    },
   },
   plugins: [],
+  // make sure to only use the tailwind classes
   corePlugins: {
-      preflight: false, // Keeps Obsidian's base styles
+    // get rid of any pre-esiting styling
+
+    // make sure to only use the tailwind classes
+    preflight: false,
   },
-  important: '.fo2k-view',
+  important: true,
 }
