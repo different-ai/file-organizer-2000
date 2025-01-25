@@ -4,7 +4,7 @@ import { createGoogleGenerativeAI } from "@ai-sdk/google";
 import { createAmazonBedrock } from "@ai-sdk/amazon-bedrock";
 import { createGroq } from "@ai-sdk/groq";
 import { createDeepSeek } from "@ai-sdk/deepseek";
-
+import { createOllama } from "ollama-ai-provider";
 const DEFAULT_BASE_URLS = {
   OPENAI: "https://api.openai.com/v1",
   GROQ: "https://api.groq.com/openai/v1",
@@ -36,6 +36,9 @@ const createBedrockConfig = () => ({
 });
 
 const models = {
+  "deepseek-r1": createOllama({
+    baseURL: "http://localhost:11434",
+  })("deepseek-r1"),
   "gpt-4o": createOpenAI({
     apiKey: process.env.OPENAI_API_KEY,
     baseURL,
