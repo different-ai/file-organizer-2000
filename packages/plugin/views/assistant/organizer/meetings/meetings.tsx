@@ -6,7 +6,7 @@ import { logger } from "../../../../services/logger";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Clock, ChevronDown } from "lucide-react";
-import { cn } from "@/components/ui/utils";
+import { cn } from "../../../../components/ui/utils";
 
 interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   variant?: "default" | "destructive" | "outline" | "secondary" | "ghost" | "link";
@@ -186,7 +186,7 @@ export const Meetings: React.FC<MeetingsProps> = ({
   };
 
   return (
-    <div className="p-4">
+    <div className="">
       <div className="bg-background rounded-lg p-6 border border-border">
         <div className="flex flex-col space-y-6">
           <div className="flex items-center justify-between">
@@ -227,7 +227,7 @@ export const Meetings: React.FC<MeetingsProps> = ({
                   variant="outline"
                   size="sm"
                   onClick={() => setIsTimeDropdownOpen(!isTimeDropdownOpen)}
-                  className="flex items-center space-x-2"
+                  className="flex items-center space-x-2 hover:text-black"
                 >
                   <Clock className="h-4 w-4" />
                   <span>{getCurrentTimeOptionLabel()}</span>

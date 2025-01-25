@@ -309,16 +309,7 @@ export const ChatComponent: React.FC<ChatComponentProps> = ({
               </p>
             </div>
           </div>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => {
-              window.location.reload();
-            }}
-          >
-            <RefreshCw className="h-4 w-4 mr-2" />
-            New Chat
-          </Button>
+   
         </div>
       </div>
 
