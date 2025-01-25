@@ -18,6 +18,7 @@ import {
   AssistantViewWrapper,
   ORGANIZER_VIEW_TYPE,
 } from "./views/assistant/view";
+import { DashboardView, DASHBOARD_VIEW_TYPE } from "./views/assistant/dashboard/view";
 import Jimp from "jimp/es/index";
 
 import { FileOrganizerSettings, DEFAULT_SETTINGS } from "./settings";
@@ -935,6 +936,21 @@ export default class FileOrganizer extends Plugin {
         }
       },
     });
+
+    // Register the dashboard view
+    this.registerView(
+      DASHBOARD_VIEW_TYPE,
+      (leaf) => new DashboardView(leaf, this)
+    );
+
+    // Add command to open dashboard
+    this.addCommand({
+      id: "open-fo2k-dashboard",
+      name: "Open Dashboard",
+      callback: () => {
+        this.activateDashboard();
+      },
+    });
   }
   async saveSettings() {
     await this.saveData(this.settings);
@@ -1057,5 +1073,22 @@ export default class FileOrganizer extends Plugin {
 
     const { titles } = await response.json();
     return titles;
+  }
+
+  async activateDashboard(): Promise<DashboardView | null> {
+    const { workspace } = this.app;
+    
+    let leaf = workspace.getLeavesOfType(DASHBOARD_VIEW_TYPE)[0];
+    
+    if (!leaf) {
+      leaf = workspace.getRightLeaf(false);
+      await leaf.setViewState({
+        type: DASHBOARD_VIEW_TYPE,
+        active: true,
+      });
+    }
+    
+    workspace.revealLeaf(leaf);
+    return leaf.view as DashboardView;
   }
 }

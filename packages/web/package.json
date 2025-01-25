@@ -46,6 +46,7 @@
     "clsx": "^2.1.1",
     "concurrently": "^8.2.2",
     "date-fns": "^4.1.0",
+    "diff": "^7.0.0",
     "dotenv": "^16.4.7",
     "dotenv-cli": "^7.4.4",
     "drizzle-kit": "^0.22.8",

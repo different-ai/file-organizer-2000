@@ -44,6 +44,7 @@ module.exports = {
   // make sure to only use the tailwind classes
   corePlugins: {
     // get rid of any pre-esiting styling
+    container: false,
 
     // make sure to only use the tailwind classes
     preflight: false,
