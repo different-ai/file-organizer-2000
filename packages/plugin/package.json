@@ -28,6 +28,7 @@
     "@ai-sdk/react": "^1.0.6",
     "@emotion/styled": "^11.13.0",
     "@radix-ui/react-progress": "^1.1.0",
+    "@radix-ui/react-slot": "^1.1.1",
     "@radix-ui/react-tooltip": "^1.0.7",
     "@tiptap/core": "^2.5.7",
     "@tiptap/extension-mention": "^2.5.8",
