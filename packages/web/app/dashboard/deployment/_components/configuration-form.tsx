@@ -1,5 +1,6 @@
 "use client";
 
+import React from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -27,6 +28,7 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { cn } from "@/lib/utils";
+import { FC } from "react";
 
 const formSchema = z.object({
   modelName: z.string().min(1, "Model name is required"),
@@ -51,12 +53,12 @@ type ConfigurationFormProps = {
   onSubmit: (values: FormValues & { generateNewLicenseKey: boolean }) => void;
 };
 
-export function ConfigurationForm({ 
+export const ConfigurationForm: FC<ConfigurationFormProps> = ({ 
   deployment, 
   isGeneratingNewLicense, 
   onGenerateLicenseChange,
   onSubmit 
-}: ConfigurationFormProps) {
+}) => {
   const availableModels = getAvailableModels();
 
   const form = useForm<FormValues>({
@@ -322,5 +324,5 @@ export function ConfigurationForm({
         </Form>
       </div>
     </Card>
-  );
-} 
+  ); 
+};
