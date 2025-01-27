@@ -98,6 +98,15 @@ The project consists of the following packages:
 For the tech-savvies who would like to play around with different models, there is a promptfoo.yaml file in the project including examples with local LLMs.
 See link for more info: https://promptfoo.dev/docs/configuration/guide/
 
+
+
+## 📱 Mobile Integration
+
+Seamlessly integrate with your mobile workflow:
+- iOS Shortcut for sending Apple Notes to Obsidian
+- Voice memo support for instant meeting notes
+- Cloud sync compatibility (works great with iCloud)
+
 ## iOS shortcut to send Apple Notes and Audios to Obsidian
 The iOS shortcut below makes it easy for you to easily work from your phone with this plugin.
 https://www.icloud.com/shortcuts/06915768862848fb9711f2f19b6405e2
@@ -107,13 +116,6 @@ Notes:
 - It works when your vault is on a cloud drive. I use it with iCloud and works great. Doesn't work with OneDrive last time I tested.
 - Currently only works if your iOS is in English. But if you reach out on discord I can help you set it up in your language.
 
-
-## 📱 Mobile Integration
-
-Seamlessly integrate with your mobile workflow:
-- iOS Shortcut for sending Apple Notes to Obsidian
-- Voice memo support for instant meeting notes
-- Cloud sync compatibility (works great with iCloud)
 
 ## 🛠️ Advanced Features
 
