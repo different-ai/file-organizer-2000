@@ -13,7 +13,6 @@
 - 🎥 **YouTube Summaries**: Quickly generate summaries for YouTube videos.
 - 💬 **Context-Aware AI Chat**: Use AI to chat with multiple notes in context.
 
-![File Organizer Screenshot](https://github.com/user-attachments/assets/efce35ad-fbf9-47c2-a6e8-a509709e7b7c)
 
 ![Group 39904](https://github.com/user-attachments/assets/ccb7203f-a1dc-45e9-8fb0-6c6b986bf6aa)
 
