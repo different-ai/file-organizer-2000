@@ -124,3 +124,47 @@ Process various types of content:
 - YouTube video transcripts
 
 
+
+## Tips and Tricks
+
+[![Thumbnail (2)](https://github.com/different-ai/file-organizer-2000/assets/11430621/1b2c524b-11bc-484d-9255-4699783303bf)](https://youtube.com/playlist?list=PLgRcC-DFR5jdUxbSBuNeymwYTH_FSVxio&si=I7VpzzAnY0XVQ15c)
+
+## How to use
+
+### A. AI Assistant View
+
+Get suggestions and choose what to apply with the Assistant view. Here's how to use it:
+
+1. Click on the Assistant View Icon or set up the "Show Assistant" hotkey to open the Sidebar
+2. Select any of your files and choose which changes to apply
+
+<img width="1277" alt="Screenshot 2024-05-24 at 11 42 17 PM" src="https://github.com/different-ai/file-organizer-2000/assets/46509400/dc06a61f-64d0-4e10-898d-3e0330004e94">
+
+### B. AI Inbox
+
+Auto-organize with the AI Inbox.
+
+We recommend the AI Assistant view for more control. But the AI Inbox can be handy as well. Simply move any of your files to the "Inbox" folder and the plugin will automatically move it to the folder it belongs. Additional configuration can also be specified within the plugin settings (e.g. auto-tagging, auto-formatting).
+
+Move your unorganized files into `_FileOrganizer2000/Inbox`
+
+![image](https://github.com/different-ai/file-organizer-2000/assets/11430621/295038f0-170c-456e-8e0a-e89c31719b95)
+
+It takes a sec, and then renames, and organizes your file.
+
+![image](https://github.com/different-ai/file-organizer-2000/assets/11430621/f9fd716f-6ada-45c4-bd59-a4efcd79b0e5)
+
+See plugin settings to customize the changes AI Inbox applies to your files.
+
+### C. Create custom AI Templates
+
+Give instructions for the AI to format and modify your files.
+
+See video: https://www.youtube.com/watch?v=rommuUXRgUw&t=17s
+
+### D. Misc
+
+To use llama 3.2 with the ai chat, install Ollama + llama 3.2 and check this setting in the plugin:
+
+<img width="751" alt="Screenshot 2024-10-26 at 7 34 18 PM" src="https://github.com/user-attachments/assets/95add737-9cd5-4cb4-a360-ff5fc95ebfa7">
+
