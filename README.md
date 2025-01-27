@@ -1,6 +1,6 @@
 # File Organizer 2000
 
-**File Organizer 2000** is an AI-powered Obsidian plugin that automatically organizes and formats your notes—your way.
+**File Organizer 2000** is an AI-powered Obsidian plugin that automatically organizes and formats your notes—so you don’t have to.
 
 ## 🌟 Features
 
