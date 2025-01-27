@@ -13,48 +13,32 @@
 - 🎥 **YouTube Summaries**: Quickly generate summaries for YouTube videos.
 - 💬 **Context-Aware AI Chat**: Use AI to chat with multiple notes in context.
 
+![File Organizer Screenshot](https://github.com/user-attachments/assets/efce35ad-fbf9-47c2-a6e8-a509709e7b7c)
 
-<img width="1840" alt="Screenshot 2025-01-18 at 09 07 18" src="https://github.com/user-attachments/assets/efce35ad-fbf9-47c2-a6e8-a509709e7b7c" />
+---
 
-## 🌟 Key Use Cases
+## 🗄️ Key Use Cases
 
-### 🗄️ Smart Vault Management
-Transform your vault into an intelligent knowledge base using our powerful tools:
+### Smart Vault Management
+Transform your Obsidian vault into an intelligent knowledge base:
+1. **Context-Aware Organization**: AI suggests tags, folders, and filenames based on content.
+2. **Powerful Search**: Natural language search across files, including YouTube transcripts.
+3. **Automation Tools**:
+   - `LastModifiedHandler`: Track and organize recently modified files.
+   - `ScreenpipeHandler`: Monitor daily activities.
+   - `ExecuteActionsHandler`: Automate repetitive tasks.
 
-1. **Context-Aware File Organization**
-   - AI Assistant suggests optimal file locations based on content
-   - Automatic tagging and categorization
-   - Smart folder suggestions based on existing vault structure
+### Handwritten Notes Digitization
+- **Advanced OCR Integration**: Convert handwritten notes and diagrams into digital text.
+- **Batch Processing**: Automate organization for multiple notes at once.
+- **Diagram Recognition**: Preserve and process hand-drawn diagrams.
 
-2. **Powerful Search and Retrieval**
-   - Search across your vault using natural language
-   - Find files by date range, content type, or keywords
-   - Include YouTube transcripts in your search context
+### Intelligent Meeting Notes
+- **Granola-Style Notes**: Automatically create structured and actionable meeting notes.
+- **Smart Transcript Integration**: Merge meeting transcripts with existing notes.
+- **Customizable Templates**: Ensure consistent formatting for all notes.
 
-3. **Custom Automation Tools**
-   - LastModifiedHandler: Track and organize recently modified files
-   - ScreenpipeHandler: Monitor daily activities and notes
-   - ExecuteActionsHandler: Automate repetitive file management tasks
-
-4. **AI Chat Integration**
-   - Context-aware AI chat that understands your vault structure
-   - Select multiple files, folders, or tags to include in chat context
-   - Create and save custom prompts for repeated tasks
-
-### ✍️ Handwritten Notes Digitization
-- **Advanced OCR Integration**: Automatically convert handwritten notes and diagrams into searchable digital text
-- **Smart Organization**: AI automatically suggests appropriate file names, tags, and folders for your digitized notes
-- **Batch Processing**: Drop multiple handwritten notes into the Inbox for automated processing
-- **Diagram Recognition**: Preserves and processes hand-drawn diagrams alongside text
-
-
-### 📝 Intelligent Meeting Notes (Granola-style)
-- **Granola-like Meeting Notes**: Transform your meetings into structured, actionable notes with the same powerful organization as Granola
-- **Automated Enhancement**: Record meetings and let AI transform them into clear, structured notes with action items
-- **Smart Transcript Integration**: Automatically merge new meeting transcripts with existing notes, maintaining context and coherence
-- **Customizable Templates**: Create your own meeting note templates for consistent formatting across all meetings
-
-
+---
 
 ## 🚀 Getting Started
 
