@@ -65,8 +65,8 @@ export const AdvancedTab: React.FC<AdvancedTabProps> = ({ plugin }) => {
           <div className="setting-item-name">Enable Self-Hosting</div>
           <div className="setting-item-description">
             Enable Self-Hosting to host the server on your own machine. Requires
-            technical skills and an external OpenAI API Key + credits. Keep
-            disabled for default version of the plugin.
+            technical skills and an external OpenAI API Key + credits. ⛔️ Keep
+            disabled if you have a cloud subscription.
           </div>
         </div>
         <div className="setting-item-control">
@@ -96,7 +96,6 @@ export const AdvancedTab: React.FC<AdvancedTabProps> = ({ plugin }) => {
 
       {useLogs && (
         <div className="space-y-2">
-
           {showLogs && (
             <div className="max-h-96 overflow-y-auto border border-[--background-modifier-border] rounded p-2">
               {logger.getLogs().map((log, index) => (
