@@ -3,25 +3,13 @@
 Transform your Obsidian workflow with AI-powered organization and note management. 
 
 Features:
-- Agentic Chat
+- AI Chat
 - File Organization
-- Meetings
+- Meeting Notes Enhancer
 
 <img width="1840" alt="Screenshot 2025-01-18 at 09 07 18" src="https://github.com/user-attachments/assets/efce35ad-fbf9-47c2-a6e8-a509709e7b7c" />
 
 ## 🌟 Key Use Cases
-
-### 📝 Intelligent Meeting Notes (Granola-style)
-- **Granola-like Meeting Notes**: Transform your meetings into structured, actionable notes with the same powerful organization as Granola
-- **Automated Enhancement**: Record meetings and let AI transform them into clear, structured notes with action items
-- **Smart Transcript Integration**: Automatically merge new meeting transcripts with existing notes, maintaining context and coherence
-- **Customizable Templates**: Create your own meeting note templates for consistent formatting across all meetings
-
-### ✍️ Handwritten Notes Digitization
-- **Advanced OCR Integration**: Automatically convert handwritten notes and diagrams into searchable digital text
-- **Smart Organization**: AI automatically suggests appropriate file names, tags, and folders for your digitized notes
-- **Batch Processing**: Drop multiple handwritten notes into the Inbox for automated processing
-- **Diagram Recognition**: Preserves and processes hand-drawn diagrams alongside text
 
 ### 🗄️ Smart Vault Management
 Transform your vault into an intelligent knowledge base using our powerful tools:
@@ -46,6 +34,21 @@ Transform your vault into an intelligent knowledge base using our powerful tools
    - Select multiple files, folders, or tags to include in chat context
    - Create and save custom prompts for repeated tasks
 
+### ✍️ Handwritten Notes Digitization
+- **Advanced OCR Integration**: Automatically convert handwritten notes and diagrams into searchable digital text
+- **Smart Organization**: AI automatically suggests appropriate file names, tags, and folders for your digitized notes
+- **Batch Processing**: Drop multiple handwritten notes into the Inbox for automated processing
+- **Diagram Recognition**: Preserves and processes hand-drawn diagrams alongside text
+
+
+### 📝 Intelligent Meeting Notes (Granola-style)
+- **Granola-like Meeting Notes**: Transform your meetings into structured, actionable notes with the same powerful organization as Granola
+- **Automated Enhancement**: Record meetings and let AI transform them into clear, structured notes with action items
+- **Smart Transcript Integration**: Automatically merge new meeting transcripts with existing notes, maintaining context and coherence
+- **Customizable Templates**: Create your own meeting note templates for consistent formatting across all meetings
+
+
+
 ## 🚀 Getting Started
 
 Choose your preferred setup:
@@ -60,7 +63,7 @@ Choose your preferred setup:
 2. Use your preferred AI models
 3. Complete privacy with local processing
 
-[... rest of existing setup instructions ...]
+
 
 ## 📱 Mobile Integration
 
@@ -84,4 +87,4 @@ Process various types of content:
 - PDF text extraction
 - YouTube video transcripts
 
-[... rest of existing content ...]
+
