@@ -2,6 +2,8 @@
 2. [Creating a Token](#creating-a-token)  
 3. [Finishing Up](#finishing-up)  
 
+See full video walkthrough: https://www.youtube.com/watch?v=BiD7t60N8yI
+
 
 ## Set Up a Vercel Account (if you do not have one)
 > ⚠️  Make sure to use the "Continue with GitHub" option.
