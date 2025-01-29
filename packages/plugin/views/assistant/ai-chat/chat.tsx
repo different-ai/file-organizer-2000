@@ -403,6 +403,12 @@ export const ChatComponent: React.FC<ChatComponentProps> = ({
           <ClearAllButton />
         </div>
 
+                {/* Tip about adding @file, @tag, or @folder */}
+                <div className="text-[--text-muted] text-sm mt-2 mb-2 ml-2">
+          Tip: Enter <code>@note</code>, <code>@tag</code>, or{" "}
+          <code>@folder</code> to add items to context.
+        </div>
+
         <form onSubmit={handleSendMessage} className="flex flex-col space-y-4">
           <div className={`flex flex-grow ${error ? "opacity-50 pointer-events-none" : ""}`}>
             <div className="overflow-y-auto relative w-full" ref={inputRef}>
