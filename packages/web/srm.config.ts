@@ -47,18 +47,25 @@ export const PRICES = {
 } as const;
 
 const cloudFeatures = [
-  "AI-Powered File Organization",
+  "No external AI credits needed",
+  "Seamless no-sweat setup",
   "~1000 files per month",
   "300 min audio transcription p/m",
-  "Premium support",
+  "Support",
+  "30 days money-back guarantee",
 ];
 
 const standardPayOnceFeatures = [
-  "Premium Support",
-  "Quick-guided setup",
-  "Requires your own OpenAI key",
-  "Pay-as-you-go",
-  "30-day money-back guarantee",
+  "Requires your own openAI api key (pay as you go)",
+  "Privacy-focused",
+  "Quick guided setup",
+  "Unlimited usage",
+  "Lifetime updates",
+  "Early access features",
+  "Premium support",
+  "Onboarding call with one of the founders (on request)",
+  "30 days money-back guarantee",
+
 ];
 
 export interface ProductMetadata {
