@@ -63,7 +63,7 @@ export function PricingCards() {
       <Card
         className={twMerge(
           "p-4 rounded-xl flex-1 relative",
-          !isSubscription && "!border-violet-500 !border-[1px]"
+          !isSubscription && "!border-violet-500 !border-[0.1rem]"
         )}
       >
         {!isSubscription && isLifetime ? (
