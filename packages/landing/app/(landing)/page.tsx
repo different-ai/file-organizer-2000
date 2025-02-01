@@ -29,11 +29,11 @@ export const metadata: Metadata = {
 
 export default function Page() {
   return (
-    <main className="flex min-h-screen flex-col items-center">
+    <main className="flex min-h-screen flex-col items-center bg-background">
     
 
       {/* Hero Section */}
-      <div className="w-full max-w-5xl px-6 py-24 sm:py-32 lg:px-8 text-center">
+      <div className="w-full max-w-5xl px-6 py-24 sm:py-32 lg:px-8 text-center bg-transparent">
         <div className="mx-auto max-w-2xl">
           <div className="mb-8">
             <Image
@@ -63,7 +63,7 @@ export default function Page() {
       </div>
 
       {/* Stats Section */}
-      <div className="w-full bg-background py-12">
+      <div className="w-full py-12 bg-white/5 backdrop-blur-sm">
         <div className="mx-auto max-w-7xl px-6">
           <div className="grid grid-cols-2 gap-8 text-center">
             <div>
@@ -77,7 +77,7 @@ export default function Page() {
       </div>
 
       {/* Hero Video */}
-      <div className="w-full max-w-4xl px-6 pb-24">
+      <div className="w-full max-w-4xl px-6 pb-24 bg-transparent">
         <div className="relative aspect-video rounded-lg overflow-hidden ">
           <iframe
             src="https://www.youtube.com/embed/X4yN4ykTJIo?iv_load_policy=3&rel=0&modestbranding=1&playsinline=1"
@@ -90,7 +90,7 @@ export default function Page() {
       </div>
 
       {/* Features Section */}
-      <div className="w-full py-24">
+      <div className="w-full py-24 bg-transparent">
         <div className="mx-auto max-w-7xl px-6">
           {/* First Feature */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-16 items-center mb-32">
@@ -152,7 +152,7 @@ export default function Page() {
       </div>
 
       {/* Meet Your All-in-One Workflow Buddy */}
-      <div className="w-full bg-muted/50 py-24">
+      <div className="w-full py-24 bg-white/5 backdrop-blur-sm">
         <div className="mx-auto max-w-7xl px-6">
           <h2 className="text-3xl font-bold tracking-tight sm:text-4xl mb-12 text-center">
             Meet Your All-in-One Workflow Buddy
@@ -195,7 +195,7 @@ export default function Page() {
       </div>
 
       {/* Why Note Companion */}
-      <div className="w-full py-24">
+      <div className="w-full py-24 bg-transparent">
         <div className="mx-auto max-w-7xl px-6">
           <h2 className="text-3xl font-bold tracking-tight sm:text-4xl mb-12 text-center">
             Why Note Companion?
@@ -230,7 +230,7 @@ export default function Page() {
       </div>
 
       {/* Demo Section */}
-      <div className="w-full max-w-[1200px] px-6 py-24 bg-muted/50">
+      <div className="w-full max-w-[1200px] px-6 py-24 bg-white/5 backdrop-blur-sm">
         <div className="text-center mb-16">
           <h2 className="text-3xl font-bold tracking-tight sm:text-4xl mb-4">
             See it in Action
@@ -243,7 +243,7 @@ export default function Page() {
       </div>
 
       {/* Pricing Section */}
-      <div className="w-full py-24 sm:py-32">
+      <div className="w-full py-24 sm:py-32 bg-transparent">
         <div className="mx-auto max-w-7xl px-6 lg:px-8">
           <div className="mx-auto max-w-4xl text-center">
             <h2 className="text-3xl font-bold tracking-tight sm:text-4xl mb-4">
@@ -258,7 +258,7 @@ export default function Page() {
       </div>
 
       {/* Media & Features Showcase */}
-      <section className="w-full py-24 bg-muted/50">
+      <section className="w-full py-24 bg-white/5 backdrop-blur-sm">
         <div className="mx-auto max-w-7xl px-6">
           <h2 className="text-3xl font-bold tracking-tight text-center mb-12">
             Discover More Features
@@ -295,7 +295,7 @@ export default function Page() {
       </section>
 
       {/* CTA Section */}
-      <div className="w-full bg-muted/50">
+      <div className="w-full bg-transparent">
         <div className="mx-auto max-w-7xl px-6 py-24 sm:py-32 lg:px-8">
           <div className="mx-auto max-w-2xl text-center">
             <h2 className="text-3xl font-bold tracking-tight sm:text-4xl mb-6">
@@ -317,12 +317,12 @@ export default function Page() {
       </div>
 
       {/* Testimonials Section */}
-      <section className="w-full py-24">
+      <section className="w-full py-24 bg-transparent">
         <div className="mx-auto max-w-7xl px-6">
           <h2 className="text-2xl font-semibold text-center mb-12">stuff people say</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             {testimonials.map((testimonial, index) => (
-              <div key={index} className="bg-background/60 backdrop-blur-sm p-8 rounded-xl border border-border/40">
+              <div key={index} className="bg-white backdrop-blur-sm p-8 rounded-xl border border-white/10">
                 <div className="flex items-center space-x-4 mb-4">
                   <div className="h-12 w-12 rounded-full overflow-hidden">
                     <Image
