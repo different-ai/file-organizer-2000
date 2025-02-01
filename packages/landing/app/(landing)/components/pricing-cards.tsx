@@ -4,6 +4,7 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { ArrowRight, Check } from "lucide-react";
+import Link from 'next/link';
 
 export function PricingCards() {
   const [isYearly, setIsYearly] = useState(true);
@@ -85,9 +86,11 @@ export function PricingCards() {
               <span>Source code access</span>
             </div>
           </div>
-          <Button variant="outline" className="w-full">
-            Get Started
-          </Button>
+          <Link href="https://app.fileorganizer2000.com" passHref>
+            <Button variant="outline" className="w-full">
+              Get Started
+            </Button>
+          </Link>
         </div>
       </div>
 
@@ -127,9 +130,12 @@ export function PricingCards() {
               <span>Regular updates</span>
             </div>
           </div>
-          <Button className="w-full bg-primary hover:bg-primary/90">
-            Start Free Trial
-          </Button>
+          <Link href="https://app.fileorganizer2000.com" passHref>
+            <Button className="w-full bg-primary hover:bg-primary/90">
+              Start Free Trial
+              <ArrowRight className="ml-2 h-4 w-4" />
+            </Button>
+          </Link>
         </div>
       </div>
 
@@ -164,9 +170,11 @@ export function PricingCards() {
               <span>Use your own API keys</span>
             </div>
           </div>
-          <Button variant="outline" className="w-full">
-            Get Lifetime Access
-          </Button>
+          <Link href="https://app.fileorganizer2000.com" passHref>
+            <Button variant="outline" className="w-full">
+              Get Lifetime Access
+            </Button>
+          </Link>
         </div>
       </div>
     </div>
