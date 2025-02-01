@@ -1,109 +1,174 @@
 "use client";
 
-import { Button } from '@/components/ui/button';
-import { Check } from 'lucide-react';
-import Link from 'next/link';
-
-const plans = [
-  {
-    name: 'Self-Hosted',
-    price: 'Free',
-    description: 'Ultimate privacy and control',
-    features: [
-      'Ultimate privacy',
-      'Use your own AI models',
-      'Community support',
-      'Source code access',
-    ],
-    cta: 'Get Started',
-    href: 'https://github.com/different-ai/file-organizer-2000',
-    variant: 'outline' as const,
-  },
-  {
-    name: 'Subscription',
-    price: '$15',
-    period: '/month',
-    yearlyPrice: '$119',
-    period2: '/year',
-    description: 'No setup required',
-    features: [
-      'No setup required',
-      'Managed API keys',
-      '~1000 files per month',
-      'Premium support',
-      'Regular updates',
-    ],
-    cta: 'Start Free Trial',
-    href: '/dashboard/subscription/automated-setup',
-    variant: 'default' as const,
-  },
-  {
-    name: 'Pay Once',
-    price: '$300',
-    description: 'Lifetime access with full control',
-    features: [
-      'One-time payment',
-      'Lifetime updates',
-      'Multiple licenses',
-      'Premium support',
-      'Use your own API keys',
-    ],
-    cta: 'Get Lifetime Access',
-    href: '/dashboard/lifetime/automated-setup',
-    variant: 'default' as const,
-    popular: true,
-  },
-];
+import { useState } from "react";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { ArrowRight, Check } from "lucide-react";
 
 export function PricingCards() {
+  const [isYearly, setIsYearly] = useState(true);
+
+  const plans = {
+    selfHosted: {
+      name: "Self-hosted",
+      price: "Free",
+      features: [
+        "Ultimate privacy",
+        "Use your own AI models",
+        "Community support",
+        "Source code access",
+      ],
+      buttonText: "Get Started",
+      buttonVariant: "outline" as const,
+    },
+    subscription: {
+      name: "Hobby Plan",
+      price: isYearly ? "$119" : "$15",
+      period: isYearly ? "/year" : "/month",
+      features: [
+        "No external AI credits needed",
+        "Seamless no-sweat setup",
+        "~1000 files per month",
+        "300 min audio transcription p/m",
+        "30 days money-back guarantee",
+      ],
+      buttonText: "Start Free Trial",
+      buttonVariant: "default" as const,
+      highlight: true,
+      trial: "7-day free trial",
+    },
+    lifetime: {
+      name: "Lifetime Access",
+      price: "from $200",
+      features: [
+        "Requires your own openAI api key",
+        "Privacy-focused",
+        "Quick guided setup",
+        "Unlimited usage",
+        "Lifetime updates",
+        "Early access features",
+        "Premium support",
+        "Onboarding call with the founder (on request)",
+        "30 days money-back guarantee",
+      ],
+      buttonText: "I'm in",
+      buttonVariant: "outline" as const,
+    },
+  };
+
   return (
-    <div className="grid gap-8 md:grid-cols-3">
-      {plans.map((plan) => (
-        <div
-          key={plan.name}
-          className={`relative rounded-lg border bg-card p-8 shadow-sm ${
-            plan.popular
-              ? 'border-primary/50 shadow-md'
-              : 'border-border'
-          }`}
-        >
-          {plan.popular && (
-            <div className="absolute -top-4 left-1/2 -translate-x-1/2 rounded-full bg-primary px-3 py-1 text-sm text-primary-foreground">
-              Most Popular
-            </div>
-          )}
+    <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+      {/* Self-Hosted */}
+      <div className="relative group">
+        <div className="absolute -inset-[1px] rounded-2xl bg-gradient-to-r from-neutral-400/20 via-neutral-400/10 to-neutral-400/20 group-hover:from-neutral-400/40 group-hover:via-neutral-400/25 group-hover:to-neutral-400/40 transition-all duration-300" />
+        <div className="relative h-full rounded-xl bg-background/60 backdrop-blur-sm p-8 flex flex-col">
+          <h3 className="text-xl font-semibold mb-2">Self-Hosted</h3>
           <div className="mb-6">
-            <h3 className="text-2xl font-bold">{plan.name}</h3>
-            <div className="mt-4 flex items-baseline">
-              <span className="text-4xl font-bold">{plan.price}</span>
-              {plan.period && (
-                <span className="ml-1 text-muted-foreground">{plan.period}</span>
-              )}
-            </div>
-            {plan.yearlyPrice && (
-              <div className="mt-1 text-sm text-muted-foreground">
-                or {plan.yearlyPrice}{plan.period2} (save ~33%)
-              </div>
-            )}
-            <p className="mt-2 text-sm text-muted-foreground">
-              {plan.description}
-            </p>
+            <span className="text-3xl font-bold">Free</span>
           </div>
-          <ul className="mb-6 space-y-4">
-            {plan.features.map((feature) => (
-              <li key={feature} className="flex items-center">
-                <Check className="mr-2 h-4 w-4 text-primary" />
-                <span className="text-muted-foreground">{feature}</span>
-              </li>
-            ))}
-          </ul>
-          <Link href={plan.href}>
-            <Button variant={plan.variant} className="w-full">
-              {plan.cta}
-            </Button>
-          </Link>
+          <p className="text-muted-foreground mb-6">Ultimate privacy and control</p>
+          <div className="space-y-4 flex-grow mb-8">
+            <div className="flex items-center gap-2">
+              <Check className="h-4 w-4 text-primary" />
+              <span>Ultimate privacy</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <Check className="h-4 w-4 text-primary" />
+              <span>Use your own AI models</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <Check className="h-4 w-4 text-primary" />
+              <span>Community support</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <Check className="h-4 w-4 text-primary" />
+              <span>Source code access</span>
+            </div>
+          </div>
+          <Button variant="outline" className="w-full">
+            Get Started
+          </Button>
         </div>
-      ))}
+      </div>
+
+      {/* Subscription - Most Popular */}
+      <div className="relative group">
+        <div className="absolute -inset-[1px] rounded-2xl bg-gradient-to-r from-primary/60 via-primary/40 to-primary/60 group-hover:from-primary/80 group-hover:via-primary/60 group-hover:to-primary/80 transition-all duration-300" />
+        <div className="relative h-full rounded-xl bg-background/60 backdrop-blur-sm p-8 flex flex-col">
+          <div className="absolute -top-4 left-1/2 -translate-x-1/2 px-4 py-1 bg-primary text-primary-foreground text-sm rounded-full font-medium">
+            Most Popular
+          </div>
+          <h3 className="text-xl font-semibold mb-2">Subscription</h3>
+          <div className="mb-2">
+            <span className="text-3xl font-bold">$15</span>
+            <span className="text-muted-foreground">/month</span>
+          </div>
+          <p className="text-sm text-muted-foreground mb-1">or $119/year (save ~33%)</p>
+          <p className="text-muted-foreground mb-6">No setup required</p>
+          <div className="space-y-4 flex-grow mb-8">
+            <div className="flex items-center gap-2">
+              <Check className="h-4 w-4 text-primary" />
+              <span>No setup required</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <Check className="h-4 w-4 text-primary" />
+              <span>Managed API keys</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <Check className="h-4 w-4 text-primary" />
+              <span>~1000 files per month</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <Check className="h-4 w-4 text-primary" />
+              <span>Premium support</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <Check className="h-4 w-4 text-primary" />
+              <span>Regular updates</span>
+            </div>
+          </div>
+          <Button className="w-full bg-primary hover:bg-primary/90">
+            Start Free Trial
+          </Button>
+        </div>
+      </div>
+
+      {/* Pay Once */}
+      <div className="relative group">
+        <div className="absolute -inset-[1px] rounded-2xl bg-gradient-to-r from-neutral-400/20 via-neutral-400/10 to-neutral-400/20 group-hover:from-neutral-400/40 group-hover:via-neutral-400/25 group-hover:to-neutral-400/40 transition-all duration-300" />
+        <div className="relative h-full rounded-xl bg-background/60 backdrop-blur-sm p-8 flex flex-col">
+          <h3 className="text-xl font-semibold mb-2">Pay Once</h3>
+          <div className="mb-6">
+            <span className="text-3xl font-bold">$300</span>
+          </div>
+          <p className="text-muted-foreground mb-6">Lifetime access with full control</p>
+          <div className="space-y-4 flex-grow mb-8">
+            <div className="flex items-center gap-2">
+              <Check className="h-4 w-4 text-primary" />
+              <span>One-time payment</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <Check className="h-4 w-4 text-primary" />
+              <span>Lifetime updates</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <Check className="h-4 w-4 text-primary" />
+              <span>Multiple licenses</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <Check className="h-4 w-4 text-primary" />
+              <span>Premium support</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <Check className="h-4 w-4 text-primary" />
+              <span>Use your own API keys</span>
+            </div>
+          </div>
+          <Button variant="outline" className="w-full">
+            Get Lifetime Access
+          </Button>
+        </div>
+      </div>
     </div>
   );
 }

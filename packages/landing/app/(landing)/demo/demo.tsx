@@ -498,6 +498,7 @@ export const Demo = () => {
     return (
       <div className="bg-gradient-to-br from-primary/5 via-primary/10 to-background border-b border-border">
         <div className="max-w-2xl mx-auto p-4 space-y-3">
+          <p className="text-sm text-muted-foreground uppercase tracking-wider">Functionality Overview</p>
           <div className="flex items-start gap-4">
             <div className="text-3xl">{info.emoji}</div>
             <div className="space-y-2 flex-1">
@@ -547,10 +548,9 @@ export const Demo = () => {
     );
   };
 
-  
-
-    return (
+  return (
     <BrowserWindow>
+    
       <div className="flex">
         {/* Left Sidebar - Markdown Editor */}
         <div className="hidden md:block w-[600px] border-r border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">

@@ -1,36 +1,40 @@
-import { GeistSans } from 'geist/font/sans';
-import Link from 'next/link';
-import './globals.css';
-import Image from 'next/image';
-import { Toaster } from '@/components/ui/use-toast';
-import { TooltipProvider } from '@/components/ui/tooltip';
-import Providers from './providers';
-import { Metadata } from 'next';
+import { GeistSans } from "geist/font/sans";
+import Link from "next/link";
+import "./globals.css";
+import Image from "next/image";
+import { Toaster } from "@/components/ui/use-toast";
+import { TooltipProvider } from "@/components/ui/tooltip";
+import Providers from "./providers";
+import { Metadata } from "next";
+import { Button } from "@/components/ui/button";
+import { Star } from "lucide-react";
 
 export const metadata: Metadata = {
-  metadataBase: new URL('https://notecompanion.com'),
+  metadataBase: new URL("https://notecompanion.com"),
   title: {
-    default: 'Note Companion - Your AI-powered Knowledge Partner',
-    template: '%s | Note Companion',
+    default: "Note Companion - Your AI-powered Knowledge Partner",
+    template: "%s | Note Companion",
   },
-  description: 'Your AI-powered assistant that turns scattered notes into actionable knowledge. Seamless meeting notes, instant organization, and the smartest AI chat for your Obsidian workflow.',
+  description:
+    "Your AI-powered assistant that turns scattered notes into actionable knowledge. Seamless meeting notes, instant organization, and the smartest AI chat for your Obsidian workflow.",
   icons: {
-    icon: '/favicon.ico',
-    shortcut: '/favicon.ico',
-    apple: '/favicon.ico',
+    icon: "/favicon.ico",
+    shortcut: "/favicon.ico",
+    apple: "/favicon.ico",
   },
   openGraph: {
-    type: 'website',
-    locale: 'en_US',
-    url: 'https://notecompanion.com',
-    siteName: 'Note Companion',
-    images: ['/notecompanion.png'],
+    type: "website",
+    locale: "en_US",
+    url: "https://notecompanion.com",
+    siteName: "Note Companion",
+    images: ["/notecompanion.png"],
   },
   twitter: {
-    card: 'summary_large_image',
-    title: 'Note Companion - Your AI-powered Knowledge Partner',
-    description: 'Your AI-powered assistant that turns scattered notes into actionable knowledge. Seamless meeting notes, instant organization, and the smartest AI chat for your Obsidian workflow.',
-    images: ['/notecompanion.png'],
+    card: "summary_large_image",
+    title: "Note Companion - Your AI-powered Knowledge Partner",
+    description:
+      "Your AI-powered assistant that turns scattered notes into actionable knowledge. Seamless meeting notes, instant organization, and the smartest AI chat for your Obsidian workflow.",
+    images: ["/notecompanion.png"],
   },
 };
 
@@ -46,9 +50,9 @@ export default function RootLayout({
           <Providers>
             <main className="min-h-screen flex flex-col items-center">
               <div className="flex-1 w-full flex flex-col items-center">
-                <nav className="w-full flex justify-center border-b border-b-foreground/10 h-16">
-                  <div className="w-full flex justify-between items-center p-3 px-5 text-sm">
-                    <div className="flex gap-5 items-center font-semibold">
+                <div className="w-full border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+                  <div className="mx-auto max-w-7xl px-6 py-4">
+                    <div className="flex items-center justify-between">
                       <Link
                         href="/"
                         className="flex items-center gap-2 text-2xl"
@@ -60,12 +64,40 @@ export default function RootLayout({
                           height={30}
                         />
                       </Link>
+                      <div className="flex items-center space-x-4">
+                        <a
+                          href="https://www.youtube.com/watch?v=NQjZcL4sThs&list=PLgRcC-DFR5jdUxbSBuNeymwYTH_FSVxio"
+                          className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+                          target="_blank"
+                          rel="noopener noreferrer"
+                        >
+                          tutorials
+                        </a>
+                        <Link
+                          href="/blog"
+                          className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+                        >
+                          blog
+                        </Link>
+                        <a
+                          href="https://github.com/different-ai/file-organizer-2000"
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="inline-flex items-center space-x-2 bg-[#1F2937] text-white px-3 py-1.5 rounded-full text-sm font-semibold"
+                        >
+                          <Star className="h-4 w-4" />
+                          <span>492</span>
+                        </a>
+                        <Link href="https://app.fileorganizer2000.com">
+                          <Button variant="default" size="sm">
+                            Start
+                          </Button>
+                        </Link>
+                      </div>
                     </div>
                   </div>
-                </nav>
-                <div className="flex flex-col p-5 pb-20 w-full">
-                  {children}
                 </div>
+                <div className="flex flex-col p-5 pb-20 w-full">{children}</div>
 
                 <footer className="w-full flex items-center justify-center border-t mx-auto text-center text-xs gap-8 py-8">
                   <p>Different AI Inc - Privacy-first AI solutions</p>
