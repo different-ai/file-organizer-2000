@@ -50,7 +50,7 @@ export default function RootLayout({
           <Providers>
             <main className="min-h-screen flex flex-col items-center">
               <div className="flex-1 w-full flex flex-col items-center">
-                <div className="w-full border-b border-border bg-background backdrop-blur supports-[backdrop-filter]:bg-background/60">
+                <div className="w-full border-b border-gray-500 bg-background backdrop-blur supports-[backdrop-filter]:bg-background/60">
                   <div className="mx-auto max-w-7xl px-6 py-4">
                     <div className="flex items-center justify-between">
                       <Link
@@ -94,7 +94,7 @@ export default function RootLayout({
                 </div>
                 <div className="flex flex-col p-5 pb-20 w-full">{children}</div>
 
-                <footer className="w-full flex items-center justify-center border-t mx-auto text-center text-xs gap-8 py-8">
+                <footer className="w-full flex items-center justify-center border-t border-gray-500 mx-auto text-center text-xs gap-8 py-8">
                   <p>Different AI Inc - Privacy-first AI solutions</p>
                 </footer>
               </div>
