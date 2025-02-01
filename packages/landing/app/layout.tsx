@@ -73,12 +73,7 @@ export default function RootLayout({
                         >
                           tutorials
                         </a>
-                        <Link
-                          href="/blog"
-                          className="text-sm text-muted-foreground hover:text-foreground transition-colors"
-                        >
-                          blog
-                        </Link>
+                
                         <a
                           href="https://github.com/different-ai/file-organizer-2000"
                           target="_blank"
