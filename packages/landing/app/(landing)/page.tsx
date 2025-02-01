@@ -29,7 +29,7 @@ export const metadata: Metadata = {
 
 export default function Page() {
   return (
-    <main className="flex min-h-screen flex-col items-center bg-background">
+    <main className="flex min-h-screen flex-col items-center bg-background text-gray-700">
     
 
       {/* Hero Section */}
@@ -46,9 +46,9 @@ export default function Page() {
           </div>
           <h1 className="text-4xl font-bold tracking-tight sm:text-6xl">
             <span>Automate your</span>
-            <span className="text-primary block">Formatting Workflow</span>
+            <span className="text-primary block">Obsidian Workflow</span>
           </h1>
-          <p className="mt-6 text-lg leading-8 text-muted-foreground">
+          <p className="mt-6 text-lg leading-8">
             With an Obsidian plugin that packs a powerful AI chat, automatic organization suggestions, and other wizardry.
           </p>
           <div className="mt-10 flex items-center justify-center gap-x-6">
@@ -67,10 +67,10 @@ export default function Page() {
         <div className="mx-auto max-w-7xl px-6">
           <div className="grid grid-cols-2 gap-8 text-center">
             <div>
-              <h2 className="text-2xl font-normal text-muted-foreground">+2k users</h2>
+              <h2 className="text-2xl font-normal">+2k users</h2>
             </div>
             <div>
-              <h2 className="text-2xl font-normal text-muted-foreground">1M notes organized</h2>
+              <h2 className="text-2xl font-normal">1M notes organized</h2>
             </div>
           </div>
         </div>
@@ -107,7 +107,9 @@ export default function Page() {
               </div>
             </div>
             <div>
-              <p className="text-2xl text-muted-foreground">Let the AI do the thinking. Save your energy for what really matters.</p>
+              <p className="text-2xl">
+                Let the AI do the thinking. Save your energy for what really matters.
+              </p>
             </div>
           </div>
 
@@ -124,7 +126,7 @@ export default function Page() {
             </div>
             <div>
               <h2 className="text-4xl font-bold mb-4">Auto-Organizes & Formats your Notes</h2>
-              <p className="text-2xl text-muted-foreground">
+              <p className="text-2xl">
                 Automate your organization workflow with the Inbox so you can get rid of the busywork that keeps slowing you down.
               </p>
             </div>
@@ -134,7 +136,7 @@ export default function Page() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-16 items-center">
             <div>
               <h2 className="text-4xl font-bold mb-4">Powerful AI Chat</h2>
-              <p className="text-2xl text-muted-foreground">
+              <p className="text-2xl">
                 Allowing you to summarize youtube videos, search the web, or manage your vault with the latest GPT-4o model.
               </p>
             </div>
@@ -235,7 +237,7 @@ export default function Page() {
           <h2 className="text-3xl font-bold tracking-tight sm:text-4xl mb-4">
             See it in Action
           </h2>
-          <p className="text-lg text-muted-foreground">
+          <p className="text-lg">
             Experience how Note Companion transforms your workflow
           </p>
         </div>
@@ -258,7 +260,7 @@ export default function Page() {
       </div>
 
       {/* Media & Features Showcase */}
-      <section className="w-full py-24 bg-white/5 backdrop-blur-sm">
+      {/* <section className="w-full py-24 bg-white/5 backdrop-blur-sm">
         <div className="mx-auto max-w-7xl px-6">
           <h2 className="text-3xl font-bold tracking-tight text-center mb-12">
             Discover More Features
@@ -292,7 +294,7 @@ export default function Page() {
             </div>
           </div>
         </div>
-      </section>
+      </section> */}
 
       {/* CTA Section */}
       <div className="w-full bg-transparent">
