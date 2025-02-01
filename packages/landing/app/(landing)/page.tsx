@@ -413,27 +413,4 @@ const testimonials = [
   },
 ];
 
-const FaqItem = ({ question, answer }: { question: string; answer: string }) => {
-  const [isOpen, setIsOpen] = useState(false);
 
-  return (
-    <div className="border border-border rounded-lg">
-      <button
-        className="w-full px-6 py-4 flex items-center justify-between text-left"
-        onClick={() => setIsOpen(!isOpen)}
-      >
-        <span className="font-semibold">{question}</span>
-        {isOpen ? (
-          <Minus className="h-4 w-4 text-muted-foreground" />
-        ) : (
-          <Plus className="h-4 w-4 text-muted-foreground" />
-        )}
-      </button>
-      {isOpen && (
-        <div className="px-6 pb-4">
-          <p className="text-muted-foreground">{answer}</p>
-        </div>
-      )}
-    </div>
-  );
-};
