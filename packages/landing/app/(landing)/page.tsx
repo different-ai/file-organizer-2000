@@ -96,7 +96,7 @@ export default function Page() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-16 items-center mb-32">
             <div>
               <h2 className="text-3xl font-bold mb-4">Get organization suggestions for tags, folders, titles and templates.</h2>
-              <div className="relative aspect-[4/3] rounded-lg overflow-hidden ">
+              <div className="relative aspect-[16/9] rounded-lg overflow-hidden ">
                 <Image
                   src="https://framerusercontent.com/images/oURi6azSaqZ0OgErlSpbW6jBk.png"
                   alt="Organization Features"
@@ -115,7 +115,7 @@ export default function Page() {
 
           {/* Second Feature */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-16 items-center mb-32">
-            <div className="relative aspect-[4/3] rounded-lg overflow-hidden ">
+            <div className="relative aspect-[16/9] rounded-lg overflow-hidden ">
               <Image
                 src="https://framerusercontent.com/images/deE4ZtaaqL7JMy9otNozH4yHZE.png"
                 alt="Auto-Organization"
@@ -145,7 +145,7 @@ export default function Page() {
                 src="https://framerusercontent.com/images/SarnueYFDCLxQFTzsbEDNshz3n0.png"
                 alt="AI Chat Features"
                 layout="fill"
-                objectFit="cover"
+                objectFit="contain"
                 className="rounded-lg"
               />
             </div>

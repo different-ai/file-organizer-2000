@@ -59,7 +59,7 @@ export default function RootLayout({
                       >
                         <Image
                           src="/notecompanion.png"
-                          alt="hyprqrl Logo"
+                          alt="note companion Logo"
                           width={30}
                           height={30}
                         />
