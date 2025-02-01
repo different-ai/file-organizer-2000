@@ -78,7 +78,7 @@ export default function Page() {
 
       {/* Hero Video */}
       <div className="w-full max-w-4xl px-6 pb-24">
-        <div className="relative aspect-video rounded-lg overflow-hidden shadow-xl">
+        <div className="relative aspect-video rounded-lg overflow-hidden ">
           <iframe
             src="https://www.youtube.com/embed/X4yN4ykTJIo?iv_load_policy=3&rel=0&modestbranding=1&playsinline=1"
             frameBorder="0"
@@ -96,7 +96,7 @@ export default function Page() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-16 items-center mb-32">
             <div>
               <h2 className="text-4xl font-bold mb-4">Get organization suggestions for tags, folders, titles and templates.</h2>
-              <div className="relative aspect-[4/3] rounded-lg overflow-hidden shadow-xl">
+              <div className="relative aspect-[4/3] rounded-lg overflow-hidden ">
                 <Image
                   src="https://framerusercontent.com/images/oURi6azSaqZ0OgErlSpbW6jBk.png"
                   alt="Organization Features"
@@ -113,7 +113,7 @@ export default function Page() {
 
           {/* Second Feature */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-16 items-center mb-32">
-            <div className="relative aspect-[4/3] rounded-lg overflow-hidden shadow-xl">
+            <div className="relative aspect-[4/3] rounded-lg overflow-hidden ">
               <Image
                 src="https://framerusercontent.com/images/deE4ZtaaqL7JMy9otNozH4yHZE.png"
                 alt="Auto-Organization"
@@ -138,7 +138,7 @@ export default function Page() {
                 Allowing you to summarize youtube videos, search the web, or manage your vault with the latest GPT-4o model.
               </p>
             </div>
-            <div className="relative aspect-[4/3] rounded-lg overflow-hidden shadow-xl">
+            <div className="relative aspect-[4/3] rounded-lg overflow-hidden ">
               <Image
                 src="https://framerusercontent.com/images/SarnueYFDCLxQFTzsbEDNshz3n0.png"
                 alt="AI Chat Features"
