@@ -33,7 +33,7 @@ export default function Page() {
     
 
       {/* Hero Section */}
-      <div className="w-full max-w-5xl px-6 py-24 sm:py-32 lg:px-8 text-center bg-transparent">
+      <div className="w-full max-w-5xl px-6 py-12 sm:py-12 lg:px-8 text-center bg-transparent">
         <div className="mx-auto max-w-2xl">
           <div className="mb-8">
             <Image
@@ -67,10 +67,10 @@ export default function Page() {
         <div className="mx-auto max-w-7xl px-6">
           <div className="grid grid-cols-2 gap-8 text-center">
             <div>
-              <h2 className="text-2xl font-normal">+2k users</h2>
+              <h2 className="text-lg font-normal">+2k users</h2>
             </div>
             <div>
-              <h2 className="text-2xl font-normal">1M notes organized</h2>
+              <h2 className="text-lg font-normal">1M notes organized</h2>
             </div>
           </div>
         </div>
