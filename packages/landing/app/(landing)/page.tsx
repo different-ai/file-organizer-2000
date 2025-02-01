@@ -95,7 +95,7 @@ export default function Page() {
           {/* First Feature */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-16 items-center mb-32">
             <div>
-              <h2 className="text-4xl font-bold mb-4">Get organization suggestions for tags, folders, titles and templates.</h2>
+              <h2 className="text-3xl font-bold mb-4">Get organization suggestions for tags, folders, titles and templates.</h2>
               <div className="relative aspect-[4/3] rounded-lg overflow-hidden ">
                 <Image
                   src="https://framerusercontent.com/images/oURi6azSaqZ0OgErlSpbW6jBk.png"
@@ -107,7 +107,7 @@ export default function Page() {
               </div>
             </div>
             <div>
-              <p className="text-2xl">
+              <p className="text-lg">
                 Let the AI do the thinking. Save your energy for what really matters.
               </p>
             </div>
@@ -125,8 +125,8 @@ export default function Page() {
               />
             </div>
             <div>
-              <h2 className="text-4xl font-bold mb-4">Auto-Organizes & Formats your Notes</h2>
-              <p className="text-2xl">
+              <h2 className="text-3xl font-bold mb-6">Auto-Organizes & Formats your Notes</h2>
+              <p className="text-lg">
                 Automate your organization workflow with the Inbox so you can get rid of the busywork that keeps slowing you down.
               </p>
             </div>
@@ -135,8 +135,8 @@ export default function Page() {
           {/* Third Feature */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-16 items-center">
             <div>
-              <h2 className="text-4xl font-bold mb-4">Powerful AI Chat</h2>
-              <p className="text-2xl">
+              <h2 className="text-3xl font-bold mb-4">Powerful AI Chat</h2>
+              <p className="text-lg">
                 Allowing you to summarize youtube videos, search the web, or manage your vault with the latest GPT-4o model.
               </p>
             </div>
