@@ -67,7 +67,7 @@ export default function RootLayout({
                       <div className="flex items-center space-x-4">
                         <a
                           href="https://www.youtube.com/watch?v=NQjZcL4sThs&list=PLgRcC-DFR5jdUxbSBuNeymwYTH_FSVxio"
-                          className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+                          className="text-sm text-gray-900"
                           target="_blank"
                           rel="noopener noreferrer"
                         >
@@ -95,7 +95,7 @@ export default function RootLayout({
                 <div className="flex flex-col p-5 pb-20 w-full">{children}</div>
 
                 <footer className="w-full flex items-center justify-center border-t border-gray-700 mx-auto text-center text-xs gap-8 py-8">
-                  <p>Different AI Inc - Privacy-first AI solutions</p>
+                  <p            className="text-sm text-gray-900">Different AI Inc - Privacy-first AI solutions</p>
                 </footer>
               </div>
             </main>
