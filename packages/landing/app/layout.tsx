@@ -84,7 +84,7 @@ export default function RootLayout({
                           <span>492</span>
                         </a>
                         <Link href="https://app.fileorganizer2000.com">
-                          <Button variant="default" size="sm">
+                          <Button variant="default" size="sm" className="bg-primary text-white hover:bg-primary/90">
                             Start
                           </Button>
                         </Link>

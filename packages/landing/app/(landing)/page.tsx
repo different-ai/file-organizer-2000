@@ -53,7 +53,7 @@ export default function Page() {
           </p>
           <div className="mt-10 flex items-center justify-center gap-x-6">
             <a href="https://app.fileorganizer2000.com">
-              <Button size="lg" className="bg-primary hover:bg-primary/90">
+              <Button size="lg" className="bg-primary text-white hover:bg-primary/90">
                 Start free trial
                 <ArrowRight className="ml-2 h-4 w-4" />
               </Button>
@@ -308,7 +308,7 @@ export default function Page() {
             </p>
             <div className="flex items-center justify-center gap-x-6">
               <a href="https://app.fileorganizer2000.com">
-                <Button size="lg" className="bg-primary hover:bg-primary/90">
+                <Button size="lg" className="text-white bg-primary hover:bg-primary/90">
                   Start Free Trial
                   <ArrowRight className="ml-2 h-4 w-4" />
                 </Button>

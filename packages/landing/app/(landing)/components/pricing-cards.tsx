@@ -61,7 +61,7 @@ export function PricingCards() {
     <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
       {/* Self-Hosted */}
       <div className="relative group">
-        <div className="absolute -inset-0.5 rounded-2xl bg-gradient-to-r from-neutral-400/20 via-neutral-400/10 to-neutral-400/20 group-hover:from-neutral-400/40 group-hover:via-neutral-400/25 group-hover:to-neutral-400/40 transition-all duration-300" />
+        <div className="absolute -inset-0.5 rounded-2xl bg-gradient-to-r from-primary/20 via-primary/10 to-primary/20 group-hover:from-primary/40 group-hover:via-primary/25 group-hover:to-primary/40 transition-all duration-300" />
         <div className="relative h-full rounded-2xl bg-background/60 backdrop-blur-sm p-8 flex flex-col">
           <h3 className="text-xl font-semibold mb-2">Self-Hosted</h3>
           <div className="mb-6">
@@ -96,10 +96,10 @@ export function PricingCards() {
 
       {/* Subscription - Most Popular */}
       <div className="relative group">
-        <div className="absolute -inset-0.5 rounded-2xl bg-gradient-to-r from-primary/60 via-primary/40 to-primary/60 group-hover:from-primary/80 group-hover:via-primary/60 group-hover:to-primary/80 transition-all duration-300" />
+        <div className="absolute -inset-0.5 rounded-2xl bg-gradient-to-r from-primary/20 via-primary/10 to-primary/20 group-hover:from-primary/40 group-hover:via-primary/25 group-hover:to-primary/40 transition-all duration-300" />
         <div className="relative h-full rounded-2xl bg-background/60 backdrop-blur-sm p-8 flex flex-col">
           <div className="absolute -top-4 left-1/2 -translate-x-1/2 px-4 py-1 bg-primary text-primary-foreground text-sm rounded-full font-medium">
-            Most Popular
+            <span className="text-white">Most Popular</span>
           </div>
           <h3 className="text-xl font-semibold mb-2">Subscription</h3>
           <div className="mb-2">
@@ -131,7 +131,7 @@ export function PricingCards() {
             </div>
           </div>
           <Link href="https://app.fileorganizer2000.com" passHref>
-            <Button className="w-full bg-primary hover:bg-primary/90">
+            <Button className="w-full bg-primary hover:bg-primary/90 text-white">
               Start Free Trial
               <ArrowRight className="ml-2 h-4 w-4" />
             </Button>
@@ -141,7 +141,7 @@ export function PricingCards() {
 
       {/* Pay Once */}
       <div className="relative group">
-        <div className="absolute -inset-0.5 rounded-2xl bg-gradient-to-r from-neutral-400/20 via-neutral-400/10 to-neutral-400/20 group-hover:from-neutral-400/40 group-hover:via-neutral-400/25 group-hover:to-neutral-400/40 transition-all duration-300" />
+        <div className="absolute -inset-0.5 rounded-2xl bg-gradient-to-r from-primary/20 via-primary/10 to-primary/20 group-hover:from-primary/40 group-hover:via-primary/25 group-hover:to-primary/40 transition-all duration-300" />
         <div className="relative h-full rounded-2xl bg-background/60 backdrop-blur-sm p-8 flex flex-col">
           <h3 className="text-xl font-semibold mb-2">Pay Once</h3>
           <div className="mb-6">

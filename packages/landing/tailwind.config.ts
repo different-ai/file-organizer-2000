@@ -23,8 +23,10 @@ const config = {
         background: "#FBF4EA",
         foreground: "hsl(var(--foreground))",
         primary: {
-          DEFAULT: "#7C3AED",
-          foreground: "#FFFFFF",
+          DEFAULT: '#9f7aea',
+          60: '#b794f4',
+          40: '#d6bcfa',
+          80: '#805ad5',
           50: "#faf5ff",
           100: "#f3e8ff",
           200: "#e9d5ff",
@@ -42,6 +44,9 @@ const config = {
           foreground: "hsl(var(--muted-foreground))",
           background: "#f8fafc",
         },
+        textLight: "#f5f5f5",
+        buttonBg: "#ffffff",
+        buttonText: "#9f7aea",
       },
       borderWidth: {
         1: "1px",
