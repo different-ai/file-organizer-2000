@@ -67,7 +67,7 @@ export default function RootLayout({
                       <div className="flex items-center space-x-4">
                         <a
                           href="https://www.youtube.com/watch?v=NQjZcL4sThs&list=PLgRcC-DFR5jdUxbSBuNeymwYTH_FSVxio"
-                          className="text-sm text-gray-900"
+                          className="text-sm text-gray-900 font-semibold"
                           target="_blank"
                           rel="noopener noreferrer"
                         >
