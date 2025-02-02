@@ -359,7 +359,7 @@ export const Demo = () => {
         <div className="space-y-4 min-h-[400px] max-h-[600px] overflow-y-auto rounded-lg border border-border p-4 bg-gradient-to-b from-background to-background/80">
           {/* User Message */}
           <div className="flex items-start justify-end space-x-2">
-            <div className="max-w-[80%] bg-primary text-primary-foreground rounded-lg p-3">
+            <div className="max-w-[80%] text-primary-foreground rounded-lg p-3">
               <p>Could you summarize this YouTube video and add it to my current note?</p>
               <div className="mt-2 text-sm bg-primary-foreground/10 rounded p-2">
                 <span className="text-blue-300">https://www.youtube.com/watch?v=2lf31DruBsg</span>
@@ -427,14 +427,14 @@ export const Demo = () => {
               <Mic className="h-4 w-4" />
             </button>
           </div>
-          <Button>Send</Button>
+          <Button variant="outline">Send</Button>
         </div>
 
         {/* Enhancement Options */}
         <div className="grid grid-cols-3 gap-4">
           <Button variant="outline" className="flex items-center justify-center space-x-2 bg-background/50">
             <span role="img" aria-label="summary" className="text-lg">📝</span>
-            <span>Quick Summary</span>
+            <span>Summary</span>
           </Button>
           <Button variant="outline" className="flex items-center justify-center space-x-2 bg-background/50">
             <span role="img" aria-label="key points" className="text-lg">🎯</span>
