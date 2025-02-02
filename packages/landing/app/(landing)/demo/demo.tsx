@@ -496,7 +496,7 @@ export const Demo = () => {
     const info = explanations[tab];
 
     return (
-      <div className="bg-gradient-to-br from-primary/5 via-primary/10 to-background border-b border-border">
+      <div className="bg-blue-500/30 border-b border-border">
         <div className="max-w-2xl mx-auto p-4 space-y-3">
           <p className="text-sm text-muted-foreground uppercase tracking-wider">Functionality Overview</p>
           <div className="flex items-start gap-4">
@@ -509,7 +509,7 @@ export const Demo = () => {
               <div className="flex flex-col gap-2 pt-2">
                 {info.benefits.map((benefit, i) => (
                   <div key={i} className="flex items-center gap-2 text-sm">
-                    <div className="h-1.5 w-1.5 rounded-full bg-primary/50" />
+                    <div className="h-1.5 w-1.5 rounded-full bg-blue-500/50" />
                     <span className="text-muted-foreground">{benefit}</span>
                   </div>
                 ))}
