@@ -60,7 +60,6 @@ const standardPayOnceFeatures = [
   "Privacy-focused",
   "Quick guided setup",
   "Unlimited usage",
-  "Lifetime updates",
   "Early access features",
   "Premium support",
   "Onboarding call with one of the founders (on request)",
