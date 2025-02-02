@@ -49,7 +49,7 @@ export default function Page() {
             <span className="text-primary block">Obsidian Workflow</span>
           </h1>
           <p className="mt-6 text-lg leading-8">
-            With an Obsidian plugin that packs a powerful AI chat, automatic organization suggestions, and other wizardry.
+            Note Companion is an Obsidian plugin that packs a powerful AI chat, automatic organization suggestions, and other wizardry.
           </p>
           <div className="mt-10 flex items-center justify-center gap-x-6">
             <a href="https://app.fileorganizer2000.com">
