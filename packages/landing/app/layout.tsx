@@ -49,6 +49,11 @@ export default function RootLayout({
         <TooltipProvider>
           <Providers>
             <main className="min-h-screen flex flex-col items-center">
+              {/* Announcement Banner */}
+              <div className="w-full bg-primary text-white py-4 text-center">
+                File Organizer 2000 is now Note Companion!
+              </div>
+
               <div className="flex-1 w-full flex flex-col items-center">
                 <div className="w-full border-b border-gray-700 bg-background backdrop-blur supports-[backdrop-filter]:bg-background/60">
                   <div className="mx-auto max-w-7xl px-6 py-4">
