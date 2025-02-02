@@ -65,8 +65,8 @@ export function PricingCards() {
     <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-7xl mx-auto px-4">
       {/* Self-Hosted */}
       <div className="relative group h-full">
-        <div className="absolute -inset-0.5 rounded-2xl bg-gradient-to-r from-primary/20 via-primary/10 to-primary/20 group-hover:from-primary/40 group-hover:via-primary/25 group-hover:to-primary/40 transition-all duration-300" />
-        <div className="relative h-full rounded-2xl bg-background/60 backdrop-blur-sm p-6 flex flex-col justify-between">
+      <div className="absolute -inset-0.5 border border-2 border-black-500 rounded-2xl bg-gradient-to-r from-primary/20 via-primary/10 to-primary/20 group-hover:from-primary/40 group-hover:via-primary/25 group-hover:to-primary/40 transition-all duration-300" />
+      <div className="relative h-full rounded-2xl bg-background/100 backdrop-blur-sm p-6 flex flex-col justify-between">
           <div>
             <h3 className="text-2xl font-semibold mb-4">Self-Hosted</h3>
             <div className="h-[88px] flex flex-col justify-end mb-8">
@@ -91,8 +91,8 @@ export function PricingCards() {
 
       {/* Subscription - Most Popular */}
       <div className="relative group h-full">
-        <div className="absolute -inset-0.5 rounded-2xl bg-gradient-to-r from-primary/20 via-primary/10 to-primary/20 group-hover:from-primary/40 group-hover:via-primary/25 group-hover:to-primary/40 transition-all duration-300" />
-        <div className="relative h-full rounded-2xl bg-background/60 backdrop-blur-sm p-6 flex flex-col justify-between">
+        <div className="absolute -inset-0.5 border border-2 border-black-500 rounded-2xl bg-gradient-to-r from-primary/20 via-primary/10 to-primary/20 group-hover:from-primary/40 group-hover:via-primary/25 group-hover:to-primary/40 transition-all duration-300" />
+        <div className="relative h-full rounded-2xl bg-background/100 backdrop-blur-sm p-6 flex flex-col justify-between">
           <div>
             <div className="absolute -top-4 left-1/2 -translate-x-1/2">
 
@@ -151,8 +151,8 @@ export function PricingCards() {
 
       {/* Pay Once */}
       <div className="relative group h-full">
-        <div className="absolute -inset-0.5 rounded-2xl bg-gradient-to-r from-primary/20 via-primary/10 to-primary/20 group-hover:from-primary/40 group-hover:via-primary/25 group-hover:to-primary/40 transition-all duration-300" />
-        <div className="relative h-full rounded-2xl bg-background/60 backdrop-blur-sm p-6 flex flex-col justify-between">
+      <div className="absolute -inset-0.5 border border-2 border-black-500 rounded-2xl bg-gradient-to-r from-primary/20 via-primary/10 to-primary/20 group-hover:from-primary/40 group-hover:via-primary/25 group-hover:to-primary/40 transition-all duration-300" />
+      <div className="relative h-full rounded-2xl bg-background/100 backdrop-blur-sm p-6 flex flex-col justify-between">
           <div>
             <h3 className="text-2xl font-semibold mb-4">Lifetime Access</h3>
             <div className="h-[88px] flex flex-col justify-end mb-8">
