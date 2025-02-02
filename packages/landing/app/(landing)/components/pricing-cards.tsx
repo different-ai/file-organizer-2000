@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { ArrowRight, Check } from "lucide-react";
 import Link from 'next/link';
+import { Switch } from "@/components/ui/switch";
 
 export function PricingCards() {
   const [isYearly, setIsYearly] = useState(true);
@@ -102,11 +103,22 @@ export function PricingCards() {
             <span className="text-white">Most Popular</span>
           </div>
           <h3 className="text-xl font-semibold mb-2">Subscription</h3>
-          <div className="mb-2">
-            <span className="text-3xl font-bold">$15</span>
-            <span className="text-muted-foreground">/month</span>
+          <div className="flex items-center justify-center gap-2 mb-4">
+            <span className={`text-sm ${!isYearly ? 'text-primary' : 'text-muted-foreground'}`}>Monthly</span>
+            <Switch
+              checked={isYearly}
+              onCheckedChange={setIsYearly}
+              className="data-[state=checked]:bg-primary"
+            />
+            <span className={`text-sm ${isYearly ? 'text-primary' : 'text-muted-foreground'}`}>Yearly</span>
           </div>
-          <p className="text-sm text-muted-foreground mb-1">or $119/year (save ~33%)</p>
+          <div className="mb-2">
+            <span className="text-3xl font-bold">{isYearly ? "$119" : "$15"}</span>
+            <span className="text-muted-foreground">{isYearly ? "/year" : "/month"}</span>
+          </div>
+          {isYearly && (
+            <p className="text-sm text-primary mb-1">Save ~33% with yearly billing</p>
+          )}
           <p className="text-muted-foreground mb-6">No setup required</p>
           <div className="space-y-4 flex-grow mb-8">
             <div className="flex items-center gap-2">
