@@ -48,7 +48,7 @@ export function FaqSection() {
           />
           <FaqItem
             question="Privacy Policy & Contact"
-            answer="We take privacy seriously. Your data stays local unless explicitly shared. Contact us at support@fileorganizer2000.com for any questions."
+            answer="We take privacy seriously. Your data stays local unless explicitly shared. Contact us at alex@fileorganizer2000.com for any questions."
           />
         </div>
       </div>

@@ -22,7 +22,7 @@ import {
 } from "@/app/dashboard/pricing/actions";
 
 export function PricingCards() {
-  const [isYearly, setIsYearly] = useState(true);
+  const [isYearly, setIsYearly] = useState(false);
   const [isLifetime, setIsLifetime] = useState(false);
 
   const handlePlanSelection = async (planKey: string) => {
@@ -89,9 +89,7 @@ export function PricingCards() {
               <CardTitle>{product.name}</CardTitle>
               <div className="flex items-center gap-2 mt-2 mb-2">
                 <span>
-                  {isSubscription
-                    ? "Monthly"
-                    : "Yours forever w/ 1 year of updates"}
+                  {isSubscription ? "Monthly" : "Yours forever w/ 1 year of updates"}
                 </span>
                 <Switch
                   checked={isSubscription ? isYearly : isLifetime}
@@ -103,7 +101,18 @@ export function PricingCards() {
             <CardDescription className="text-2xl font-bold">
               ${price.amount / 100}
               {isSubscription && (
-                <span className="text-sm">/{price.interval}</span>
+                <span className="text-sm font-normal text-muted-foreground">
+                  /{price.interval}
+                  {isYearly ? (
+                    <div className="text-xs text-primary font-medium mt-1">
+                      Save ~33% with yearly billing
+                    </div>
+                  ) : (
+                    <div className="text-xs text-primary font-medium mt-1">
+                      First month $9 with code ANIMUS
+                    </div>
+                  )}
+                </span>
               )}
             </CardDescription>
           </div>

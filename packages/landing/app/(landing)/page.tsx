@@ -254,6 +254,11 @@ export default function Page() {
             <p className="text-lg text-muted-foreground mb-12">
               Whether you're a solo note-taker or a power user looking for advanced features, we've got you covered.
             </p>
+            <div className="bg-[#EBF5FF] border-1 border-[#2E90FA] rounded-lg p-4 mb-12 max-w-3xl mx-auto text-center">
+              <p className="text-[#1570EF]">
+                Educators and students qualify for a 50% discount on the Lifetime plan or a special Monthly rate of $9. To claim this offer, please reach out to us via email at alex@fileorganizer2000.com
+              </p>
+            </div>
           </div>
           <PricingCards />
         </div>
