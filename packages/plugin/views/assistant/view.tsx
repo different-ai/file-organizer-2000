@@ -111,6 +111,7 @@ function TabButton({
       onClick={onClick}
       className={`
                 fo-px-3 fo-py-2 fo-text-sm fo-font-medium fo-shadow-none fo-cursor-pointer fo-bg-transparent
+
        ${
          isActive
            ? "fo-bg-[--interactive-accent] fo-text-[--text-on-accent] "
@@ -142,7 +143,7 @@ function AssistantContent({
 
   return (
     <div className="flex flex-col h-full ">
-      <div className="flex bg-[--background-primary] shadow-none w-fit">
+      <div className="flex  shadow-none w-fit space-x-2">
         <TabButton
           isActive={activeTab === "organizer"}
           onClick={() => setActiveTab("organizer")}
