@@ -2,7 +2,10 @@
 
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { ThemeProvider } from 'next-themes'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
+import posthog from 'posthog-js'
+import { PostHogProvider as PHProvider } from 'posthog-js/react'
+import PostHogPageView from "./PostHogPageView"
 
 export default function Providers({ children }: { children: React.ReactNode }) {
   const [queryClient] = useState(() => new QueryClient({
@@ -15,6 +18,15 @@ export default function Providers({ children }: { children: React.ReactNode }) {
     },
   }))
 
+  useEffect(() => {
+    posthog.init('phc_f004Gv83AkfXh2WJ9XQ7zqaujgajgiS3YXEYa52Evfp', {
+      api_host: "/ingest",
+      ui_host: 'https://us.posthog.com',
+      capture_pageview: false, // Disable automatic pageview capture, as we capture manually
+      capture_pageleave: true, // Enable pageleave capture
+    })
+  }, [])
+
   return (
     <QueryClientProvider client={queryClient}>
       <ThemeProvider
@@ -22,7 +34,10 @@ export default function Providers({ children }: { children: React.ReactNode }) {
         enableSystem
         disableTransitionOnChange
       >
-        {children}
+        <PHProvider client={posthog}>
+          <PostHogPageView />
+          {children}
+        </PHProvider>
       </ThemeProvider>
     </QueryClientProvider>
   )
