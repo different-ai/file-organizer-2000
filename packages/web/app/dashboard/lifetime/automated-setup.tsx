@@ -487,7 +487,7 @@ export function AutomatedSetup() {
               <li>Open Obsidian settings and go to File Organizer settings</li>
               <li>Click on Advanced and enable "Self-Hosting" toggle</li>
               <li>Enter your project URL and license key in the settings</li>
-              <li>Click "Activate" to complete the setup</li>
+              <li>Click "Activate" in the general settings tab to complete the setup</li>
             </ol>
           </div>
 
