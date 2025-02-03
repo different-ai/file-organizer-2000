@@ -23,7 +23,7 @@ export const AppendButton: React.FC<AppendButtonProps> = ({ content }) => {
       className="p-1 hover:bg-[--background-modifier-hover] rounded"
       title="Append to current note"
     >
-      <FileText className="h-4 w-4 text-[--text-muted]" />
+      <FileText size={16} className="text-[--text-muted]" />
     </button>
   );
 };

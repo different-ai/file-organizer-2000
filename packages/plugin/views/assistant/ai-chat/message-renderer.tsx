@@ -43,8 +43,8 @@ export const MessageRenderer: React.FC<MessageRendererProps> = ({
 
         {message.role === "assistant" && (
           <div className="relative flex justify-end mt-2 space-x-2 mr-3">
-            <AppendButton text={message.content} />
-            <CopyButton text={message.content} />
+            <AppendButton content={message.content} />
+            <CopyButton content={message.content} />
           </div>
         )}
 
