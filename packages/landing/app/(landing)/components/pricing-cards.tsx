@@ -81,7 +81,7 @@ export function PricingCards() {
               ))}
             </div>
           </div>
-          <Link href="https://app.fileorganizer2000.com" passHref>
+          <Link href="https://github.com/different-ai/file-organizer-2000" passHref>
             <Button variant="outline" className="w-full">
               Get Started
             </Button>
