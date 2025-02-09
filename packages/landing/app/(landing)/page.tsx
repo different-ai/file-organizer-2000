@@ -91,6 +91,47 @@ export default function Page() {
         </div>
       </div>
 
+      {/* Meet Your All-in-One Workflow Buddy */}
+      <div className="w-full py-24 bg-white/5 backdrop-blur-sm">
+        <div className="mx-auto max-w-7xl px-6">
+          <h2 className="text-3xl font-bold tracking-tight sm:text-4xl mb-12 text-center">
+            Meet Your All-in-One Workflow Buddy
+          </h2>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            {/* Inbox Feature */}
+            <div className="bg-background/60 backdrop-blur-sm p-8 rounded-xl border border-border/40">
+              <div className="h-12 w-12 rounded-lg bg-primary/10 flex items-center justify-center mb-6">
+                <Inbox className="h-6 w-6 text-primary" />
+              </div>
+              <h3 className="text-xl font-semibold mb-3">Inbox</h3>
+              <p className="text-muted-foreground mb-4">
+                Instantly organize any dragged-and-dropped file. Note Companion automatically detects relevant tags and suggests the best folder or location.
+              </p>
+            </div>
+            {/* Chat Feature */}
+            <div className="bg-background/60 backdrop-blur-sm p-8 rounded-xl border border-border/40">
+              <div className="h-12 w-12 rounded-lg bg-primary/10 flex items-center justify-center mb-6">
+                <MessageSquare className="h-6 w-6 text-primary" />
+              </div>
+              <h3 className="text-xl font-semibold mb-3">Chat</h3>
+              <p className="text-muted-foreground mb-4">
+                Chat directly with your notes and bring other documents or folders into the conversation with a simple @ mention. Ask Note Companion to modify text, add summaries, rename files, or even split your notes—all in real time.
+              </p>
+            </div>
+            {/* Meetings Feature */}
+            <div className="bg-background/60 backdrop-blur-sm p-8 rounded-xl border border-border/40">
+              <div className="h-12 w-12 rounded-lg bg-primary/10 flex items-center justify-center mb-6">
+                <Video className="h-6 w-6 text-primary" />
+              </div>
+              <h3 className="text-xl font-semibold mb-3">Meetings</h3>
+              <p className="text-muted-foreground mb-4">
+                Supercharge your meeting notes using ScreenPipe, which continuously records your conversation. Tap "Enhance Meeting Note" and watch as it merges the last few minutes of discussion with your current file for perfectly contextualized notes.
+              </p>
+            </div>
+
+
+          </div>
+        </div>
       {/* Features Section */}
       <section className="py-24 space-y-32">
         {/* Feature 1 - Image on left */}
@@ -163,47 +204,6 @@ export default function Page() {
         </div>
       </section>
 
-      {/* Meet Your All-in-One Workflow Buddy */}
-      <div className="w-full py-24 bg-white/5 backdrop-blur-sm">
-        <div className="mx-auto max-w-7xl px-6">
-          <h2 className="text-3xl font-bold tracking-tight sm:text-4xl mb-12 text-center">
-            Meet Your All-in-One Workflow Buddy
-          </h2>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {/* Inbox Feature */}
-            <div className="bg-background/60 backdrop-blur-sm p-8 rounded-xl border border-border/40">
-              <div className="h-12 w-12 rounded-lg bg-primary/10 flex items-center justify-center mb-6">
-                <Inbox className="h-6 w-6 text-primary" />
-              </div>
-              <h3 className="text-xl font-semibold mb-3">Inbox</h3>
-              <p className="text-muted-foreground mb-4">
-                Instantly organize any dragged-and-dropped file. Note Companion automatically detects relevant tags and suggests the best folder or location.
-              </p>
-            </div>
-            {/* Chat Feature */}
-            <div className="bg-background/60 backdrop-blur-sm p-8 rounded-xl border border-border/40">
-              <div className="h-12 w-12 rounded-lg bg-primary/10 flex items-center justify-center mb-6">
-                <MessageSquare className="h-6 w-6 text-primary" />
-              </div>
-              <h3 className="text-xl font-semibold mb-3">Chat</h3>
-              <p className="text-muted-foreground mb-4">
-                Chat directly with your notes and bring other documents or folders into the conversation with a simple @ mention. Ask Note Companion to modify text, add summaries, rename files, or even split your notes—all in real time.
-              </p>
-            </div>
-            {/* Meetings Feature */}
-            <div className="bg-background/60 backdrop-blur-sm p-8 rounded-xl border border-border/40">
-              <div className="h-12 w-12 rounded-lg bg-primary/10 flex items-center justify-center mb-6">
-                <Video className="h-6 w-6 text-primary" />
-              </div>
-              <h3 className="text-xl font-semibold mb-3">Meetings</h3>
-              <p className="text-muted-foreground mb-4">
-                Supercharge your meeting notes using ScreenPipe, which continuously records your conversation. Tap "Enhance Meeting Note" and watch as it merges the last few minutes of discussion with your current file for perfectly contextualized notes.
-              </p>
-            </div>
-
-
-          </div>
-        </div>
       </div>
 
       {/* Why Note Companion */}
@@ -319,7 +319,7 @@ export default function Page() {
               Ready to revolutionize your note-taking?
             </h2>
             <p className="text-lg text-muted-foreground mb-10">
-              Get Note Companion and enjoy a 7-day free trial on any paid plan. Bring order to your Obsidian vault. Stop wrestling with messy notes and let AI handle the tedious tasks—so you can focus on what really matters.
+              Get Note Companion and enjoy a 7-day free trial on the yearly plan. Bring order to your Obsidian vault. Stop wrestling with messy notes and let AI handle the tedious tasks—so you can focus on what really matters.
             </p>
             <div className="flex items-center justify-center gap-x-6">
               <a href="https://app.fileorganizer2000.com">
