@@ -49,7 +49,9 @@ export default function Page() {
             <span className="text-primary block">Obsidian Workflow</span>
           </h1>
           <p className="mt-6 text-lg leading-8">
-            Note Companion is an Obsidian plugin that packs a powerful AI chat, automatic organization suggestions, and other wizardry.
+          
+           Note Companion is an AI-powered Obsidian plugin that improves your workflow by automatically organizing and formatting your notes—your way. 
+           {/* It gives you automatic organization suggestions,  packs a powerful AI chat, and other wizardry such as audio transcription, meeting notes enhancement, and ai image processing (OCR). */}
           </p>
           <div className="mt-10 flex items-center justify-center gap-x-6">
             <a href="https://app.fileorganizer2000.com">
@@ -178,7 +180,16 @@ export default function Page() {
                 Instantly organize any dragged-and-dropped file. Note Companion automatically detects relevant tags and suggests the best folder or location.
               </p>
             </div>
-
+            {/* Chat Feature */}
+            <div className="bg-background/60 backdrop-blur-sm p-8 rounded-xl border border-border/40">
+              <div className="h-12 w-12 rounded-lg bg-primary/10 flex items-center justify-center mb-6">
+                <MessageSquare className="h-6 w-6 text-primary" />
+              </div>
+              <h3 className="text-xl font-semibold mb-3">Chat</h3>
+              <p className="text-muted-foreground mb-4">
+                Chat directly with your notes and bring other documents or folders into the conversation with a simple @ mention. Ask Note Companion to modify text, add summaries, rename files, or even split your notes—all in real time.
+              </p>
+            </div>
             {/* Meetings Feature */}
             <div className="bg-background/60 backdrop-blur-sm p-8 rounded-xl border border-border/40">
               <div className="h-12 w-12 rounded-lg bg-primary/10 flex items-center justify-center mb-6">
@@ -190,16 +201,7 @@ export default function Page() {
               </p>
             </div>
 
-            {/* Chat Feature */}
-            <div className="bg-background/60 backdrop-blur-sm p-8 rounded-xl border border-border/40">
-              <div className="h-12 w-12 rounded-lg bg-primary/10 flex items-center justify-center mb-6">
-                <MessageSquare className="h-6 w-6 text-primary" />
-              </div>
-              <h3 className="text-xl font-semibold mb-3">Chat</h3>
-              <p className="text-muted-foreground mb-4">
-                Chat directly with your notes and bring other documents or folders into the conversation with a simple @ mention. Ask Note Companion to modify text, add summaries, rename files, or even split your notes—all in real time.
-              </p>
-            </div>
+
           </div>
         </div>
       </div>
