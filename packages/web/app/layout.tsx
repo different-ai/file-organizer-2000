@@ -10,7 +10,7 @@ import Link from "next/link";
 import ExtraUserSettings from "@/components/user-management";
 
 export const metadata: Metadata = {
-  title: "File Organizer 2000 - Dashboard",
+  title: "Note Companion - Dashboard",
   description: "Manage your account",
 };
 

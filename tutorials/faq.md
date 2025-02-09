@@ -21,16 +21,16 @@ A: Premium support is provided via email and Discord community. Plus an onboardi
 (e.g. Monthly to Yearly)
 A: It's possible via this link: https://app.fileorganizer2000.com/dashboard/pricing
 
-**Q: Is File Organizer 2000 compatible with local LLMs?**
+**Q: Is Note Companion compatible with local LLMs?**
 
-A: File Organizer 2000 can work with local LLMs, but the experience is currently not on par with GPT-4o in terms of performance and accuracy. Local models are generally adequate for simpler tasks like tag guessing and classification but require significant customization to match the quality of more advanced models. For instance, modifications like updating the "streamObject" function in the code may be necessary to ensure compatibility with tools like Ollama. While we aim to provide a fully local experience in the future, the current technology limits its practicality. We'd love to hear about your experiments to help improve support for local setups across the community!
+A: Note Companion can work with local LLMs, but the experience is currently not on par with GPT-4o in terms of performance and accuracy. Local models are generally adequate for simpler tasks like tag guessing and classification but require significant customization to match the quality of more advanced models. For instance, modifications like updating the "streamObject" function in the code may be necessary to ensure compatibility with tools like Ollama. While we aim to provide a fully local experience in the future, the current technology limits its practicality. We'd love to hear about your experiments to help improve support for local setups across the community!
 
 
 **Q: Why can’t I send messages in FO2000 Discord channels?**
 
 A: Some channels in the FO2000 Discord server are reserved for premium users. If you’ve purchased a license and still cannot access these channels, it’s likely your permissions have not yet been updated. Contact support with your Discord username, and the team will grant you access to the premium channels.
 
-**Q: How can I use File Organizer 2000 to populate YAML frontmatter in Obsidian automatically?**
+**Q: How can I use Note Companion to populate YAML frontmatter in Obsidian automatically?**
 
 A: You can create AI templates within FO2000 to generate YAML frontmatter. Below is an example template for generating properties:
 

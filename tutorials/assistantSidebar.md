@@ -9,7 +9,7 @@ The assistant sidebar is meant to give you more control in terms of how your fil
 But first, you'll need to follow these two steps to enable the feature:
 
 1. Go to experimental features in the plugin settings and add your early access code
-2. Go to the Hotkeys section in the main settings and search for `AI File Organizer 2000: Show Assistant`. Then, simply assign a keyboard command.
+2. Go to the Hotkeys section in the main settings and search for `AI Note Companion: Show Assistant`. Then, simply assign a keyboard command.
 
 Now for the actual functionality all you need to do is:
 

@@ -157,7 +157,7 @@ export const AssistantView: React.FC<AssistantViewProps> = ({
 
   if (isMediaFile) {
     return (
-      <EmptyState message="To process an image or audio file, move it to the File Organizer 2000 Inbox Folder (e.g. for image text extraction or audio transcription)." />
+      <EmptyState message="To process an image or audio file, move it to the Note Companion Inbox Folder (e.g. for image text extraction or audio transcription)." />
     );
   }
   if (!noteContent.trim()) {

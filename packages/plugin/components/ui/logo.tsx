@@ -22,7 +22,7 @@ export default function Logo() {
               className="font-mono text-sm leading-normal text-center text-purple-900"
               style={{ color: "var(--extracted-1of0zx5, rgb(163, 85, 255))" }}
             >
-              file organizer 2000
+              Note Companion
             </h2>
           </div>
         </div>

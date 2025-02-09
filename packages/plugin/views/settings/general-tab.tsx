@@ -92,7 +92,7 @@ export const GeneralTab: React.FC<GeneralTabProps> = ({ plugin, userId, email })
           <div>
             <h3 className="text-lg font-medium mb-2 mt-0">File Organizer License Key</h3>
             <p className="text-[--text-muted] mb-4">
-              Enter your license key to activate File Organizer 2000.
+              Enter your license key to activate Note Companion.
             </p>
           </div>
           
@@ -140,7 +140,7 @@ export const GeneralTab: React.FC<GeneralTabProps> = ({ plugin, userId, email })
 
       <div className="bg-[--background-primary-alt] p-4 rounded-lg">
         <p className="file-organizer-support-text mb-4">
-          File Organizer 2000 is an open-source initiative developed by two
+          Note Companion is an open-source initiative developed by two
           brothers. If you find it valuable, please{" "}
           <a
             href="https://fileorganizer2000.com/?utm_source=obsidian&utm_medium=in-app&utm_campaign=support-us"

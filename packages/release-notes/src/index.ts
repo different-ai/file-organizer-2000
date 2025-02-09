@@ -147,10 +147,10 @@ export async function generateReleaseNotes(
       const { object } = await generateObject({
         model,
         schema: releaseNotesSchema,
-        prompt: `You are a release notes generator for an Obsidian plugin called File Organizer 2000.
+        prompt: `You are a release notes generator for an Obsidian plugin called Note Companion.
 Given the following git diff between versions, generate a user-friendly release name and description.
 Focus on the user-facing changes and new features that will benefit users.
-File Organizer 2000 is an Obsidian plugin that helps you organize your files and notes.
+Note Companion is an Obsidian plugin that helps you organize your files and notes.
 
 It has a sidebar with a ai chat interface that interfaces with many obsidian capabilities.
 
@@ -178,7 +178,7 @@ It does things like:
 
 On top of that there's a special "inbox" functionality that automatically tags and categorizes files based on their content.
 
-When users drop files in their Obsidian vault special inbox folder, File Organizer 2000 will automatically tag and categorize them.
+When users drop files in their Obsidian vault special inbox folder, Note Companion will automatically tag and categorize them.
 They then can view in the "inbox" tab. the changes that were made to the files.
 
 

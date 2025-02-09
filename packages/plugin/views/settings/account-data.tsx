@@ -57,7 +57,7 @@ export const AccountData: React.FC<AccountDataProps> = ({ plugin, onLicenseKeyCh
       <div className="bg-[--background-primary-alt] p-4 rounded-lg">
         <h3 className="text-lg font-medium mb-2 mt-0">Get Started</h3>
         <p className="text-[--text-muted] mb-4">
-          Choose how you'd like to start using File Organizer 2000:
+          Choose how you'd like to start using Note Companion:
         </p>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">

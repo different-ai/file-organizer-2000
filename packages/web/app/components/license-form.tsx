@@ -73,7 +73,7 @@ const LicenseForm = () => {
                 </Button>{" "}
               </CardFooter>
               <CardDescription className="text-center">
-                You'll need it to unlock File Organizer 2000 in your plugin
+                You'll need it to unlock Note Companion in your plugin
                 settings.
               </CardDescription>
             </form>

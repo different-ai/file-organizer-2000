@@ -15,7 +15,7 @@ export default function SubscribersDashboard() {
     <div className="min-h-screen bg-gradient-to-b from-gray-100 to-gray-200 dark:from-gray-900 dark:to-gray-800">
       <main className="container mx-auto px-4 py-12">
         <h1 className="text-4xl font-bold mb-8">
-          Welcome to File Organizer 2000
+          Welcome to Note Companion
         </h1>
 
         <div className="grid md:grid-cols-2 gap-12">

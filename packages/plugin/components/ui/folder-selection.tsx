@@ -46,7 +46,7 @@ export default function FolderSelector() {
     <main className="flex flex-col items-center justify-center h-screen bg-gray-100 dark:bg-gray-900">
       <div className="max-w-md px-6 py-12 text-center">
         <h1 className="text-3xl font-bold tracking-tight text-gray-900 dark:text-gray-100 sm:text-4xl">
-          File Organizer 2000
+           Note Companion
         </h1>
         <p className="mt-4 text-lg text-gray-600 dark:text-gray-400">
           Select a folder and let our AI-powered organizer sort your files for

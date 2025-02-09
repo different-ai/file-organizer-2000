@@ -75,7 +75,7 @@ export interface ProductMetadata {
 // Product metadata configuration
 export const PRODUCTS = {
   SubscriptionMonthly: {
-    name: "File Organizer 2000 - Cloud",
+    name: "Note Companion - Cloud",
     metadata: {
       type: "subscription",
       plan: "monthly",
@@ -90,7 +90,7 @@ export const PRODUCTS = {
     features: cloudFeatures,
   },
   SubscriptionYearly: {
-    name: "File Organizer 2000 - Cloud",
+    name: "Note Companion - Cloud",
     metadata: {
       type: "subscription" as PlanType,
       plan: "subscription_yearly" as Plan,
@@ -106,7 +106,7 @@ export const PRODUCTS = {
     features: [...cloudFeatures, "Save 33% compared to monthly"],
   },
   PayOnceLifetime: {
-    name: "File Organizer 2000 - Pay Once",
+    name: "Note Companion - Pay Once",
     metadata: {
       type: "pay-once" as PlanType,
       plan: "lifetime_license" as Plan,
@@ -121,7 +121,7 @@ export const PRODUCTS = {
     features: [...standardPayOnceFeatures, "Multiple License Forever"],
   },
   PayOnceOneYear: {
-    name: "File Organizer 2000 - Pay Once",
+    name: "Note Companion - Pay Once",
     metadata: {
       type: "pay-once" as PlanType,
       plan: "one_year_license" as Plan,
@@ -135,7 +135,7 @@ export const PRODUCTS = {
     features: [...standardPayOnceFeatures, "One Year of Updates"],
   },
   PayOnceTopUp: {
-    name: "File Organizer 2000 - Top Up",
+    name: "Note Companion - Top Up",
     metadata: {
       type: "pay-once" as PlanType,
       plan: "top_up" as Plan,

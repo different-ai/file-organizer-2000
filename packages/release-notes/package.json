@@ -1,7 +1,7 @@
 {
   "name": "@file-organizer/release-notes",
   "version": "1.0.0",
-  "description": "Release notes generator for File Organizer 2000",
+  "description": "Release notes generator for Note Companion",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "scripts": {

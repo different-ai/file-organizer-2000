@@ -1,5 +1,5 @@
 
-# File Organizer 2000 Lifetime Setup FAQ
+# Note Companion Lifetime Setup FAQ
 
 ## If you need assistance 
 

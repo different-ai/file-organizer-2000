@@ -38,7 +38,7 @@ async function createAccountAndPurchase() {
 
 
     await stagehand.act({
-      action: "Under File Organizer 2000 - Cloud click on the get started button"
+      action: "Under Note Companion - Cloud click on the get started button"
     });
 
     // Fill out payment form
