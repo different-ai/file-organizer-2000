@@ -115,9 +115,9 @@ export default function Page() {
 
           {/* Second Feature */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-16 items-center mb-32">
-            <div className="relative aspect-[16/9] rounded-lg overflow-hidden ">
+          <div className="relative aspect-[16/14] rounded-lg overflow-hidden ">
               <Image
-                src="https://framerusercontent.com/images/deE4ZtaaqL7JMy9otNozH4yHZE.png"
+                src="https://framerusercontent.com/images/JYKEtCqETrv0vvMyVUQsN561kT0.png"
                 alt="Auto-Organization"
                 layout="fill"
                 objectFit="cover"
