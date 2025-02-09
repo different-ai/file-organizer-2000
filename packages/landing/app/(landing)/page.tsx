@@ -90,68 +90,76 @@ export default function Page() {
       </div>
 
       {/* Features Section */}
-      <div className="w-full py-24 bg-transparent">
-        <div className="mx-auto max-w-7xl px-6">
-          {/* First Feature */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-16 items-center mb-32">
-            <div>
-              <h2 className="text-3xl font-bold mb-4">Get organization suggestions for tags, folders, titles and templates.</h2>
-              <div className="relative aspect-[16/9] rounded-lg overflow-hidden ">
-                <Image
-                  src="https://framerusercontent.com/images/oURi6azSaqZ0OgErlSpbW6jBk.png"
-                  alt="Organization Features"
-                  layout="fill"
-                  objectFit="cover"
-                  className="rounded-lg"
-                />
-              </div>
+      <section className="py-24 space-y-32">
+        {/* Feature 1 - Image on left */}
+        <div className="container">
+          <div className="flex flex-col md:flex-row items-center gap-12">
+            <div className="flex-1">
+              <Image
+                src="https://framerusercontent.com/images/oURi6azSaqZ0OgErlSpbW6jBk.png"
+                width={700}
+                height={700}
+                alt="Organization Features"
+                className="rounded-lg"
+              />
             </div>
-            <div>
-              <p className="text-lg">
+            <div className="flex-1 space-y-4">
+              <h2 className="text-2xl font-bold">
+                Get organization suggestions for tags, folders, titles and templates.
+              </h2>
+              <p className="text-muted-foreground">
                 Let the AI do the thinking. Save your energy for what really matters.
               </p>
             </div>
           </div>
+        </div>
 
-          {/* Second Feature */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-16 items-center mb-32">
-          <div className="relative aspect-[16/14] rounded-lg overflow-hidden ">
+        {/* Feature 2 - Image on right */}
+        <div className="container">
+          <div className="flex flex-col md:flex-row-reverse items-center gap-12">
+            <div className="flex-1">
               <Image
                 src="https://framerusercontent.com/images/JYKEtCqETrv0vvMyVUQsN561kT0.png"
+                width={500}
+                height={500}
                 alt="Auto-Organization"
-                layout="fill"
-                objectFit="cover"
-                className="rounded-lg"
+                className="rounded-lg "
               />
             </div>
-            <div>
-              <h2 className="text-3xl font-bold mb-6">Auto-Organizes & Formats your Notes</h2>
-              <p className="text-lg">
+            <div className="flex-1 space-y-4">
+              <h2 className="text-2xl font-bold">
+                Auto-Organizes & Formats your Notes
+              </h2>
+              <p className="text-muted-foreground">
                 Automate your organization workflow with the Inbox so you can get rid of the busywork that keeps slowing you down.
               </p>
             </div>
           </div>
+        </div>
 
-          {/* Third Feature */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-16 items-center">
-            <div>
-              <h2 className="text-3xl font-bold mb-4">Powerful AI Chat</h2>
-              <p className="text-lg">
+        {/* Feature 3 - Image on left */}
+        <div className="container">
+          <div className="flex flex-col md:flex-row items-center gap-12">
+            <div className="flex-1">
+              <Image
+                src="https://framerusercontent.com/images/SarnueYFDCLxQFTzsbEDNshz3n0.png"
+                width={500}
+                height={500}
+                alt="AI Chat Features"
+                className="rounded-lg "
+              />
+            </div>
+            <div className="flex-1 space-y-4">
+              <h2 className="text-2xl font-bold">
+                Powerful AI Chat
+              </h2>
+              <p className="text-muted-foreground">
                 Allowing you to summarize youtube videos, search the web, or manage your vault with the latest GPT-4o model.
               </p>
             </div>
-            <div className="relative aspect-[4/3] rounded-lg overflow-hidden ">
-              <Image
-                src="https://framerusercontent.com/images/SarnueYFDCLxQFTzsbEDNshz3n0.png"
-                alt="AI Chat Features"
-                layout="fill"
-                objectFit="contain"
-                className="rounded-lg"
-              />
-            </div>
           </div>
         </div>
-      </div>
+      </section>
 
       {/* Meet Your All-in-One Workflow Buddy */}
       <div className="w-full py-24 bg-white/5 backdrop-blur-sm">
