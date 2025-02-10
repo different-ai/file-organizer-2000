@@ -50,7 +50,9 @@ export default function Page() {
           </h1>
           <p className="mt-6 text-lg leading-8">
           
-           Note Companion is an AI-powered Obsidian plugin that improves your workflow by automatically organizing and formatting your notes—your way. 
+           Note Companion is an AI-powered Obsidian plugin that improves your workflow by automatically organizing and formatting your notes—so you don’t have to.
+
+
            {/* It gives you automatic organization suggestions,  packs a powerful AI chat, and other wizardry such as audio transcription, meeting notes enhancement, and ai image processing (OCR). */}
           </p>
           <div className="mt-10 flex items-center justify-center gap-x-6">
