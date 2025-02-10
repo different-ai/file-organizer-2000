@@ -30,7 +30,12 @@ export const metadata: Metadata = {
 export default function Page() {
   return (
     <main className="flex min-h-screen flex-col items-center bg-background text-gray-700">
-    
+      {/* Name Change Banner */}
+      <div className="w-full bg-primary/5 border-b border-primary/10">
+        <div className="max-w-7xl mx-auto px-6 py-2 text-center text-sm text-muted-foreground">
+          File Organizer 2000 is now Note Companion
+        </div>
+      </div>
 
       {/* Hero Section */}
       <div className="w-full max-w-5xl px-6 py-12 sm:py-12 lg:px-8 text-center bg-transparent">
@@ -50,7 +55,7 @@ export default function Page() {
           </h1>
           <p className="mt-6 text-lg leading-8">
           
-           Note Companion is an AI-powered Obsidian plugin that improves your workflow by automatically organizing and formatting your notes—so you don’t have to.
+           Note Companion is an AI-powered Obsidian plugin that improves your workflow by automatically organizing and formatting your notes—so you don't have to.
 
 
            {/* It gives you automatic organization suggestions,  packs a powerful AI chat, and other wizardry such as audio transcription, meeting notes enhancement, and ai image processing (OCR). */}
