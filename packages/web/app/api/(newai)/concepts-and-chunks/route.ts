@@ -28,6 +28,7 @@ async function identifyConceptsAndChunks(content: string, model: LanguageModel) 
     1. Identify the key concepts in the document.
     2. For each concept, extract the most relevant chunk of information.
     3. Return a list of concepts, each with its name and associated chunk of information.
+    4. Preserve all markdown formatting in the extracted chunks.
     
     Aim to split the document into the fewest atomic chunks possible while capturing all key concepts.`,
   });

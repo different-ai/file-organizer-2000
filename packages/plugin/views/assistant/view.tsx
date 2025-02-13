@@ -9,6 +9,7 @@ import { AppContext } from "./provider";
 import AIChatSidebar from "./ai-chat/container";
 import { TooltipProvider } from "@radix-ui/react-tooltip";
 import { Meetings } from "./organizer/meetings/meetings";
+import ReactMarkdown from 'react-markdown';
 
 export const ORGANIZER_VIEW_TYPE = "fo2k.assistant.sidebar2";
 
@@ -51,6 +52,14 @@ function TabContent({
     };
   }, [plugin.app.workspace, plugin.app.vault]);
 
+  function renderNoteContent(content: string) {
+    return (
+      <div className="markdown-preview">
+        <ReactMarkdown>{content}</ReactMarkdown>
+      </div>
+    );
+  }
+
   return (
     <div className="relative h-full">
       <div
@@ -88,7 +97,7 @@ function TabContent({
           <Meetings
             plugin={plugin}
             file={activeFile}
-            content={noteContent}
+            content={renderNoteContent(noteContent)}
             refreshKey={refreshKey}
           />
         </div>
