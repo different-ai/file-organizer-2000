@@ -33,12 +33,117 @@ All web application code should be created in `packages/web/`
 
 ## Vercel AI SDK Integration
 
-### Setup
+The next iteration of the chatbot will be implemented using Vercel AI SDK, with the frontend components integrated directly into the Obsidian plugin and the backend APIs hosted in the web application.
+
+### Core Components
+
+#### 1. Frontend Integration (Plugin)
+```typescript
+import { useChat } from '@ai-sdk/react'
+
+export function Chat() {
+  const { messages, input, handleInputChange, handleSubmit } = useChat({
+    api: '/api/chat', // Points to the web backend
+    id: 'obsidian-chat',
+    onResponse: (response) => {
+      // Handle streaming responses
+    },
+    onFinish: (message) => {
+      // Handle completion
+    }
+  })
+}
+```
+
+#### 2. Backend API (Web)
 ```typescript
 import { StreamingTextResponse, LangChainStream } from 'ai'
 import { ChatOpenAI } from 'langchain/chat_models/openai'
 import { AIMessage, HumanMessage } from 'langchain/schema'
+
+// API route implementation
+export async function POST(req: Request) {
+  const { messages, context } = await req.json()
+  const { stream, handlers } = LangChainStream()
+  
+  const llm = new ChatOpenAI({
+    streaming: true,
+    modelName: 'gpt-4-turbo-preview'
+  })
+
+  // Process messages with context
+  llm.call(
+    [
+      ...context.map((c: string) => new SystemMessage(c)),
+      ...messages.map((m: any) => 
+        m.role === 'user' 
+          ? new HumanMessage(m.content)
+          : new AIMessage(m.content)
+      )
+    ],
+    {},
+    [handlers]
+  )
+
+  return new StreamingTextResponse(stream)
+}
 ```
+
+### Key Features
+
+1. **Streaming Responses**
+   - Real-time message streaming
+   - Automatic UI updates
+   - Progress indicators
+
+2. **Context Management**
+   - Maintain chat history
+   - Include vault context
+   - Handle file references
+
+3. **Tool Integration**
+   - File operations
+   - Note creation/editing
+   - Custom command execution
+
+4. **Error Handling**
+   - Graceful error recovery
+   - User feedback
+   - Automatic retries
+
+### Advanced Features
+
+1. **Message Persistence**
+   - Local storage integration
+   - Sync with backend
+   - History management
+
+2. **Multi-Modal Support**
+   - Handle text, images, files
+   - Process attachments
+   - Support rich content
+
+3. **Custom Tools**
+   - Define custom actions
+   - Handle tool callbacks
+   - Manage tool state
+
+### Implementation Notes
+
+1. **Security**
+   - API authentication
+   - Rate limiting
+   - Input validation
+
+2. **Performance**
+   - Message batching
+   - Efficient streaming
+   - Resource management
+
+3. **Error Recovery**
+   - Connection handling
+   - State recovery
+   - Fallback options
 
 ### API Route Implementation
 ```typescript
