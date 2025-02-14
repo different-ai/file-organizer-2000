@@ -5,7 +5,7 @@ import { handleAuthorization } from "@/lib/handleAuthorization";
 import { generateObject, LanguageModel } from "ai";
 import { z } from "zod";
 
-export const maxDuration = 120;
+export const maxDuration = 60;
 
 // Move the schema definition to the top level for better predictability
 const conceptsSchema = z.object({
