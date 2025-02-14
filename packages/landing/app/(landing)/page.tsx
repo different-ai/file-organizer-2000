@@ -31,8 +31,8 @@ export default function Page() {
   return (
     <main className="flex min-h-screen flex-col items-center bg-background text-gray-700">
       {/* Name Change Banner */}
-      <div className="w-full bg-primary/5 border-b border-primary/10">
-        <div className="max-w-7xl mx-auto px-6 py-2 text-center text-sm text-muted-foreground">
+      <div className="w-full bg-primary/5 border-b border-transparent bg-transparent ">
+        <div className="max-w-7xl mx-auto px-6 py-2 text-center text-sm bg-background">
           File Organizer 2000 is now Note Companion
         </div>
       </div>
