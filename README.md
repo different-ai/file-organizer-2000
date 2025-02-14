@@ -141,7 +141,7 @@ Process various types of content:
 
 ## How to use
 
-### A. AI Assistant View
+### A. AI Organizer
 
 Get suggestions and choose what to apply with the Assistant view. Here's how to use it:
 
