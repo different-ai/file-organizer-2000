@@ -100,20 +100,17 @@ export function PricingCards() {
             </div>
             <CardDescription className="text-2xl font-bold">
               ${price.amount / 100}
-              {isSubscription && (
-                <span className="text-sm font-normal text-muted-foreground">
-                  /{price.interval}
-                  {isYearly ? (
-                    <div className="text-xs text-primary font-medium mt-1">
-                      Save ~33% with yearly billing
-                    </div>
-                  ) : (
-                    <div className="text-xs text-primary font-medium mt-1">
-                      First month $9 with code ANIMUS
-                    </div>
-                  )}
-                </span>
-              )}
+                {isSubscription && (
+                  <span className="text-sm font-normal text-muted-foreground">
+                    /{price.interval}
+                    {isYearly && (
+                      <div className="text-xs text-primary font-medium mt-1">
+                        Save ~33% with yearly billing
+                      </div>
+                    )}
+                  </span>
+                )}
+         
             </CardDescription>
           </div>
         </CardHeader>
