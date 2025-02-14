@@ -119,7 +119,7 @@ export default function Page() {
       <div className="w-full py-24 bg-white/5 backdrop-blur-sm">
         <div className="mx-auto max-w-7xl px-6">
           <h2 className="text-3xl font-bold tracking-tight sm:text-4xl mb-12 text-center">
-            Meet Your All-in-One Workflow Buddy
+            What it does for you
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             {/* Inbox Feature */}
@@ -129,13 +129,16 @@ export default function Page() {
               </div>
               <h3 className="text-xl font-semibold mb-3">Automated Organization</h3>
               <p className="text-muted-foreground mb-4">
-              Get AI-driven suggestions for folders, tags, filenames, and more.
+              Get AI-driven suggestions for folders, tags, filenames & formatting. Click to apply in the Organizer or automate the full process via the dedicated Inbox folder. <br /><br />
               {/* Drag and drop your notes into the dedicated "Inbox" folder for instant organization.
               Or get more control by choosing suggestions in the organizer sidepanel. */}
               
         {/* Note Companion automatically detects relevant tags and suggests the best folder for your note.
         Drag and drop your notes into the dedicated "Inbox" folder for instant organization.
         Or get more control by choosing suggestions in the organizer sidepanel. */}
+              </p>
+              <p className="text-muted-foreground mb-4">
+             
               </p>
             </div>
             {/* Chat Feature */}
@@ -340,7 +343,7 @@ export default function Page() {
       </div>
 
       {/* Media & Features Showcase */}
-      {/* <section className="w-full py-24 bg-white/5 backdrop-blur-sm">
+      <section className="w-full py-24 bg-white/5 backdrop-blur-sm">
         <div className="mx-auto max-w-7xl px-6">
           <h2 className="text-3xl font-bold tracking-tight text-center mb-12">
             Discover More Features
@@ -348,33 +351,28 @@ export default function Page() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
             <div className="relative aspect-video rounded-lg overflow-hidden">
               <iframe
-                src="https://www.youtube.com/embed/NQjZcL4sThs?iv_load_policy=3&rel=0&modestbranding=1&playsinline=1"
+                src="https://www.youtube.com/embed/IcfgdJ6b4hk?iv_load_policy=3&rel=0&modestbranding=1&playsinline=1"
+
+                frameBorder="0"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                allowFullScreen
+               
+                className="w-[100%] h-full"
+              ></iframe>
+            </div>
+            <div className="relative aspect-video rounded-lg overflow-hidden">
+              <iframe
+                src="https://www.youtube.com/embed/lUo3AVnlSsI?iv_load_policy=3&rel=0&modestbranding=1&playsinline=1"
+
                 frameBorder="0"
                 allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                 allowFullScreen
                 className="w-full h-full"
               ></iframe>
             </div>
-            <div className="space-y-8">
-              <div className="flex justify-center">
-                <Image
-                  src="https://framerusercontent.com/images/deE4ZtaaqL7JMy9otNozH4yHZE.png"
-                  alt="Feature Preview"
-                  width={512}
-                  height={512}
-                  className="rounded-lg shadow-lg"
-                />
-              </div>
-              <div className="text-center">
-                <h3 className="text-xl font-semibold mb-4">AI-Powered Organization</h3>
-                <p className="text-muted-foreground">
-                  Let our intelligent system handle the organization while you focus on creating and capturing knowledge.
-                </p>
-              </div>
-            </div>
           </div>
         </div>
-      </section> */}
+      </section>
 
       {/* CTA Section */}
       <div className="w-full bg-transparent">
