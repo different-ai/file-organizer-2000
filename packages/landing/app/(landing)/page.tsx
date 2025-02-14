@@ -110,9 +110,15 @@ export default function Page() {
               <div className="h-12 w-12 rounded-lg bg-primary/10 flex items-center justify-center mb-6">
                 <Inbox className="h-6 w-6 text-primary" />
               </div>
-              <h3 className="text-xl font-semibold mb-3">Inbox</h3>
+              <h3 className="text-xl font-semibold mb-3">Automated Organization</h3>
               <p className="text-muted-foreground mb-4">
-                Instantly organize any dragged-and-dropped file. Note Companion automatically detects relevant tags and suggests the best folder or location.
+              Get AI-driven suggestions for folders, tags, filenames, and more.
+              {/* Drag and drop your notes into the dedicated "Inbox" folder for instant organization.
+              Or get more control by choosing suggestions in the organizer sidepanel. */}
+              
+        {/* Note Companion automatically detects relevant tags and suggests the best folder for your note.
+        Drag and drop your notes into the dedicated "Inbox" folder for instant organization.
+        Or get more control by choosing suggestions in the organizer sidepanel. */}
               </p>
             </div>
             {/* Chat Feature */}
@@ -132,7 +138,7 @@ export default function Page() {
               </div>
               <h3 className="text-xl font-semibold mb-3">Meetings</h3>
               <p className="text-muted-foreground mb-4">
-                Supercharge your meeting notes using ScreenPipe, which continuously records your conversation. Tap "Enhance Meeting Note" and watch as it merges the last few minutes of discussion with your current file for perfectly contextualized notes.
+                Supercharge your meeting notes combining Note Companion with ScreenPipe, which continuously records your conversation (locally). Tap "Enhance Meeting Note" and watch as it merges the last few minutes of discussion with your current file for perfectly contextualized notes.
               </p>
             </div>
 
@@ -158,7 +164,7 @@ export default function Page() {
                 Get organization suggestions for tags, folders, titles and templates.
               </h2>
               <p className="text-muted-foreground">
-                Let the AI do the thinking. Save your energy for what really matters.
+                Let the AI do the thinking. Save your energy for what really matters, the content of your notes.
               </p>
             </div>
           </div>
@@ -214,7 +220,7 @@ export default function Page() {
       </div>
 
       {/* Why Note Companion */}
-      <div className="w-full py-24 bg-transparent">
+      {/* <div className="w-full py-24 bg-transparent">
         <div className="mx-auto max-w-7xl px-6">
           <h2 className="text-3xl font-bold tracking-tight sm:text-4xl mb-12 text-center">
             Why Note Companion?
@@ -246,7 +252,9 @@ export default function Page() {
             </div>
           </div>
         </div>
-      </div>
+      </div> */}
+
+
 
       {/* Demo Section */}
       <div className="w-full max-w-[1200px] px-6 py-24 bg-white/5 backdrop-blur-sm">
@@ -260,6 +268,39 @@ export default function Page() {
         </div>
         <Demo />
       </div>
+
+
+
+      {/* Testimonials Section */}
+      <section className="w-full py-24 bg-transparent">
+        <div className="mx-auto max-w-7xl px-6">
+          <h2 className="text-2xl font-semibold text-center mb-12">stuff people say</h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            {testimonials.map((testimonial, index) => (
+              <div key={index} className="bg-white backdrop-blur-sm p-8 rounded-xl border border-black">
+                <div className="flex items-center space-x-4 mb-4">
+                  <div className="h-12 w-12 rounded-full overflow-hidden">
+                    <Image
+                      src={testimonial.avatar}
+                      alt={testimonial.name}
+                      width={48}
+                      height={48}
+                      className="object-cover"
+                    />
+                  </div>
+                  <div>
+                    <h3 className="font-semibold text-xl">{testimonial.name}</h3>
+                    <p className="text-muted-foreground text-sm">{testimonial.handle}</p>
+                  </div>
+                </div>
+                <p className="text-muted-foreground">{testimonial.quote}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+      
+
 
       {/* Pricing Section */}
       <div className="w-full py-24 sm:py-32 bg-transparent">
@@ -323,7 +364,7 @@ export default function Page() {
         <div className="mx-auto max-w-7xl px-6 py-24 sm:py-32 lg:px-8">
           <div className="mx-auto max-w-2xl text-center">
             <h2 className="text-3xl font-bold tracking-tight sm:text-4xl mb-6">
-              Ready to revolutionize your note-taking?
+              Tired of having a messy Obsidian vault?
             </h2>
             <p className="text-lg text-muted-foreground mb-10">
               Get Note Companion and enjoy a 7-day free trial on the yearly plan. Bring order to your Obsidian vault. Stop wrestling with messy notes and let AI handle the tedious tasks—so you can focus on what really matters.
@@ -340,34 +381,7 @@ export default function Page() {
         </div>
       </div>
 
-      {/* Testimonials Section */}
-      <section className="w-full py-24 bg-transparent">
-        <div className="mx-auto max-w-7xl px-6">
-          <h2 className="text-2xl font-semibold text-center mb-12">stuff people say</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {testimonials.map((testimonial, index) => (
-              <div key={index} className="bg-white backdrop-blur-sm p-8 rounded-xl border border-white/10">
-                <div className="flex items-center space-x-4 mb-4">
-                  <div className="h-12 w-12 rounded-full overflow-hidden">
-                    <Image
-                      src={testimonial.avatar}
-                      alt={testimonial.name}
-                      width={48}
-                      height={48}
-                      className="object-cover"
-                    />
-                  </div>
-                  <div>
-                    <h3 className="font-semibold text-xl">{testimonial.name}</h3>
-                    <p className="text-muted-foreground text-sm">{testimonial.handle}</p>
-                  </div>
-                </div>
-                <p className="text-muted-foreground">{testimonial.quote}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
+
 
       {/* FAQ Section */}
       <FaqSection />
@@ -418,9 +432,9 @@ const testimonials = [
     avatar: "https://framerusercontent.com/images/QZfOvbSc2pcwnwLmQULhUQ9h0UA.jpg",
   },
   {
-    name: "albertleonardo",
-    handle: "@albertleonardo",
-    quote: "The solution that i have been looking for all this time.",
+    name: "izzy",
+    handle: "@izzy",
+    quote: "Note Companion AI has now automatically organized 3,642 notes for me. I love it. It saves me so much time, and it does a great job with classifying tags, and folder selection.",
     avatar: "https://framerusercontent.com/images/aZNudzX3wJdKLGtCDHuJSM4jDc.png",
   },
   {
