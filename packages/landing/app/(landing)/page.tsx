@@ -50,9 +50,26 @@ export default function Page() {
             />
           </div>
           <h1 className="text-4xl font-bold tracking-tight sm:text-6xl">
-            <span>Automate your</span>
-            <span className="text-primary block">Obsidian Workflow</span>
+            <span>Keep your Vault</span>
+            <span className="text-primary block">Organized</span>
           </h1>
+          <div className="flex items-center justify-center gap-3 mt-4">
+            <div className="h-[1px] w-8 bg-muted-foreground/20"></div>
+            <span className="text-xl text-muted-foreground/80 relative">
+              without the hassle
+              <svg className="absolute -bottom-[4px] left-0 w-full" height="8" viewBox="0 0 200 8" preserveAspectRatio="none">
+                <path 
+                  d="M0,7 Q100,-1 200,7" 
+                  stroke="blue" 
+                  strokeWidth="2.5" 
+                  strokeLinecap="round" 
+                  fill="none"
+                  className="opacity-50"
+                />
+              </svg>
+            </span>
+            <div className="h-[1px] w-8 bg-muted-foreground/20"></div>
+          </div>
           <p className="mt-6 text-lg leading-8">
           
            Note Companion is an AI-powered Obsidian plugin that improves your workflow by automatically organizing and formatting your notes—so you don't have to.
