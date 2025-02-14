@@ -106,7 +106,7 @@ export const PRODUCTS = {
     features: [...cloudFeatures, "Save 33% compared to monthly"],
   },
   PayOnceLifetime: {
-    name: "Note Companion - Pay Once",
+    name: "Note Companion - Lifetime",
     metadata: {
       type: "pay-once" as PlanType,
       plan: "lifetime_license" as Plan,
@@ -121,7 +121,7 @@ export const PRODUCTS = {
     features: [...standardPayOnceFeatures, "Multiple License Forever"],
   },
   PayOnceOneYear: {
-    name: "Note Companion - Pay Once",
+    name: "Note Companion - Lifetime",
     metadata: {
       type: "pay-once" as PlanType,
       plan: "one_year_license" as Plan,
