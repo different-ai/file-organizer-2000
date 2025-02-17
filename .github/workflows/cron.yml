@@ -2,10 +2,8 @@ name: Scheduled Tasks
 
 on:
   schedule:
-    # Reset tokens at midnight on the first day of each month
-    - cron: '0 0 1 * *'
-    # Redeploy at midnight every day
-    - cron: '0 0 * * *'
+    - cron: '0 0 1 * *'   # Midnight on 1st
+    - cron: '0 0 * * *'   # Daily midnight
   workflow_dispatch:
     inputs:
       job_to_run:
@@ -17,14 +15,24 @@ on:
           - deploy-latest-server-version
           - both
 
-env:
-  CRON_SECRET: ${{ secrets.CRON_SECRET }}
-
 jobs:
   reset-tokens:
     runs-on: ubuntu-latest
-    if: github.event.schedule == '0 0 1 * *' || github.event.inputs.job_to_run == 'reset-tokens' || github.event.inputs.job_to_run == 'both'
+    if: >
+      github.event_name == 'workflow_dispatch' &&
+      (
+        github.event.inputs.job_to_run == 'reset-tokens' ||
+        github.event.inputs.job_to_run == 'both'
+      )
+      ||
+      (
+        github.event_name == 'schedule' &&
+        ( ( startsWith(needs.date.outputs.day, '01') ) )
+      )
     steps:
+      - name: Get Current Day
+        id: date
+        run: echo "day=$(date +'%d')" >> $GITHUB_OUTPUT
       - name: Reset Tokens
         run: |
           curl -X GET \
@@ -33,10 +41,23 @@ jobs:
 
   deploy-latest-server-version:
     runs-on: ubuntu-latest
-    if: github.event.schedule == '0 0 * * *' || github.event.inputs.job_to_run == 'deploy-latest-server-version' || github.event.inputs.job_to_run == 'both'
+    if: >
+      github.event_name == 'workflow_dispatch' &&
+      (
+        github.event.inputs.job_to_run == 'deploy-latest-server-version' ||
+        github.event.inputs.job_to_run == 'both'
+      )
+      ||
+      (
+        github.event_name == 'schedule' &&
+        ! ( startsWith(needs.date.outputs.day, '01') )
+      )
     steps:
+      - name: Get Current Day
+        id: date
+        run: echo "day=$(date +'%d')" >> $GITHUB_OUTPUT
       - name: Deploy latest server version
         run: |
           curl -X GET \
             -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}" \
-            ${{ secrets.VERCEL_URL }}/api/cron/redeploy 
+            ${{ secrets.VERCEL_URL }}/api/cron/redeploy
