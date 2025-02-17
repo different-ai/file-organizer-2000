@@ -20,7 +20,7 @@ export const ClassificationContainer: React.FC<ClassificationBoxProps> = ({
   refreshKey,
 }) => {
   const [formatBehavior, setFormatBehavior] = React.useState<
-    "override" | "newFile"
+    "override" | "newFile" | "append"
   >(plugin.settings.formatBehavior || DEFAULT_SETTINGS.formatBehavior);
   const [backupFile, setBackupFile] = React.useState<string | null>(null);
 
@@ -44,8 +44,17 @@ export const ClassificationContainer: React.FC<ClassificationBoxProps> = ({
           content: fileContent,
           formattingInstruction: formattingInstruction,
         });
-      } else {
+      } else if (formatBehavior === "newFile") {
         await plugin.streamFormatInSplitView({
+          file: file,
+          content: fileContent,
+          formattingInstruction: formattingInstruction,
+        });
+      } else if (formatBehavior === "append") {
+        // Placeholder for append logic:
+        // will not create a backup file
+        // will append to the end of the current note
+        await plugin.streamFormatAppendInCurrentNote({
           file: file,
           content: fileContent,
           formattingInstruction: formattingInstruction,
@@ -94,7 +103,7 @@ export const ClassificationContainer: React.FC<ClassificationBoxProps> = ({
   const handleFormatBehaviorChange = async (
     event: React.ChangeEvent<HTMLSelectElement>
   ) => {
-    const newBehavior = event.target.value as "override" | "newFile";
+    const newBehavior = event.target.value as "override" | "newFile" | "append";
     setFormatBehavior(newBehavior);
     plugin.settings.formatBehavior = newBehavior;
     await plugin.saveSettings();
@@ -116,6 +125,7 @@ export const ClassificationContainer: React.FC<ClassificationBoxProps> = ({
           >
             <option value="override">Replace</option>
             <option value="newFile">New File</option>
+            <option value="append">Append</option>
           </select>
           <div className="flex justify-between items-center">
             {backupFile && (
