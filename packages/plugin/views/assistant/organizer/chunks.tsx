@@ -9,12 +9,23 @@ interface DocumentChunksProps {
   activeFile: TFile;
 }
 
-export const AtomicNotes: React.FC<DocumentChunksProps> = ({ plugin, activeFile }) => {
+interface DocumentChunksProps {
+  plugin: FileOrganizer;
+  activeFile: TFile;
+  refreshKey?: number;
+}
+
+export const AtomicNotes: React.FC<DocumentChunksProps> = ({ plugin, activeFile, refreshKey }) => {
   const [concepts, setConcepts] = React.useState<string[]>([]);
   const [chunks, setChunks] = React.useState<{ concept: string; content: string }[]>([]);
   const [loading, setLoading] = React.useState(false);
 
-  const parseDocument = async () => {
+  React.useEffect(() => {
+    setConcepts([]);
+    setChunks([]);
+  }, [activeFile, refreshKey]);
+
+  const parseDocument = React.useCallback(async () => {
     setLoading(true);
     try {
       const content = await plugin.app.vault.read(activeFile);
@@ -26,7 +37,7 @@ export const AtomicNotes: React.FC<DocumentChunksProps> = ({ plugin, activeFile 
     } finally {
       setLoading(false);
     }
-  };
+  }, [activeFile, plugin]);
 
   const createFileInSameFolder = async (title: string, chunkContent: string) => {
     try {
@@ -103,7 +114,7 @@ export const AtomicNotes: React.FC<DocumentChunksProps> = ({ plugin, activeFile 
           <h4 className="text-lg font-medium mb-2">{concept}</h4>
           {chunks
             .filter(chunk => chunk.concept === concept)
-            .map((chunk, chunkIndex) => renderChunk(chunk, `${index}-${chunkIndex}`))}
+            .map((chunk, chunkIndex) => renderChunk(chunk, chunkIndex))}
         </div>
       ))}
     </div>

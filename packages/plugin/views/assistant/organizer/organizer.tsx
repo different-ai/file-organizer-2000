@@ -230,7 +230,7 @@ export const AssistantView: React.FC<AssistantViewProps> = ({
         <>
           <SectionHeader text="Atomic notes" icon="✂️ " />
           {renderSection(
-            <AtomicNotes plugin={plugin} activeFile={activeFile} />,
+            <AtomicNotes plugin={plugin} activeFile={activeFile} refreshKey={refreshKey} />,
             "Error loading atomic notes"
           )}
         </>
