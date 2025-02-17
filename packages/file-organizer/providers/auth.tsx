@@ -1,6 +1,6 @@
 import { ClerkProvider } from "@clerk/clerk-expo";
 import * as SecureStore from "expo-secure-store";
-import { useCallback } from "react";
+import Constants from 'expo-constants';
 
 const tokenCache = {
   async getToken(key: string) {
@@ -20,11 +20,15 @@ const tokenCache = {
 };
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
-  const publishableKey = process.env.EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY;
+  const publishableKey = Constants.expoConfig?.extra?.clerkPublishableKey as string;
+
+  if (!publishableKey) {
+    throw new Error("Missing Clerk Publishable Key");
+  }
 
   return (
     <ClerkProvider 
-      publishableKey={publishableKey!}
+      publishableKey={publishableKey}
       tokenCache={tokenCache}
     >
       {children}
