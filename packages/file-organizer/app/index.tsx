@@ -1,6 +1,22 @@
 import { View, Text, StyleSheet } from 'react-native';
+import { useAuth } from '@clerk/clerk-expo';
+import { useRouter } from 'expo-router';
+import { useEffect } from 'react';
 
 export default function Index() {
+  const { isSignedIn, isLoaded } = useAuth();
+  const router = useRouter();
+
+  useEffect(() => {
+    if (isLoaded && !isSignedIn) {
+      router.push('/(auth)/sign-in');
+    }
+  }, [isLoaded, isSignedIn]);
+
+  if (!isLoaded || !isSignedIn) {
+    return null;
+  }
+
   return (
     <View style={styles.container}>
       <Text style={styles.text}>File Organizer</Text>
