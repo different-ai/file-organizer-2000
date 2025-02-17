@@ -8,6 +8,7 @@
     "test": "turbo run test"
   },
   "devDependencies": {
+    "node-gyp": "^11.1.0",
     "turbo": "latest",
     "typescript": "^5.2.2"
   },
