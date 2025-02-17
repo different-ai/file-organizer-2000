@@ -30,8 +30,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
   },
   plugins: [
     'expo-router',
-    'expo-secure-store',
-    'expo-crypto'
+    'expo-secure-store'
   ],
   extra: {
     clerkPublishableKey: process.env.EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY

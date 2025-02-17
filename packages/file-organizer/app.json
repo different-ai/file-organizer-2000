@@ -27,7 +27,6 @@
       "favicon": "./assets/favicon.png"
     },
     "plugins": ["expo-router"],
-    "scheme": "file-organizer",
-    "entryPoint": "./app/index.tsx"
+    "scheme": "file-organizer"
   }
 }
