@@ -8,6 +8,8 @@ import { useEffect } from 'react';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import 'react-native-reanimated';
+import { Platform } from 'react-native';
+import * as Linking from 'expo-linking';
 
 import { useColorScheme } from '@/hooks/useColorScheme';
 
@@ -26,6 +28,19 @@ export default function RootLayout() {
     }
   }, [loaded]);
 
+  useEffect(() => {
+    if (Platform.OS === 'ios') {
+      // Handle incoming shared files
+      const subscription = Linking.addEventListener('url', (event) => {
+        console.log('Received URL:', event.url);
+      });
+
+      return () => {
+        subscription.remove();
+      };
+    }
+  }, []);
+
   if (!loaded) {
     return null;
   }
@@ -37,6 +52,19 @@ export default function RootLayout() {
           <Stack>
             <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
             <Stack.Screen name="+not-found" options={{ title: 'Not Found' }} />
+            <Stack.Screen
+              name="index"
+              options={{
+                title: 'Home',
+              }}
+            />
+            <Stack.Screen
+              name="shared"
+              options={{
+                title: 'Shared File',
+                presentation: 'modal',
+              }}
+            />
           </Stack>
           <StatusBar style={colorScheme === 'dark' ? 'light' : 'dark'} />
         </ThemeProvider>
