@@ -843,7 +843,12 @@ export default class FileOrganizer extends Plugin {
       return;
     }
 
-    await this.app.vault.append(file, `\n${formattedTag}`);
+    // If we find no '#' symbol at all, add a blank line before appending the first tag
+    if (!fileContent.includes("#")) {
+      await this.app.vault.append(file, `\n\n${formattedTag}`);
+    } else {
+      await this.app.vault.append(file, `\n${formattedTag}`);
+    }
   }
 
   async ensureAssistantView(): Promise<AssistantViewWrapper | null> {
