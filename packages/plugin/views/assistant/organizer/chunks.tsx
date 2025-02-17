@@ -23,9 +23,6 @@ export const AtomicNotes: React.FC<DocumentChunksProps> = ({ plugin, activeFile,
   React.useEffect(() => {
     setConcepts([]);
     setChunks([]);
-    if (activeFile) {
-      parseDocument();
-    }
   }, [activeFile, refreshKey]);
 
   const parseDocument = React.useCallback(async () => {
