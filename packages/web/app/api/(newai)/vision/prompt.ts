@@ -1,4 +1,19 @@
-export const generateMessages = (model: string, image: string, customInstructions: string): any => {
+interface ChatMessageContent {
+  type: 'text' | 'image';
+  text?: string;
+  image?: string;
+}
+
+interface ChatMessage {
+  role: 'system' | 'user' | 'assistant';
+  content: ChatMessageContent[];
+}
+
+export const generateMessages = (
+  model: string,
+  image: string,
+  customInstructions: string
+): ChatMessage[] => {
   const defaultInstruction = "Extract text from image. If there's a drawing, describe it.";
   const responseInstruction = "Respond with only the extracted text or description.";
   
@@ -6,9 +21,11 @@ export const generateMessages = (model: string, image: string, customInstruction
   const promptText = customInstructions?.trim() 
     ? `${defaultInstruction} ${customInstructions} ${responseInstruction}`
     : `${defaultInstruction} ${responseInstruction}`;
+console.log('vision model', model )
 
   switch (model) {
     case "gpt-4o":
+    case "claude-3-5-sonnet-20241022":
     default:
       return [
         {
