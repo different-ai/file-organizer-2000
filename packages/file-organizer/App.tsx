@@ -1,34 +1,13 @@
-import { ClerkProvider } from "@clerk/clerk-expo";
-import { Slot } from "expo-router";
-import * as SecureStore from "expo-secure-store";
-import Constants from 'expo-constants';
+import { ExpoRoot } from 'expo-router';
+import { View } from 'react-native';
 
-const tokenCache = {
-  async getToken(key: string) {
-    try {
-      return SecureStore.getItemAsync(key);
-    } catch (err) {
-      return null;
-    }
-  },
-  async saveToken(key: string, value: string) {
-    try {
-      return SecureStore.setItemAsync(key, value);
-    } catch (err) {
-      return;
-    }
-  },
-};
-
-export default function App() {
-  const publishableKey = Constants.expoConfig?.extra?.clerkPublishableKey as string;
-
+export function App() {
+  const ctx = require.context('./app');
   return (
-    <ClerkProvider 
-      publishableKey={publishableKey}
-      tokenCache={tokenCache}
-    >
-      <Slot />
-    </ClerkProvider>
+    <View style={{ flex: 1 }}>
+      <ExpoRoot context={ctx} />
+    </View>
   );
-} 
+}
+
+export default App; 

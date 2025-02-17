@@ -10,17 +10,39 @@ import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import 'react-native-reanimated';
 import { Platform } from 'react-native';
 import * as Linking from 'expo-linking';
+import { ClerkProvider } from "@clerk/clerk-expo";
+import * as SecureStore from "expo-secure-store";
+import Constants from 'expo-constants';
 
 import { useColorScheme } from '@/hooks/useColorScheme';
 
 // Prevent the splash screen from auto-hiding before asset loading is complete.
 SplashScreen.preventAutoHideAsync();
 
+const tokenCache = {
+  async getToken(key: string) {
+    try {
+      return SecureStore.getItemAsync(key);
+    } catch (err) {
+      return null;
+    }
+  },
+  async saveToken(key: string, value: string) {
+    try {
+      return SecureStore.setItemAsync(key, value);
+    } catch (err) {
+      return;
+    }
+  },
+};
+
 export default function RootLayout() {
   const colorScheme = useColorScheme();
   const [loaded] = useFonts({
     SpaceMono: require('../assets/fonts/SpaceMono-Regular.ttf'),
   });
+
+  const publishableKey = Constants.expoConfig?.extra?.clerkPublishableKey as string;
 
   useEffect(() => {
     if (loaded) {
@@ -46,29 +68,35 @@ export default function RootLayout() {
   }
 
   return (
-    <GestureHandlerRootView style={{ flex: 1 }}>
-      <SafeAreaProvider>
-        <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-          <Stack>
-            <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-            <Stack.Screen name="+not-found" options={{ title: 'Not Found' }} />
-            <Stack.Screen
-              name="index"
-              options={{
-                title: 'Home',
-              }}
-            />
-            <Stack.Screen
-              name="shared"
-              options={{
-                title: 'Shared File',
-                presentation: 'modal',
-              }}
-            />
-          </Stack>
-          <StatusBar style={colorScheme === 'dark' ? 'light' : 'dark'} />
-        </ThemeProvider>
-      </SafeAreaProvider>
-    </GestureHandlerRootView>
+    <ClerkProvider 
+      publishableKey={publishableKey}
+      tokenCache={tokenCache}
+    >
+      <GestureHandlerRootView style={{ flex: 1 }}>
+        <SafeAreaProvider>
+          <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
+            <Stack>
+              <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+              <Stack.Screen name="+not-found" options={{ title: 'Not Found' }} />
+              <Stack.Screen
+                name="index"
+                options={{
+                  title: 'Home',
+                }}
+              />
+              <Stack.Screen
+                name="shared"
+                options={{
+                  title: 'Shared File',
+                  presentation: 'modal',
+                }}
+              />
+              <Stack.Screen name="(auth)/sign-in" options={{ headerShown: false }} />
+            </Stack>
+            <StatusBar style={colorScheme === 'dark' ? 'light' : 'dark'} />
+          </ThemeProvider>
+        </SafeAreaProvider>
+      </GestureHandlerRootView>
+    </ClerkProvider>
   );
 }

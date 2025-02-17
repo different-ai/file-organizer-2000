@@ -11,15 +11,30 @@
     "declaration": true,
     "baseUrl": ".",
     "paths": {
-      "@file-organizer/*": ["packages/*/src"],
-      "@/*": ["packages/web/*"]
+      "@file-organizer/*": [
+        "packages/*/src"
+      ],
+      "@/*": [
+        "packages/web/*"
+      ]
     }
   },
   "references": [
-    { "path": "packages/shared" },
-    { "path": "packages/plugin" },
-    { "path": "packages/web" },
-    { "path": "packages/audio-server" }
+    {
+      "path": "packages/shared"
+    },
+    {
+      "path": "packages/plugin"
+    },
+    {
+      "path": "packages/web"
+    },
+    {
+      "path": "packages/audio-server"
+    }
   ],
-  "exclude": ["node_modules"]
+  "exclude": [
+    "node_modules"
+  ],
+  "extends": "expo/tsconfig.base"
 }
