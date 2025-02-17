@@ -1,59 +1,34 @@
-import React from 'react';
-import { StatusBar } from 'expo-status-bar';
-import { StyleSheet } from 'react-native';
-import { NavigationContainer } from '@react-navigation/native';
-import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import { AuthProvider } from './providers/auth';
-import SignInScreen from './screens/SignInScreen';
-import { useAuth } from '@clerk/clerk-expo';
-import TabLayout from './app/(tabs)/_layout';
+import { ClerkProvider } from "@clerk/clerk-expo";
+import { Slot } from "expo-router";
+import * as SecureStore from "expo-secure-store";
+import Constants from 'expo-constants';
 
-const Stack = createNativeStackNavigator();
+const tokenCache = {
+  async getToken(key: string) {
+    try {
+      return SecureStore.getItemAsync(key);
+    } catch (err) {
+      return null;
+    }
+  },
+  async saveToken(key: string, value: string) {
+    try {
+      return SecureStore.setItemAsync(key, value);
+    } catch (err) {
+      return;
+    }
+  },
+};
 
 export default function App() {
-  return (
-    <AuthProvider>
-      <NavigationContainer>
-        <AppContent />
-      </NavigationContainer>
-    </AuthProvider>
-  );
-}
-
-function AppContent() {
-  const { isLoaded, isSignedIn } = useAuth();
-
-  if (!isLoaded) {
-    return null;
-  }
+  const publishableKey = Constants.expoConfig?.extra?.clerkPublishableKey as string;
 
   return (
-    <>
-      <Stack.Navigator>
-        {!isSignedIn ? (
-          <Stack.Screen 
-            name="SignIn" 
-            component={SignInScreen} 
-            options={{ headerShown: false }}
-          />
-        ) : (
-          <Stack.Screen 
-            name="Root" 
-            component={TabLayout}
-            options={{ headerShown: false }} 
-          />
-        )}
-      </Stack.Navigator>
-      <StatusBar style="auto" />
-    </>
+    <ClerkProvider 
+      publishableKey={publishableKey}
+      tokenCache={tokenCache}
+    >
+      <Slot />
+    </ClerkProvider>
   );
-}
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#fff',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-}); 
+} 
