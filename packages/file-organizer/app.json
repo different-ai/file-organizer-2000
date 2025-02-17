@@ -12,7 +12,10 @@
       "supportsTablet": true,
       "bundleIdentifier": "com.bshafii.fileorganizer",
       "infoPlist": {
-        "ITSAppUsesNonExemptEncryption": false
+        "ITSAppUsesNonExemptEncryption": false,
+        "CFBundleAllowMixedLocalizations": true,
+        "NSPhotoLibraryUsageDescription": "This app needs access to photos to handle shared files.",
+        "NSDocumentsFolderUsageDescription": "This app needs access to documents to handle shared files."
       }
     },
     "android": {
