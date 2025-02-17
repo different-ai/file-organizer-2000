@@ -1,1 +1,0 @@
-export { App as default } from './packages/file-organizer/app'; 

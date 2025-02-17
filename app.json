@@ -1,8 +1,0 @@
-{
-  "android": {
-    "package": "com.bshafii.fileorganizer2000monorepo"
-  },
-  "ios": {
-    "bundleIdentifier": "com.bshafii.fileorganizer2000monorepo"
-  }
-}
