@@ -53,7 +53,7 @@ Suggest exactly ${count} folders. If none of the existing folders are suitable, 
         }`,
         prompt: `Content: "${content}"`
       });
-    });
+    }
     // increment tokenUsage
     const tokens = response.usage.totalTokens;
     console.log("incrementing token usage folders", userId, tokens);
