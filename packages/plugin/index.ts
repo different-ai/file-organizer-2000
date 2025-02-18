@@ -682,7 +682,7 @@ export default class FileOrganizer extends Plugin {
     });
   }
 
-  async compressImage(fileContent: Buffer): Promise<Buffer> {
+  async compressImage(fileContent: ArrayBuffer): Promise<ArrayBuffer> {
     const image = await Jimp.read(fileContent);
 
     // Check if the image is bigger than 1000 pixels in either width or height
@@ -695,7 +695,7 @@ export default class FileOrganizer extends Plugin {
     return resizedImage;
   }
 
-  isWebP(fileContent: Buffer): boolean {
+  isWebP(fileContent: ArrayBuffer): boolean {
     // Check if the file starts with the WebP signature
     return (
       fileContent.slice(0, 4).toString("hex") === "52494646" &&
@@ -705,7 +705,7 @@ export default class FileOrganizer extends Plugin {
 
   async generateImageAnnotation(file: TFile) {
     const arrayBuffer = await this.app.vault.readBinary(file);
-    const fileContent = Buffer.from(arrayBuffer);
+    const fileContent = new Uint8Array(arrayBuffer);
     const imageSize = fileContent.byteLength;
     const imageSizeInMB2 = imageSize / (1024 * 1024);
     logMessage(`Image size: ${imageSizeInMB2.toFixed(2)} MB`);
