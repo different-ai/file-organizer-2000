@@ -37,6 +37,7 @@ export class FileOrganizerSettings {
   customFolderInstructions = "";
   selectedModel: "gpt-4o" | "llama3.2" = "gpt-4o";
   customModelName = "llama3.2";
+  useLocalLLMForFolderGuess = false;
   tagScoreThreshold = 70;
   formatBehavior: "override" | "newFile" = "override";
   useInbox = false;

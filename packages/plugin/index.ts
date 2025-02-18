@@ -835,6 +835,7 @@ export default class FileOrganizer extends Plugin {
         fileName: fileName,
         folders,
         customInstructions,
+        useLocalLLMForFolderGuess: this.settings.useLocalLLMForFolderGuess,
       }),
     });
 

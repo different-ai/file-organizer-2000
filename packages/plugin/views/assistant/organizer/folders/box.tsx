@@ -186,6 +186,11 @@ export const SimilarFolderBox: React.FC<SimilarFolderBoxProps> = ({
 
   return (
     <div className="bg-[--background-primary-alt] text-[--text-normal] p-4 rounded-lg shadow-md">
+      {plugin.settings.useLocalLLMForFolderGuess && (
+        <div className="text-[--text-accent] text-sm mb-2">
+          Suggestions powered by deepseek-r1 locally
+        </div>
+      )}
       {renderContent()}
     </div>
   );

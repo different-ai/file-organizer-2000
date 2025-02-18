@@ -21,6 +21,9 @@ export const ExperimentTab: React.FC<ExperimentTabProps> = ({ plugin }) => {
   const [showLocalLLMInChat, setShowLocalLLMInChat] = useState(
     plugin.settings.showLocalLLMInChat
   );
+  const [useLocalLLMForFolderGuess, setUseLocalLLMForFolderGuess] = useState(
+    plugin.settings.useLocalLLMForFolderGuess
+  );
   const [enableTitleSuggestions, setEnableTitleSuggestions] = useState(
     plugin.settings.enableTitleSuggestions
   );
@@ -111,6 +114,18 @@ export const ExperimentTab: React.FC<ExperimentTabProps> = ({ plugin }) => {
                     value,
                     setShowLocalLLMInChat,
                     "showLocalLLMInChat"
+                  )
+                }
+              />
+              <ToggleSetting
+                name="Use Local LLM (Deepseek) for Folder Guess"
+                description="Route the guess folder logic to a local Ollama server running deepseek."
+                value={useLocalLLMForFolderGuess}
+                onChange={value =>
+                  handleToggleChange(
+                    value,
+                    setUseLocalLLMForFolderGuess,
+                    "useLocalLLMForFolderGuess"
                   )
                 }
               />
