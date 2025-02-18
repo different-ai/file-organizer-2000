@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { handleAuthorization } from "@/lib/handleAuthorization";
 import { incrementAndLogTokenUsage } from "@/lib/incrementAndLogTokenUsage";
 import { getModel } from "@/lib/models";
+import { ollama } from "ollama-ai-provider";
 import { z } from "zod";
 import { generateObject } from "ai";
 

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { handleAuthorization } from "@/lib/handleAuthorization";
 import { incrementAndLogTokenUsage } from "@/lib/incrementAndLogTokenUsage";
 import { getModel } from "@/lib/models";
+import { ollama } from "ollama-ai-provider";
 import { z } from "zod";
 import { generateObject } from "ai";
 
@@ -13,10 +14,10 @@ const formatSchema = z.object({
 export async function POST(request: NextRequest) {
   try {
     const { userId } = await handleAuthorization(request);
-    const { content, formattingInstruction = "" } = await request.json();
+    const { content, formattingInstruction = "", model = process.env.MODEL_NAME } = await request.json();
 
     const response = await generateObject({
-      model: getModel(process.env.MODEL_NAME),
+      model: model === 'ollama-deepseek-r1' ? ollama("deepseek-r1") : getModel(model),
       schema: formatSchema,
       system: `You are a precise document formatter. Format the given content according to the user's instructions.
               ${

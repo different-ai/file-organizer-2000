@@ -3,12 +3,13 @@ import { NextRequest, NextResponse } from "next/server";
 import { handleAuthorization } from "@/lib/handleAuthorization";
 import { incrementAndLogTokenUsage } from "@/lib/incrementAndLogTokenUsage";
 import { getModel } from "@/lib/models";
+import { ollama } from "ollama-ai-provider";
 
 export async function POST(request: NextRequest) {
   try {
     const { userId } = await handleAuthorization(request);
-    const { content, fileName, folders, customInstructions } = await request.json();
-    const model = getModel(process.env.MODEL_NAME);
+    const { content, fileName, folders, customInstructions, model: requestModel, ollamaEndpoint } = await request.json();
+    const model = requestModel === 'ollama-deepseek-r1' ? ollama("deepseek-r1") : getModel(requestModel || process.env.MODEL_NAME);
     const response = await guessRelevantFolder(
       content,
       fileName,

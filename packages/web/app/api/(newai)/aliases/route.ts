@@ -3,12 +3,14 @@ import { generateAliasVariations } from "../aiService";
 import { handleAuthorization } from "@/lib/handleAuthorization";
 import { incrementAndLogTokenUsage } from "@/lib/incrementAndLogTokenUsage";
 import { getModel } from "@/lib/models";
+import { ollama } from "ollama-ai-provider";
 
 export async function POST(request: NextRequest) {
   try {
     const { userId } = await handleAuthorization(request);
     const { fileName, content } = await request.json();
-    const model = getModel(process.env.MODEL_NAME);
+    const { model: selectedModel = process.env.MODEL_NAME } = await request.json();
+    const model = selectedModel === 'ollama-deepseek-r1' ? ollama("deepseek-r1") : getModel(selectedModel);
     const generateAliasData = await generateAliasVariations(
       fileName,
       content,

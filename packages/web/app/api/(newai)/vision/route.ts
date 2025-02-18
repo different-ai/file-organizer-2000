@@ -10,7 +10,8 @@ export async function POST(request: NextRequest) {
   try {
     const payload = await request.json();
     const { userId } = await handleAuthorization(request);
-    const model = getModel(process.env.VISION_MODEL_NAME);
+    const { model = process.env.VISION_MODEL_NAME } = payload;
+    const modelProvider = model === 'ollama-deepseek-r1' ? ollama("deepseek-r1") : getModel(model);
 
     const defaultInstruction = "Extract text from image. If there's a drawing, describe it.";
     const responseInstruction = "Respond with only the extracted text or description.";

@@ -13,7 +13,7 @@ export const maxDuration = 60;
 export async function POST(request: NextRequest) {
   try {
     const { userId } = await handleAuthorization(request);
-    const { content, systemContent,  enableFabric } = await request.json();
+    const { content, systemContent, enableFabric, model = process.env.MODEL_NAME || 'gpt-4o' } = await request.json();
     console.log("content", content);
     console.log("systemContent", systemContent);
     console.log("enableFabric", enableFabric);
@@ -22,11 +22,10 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Fabric not enabled." }, { status: 400 });
     }
 
-
-    const model = getModel(process.env.MODEL_NAME || 'gpt-4o');
+    const modelProvider = model === 'ollama-deepseek-r1' ? ollama("deepseek-r1") : getModel(model);
 
     const result = await generateText({
-      model: model,
+      model: modelProvider,
       system: systemContent,
       prompt: content 
     });

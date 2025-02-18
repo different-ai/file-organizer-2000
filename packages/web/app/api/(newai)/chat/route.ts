@@ -8,6 +8,7 @@ import { z } from "zod";
 import { getModel } from "@/lib/models";
 import { getChatSystemPrompt } from "@/lib/prompts/chat-prompt";
 import { chatTools } from "./tools";
+import { ollama } from "ollama-ai-provider";
 
 interface GroundingMetadataItem {
   content: string;
@@ -32,23 +33,25 @@ export async function POST(req: NextRequest) {
           enableSearchGrounding = false,
         } = await req.json();
 
-        let chosenModelName;
-        if (enableSearchGrounding) {
+        let model;
+        if (bodyModel === 'ollama-deepseek-r1') {
+          console.log("Using Ollama deepseek-r1 model");
+          model = ollama("deepseek-r1");
+        } else if (enableSearchGrounding) {
           console.log("Enabling search grounding");
           console.log("GOOGLE_API_KEY:", process.env.GOOGLE_API_KEY);
           console.log("GOOGLE_GENERATIVE_AI_API_KEY:", process.env.GOOGLE_GENERATIVE_AI_API_KEY);
           if (process.env.GOOGLE_API_KEY || process.env.GOOGLE_GENERATIVE_AI_API_KEY) {
             console.log("Using Gemini model");
-            chosenModelName = "gemini-2.0-flash-exp";
+            model = getModel("gemini-2.0-flash-exp");
           } else {
             console.log("Using GPT-4o model");
-            chosenModelName = "gpt-4o";
+            model = getModel("gpt-4o");
           }
         } else {
-          chosenModelName = "gpt-4o";
+          model = getModel(bodyModel || "gpt-4o");
         }
-        console.log("Chat using model:", chosenModelName);
-        const model = getModel(chosenModelName);
+        console.log("Chat using model:", model);
 
         const contextString =
           newUnifiedContext ||
