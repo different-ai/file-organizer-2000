@@ -4,6 +4,7 @@ import { createGoogleGenerativeAI } from "@ai-sdk/google";
 import { createAmazonBedrock } from "@ai-sdk/amazon-bedrock";
 import { createGroq } from "@ai-sdk/groq";
 import { createDeepSeek } from "@ai-sdk/deepseek";
+import { ollama } from "ollama-ai-provider";
 
 const DEFAULT_BASE_URLS = {
   OPENAI: "https://api.openai.com/v1",
@@ -107,6 +108,7 @@ const models = {
         })("deepseek-chat"),
       }
     : {}),
+  "ollama-deepseek-r1": (endpoint: string) => ollama("deepseek-r1", { baseUrl: endpoint }),
 };
 
 export const getModel = (name: string) => {
