@@ -10,62 +10,49 @@ import {
   ScrollView,
   Alert,
 } from 'react-native';
-import { useOAuth, useSignUp } from '@clerk/clerk-expo';
+import { useOAuth, useSignIn } from '@clerk/clerk-expo';
 import * as WebBrowser from 'expo-web-browser';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 
 WebBrowser.maybeCompleteAuthSession();
 
-export default function SignUpScreen() {
+export default function SignInScreen() {
   const router = useRouter();
-  const { signUp, setActive: setSignUpActive, isLoaded } = useSignUp();
+  const { signIn, setActive: setSignInActive, isLoaded } = useSignIn();
   const { startOAuthFlow: googleAuth } = useOAuth({ strategy: 'oauth_google' });
   const { startOAuthFlow: appleAuth } = useOAuth({ strategy: 'oauth_apple' });
 
   const [email, setEmail] = React.useState('');
   const [password, setPassword] = React.useState('');
-  const [confirmPassword, setConfirmPassword] = React.useState('');
   const [loading, setLoading] = React.useState(false);
 
-  const onSignUpWithEmail = async () => {
-    if (!email || !password || !confirmPassword) {
+  const onSignInWithEmail = async () => {
+    if (!email || !password) {
       Alert.alert('Error', 'Please fill in all fields');
-      return;
-    }
-
-    if (password !== confirmPassword) {
-      Alert.alert('Error', 'Passwords do not match');
-      return;
-    }
-
-    if (password.length < 8) {
-      Alert.alert('Error', 'Password must be at least 8 characters long');
       return;
     }
 
     try {
       setLoading(true);
-      const result = await signUp.create({
-        emailAddress: email,
+      const result = await signIn.create({
+        identifier: email,
         password,
       });
 
       if (result.status === 'complete') {
-        setSignUpActive({ session: result.createdSessionId });
+        setSignInActive({ session: result.createdSessionId });
         router.push('/(tabs)');
-      } else {
-        // Handle additional verification if needed
-        console.log(JSON.stringify(result, null, 2));
       }
+      // Handle additional verification if needed
     } catch (err: any) {
-      Alert.alert('Error', err.errors?.[0]?.message || 'Failed to sign up');
+      Alert.alert('Error', err.errors?.[0]?.message || 'Failed to sign in');
     } finally {
       setLoading(false);
     }
   };
 
-  const onSignUpWithGoogle = React.useCallback(async () => {
+  const onSignInWithGoogle = React.useCallback(async () => {
     try {
       const { createdSessionId, setActive } = await googleAuth();
       if (createdSessionId) {
@@ -77,7 +64,7 @@ export default function SignUpScreen() {
     }
   }, [googleAuth]);
 
-  const onSignUpWithApple = React.useCallback(async () => {
+  const onSignInWithApple = React.useCallback(async () => {
     try {
       const { createdSessionId, setActive } = await appleAuth();
       if (createdSessionId) {
@@ -103,8 +90,8 @@ export default function SignUpScreen() {
         keyboardShouldPersistTaps="handled"
       >
         <View style={styles.header}>
-          <Text style={styles.title}>Create Account</Text>
-          <Text style={styles.subtitle}>Join File Organizer today</Text>
+          <Text style={styles.title}>Welcome to File Organizer</Text>
+          <Text style={styles.subtitle}>Sign in to get started</Text>
         </View>
 
         <View style={styles.form}>
@@ -123,23 +110,15 @@ export default function SignUpScreen() {
             value={password}
             onChangeText={setPassword}
             secureTextEntry
-            autoComplete="password-new"
-          />
-          <TextInput
-            style={styles.input}
-            placeholder="Confirm Password"
-            value={confirmPassword}
-            onChangeText={setConfirmPassword}
-            secureTextEntry
-            autoComplete="password-new"
+            autoComplete="password"
           />
           <TouchableOpacity
             style={[styles.button, styles.emailButton]}
-            onPress={onSignUpWithEmail}
+            onPress={onSignInWithEmail}
             disabled={loading}
           >
             <Text style={styles.emailButtonText}>
-              {loading ? 'Creating Account...' : 'Create Account'}
+              {loading ? 'Signing in...' : 'Sign in with Email'}
             </Text>
           </TouchableOpacity>
         </View>
@@ -153,7 +132,7 @@ export default function SignUpScreen() {
         <View style={styles.buttonContainer}>
           <TouchableOpacity
             style={[styles.button, styles.googleButton]}
-            onPress={onSignUpWithGoogle}
+            onPress={onSignInWithGoogle}
           >
             <Ionicons name="logo-google" size={24} color="#EA4335" />
             <Text style={styles.buttonText}>Continue with Google</Text>
@@ -161,7 +140,7 @@ export default function SignUpScreen() {
 
           <TouchableOpacity
             style={[styles.button, styles.appleButton]}
-            onPress={onSignUpWithApple}
+            onPress={onSignInWithApple}
           >
             <Ionicons name="logo-apple" size={24} color="#000" />
             <Text style={[styles.buttonText, styles.appleButtonText]}>
@@ -171,10 +150,18 @@ export default function SignUpScreen() {
         </View>
 
         <View style={styles.footer}>
-          <Text style={styles.footerText}>Already have an account? </Text>
-          <TouchableOpacity onPress={() => router.push('/(auth)/sign-in')}>
-            <Text style={styles.footerLink}>Sign In</Text>
-          </TouchableOpacity>
+          <View style={styles.footerLinks}>
+            <TouchableOpacity onPress={() => router.push('/(auth)/sign-up')}>
+              <Text style={styles.footerLink}>Create Account</Text>
+            </TouchableOpacity>
+            <Text style={styles.footerDot}>•</Text>
+            <TouchableOpacity>
+              <Text style={styles.footerLink}>Forgot Password?</Text>
+            </TouchableOpacity>
+          </View>
+          <Text style={styles.footerText}>
+            By continuing, you agree to our Terms of Service and Privacy Policy
+          </Text>
         </View>
       </ScrollView>
     </KeyboardAvoidingView>
@@ -277,17 +264,26 @@ const styles = StyleSheet.create({
   },
   footer: {
     marginTop: 24,
+  },
+  footerLinks: {
     flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
-  },
-  footerText: {
-    color: '#666',
-    fontSize: 14,
+    marginBottom: 16,
   },
   footerLink: {
     color: '#007AFF',
     fontSize: 14,
     fontWeight: '600',
+  },
+  footerDot: {
+    color: '#666',
+    marginHorizontal: 8,
+    fontSize: 14,
+  },
+  footerText: {
+    textAlign: 'center',
+    color: '#666',
+    fontSize: 12,
   },
 }); 

@@ -40,7 +40,7 @@ export default function TabLayout() {
         }}
       />
       <Tabs.Screen
-        name="upload"
+        name="share"
         options={{
           title: 'Upload',
           tabBarIcon: ({ color, size }: TabIconProps) => (
