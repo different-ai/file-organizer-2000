@@ -845,9 +845,14 @@ export default class FileOrganizer extends Plugin {
 
     try {
       const data = await response.json();
+      if (!data || !Array.isArray(data.folders)) {
+        logger.error('Invalid response format:', data);
+        throw new Error('Invalid response format: missing folders array');
+      }
       return data.folders;
     } catch (error) {
-      throw new Error(`Failed to parse response: ${error.message}`);
+      logger.error('Error parsing folder suggestions:', error);
+      throw new Error(`Failed to parse folder suggestions: ${error.message}`);
     }
   }
 
