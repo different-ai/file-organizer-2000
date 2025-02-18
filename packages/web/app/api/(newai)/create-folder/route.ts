@@ -1,20 +1,21 @@
 import { createNewFolder } from "../aiService";
 import { NextResponse, NextRequest } from "next/server";
 import { getModel } from "@/lib/models";
+import { ollama } from "ollama-ai-provider";
 import { incrementAndLogTokenUsage } from "@/lib/incrementAndLogTokenUsage";
 import { handleAuthorization } from "@/lib/handleAuthorization";
 
 export async function POST(request: NextRequest) {
   try {
     const { userId } = await handleAuthorization(request);
-    const { content, fileName, existingFolders } = await request.json();
-    const model = getModel(process.env.MODEL_NAME);
+    const { content, fileName, existingFolders, model = process.env.MODEL_NAME } = await request.json();
+    const modelProvider = model === 'ollama-deepseek-r1' ? ollama("deepseek-r1") : getModel(model);
 
     const newFolderData = await createNewFolder(
       content,
       fileName,
       existingFolders,
-      model
+      modelProvider
     );
     // increment tokenUsage
     const tokens = newFolderData.usage.totalTokens;

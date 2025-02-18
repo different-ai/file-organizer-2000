@@ -90,6 +90,17 @@ interface TitleSuggestion {
   reason: string;
 }
 
+// Environment type declarations
+declare global {
+  interface Window {
+    process: {
+      env: {
+        NODE_ENV: string;
+      };
+    };
+  }
+}
+
 export default class FileOrganizer extends Plugin {
   public inbox: Inbox;
   settings: FileOrganizerSettings;
@@ -102,7 +113,7 @@ export default class FileOrganizer extends Plugin {
     // fetch the file organizer premium status
     // if process env prod then point to prod server if not to localhost
     const serverUrl =
-      process.env.NODE_ENV === "production"
+      (typeof process !== 'undefined' && process.env.NODE_ENV === "production")
         ? "https://app.fileorganizer2000.com"
         : this.getServerUrl();
     const premiumStatus = await fetch(`${serverUrl}/api/check-premium`, {
@@ -682,7 +693,7 @@ export default class FileOrganizer extends Plugin {
     });
   }
 
-  async compressImage(fileContent: Buffer): Promise<Buffer> {
+  async compressImage(fileContent: ArrayBuffer): Promise<ArrayBuffer> {
     const image = await Jimp.read(fileContent);
 
     // Check if the image is bigger than 1000 pixels in either width or height
@@ -695,17 +706,17 @@ export default class FileOrganizer extends Plugin {
     return resizedImage;
   }
 
-  isWebP(fileContent: Buffer): boolean {
+  isWebP(fileContent: ArrayBuffer): boolean {
     // Check if the file starts with the WebP signature
-    return (
-      fileContent.slice(0, 4).toString("hex") === "52494646" &&
-      fileContent.slice(8, 12).toString("hex") === "57454250"
-    );
+    const view = new Uint8Array(fileContent);
+    const header = Array.from(view.slice(0, 4)).map(b => b.toString(16).padStart(2, '0')).join('');
+    const webp = Array.from(view.slice(8, 12)).map(b => b.toString(16).padStart(2, '0')).join('');
+    return header === "52494646" && webp === "57454250";
   }
 
   async generateImageAnnotation(file: TFile) {
     const arrayBuffer = await this.app.vault.readBinary(file);
-    const fileContent = Buffer.from(arrayBuffer);
+    const fileContent = new Uint8Array(arrayBuffer);
     const imageSize = fileContent.byteLength;
     const imageSizeInMB2 = imageSize / (1024 * 1024);
     logMessage(`Image size: ${imageSizeInMB2.toFixed(2)} MB`);
@@ -804,6 +815,8 @@ export default class FileOrganizer extends Plugin {
         fileName: filePath,
         existingTags,
         customInstructions: this.settings.customTagInstructions,
+        model: this.settings.selectedModel,
+        ollamaEndpoint: this.settings.selectedModel === 'ollama-deepseek-r1' ? this.settings.ollamaEndpoint : undefined,
       }),
     });
 
@@ -889,10 +902,13 @@ export default class FileOrganizer extends Plugin {
     // Try to find existing view
     let view = this.app.workspace.getLeavesOfType(ORGANIZER_VIEW_TYPE)[0]
       ?.view as AssistantViewWrapper;
-
-    // If view doesn't exist, create it
+    
     if (!view) {
-      await this.app.workspace.getRightLeaf(false).setViewState({
+      const leaf = this.app.workspace.getRightLeaf(false);
+      if (!leaf) {
+        return null;
+      }
+      await leaf.setViewState({
         type: ORGANIZER_VIEW_TYPE,
         active: true,
       });
@@ -910,7 +926,14 @@ export default class FileOrganizer extends Plugin {
     return view;
   }
 
-  async onload() {
+  private async initializePlugin(): Promise<void> {
+    await this.loadSettings();
+    await this.checkAndCreateFolders();
+    await this.checkAndCreateTemplates();
+    this.addSettingTab(new FileOrganizerSettingTab(this.app, this));
+  }
+
+  override async onload(): Promise<void> {
     this.inbox = Inbox.initialize(this);
     await this.initializePlugin();
     logger.configure(this.settings.debugMode);
@@ -991,11 +1014,7 @@ export default class FileOrganizer extends Plugin {
       },
     });
   }
-  async saveSettings() {
-    await this.saveData(this.settings);
-  }
-
-  async initializePlugin() {
+  private async initializePlugin(): Promise<void> {
     await this.loadSettings();
     await this.checkAndCreateFolders();
     await this.checkAndCreateTemplates();
@@ -1118,10 +1137,14 @@ export default class FileOrganizer extends Plugin {
     const { workspace } = this.app;
     
     let leaf = workspace.getLeavesOfType(DASHBOARD_VIEW_TYPE)[0];
-    
     if (!leaf) {
-      leaf = workspace.getRightLeaf(false);
-      await leaf.setViewState({
+      const newLeaf = workspace.getRightLeaf(false);
+      if (!newLeaf) {
+        return null;
+      }
+      leaf = newLeaf;
+        leaf = newLeaf;
+        await leaf.setViewState({
         type: DASHBOARD_VIEW_TYPE,
         active: true,
       });

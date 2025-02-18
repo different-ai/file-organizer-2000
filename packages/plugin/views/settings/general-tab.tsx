@@ -147,6 +147,7 @@ export const GeneralTab: React.FC<GeneralTabProps> = ({ plugin, userId, email })
             target="_blank"
             rel="noopener noreferrer"
             className="text-[--text-accent] hover:text-[--text-accent-hover]"
+            onClick={(e) => e.preventDefault()}
           >
             consider supporting us
           </a>{" "}

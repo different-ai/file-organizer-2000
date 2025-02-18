@@ -2,14 +2,15 @@ import { NextResponse, NextRequest } from "next/server";
 import { incrementAndLogTokenUsage } from "@/lib/incrementAndLogTokenUsage";
 import { handleAuthorization } from "@/lib/handleAuthorization";
 import { getModel } from "@/lib/models";
+import { ollama } from "ollama-ai-provider";
 import { z } from "zod";
 import { generateObject } from "ai";
 
 export async function POST(request: NextRequest) {
   try {
     const { userId } = await handleAuthorization(request);
-    const { document, renameInstructions, currentName, vaultTitles } = await request.json();
-    const model = getModel(process.env.MODEL_NAME);
+    const { document, renameInstructions, currentName, vaultTitles, model: requestModel } = await request.json();
+    const model = requestModel === 'ollama-deepseek-r1' ? ollama("deepseek-r1") : getModel(process.env.MODEL_NAME);
     const prompt = `As an AI specializing in document analysis, your task is to generate highly specific and unique titles for the given document. Analyze the content thoroughly to identify key elements such as:
 
     - Main topics or themes

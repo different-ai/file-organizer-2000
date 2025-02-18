@@ -1,6 +1,7 @@
 import { NextResponse, NextRequest } from "next/server";
 import { getModel } from "@/lib/models";
 import { incrementAndLogTokenUsage } from "@/lib/incrementAndLogTokenUsage";
+import { ollama } from "ollama-ai-provider";
 import { handleAuthorization } from "@/lib/handleAuthorization";
 import { generateObject, LanguageModel } from "ai";
 import { z } from "zod";
@@ -37,8 +38,8 @@ async function identifyConceptsAndChunks(content: string, model: LanguageModel) 
 export async function POST(request: NextRequest) {
   try {
     const { userId } = await handleAuthorization(request);
-    const { content } = await request.json();
-    const model = getModel(process.env.MODEL_NAME);
+    const { content, model: requestModel } = await request.json();
+    const model = requestModel === 'ollama-deepseek-r1' ? ollama("deepseek-r1") : getModel(process.env.MODEL_NAME);
     
     const response = await identifyConceptsAndChunks(content, model);
 

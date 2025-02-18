@@ -2,14 +2,15 @@ import { NextResponse, NextRequest } from "next/server";
 import { incrementAndLogTokenUsage } from "@/lib/incrementAndLogTokenUsage";
 import { handleAuthorization } from "@/lib/handleAuthorization";
 import { getModel } from "@/lib/models";
+import { ollama } from "ollama-ai-provider";
 import { z } from "zod";
 import { generateObject } from "ai";
 
 export async function POST(request: NextRequest) {
   try {
     const { userId } = await handleAuthorization(request);
-    const { content, fileName } = await request.json();
-    const model = getModel(process.env.MODEL_NAME);
+    const { content, fileName, model: requestModel } = await request.json();
+    const modelProvider = requestModel === 'ollama-deepseek-r1' ? ollama("deepseek-r1") : getModel(process.env.MODEL_NAME);
     const isUntitled = fileName.toLowerCase().includes('untitled');
     const prompt = `Generate 3 tags for the ${isUntitled ? 'content' : 'file "' + fileName + '" and content'} "${content}":
     
@@ -26,7 +27,7 @@ export async function POST(request: NextRequest) {
     - For "humility and leadership", use humility.`
 
     const response = await generateObject({
-      model,
+      model: modelProvider,
       temperature: 0.5,
       schema: z.object({
         tags: z.array(z.string()).max(3),

@@ -35,8 +35,9 @@ export class FileOrganizerSettings {
   enableSearchGrounding = false;
   showLocalLLMInChat = false;
   customFolderInstructions = "";
-  selectedModel: "gpt-4o" | "llama3.2" = "gpt-4o";
-  customModelName = "llama3.2";
+  selectedModel: "gpt-4o" | "ollama-deepseek-r1" | "openai-gpt-4" = "gpt-4o";
+  ollamaEndpoint = "http://localhost:11434";
+  customModelName = "ollama-deepseek-r1";
   tagScoreThreshold = 70;
   formatBehavior: "override" | "newFile" = "override";
   useInbox = false;

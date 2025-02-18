@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef, useCallback } from "react";
 import { useChat, UseChatOptions } from "@ai-sdk/react";
 import { moment } from "obsidian";
-import { Button } from "@/components/ui/button";
+import { Button } from "../../../components/ui/button";
 import { RefreshCw } from "lucide-react";
 
 import FileOrganizer from "../../..";
@@ -173,6 +173,9 @@ export const ChatComponent: React.FC<ChatComponentProps> = ({
       }
 
       // Handle local models (llama3.2 or custom)
+      if (!options?.body) {
+        throw new Error('Request options or body is undefined');
+      }
       const { messages, newUnifiedContext, currentDatetime } = JSON.parse(
         options.body as string
       );

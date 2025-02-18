@@ -5,6 +5,7 @@ import { incrementAndLogTokenUsage } from "@/lib/incrementAndLogTokenUsage";
 import { handleAuthorization } from "@/lib/handleAuthorization";
 import { NextResponse, NextRequest } from "next/server";
 import { getModel } from '@/lib/models';
+import { ollama } from "ollama-ai-provider";
 
 // Allow streaming responses up to 30 seconds
 export const maxDuration = 30;
@@ -16,7 +17,7 @@ const titleSchema = z.object({
 export async function POST(req: NextRequest) {
   try {
     const { userId } = await handleAuthorization(req);
-    const { document, renameInstructions, currentName, vaultTitles } = await req.json();
+    const { document, renameInstructions, currentName, vaultTitles, model = process.env.MODEL_NAME || 'gpt-4o-2024-08-06' } = await req.json();
 
     const prompt = `As an AI specializing in document analysis, your task is to generate highly specific and unique titles for the given document. Analyze the content thoroughly to identify key elements such as:
 
@@ -47,7 +48,7 @@ export async function POST(req: NextRequest) {
     Remember, the goal is to create titles that are instantly informative and distinguishable from other documents.`;
 
     const result = await streamObject({
-      model: getModel(process.env.MODEL_NAME || 'gpt-4o-2024-08-06'),
+      model: model === 'ollama-deepseek-r1' ? ollama("deepseek-r1") : getModel(model || process.env.MODEL_NAME || 'gpt-4o-2024-08-06'),
       
       schema: titleSchema,
       prompt,

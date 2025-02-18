@@ -2,17 +2,18 @@ import { NextRequest, NextResponse } from "next/server";
 import { handleAuthorization } from "@/lib/handleAuthorization";
 import { incrementAndLogTokenUsage } from "@/lib/incrementAndLogTokenUsage";
 import { getModel } from "@/lib/models";
+import { ollama } from "ollama-ai-provider";
 import { z } from "zod";
 import { generateObject } from "ai";
 
 export async function POST(request: NextRequest) {
   try {
     const { userId } = await handleAuthorization(request);
-    const { content, fileName, folders, customInstructions, count = 3 } =
+    const { content, fileName, folders, customInstructions, count = 3, model = process.env.MODEL_NAME, ollamaEndpoint } =
       await request.json();
-    const model = getModel(process.env.MODEL_NAME);
+    const modelProvider = model === 'ollama-deepseek-r1' ? ollama("deepseek-r1") : getModel(model);
     const response = await generateObject({
-      model,
+      model: modelProvider,
       schema: z.object({
         suggestedFolders: z
           .array(

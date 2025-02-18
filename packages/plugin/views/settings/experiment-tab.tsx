@@ -96,13 +96,46 @@ export const ExperimentTab: React.FC<ExperimentTabProps> = ({ plugin }) => {
                       </p>
                       <p className="text-[--text-muted]">Currently supports:</p>
                       <ul className="list-disc pl-4 text-[--text-muted]">
-                        <li>Llama 3.2</li>
-                        <li>Ollama</li>
+                        <li>Ollama with deepseek-r1</li>
+                        <li>OpenAI GPT-4</li>
                       </ul>
                       <p className="text-xs text-[--text-faint]">
                         More models coming soon
                       </p>
                     </div>
+                    {showLocalLLMInChat && (
+                      <div className="mt-4 space-y-4">
+                        <div className="space-y-2">
+                          <label className="text-sm font-medium">Model Selection</label>
+                          <select
+                            value={plugin.settings.selectedModel}
+                            onChange={async (e) => {
+                              plugin.settings.selectedModel = e.target.value as any;
+                              await plugin.saveSettings();
+                            }}
+                            className="w-full px-2 py-1.5 bg-[--background-primary] border border-[--background-modifier-border] rounded"
+                          >
+                            <option value="openai-gpt-4">GPT-4 (OpenAI)</option>
+                            <option value="ollama-deepseek-r1">Deepseek-r1 (Ollama)</option>
+                          </select>
+                        </div>
+                        {plugin.settings.selectedModel === 'ollama-deepseek-r1' && (
+                          <div className="space-y-2">
+                            <label className="text-sm font-medium">Ollama Endpoint</label>
+                            <input
+                              type="text"
+                              value={plugin.settings.ollamaEndpoint}
+                              onChange={async (e) => {
+                                plugin.settings.ollamaEndpoint = e.target.value;
+                                await plugin.saveSettings();
+                              }}
+                              placeholder="http://localhost:11434"
+                              className="w-full px-2 py-1.5 bg-[--background-primary] border border-[--background-modifier-border] rounded"
+                            />
+                          </div>
+                        )}
+                      </div>
+                    )}
                   </div>
                 }
                 value={showLocalLLMInChat}
