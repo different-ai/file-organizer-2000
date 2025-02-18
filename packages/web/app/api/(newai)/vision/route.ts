@@ -1,6 +1,7 @@
 import { NextResponse, NextRequest } from "next/server";
 import {  generateText } from "ai";
 import { getModel } from "@/lib/models";
+import { ollama } from "ollama-ai-provider";
 import { handleAuthorization } from "@/lib/handleAuthorization";
 import { incrementAndLogTokenUsage } from "@/lib/incrementAndLogTokenUsage";
 
@@ -23,7 +24,7 @@ export async function POST(request: NextRequest) {
 
 
     const response = await generateText({
-      model,
+      model: modelProvider,
       messages: [{
         role: "user",
         content: [

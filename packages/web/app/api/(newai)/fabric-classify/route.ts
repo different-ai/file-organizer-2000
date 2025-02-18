@@ -3,6 +3,7 @@ import { incrementAndLogTokenUsage } from "@/lib/incrementAndLogTokenUsage";
 import { handleAuthorization } from "@/lib/handleAuthorization";
 import { generateText } from "ai"
 import { getModel } from "@/lib/models";
+import { ollama } from "ollama-ai-provider";
 
 
 
