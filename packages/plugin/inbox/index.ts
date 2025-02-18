@@ -300,6 +300,9 @@ export class Inbox {
     inboxFile: TFile,
     hash?: string
   ): Promise<void> {
+    if (!hash) {
+      throw new Error("Hash is required for processing");
+    }
     this.recordManager.setStatus(hash, "processing");
 
     const context: ProcessingContext = {
@@ -445,15 +448,22 @@ async function hasValidFileStep(
 async function recommendNameStep(
   context: ProcessingContext
 ): Promise<ProcessingContext> {
+  if (!context.content || !context.containerFile) {
+    logger.info("Skipping name recommendation: missing content or container file");
+    return context;
+  }
+
   const newName = await context.plugin.recommendName(
     context.content,
     context.containerFile.basename
   );
   context.newName = newName[0]?.title;
+  
   // if new name is the same as the old name then don't rename
-  if (context.newName === context.containerFile.basename) {
+  if (!context.newName || context.newName === context.containerFile.basename) {
     return context;
   }
+  
   context.recordManager.setNewName(context.hash, context.newName);
   await safeRename(context.plugin.app, context.containerFile, context.newName);
   return context;
@@ -471,6 +481,11 @@ async function recommendFolderStep(
     "Container file must exist before moving"
   );
 
+  if (!context.content || !context.containerFile) {
+    logger.info("Skipping folder recommendation: missing content or container file");
+    return context;
+  }
+
   const newPath = await context.plugin.recommendFolders(
     context.content,
     context.inboxFile.basename
@@ -482,10 +497,8 @@ async function recommendFolderStep(
   );
 
   context.newPath = newPath[0]?.folder;
-  console.log("new path", context.newPath, context.containerFile);
   await safeMove(context.plugin.app, context.containerFile, context.newPath);
   context.recordManager.setFolder(context.hash, context.newPath);
-  console.log("moved file to", context.containerFile);
 
   return context;
 }
@@ -502,6 +515,11 @@ async function recommendClassificationStep(
   }
 
   const templateNames = await context.plugin.getTemplateNames();
+  if (!context.content || !context.containerFile) {
+    logger.info("Skipping classification: missing content or container file");
+    return context;
+  }
+
   const result = await context.plugin.classifyContentV2(
     `${context.content}, ${context.containerFile.name}`,
     templateNames
@@ -531,7 +549,9 @@ async function getContentStep(
   const fileToRead = context.inboxFile;
   const content = await context.plugin.getTextFromFile(fileToRead);
   context.content = content;
-  await context.plugin.app.vault.modify(context.containerFile, content);
+  if (context.containerFile) {
+    await context.plugin.app.vault.modify(context.containerFile, content);
+  }
   return context;
 }
 
@@ -545,6 +565,9 @@ async function cleanupStep(
     }
 
     // Strip front matter and trim
+    if (!context.content) {
+      throw new Error("Content is required for cleanup step");
+    }
     const contentWithoutFrontMatter = context.content
       .replace(/^---\n[\s\S]*?\n---\n/, "")
       .trim();
@@ -592,6 +615,7 @@ async function formatContentStep(
     logger.info("Skipping formatting: no classification available");
     return context;
   }
+
   // Early return if no classification
   if (!context.classification.documentType) {
     logger.info("Skipping formatting: no classification available");
@@ -636,32 +660,17 @@ async function formatContentStep(
       return context;
     }
 
-    const formattedContent = await context.plugin.formatContentV2(
-      context.content,
-      instructions
-    );
-    context.formattedContent = formattedContent;
+    // Use the Organizer's streamFormatInCurrentNote method for consistent behavior
+    if (!context.containerFile || !context.content) {
+      logger.info("Skipping formatting: missing container file or content");
+      return context;
+    }
 
-    const referenceFile = await safeCopy(
-      context.plugin.app,
-      context.containerFile,
-      context.plugin.settings.referencePath
-    );
-
-    await safeModify(
-      context.plugin.app,
-      context.containerFile,
-      formattedContent
-    );
-
-    const markdownLink = context.plugin.app.fileManager.generateMarkdownLink(
-      referenceFile,
-      context.containerFile.parent.path
-    );
-    await context.plugin.app.vault.append(
-      context.containerFile,
-      `\n\n---\nThis file is formatted and the original file is: ${markdownLink}\n\n---\n\n`
-    );
+    await context.plugin.streamFormatInCurrentNote({
+      file: context.containerFile,
+      content: context.content,
+      formattingInstruction: instructions,
+    });
 
     return context;
   } catch (error) {
@@ -673,6 +682,11 @@ async function recommendTagsStep(
   context: ProcessingContext
 ): Promise<ProcessingContext> {
   const existingTags = await context.plugin.getAllVaultTags();
+  if (!context.content || !context.containerFile) {
+    logger.info("Skipping tag recommendation: missing content or container file");
+    return context;
+  }
+
   const tags = await context.plugin.recommendTags(
     context.content,
     context.containerFile.path,
@@ -680,8 +694,10 @@ async function recommendTagsStep(
   );
   context.tags = tags?.map(t => t.tag);
   // for each tag, append it to the file
-  for (const tag of context.tags) {
-    await context.plugin.appendTag(context.containerFile, tag);
+  if (context.tags && context.containerFile) {
+    for (const tag of context.tags) {
+      await context.plugin.appendTag(context.containerFile, tag);
+    }
   }
   context.recordManager.setTags(context.hash, context.tags);
   return context;
