@@ -148,6 +148,7 @@ export const GeneralTab: React.FC<GeneralTabProps> = ({ plugin, userId, email })
             rel="noopener noreferrer"
             className="text-[--text-accent] hover:text-[--text-accent-hover]"
             onClick={(e) => e.preventDefault()}
+          >
             consider supporting us
           </a>{" "}
           to help improve and maintain the project. 🙏
