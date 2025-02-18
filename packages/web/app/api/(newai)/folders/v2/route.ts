@@ -63,7 +63,7 @@ Suggest exactly ${count} folders. If none of the existing folders are suitable, 
     await incrementAndLogTokenUsage(userId, tokens);
 
     return NextResponse.json({
-      suggestedFolders: response.object.suggestedFolders.sort(
+      folders: response.object.suggestedFolders.sort(
         (a, b) => b.score - a.score
       ),
     });
