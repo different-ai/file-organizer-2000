@@ -21,7 +21,10 @@ async function resetTokenUsage() {
           eq(UserUsageTable.subscriptionStatus, "succeeded"),
           eq(UserUsageTable.subscriptionStatus, "paid")
         ),
-        eq(UserUsageTable.paymentStatus, "paid"),
+        or(
+          eq(UserUsageTable.paymentStatus, "paid"),
+          eq(UserUsageTable.paymentStatus, "succeeded")
+        ),
         eq(UserUsageTable.currentProduct, "subscription")
       )
     );
