@@ -53,11 +53,6 @@ Suggest exactly ${count} folders. If none of the existing folders are suitable, 
         }`,
         prompt: `Content: "${content}"`
       });
-        ", "
-      )}. If none are relevant, suggest new folders. ${
-        customInstructions ? `Instructions: "${customInstructions}"` : ""
-      }`,
-      prompt: `Content: "${content}"`,
     });
     // increment tokenUsage
     const tokens = response.usage.totalTokens;
