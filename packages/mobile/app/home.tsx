@@ -1,9 +1,9 @@
 import { View, Text, StyleSheet, ScrollView } from 'react-native';
-import { useUser } from '@clerk/clerk-expo';
+import { useAuth } from '@clerk/clerk-expo';
 import { MaterialIcons } from '@expo/vector-icons';
 
 export default function HomeScreen() {
-  const { user } = useUser();
+  const { user } = useAuth();
 
   return (
     <ScrollView style={styles.container}>
@@ -109,4 +109,4 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: '#666',
   },
-});
+}); 

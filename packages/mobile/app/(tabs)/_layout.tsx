@@ -1,77 +1,62 @@
 import { Tabs } from 'expo-router';
-import React from 'react';
-import { Platform, View } from 'react-native';
-import { BlurView } from 'expo-blur';
+import { MaterialIcons } from '@expo/vector-icons';
+import { useAuth, useUser } from '@clerk/clerk-expo';
+import { useRouter } from 'expo-router';
+import { useEffect } from 'react';
 
-import { HapticTab } from '@/components/HapticTab';
-import { IconSymbol } from '@/components/ui/IconSymbol';
-import { Colors } from '@/constants/Colors';
-import { useColorScheme } from '@/hooks/useColorScheme';
+interface TabIconProps {
+  color: string;
+  size: number;
+}
 
-function TabLayout() {
-  const colorScheme = useColorScheme();
-  const isDark = colorScheme === 'dark';
+export default function TabLayout() {
+  const { isSignedIn, isLoaded } = useAuth();
+  const router = useRouter();
+
+  useEffect(() => {
+    if (isLoaded && !isSignedIn) {
+      router.replace('/(auth)/sign-in');
+    }
+  }, [isLoaded, isSignedIn]);
+
+  if (!isLoaded || !isSignedIn) {
+    return null;
+  }
 
   return (
-    <Tabs
-      screenOptions={{
-        tabBarActiveTintColor: Colors[colorScheme ?? 'light'].tint,
-        headerShown: false,
-        tabBarButton: (props) => <HapticTab {...props} />,
-        tabBarBackground: () => 
-          Platform.OS === 'ios' ? (
-            <BlurView
-              tint={isDark ? 'dark' : 'light'}
-              intensity={100}
-              style={{ 
-                position: 'absolute',
-                top: 0,
-                left: 0,
-                right: 0,
-                bottom: 0,
-              }}
-            />
-          ) : (
-            <View 
-              style={{ 
-                position: 'absolute',
-                top: 0,
-                left: 0,
-                right: 0,
-                bottom: 0,
-                backgroundColor: isDark ? '#000000' : '#ffffff',
-              }} 
-            />
-          ),
-        tabBarStyle: {
-          ...(Platform.OS === 'ios' ? {
-            backgroundColor: 'transparent',
-            position: 'absolute',
-          } : {
-            backgroundColor: isDark ? '#000000' : '#ffffff',
-          }),
-          borderTopWidth: 0,
-          elevation: 0,
-          height: Platform.OS === 'ios' ? 85 : 60,
-          paddingBottom: Platform.OS === 'ios' ? 20 : 10,
-        },
-      }}>
+    <Tabs 
+      screenOptions={{ 
+        tabBarActiveTintColor: '#007AFF',
+        headerShown: true 
+      }}
+    >
       <Tabs.Screen
         name="index"
         options={{
           title: 'Home',
-          tabBarIcon: ({ color }) => <IconSymbol size={28} name="house.fill" color={color} />,
+          tabBarIcon: ({ color, size }: TabIconProps) => (
+            <MaterialIcons name="home" size={size} color={color} />
+          ),
         }}
       />
       <Tabs.Screen
-        name="explore"
+        name="upload"
         options={{
-          title: 'Explore',
-          tabBarIcon: ({ color }) => <IconSymbol size={28} name="paperplane.fill" color={color} />,
+          title: 'Upload',
+          tabBarIcon: ({ color, size }: TabIconProps) => (
+            <MaterialIcons name="file-upload" size={size} color={color} />
+          ),
+        }}
+      />
+      <Tabs.Screen
+        name="settings"
+        options={{
+          title: 'Settings',
+          tabBarIcon: ({ color, size }: TabIconProps) => (
+            <MaterialIcons name="settings" size={size} color={color} />
+          ),
         }}
       />
     </Tabs>
   );
 }
-
-export default TabLayout;
