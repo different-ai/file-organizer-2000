@@ -75,25 +75,9 @@ export default function RootLayout() {
       <GestureHandlerRootView style={{ flex: 1 }}>
         <SafeAreaProvider>
           <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-            <Stack screenOptions={{ headerShown: false }}>
-              <Stack.Screen name="(tabs)" />
-              <Stack.Screen name="(auth)" />
-              <Stack.Screen name="+not-found" options={{ headerShown: true, title: 'Not Found' }} />
-              <Stack.Screen
-                name="index"
-                options={{
-                  headerShown: true,
-                  title: 'Home',
-                }}
-              />
-              <Stack.Screen
-                name="shared"
-                options={{
-                  headerShown: true,
-                  title: 'Shared File',
-                  presentation: 'modal',
-                }}
-              />
+            <Stack>
+              <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+              <Stack.Screen name="(auth)" options={{ headerShown: false }} />
             </Stack>
             <StatusBar style={colorScheme === 'dark' ? 'light' : 'dark'} />
           </ThemeProvider>
