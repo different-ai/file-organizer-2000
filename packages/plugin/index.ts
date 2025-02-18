@@ -90,22 +90,20 @@ interface TitleSuggestion {
   reason: string;
 }
 
-import { Plugin, TFile } from 'obsidian';
+// Environment type declarations
+declare global {
+  interface Window {
+    process: {
+      env: {
+        NODE_ENV: string;
+      };
+    };
+  }
+}
 
 export default class FileOrganizer extends Plugin {
   public inbox: Inbox;
   settings: FileOrganizerSettings;
-
-  override onload(): void {
-    super.onload();
-    this.inbox = Inbox.initialize(this);
-    this.initializePlugin();
-    logger.configure(this.settings.debugMode);
-  }
-
-  override async saveSettings(): Promise<void> {
-    await this.saveData(this.settings);
-  }
 
   async loadSettings() {
     this.settings = Object.assign({}, DEFAULT_SETTINGS, await this.loadData());
@@ -904,12 +902,13 @@ export default class FileOrganizer extends Plugin {
     // Try to find existing view
     let view = this.app.workspace.getLeavesOfType(ORGANIZER_VIEW_TYPE)[0]
       ?.view as AssistantViewWrapper;
-
-    // If view doesn't exist, create it
+    
     if (!view) {
       const leaf = this.app.workspace.getRightLeaf(false);
-      if (leaf) {
-        await leaf.setViewState({
+      if (!leaf) {
+        return null;
+      }
+      await leaf.setViewState({
         type: ORGANIZER_VIEW_TYPE,
         active: true,
       });
@@ -1015,11 +1014,7 @@ export default class FileOrganizer extends Plugin {
       },
     });
   }
-  async saveSettings() {
-    await this.saveData(this.settings);
-  }
-
-  async initializePlugin() {
+  private async initializePlugin(): Promise<void> {
     await this.loadSettings();
     await this.checkAndCreateFolders();
     await this.checkAndCreateTemplates();
@@ -1142,10 +1137,12 @@ export default class FileOrganizer extends Plugin {
     const { workspace } = this.app;
     
     let leaf = workspace.getLeavesOfType(DASHBOARD_VIEW_TYPE)[0];
-    
     if (!leaf) {
       const newLeaf = workspace.getRightLeaf(false);
-      if (newLeaf) {
+      if (!newLeaf) {
+        return null;
+      }
+      leaf = newLeaf;
         leaf = newLeaf;
         await leaf.setViewState({
         type: DASHBOARD_VIEW_TYPE,
