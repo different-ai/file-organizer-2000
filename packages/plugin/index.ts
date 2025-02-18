@@ -914,7 +914,7 @@ export default class FileOrganizer extends Plugin {
     return view;
   }
 
-  override async onload() {
+  async onload() {
     this.inbox = Inbox.initialize(this);
     await this.initializePlugin();
     logger.configure(this.settings.debugMode);
@@ -995,7 +995,7 @@ export default class FileOrganizer extends Plugin {
       },
     });
   }
-  override async saveSettings() {
+  async saveSettings() {
     await this.saveData(this.settings);
   }
 
