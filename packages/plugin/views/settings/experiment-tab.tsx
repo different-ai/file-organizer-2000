@@ -30,6 +30,9 @@ export const ExperimentTab: React.FC<ExperimentTabProps> = ({ plugin }) => {
   const [queryScreenpipeLimit, setQueryScreenpipeLimit] = useState(
     plugin.settings.queryScreenpipeLimit
   );
+  const [useDeepseekForFolders, setUseDeepseekForFolders] = useState(
+    plugin.settings.useDeepseekForFolders
+  );
 
   const handleToggleChange = async (
     value: boolean,
@@ -114,6 +117,31 @@ export const ExperimentTab: React.FC<ExperimentTabProps> = ({ plugin }) => {
                   )
                 }
               />
+              <ToggleSetting
+                name="Use Deepseek Model (Experimental)"
+                description={
+                  <div className="space-y-2">
+                    <p>Use Deepseek model for folder suggestions through Ollama.</p>
+                    <div className="mt-2 p-3 bg-[--background-secondary] rounded text-sm space-y-2">
+                      <p className="text-[--text-warning]">
+                        ⚡ Requires Ollama to be enabled and running
+                      </p>
+                      <p className="text-[--text-muted]">
+                        Uses deepseek-r1:1.5b model for generating folder suggestions
+                      </p>
+                    </div>
+                  </div>
+                }
+                value={useDeepseekForFolders}
+                onChange={value =>
+                  handleToggleChange(
+                    value,
+                    setUseDeepseekForFolders,
+                    "useDeepseekForFolders"
+                  )
+                }
+              />
+
               <ToggleSetting
                 name="Title Suggestions (Deprecated)"
                 description={

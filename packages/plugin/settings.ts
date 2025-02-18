@@ -56,6 +56,7 @@ export class FileOrganizerSettings {
     "Generate tags that capture the main topics, themes, and type of content in the document. Focus on specific, meaningful tags that will help with organization and retrieval.";
   hasCatalystAccess = null;
   hasRunOnboarding = false;
+  useDeepseekForFolders = false;
 }
 
 export const DEFAULT_SETTINGS = new FileOrganizerSettings();

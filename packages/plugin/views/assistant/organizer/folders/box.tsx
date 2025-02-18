@@ -34,9 +34,14 @@ export const SimilarFolderBox: React.FC<SimilarFolderBoxProps> = ({
     // cut content length to only first 50k/4 chars 
     const truncatedContent = content.slice(0, 50000);
     try {
+      // Pass settings for model selection
       const folderSuggestions = await plugin.recommendFolders(
         truncatedContent,
-        file.path
+        file.path,
+        {
+          useDeepseek: plugin.settings.useDeepseekForFolders,
+          useOllama: plugin.settings.showLocalLLMInChat
+        }
       );
 
 
