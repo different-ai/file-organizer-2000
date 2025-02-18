@@ -28,7 +28,8 @@ async function resetTokenUsage() {
         or(
           eq(UserUsageTable.billingCycle, "monthly"),
           eq(UserUsageTable.billingCycle, "yearly"),
-          eq(UserUsageTable.billingCycle, "subscription")
+          eq(UserUsageTable.billingCycle, "subscription"),
+          eq(UserUsageTable.billingCycle, "default")
         ),
       )
     );
