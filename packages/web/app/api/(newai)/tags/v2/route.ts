@@ -28,7 +28,7 @@ export async function POST(request: NextRequest) {
     } = await request.json();
 
     const response = await generateObject({
-      model: model === 'ollama-deepseek-r1' ? models["ollama-deepseek-r1"](ollamaEndpoint) : getModel(model),
+      model: model === 'ollama-deepseek-r1' && ollamaEndpoint ? models["ollama-deepseek-r1"](ollamaEndpoint) : getModel(model),
       schema: tagsSchema,
       system: `You are a precise tag generator. Analyze content and suggest ${count} relevant tags.
               ${existingTags.length ? `Consider existing tags: ${existingTags.join(", ")}` : 'Create new tags if needed.'}
