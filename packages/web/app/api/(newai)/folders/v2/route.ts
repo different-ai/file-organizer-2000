@@ -46,18 +46,13 @@ Suggest exactly ${count} folders. If none of the existing folders are suitable, 
       response = await generateObject({
         model,
         schema,
-          .array(
-            z.object({
-              score: z.number().min(0).max(100),
-              isNewFolder: z.boolean(),
-              folder: z.string(),
-              reason: z.string(),
-            })
-          )
-          .min(1)
-          .max(count)
-      }),
-      system: `Given the content and file name: "${fileName}", suggest exactly ${count} folders. You can use: ${folders.join(
+        system: `Given the content and file name: "${fileName}", suggest exactly ${count} folders. You can use: ${folders.join(
+          ", "
+        )}. If none are relevant, suggest new folders. ${
+          customInstructions ? `Instructions: "${customInstructions}"` : ""
+        }`,
+        prompt: `Content: "${content}"`
+      });
         ", "
       )}. If none are relevant, suggest new folders. ${
         customInstructions ? `Instructions: "${customInstructions}"` : ""
