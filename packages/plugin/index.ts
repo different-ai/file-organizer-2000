@@ -90,6 +90,8 @@ interface TitleSuggestion {
   reason: string;
 }
 
+import { Plugin } from 'obsidian';
+
 export default class FileOrganizer extends Plugin {
   public inbox: Inbox;
   settings: FileOrganizerSettings;
