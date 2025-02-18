@@ -843,8 +843,8 @@ export default class FileOrganizer extends Plugin {
       throw new Error(`HTTP error! status: ${response.status}`);
     }
 
-    const { folders: suggestedFolders } = await response.json();
-    return suggestedFolders;
+    const data = await response.json();
+    return data.folders;
   }
 
   async appendTag(file: TFile, tag: string) {
