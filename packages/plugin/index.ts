@@ -927,7 +927,14 @@ export default class FileOrganizer extends Plugin {
     return view;
   }
 
-  async onload() {
+  private async initializePlugin(): Promise<void> {
+    await this.loadSettings();
+    await this.checkAndCreateFolders();
+    await this.checkAndCreateTemplates();
+    this.addSettingTab(new FileOrganizerSettingTab(this.app, this));
+  }
+
+  override async onload(): Promise<void> {
     this.inbox = Inbox.initialize(this);
     await this.initializePlugin();
     logger.configure(this.settings.debugMode);
