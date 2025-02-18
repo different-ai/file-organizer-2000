@@ -108,7 +108,7 @@ const models = {
         })("deepseek-chat"),
       }
     : {}),
-  "ollama-deepseek-r1": (endpoint: string) => ollama("deepseek-r1", { baseUrl: endpoint }),
+  "ollama-deepseek-r1": (endpoint: string) => ollama("deepseek-r1", { baseURL: endpoint, temperature: 0.7 }),
 };
 
 export const getModel = (name: string) => {

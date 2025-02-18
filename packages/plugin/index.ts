@@ -804,6 +804,8 @@ export default class FileOrganizer extends Plugin {
         fileName: filePath,
         existingTags,
         customInstructions: this.settings.customTagInstructions,
+        model: this.settings.selectedModel,
+        ollamaEndpoint: this.settings.selectedModel === 'ollama-deepseek-r1' ? this.settings.ollamaEndpoint : undefined,
       }),
     });
 
