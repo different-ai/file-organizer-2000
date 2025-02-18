@@ -102,7 +102,7 @@ export default class FileOrganizer extends Plugin {
     // fetch the file organizer premium status
     // if process env prod then point to prod server if not to localhost
     const serverUrl =
-      process.env.NODE_ENV === "production"
+      (typeof process !== 'undefined' && process.env.NODE_ENV === "production")
         ? "https://app.fileorganizer2000.com"
         : this.getServerUrl();
     const premiumStatus = await fetch(`${serverUrl}/api/check-premium`, {
@@ -697,10 +697,10 @@ export default class FileOrganizer extends Plugin {
 
   isWebP(fileContent: ArrayBuffer): boolean {
     // Check if the file starts with the WebP signature
-    return (
-      fileContent.slice(0, 4).toString("hex") === "52494646" &&
-      fileContent.slice(8, 12).toString("hex") === "57454250"
-    );
+    const view = new Uint8Array(fileContent);
+    const header = Array.from(view.slice(0, 4)).map(b => b.toString(16).padStart(2, '0')).join('');
+    const webp = Array.from(view.slice(8, 12)).map(b => b.toString(16).padStart(2, '0')).join('');
+    return header === "52494646" && webp === "57454250";
   }
 
   async generateImageAnnotation(file: TFile) {
@@ -894,7 +894,9 @@ export default class FileOrganizer extends Plugin {
 
     // If view doesn't exist, create it
     if (!view) {
-      await this.app.workspace.getRightLeaf(false).setViewState({
+      const leaf = this.app.workspace.getRightLeaf(false);
+      if (leaf) {
+        await leaf.setViewState({
         type: ORGANIZER_VIEW_TYPE,
         active: true,
       });
@@ -912,7 +914,7 @@ export default class FileOrganizer extends Plugin {
     return view;
   }
 
-  async onload() {
+  override async onload() {
     this.inbox = Inbox.initialize(this);
     await this.initializePlugin();
     logger.configure(this.settings.debugMode);
@@ -993,7 +995,7 @@ export default class FileOrganizer extends Plugin {
       },
     });
   }
-  async saveSettings() {
+  override async saveSettings() {
     await this.saveData(this.settings);
   }
 
@@ -1122,8 +1124,10 @@ export default class FileOrganizer extends Plugin {
     let leaf = workspace.getLeavesOfType(DASHBOARD_VIEW_TYPE)[0];
     
     if (!leaf) {
-      leaf = workspace.getRightLeaf(false);
-      await leaf.setViewState({
+      const newLeaf = workspace.getRightLeaf(false);
+      if (newLeaf) {
+        leaf = newLeaf;
+        await leaf.setViewState({
         type: DASHBOARD_VIEW_TYPE,
         active: true,
       });
