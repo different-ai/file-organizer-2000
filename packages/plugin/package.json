@@ -13,6 +13,7 @@
   "author": "",
   "license": "MIT",
   "devDependencies": {
+    "@types/node": "^22.13.4",
     "autoprefixer": "^10.4.20",
     "builtin-modules": "3.3.0",
     "esbuild": "0.17.3",
