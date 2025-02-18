@@ -12,6 +12,14 @@ export async function POST(request: NextRequest) {
     const { content, fileName, folders, customInstructions, count = 3, useLocalLLMForFolderGuess = false } =
       await request.json();
     
+    console.log("Processing folder suggestion request:", {
+      useLocalLLM: useLocalLLMForFolderGuess,
+      fileName,
+      foldersCount: folders.length,
+      contentLength: content.length,
+      customInstructions: !!customInstructions
+    });
+
     const schema = z.object({
       suggestedFolders: z
         .array(
@@ -31,16 +39,45 @@ export async function POST(request: NextRequest) {
       response = await generateObject({
         model: ollama("deepseek-r1:1.5b"),
         schema,
-        system: `You are a helpful AI that suggests the best folder for the provided note.
-You must respond ONLY with a JSON object that includes an array of suggested folders.
-Each folder suggestion must include a score (0-100), whether it's a new folder (boolean),
-the folder name (string), and a reason for the suggestion (string).`,
-        prompt: `Note content: ${content}
+        messages: [
+          {
+            role: "system",
+            content: `You are a helpful AI that suggests folders for files. You MUST respond with ONLY valid JSON.
+The JSON MUST contain an array named "suggestedFolders" with each suggestion having:
+- score (number 0-100)
+- isNewFolder (boolean)
+- folder (string)
+- reason (string)
+
+Example format:
+{
+  "suggestedFolders": [
+    {
+      "score": 95,
+      "isNewFolder": false,
+      "folder": "projects/active",
+      "reason": "Contains project-related content"
+    }
+  ]
+}`
+          },
+          {
+            role: "user",
+            content: `Note content: ${content}
 File name: ${fileName}
 Possible folders: ${folders.join(", ")}
 ${customInstructions ? `Instructions: "${customInstructions}"` : ""}
-Suggest exactly ${count} folders. If none of the existing folders are suitable, suggest new ones.`,
+Suggest exactly ${count} folders. If none of the existing folders are suitable, suggest new ones.`
+          }
+        ]
       });
+
+      console.log("Raw Ollama response:", response);
+      if (!response.object?.suggestedFolders) {
+        console.error("Invalid response format:", response);
+        throw new Error("Invalid response format from Ollama");
+      }
+      console.log("Parsed suggestions:", response.object.suggestedFolders);
     } else {
       const model = getModel(process.env.MODEL_NAME);
       response = await generateObject({
@@ -58,8 +95,12 @@ Suggest exactly ${count} folders. If none of the existing folders are suitable, 
       });
     }
     // increment tokenUsage
-    const tokens = response.usage.totalTokens;
-    console.log("incrementing token usage folders", userId, tokens);
+    const tokens = response.usage?.totalTokens ?? 0;
+    console.log("incrementing token usage folders", {
+      userId,
+      tokens,
+      model: useLocalLLMForFolderGuess ? "deepseek-r1:1.5b" : process.env.MODEL_NAME
+    });
     await incrementAndLogTokenUsage(userId, tokens);
 
     return NextResponse.json({
