@@ -6,23 +6,34 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import { App } from 'obsidian';
 import { Sparkles, ChevronDown } from 'lucide-react';
 
 interface ModelSelectorProps {
   selectedModel: string;
   onModelSelect: (model: string) => void;
+  app: App;
 }
-
-const models = [
-  { id: 'gpt-4', name: 'GPT-4', description: 'Most capable model, best for complex tasks' },
-  { id: 'gpt-3.5-turbo', name: 'GPT-3.5', description: 'Faster, great for most tasks' },
-];
 
 export const ModelSelector: React.FC<ModelSelectorProps> = ({
   selectedModel,
   onModelSelect,
+  app,
 }) => {
-  const currentModel = models.find(model => model.id === selectedModel) || models[0];
+  const availableModels = [
+    { id: 'gpt-4', name: 'GPT-4', description: 'Most capable model, best for complex tasks' },
+    { id: 'gpt-3.5-turbo', name: 'GPT-3.5', description: 'Faster, great for most tasks' },
+    ...(app?.vault?.getConfig('enableOllama') === true
+      ? [
+          {
+            id: 'deepseek-r1:1.5b',
+            name: 'DeepSeek (Experimental)',
+            description: 'Local Ollama model for testing',
+          },
+        ]
+      : []),
+  ];
+  const currentModel = availableModels.find(model => model.id === selectedModel) || availableModels[0];
 
   return (
     <DropdownMenu>
@@ -37,7 +48,7 @@ export const ModelSelector: React.FC<ModelSelectorProps> = ({
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-[200px]">
-        {models.map(model => (
+        {availableModels.map(model => (
           <DropdownMenuItem
             key={model.id}
             onClick={() => onModelSelect(model.id)}
@@ -50,4 +61,4 @@ export const ModelSelector: React.FC<ModelSelectorProps> = ({
       </DropdownMenuContent>
     </DropdownMenu>
   );
-}; 
+};                  

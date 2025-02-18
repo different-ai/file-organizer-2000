@@ -101,26 +101,37 @@ export async function guessRelevantFolder(
   model: LanguageModel,
   customInstructions?: string,
 ) {
+  try {
+    console.log(`[DEBUG] Using model: ${model.modelId} for folder organization`);
+    
+    const basePrompt = `Review the content: "${content}" and the file name: "${fileName}". Decide which of the following folders is the most suitable: ${folders.join(
+      ", "
+    )}. Base your decision on the relevance of the content and the file name to the folder themes. If no existing folder is suitable, respond with null.`;
 
-  const basePrompt = `Review the content: "${content}" and the file name: "${fileName}". Decide which of the following folders is the most suitable: ${folders.join(
-    ", "
-  )}. Base your decision on the relevance of the content and the file name to the folder themes.  If no existing folder is suitable, respond with null.`;
+    const prompt = customInstructions
+      ? `${basePrompt} Strictly follow these custom instructions "${customInstructions}".`
+      : basePrompt;
 
-  const prompt = customInstructions
-    ? `${basePrompt} Strictly follow these custom instructions "${customInstructions}".`
-    : basePrompt;
+    console.log(`[DEBUG] Sending prompt to model: ${prompt}`);
 
-  // eslint-disable-next-line no-case-declarations
-  const response = await generateObject({
-    model,
-    schema: z.object({
-      suggestedFolder: z.string().nullable(),
-    }),
-    prompt: prompt,
-  });
+    const response = await generateObject({
+      model,
+      schema: z.object({
+        suggestedFolder: z.string().nullable(),
+      }),
+      prompt: prompt,
+    });
 
-
-  return response;
+    console.log(`[DEBUG] Model response: ${JSON.stringify(response)}`);
+    return response;
+  } catch (error) {
+    console.error(`[ERROR] Failed to generate folder suggestion: ${error.message}`);
+    if (error instanceof z.ZodError) {
+      console.error(`[ERROR] Schema validation failed: ${JSON.stringify(error.errors)}`);
+      throw new Error("Invalid model response format");
+    }
+    throw error;
+  }
 }
 
 

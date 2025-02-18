@@ -4,6 +4,7 @@ import { createGoogleGenerativeAI } from "@ai-sdk/google";
 import { createAmazonBedrock } from "@ai-sdk/amazon-bedrock";
 import { createGroq } from "@ai-sdk/groq";
 import { createDeepSeek } from "@ai-sdk/deepseek";
+import { createOpenAICompatible } from "@ai-sdk/openai-compatible";
 
 const DEFAULT_BASE_URLS = {
   OPENAI: "https://api.openai.com/v1",
@@ -11,6 +12,7 @@ const DEFAULT_BASE_URLS = {
   ANTHROPIC: "https://api.anthropic.com/v1",
   GOOGLE: "https://generativelanguage.googleapis.com/v1beta",
   DEEPSEEK: "https://api.deepseek.com/v1",
+  OLLAMA: "http://localhost:11434/v1",
 };
 
 const getBaseUrl = (type: string): string => {
@@ -105,6 +107,14 @@ const models = {
           apiKey: process.env.DEEPSEEK_API_KEY,
           baseURL: deepseekBaseURL,
         })("deepseek-chat"),
+      }
+    : {}),
+  ...(process.env.NEXT_PUBLIC_ENABLE_OLLAMA === "true"
+    ? {
+        "deepseek-r1:1.5b": createOpenAICompatible({
+          baseURL: getBaseUrl("OLLAMA"),
+          name: "ollama"
+        }).chatModel("deepseek-r1:1.5b"),
       }
     : {}),
 };
