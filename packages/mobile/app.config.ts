@@ -2,8 +2,8 @@ import { ExpoConfig, ConfigContext } from 'expo/config';
 
 export default ({ config }: ConfigContext): ExpoConfig => ({
   ...config,
-  name: 'File Organizer',
-  slug: 'file-organizer',
+  name: 'Note Companion AI',
+  slug: 'note-companion',
   version: '1.0.0',
   orientation: 'portrait',
   icon: './assets/icon.png',
@@ -16,14 +16,14 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
   assetBundlePatterns: ['**/*'],
   ios: {
     supportsTablet: true,
-    bundleIdentifier: 'com.fileorganizer.app'
+    bundleIdentifier: 'com.notecompanion.app'
   },
   android: {
     adaptiveIcon: {
       foregroundImage: './assets/adaptive-icon.png',
       backgroundColor: '#ffffff'
     },
-    package: 'com.fileorganizer.app'
+    package: 'com.notecompanion.app'
   },
   web: {
     favicon: './assets/favicon.png'
