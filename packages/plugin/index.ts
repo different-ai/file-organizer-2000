@@ -90,11 +90,22 @@ interface TitleSuggestion {
   reason: string;
 }
 
-import { Plugin } from 'obsidian';
+import { Plugin, TFile } from 'obsidian';
 
 export default class FileOrganizer extends Plugin {
   public inbox: Inbox;
   settings: FileOrganizerSettings;
+
+  override onload(): void {
+    super.onload();
+    this.inbox = Inbox.initialize(this);
+    this.initializePlugin();
+    logger.configure(this.settings.debugMode);
+  }
+
+  override async saveSettings(): Promise<void> {
+    await this.saveData(this.settings);
+  }
 
   async loadSettings() {
     this.settings = Object.assign({}, DEFAULT_SETTINGS, await this.loadData());
