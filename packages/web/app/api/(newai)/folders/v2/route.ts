@@ -4,6 +4,7 @@ import { incrementAndLogTokenUsage } from "@/lib/incrementAndLogTokenUsage";
 import { getModel } from "@/lib/models";
 import { z } from "zod";
 import { generateObject } from "ai";
+import { ollama } from "ollama-ai-provider";
 
 export async function POST(request: NextRequest) {
   try {
@@ -16,9 +17,11 @@ export async function POST(request: NextRequest) {
     
     // Only use Deepseek if both Ollama and Deepseek are enabled
     const useDeepseekModel = useDeepseek && useOllama;
-    const model = useDeepseekModel ? "deepseek-r1:1.5b" : getModel(process.env.MODEL_NAME);
+    const model = useDeepseekModel 
+      ? ollama("deepseek-r1:1.5b")
+      : getModel(process.env.MODEL_NAME);
     
-    console.log("Selected model for folder suggestions:", model);
+    console.log("Selected model for folder suggestions:", useDeepseekModel ? "deepseek-r1:1.5b" : model?.modelId || "unknown");
     const response = await generateObject({
       model,
       schema: z.object({
@@ -47,21 +50,41 @@ export async function POST(request: NextRequest) {
     await incrementAndLogTokenUsage(userId, tokens);
 
     try {
-      // Attempt to parse and validate response
-      const suggestedFolders = response.object.suggestedFolders;
+      // For Ollama responses, ensure we have valid data
+      const suggestedFolders = useDeepseekModel
+        ? response.object?.suggestedFolders || []
+        : response.object.suggestedFolders;
+      
       console.log("Raw folder suggestions:", suggestedFolders);
       
       if (!Array.isArray(suggestedFolders)) {
         throw new Error("Invalid response format: suggestedFolders is not an array");
       }
 
+      if (suggestedFolders.length === 0) {
+        throw new Error("No folder suggestions returned");
+      }
+
+      // Validate each suggestion has required fields
+      const validSuggestions = suggestedFolders.filter(suggestion => 
+        suggestion &&
+        typeof suggestion.score === 'number' &&
+        typeof suggestion.isNewFolder === 'boolean' &&
+        typeof suggestion.folder === 'string' &&
+        typeof suggestion.reason === 'string'
+      );
+
+      if (validSuggestions.length === 0) {
+        throw new Error("No valid folder suggestions found in response");
+      }
+
       return NextResponse.json({
-        folders: suggestedFolders.sort((a, b) => b.score - a.score),
+        folders: validSuggestions.sort((a, b) => b.score - a.score),
       });
     } catch (parseError) {
       console.error("Error parsing folder suggestions:", parseError);
       return NextResponse.json(
-        { error: "Failed to parse folder suggestions" },
+        { error: "Failed to parse folder suggestions: " + parseError.message },
         { status: 400 }
       );
     }
