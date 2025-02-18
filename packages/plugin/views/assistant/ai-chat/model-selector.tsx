@@ -5,8 +5,9 @@ import { usePlugin } from '../provider';
 // Add a mapping for display names
 const MODEL_DISPLAY_NAMES: Record<ModelType, string> = {
   'gpt-4o': 'Classic',
-  'llama3.2': 'Local LLM',
-  'custom': 'Ollama Model'
+  'openai-gpt-4': 'GPT-4',
+  'ollama-deepseek-r1': 'Deepseek-r1',
+  'custom': 'Custom Model'
 } as const;
 
 // Helper to get display name
@@ -34,7 +35,7 @@ export const ModelSelector: React.FC<ModelSelectorProps> = ({
       return;
     }
     onModelSelect(model);
-    if (model === "gpt-4o" || model === "llama3.2") {
+    if (model === "gpt-4o" || model === "openai-gpt-4" || model === "ollama-deepseek-r1") {
       plugin.settings.selectedModel = model;
     }
     await plugin.saveSettings();
@@ -43,7 +44,7 @@ export const ModelSelector: React.FC<ModelSelectorProps> = ({
 
   const handleCustomModelSave = async () => {
     plugin.settings.customModelName = customModel;
-    plugin.settings.selectedModel = customModel as "gpt-4o" | "llama3.2";
+    plugin.settings.selectedModel = customModel as "gpt-4o" | "openai-gpt-4" | "ollama-deepseek-r1";
     await plugin.saveSettings();
     onModelSelect(customModel);
     setIsCustomizing(false);
