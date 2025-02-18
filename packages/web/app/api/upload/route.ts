@@ -3,6 +3,8 @@ import { put } from "@vercel/blob";
 import { handleAuthorization } from "@/lib/handleAuthorization";
 import { db, uploadedFiles } from "@/drizzle/schema";
 
+export const runtime = "nodejs"; // Use Node.js runtime
+
 const ALLOWED_FILE_TYPES = {
   "application/pdf": "pdf",
   "image/jpeg": "image",
@@ -10,23 +12,61 @@ const ALLOWED_FILE_TYPES = {
   "image/webp": "image",
 };
 
+// Helper function to infer MIME type from filename extension
+function inferMimeType(fileName: string): string {
+  const extension = fileName.split('.').pop()?.toLowerCase();
+  if (extension === 'pdf') return 'application/pdf';
+  if (extension === 'jpg' || extension === 'jpeg') return 'image/jpeg';
+  if (extension === 'png') return 'image/png';
+  if (extension === 'webp') return 'image/webp';
+  return '';
+}
+
 export async function POST(request: NextRequest) {
   try {
     const { userId } = await handleAuthorization(request);
-    
-    const formData = await request.formData();
-    const file = formData.get("file") as File;
-    
-    if (!file) {
+
+    // Parse JSON body
+    let fileData;
+    try {
+      fileData = await request.json();
+      console.log("Received file data:", { 
+        name: fileData.name, 
+        type: fileData.type,
+        base64Length: fileData.base64?.length 
+      });
+    } catch (error) {
+      console.error("JSON parsing error:", error);
       return NextResponse.json(
-        { error: "No file provided" },
+        { error: "Invalid JSON format" },
         { status: 400 }
       );
     }
 
-    // Validate file type
-    const fileType = ALLOWED_FILE_TYPES[file.type];
-    if (!fileType) {
+    const { name: fileName, type: mimeType, base64 } = fileData;
+
+    if (!fileName || !mimeType || !base64) {
+      console.error("Missing required fields");
+      return NextResponse.json(
+        { error: "Missing required fields" },
+        { status: 400 }
+      );
+    }
+
+    // Convert base64 to Blob
+    const byteCharacters = Buffer.from(base64, 'base64');
+    const blob = new Blob([byteCharacters], { type: mimeType });
+    const fileObject = new File([blob], fileName, { type: mimeType });
+
+    console.log("Created file object:", {
+      name: fileObject.name,
+      type: fileObject.type,
+      size: fileObject.size
+    });
+
+    // Check if file type is supported
+    const fileCategory = ALLOWED_FILE_TYPES[mimeType];
+    if (!fileCategory) {
       return NextResponse.json(
         { error: "Unsupported file type" },
         { status: 400 }
@@ -34,7 +74,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Upload to Vercel Blob
-    const blob = await put(`${userId}/${file.name}`, file, {
+    const blobResult = await put(`${userId}/${fileName}`, fileObject, {
       access: "public",
     });
 
@@ -43,9 +83,9 @@ export async function POST(request: NextRequest) {
       .insert(uploadedFiles)
       .values({
         userId,
-        blobUrl: blob.url,
-        fileType,
-        originalName: file.name,
+        blobUrl: blobResult.url,
+        fileType: fileCategory,
+        originalName: fileName,
         status: "pending",
       })
       .returning();
@@ -62,4 +102,4 @@ export async function POST(request: NextRequest) {
       { status: 500 }
     );
   }
-} 
+}

@@ -1,9 +1,11 @@
-import { View, Text, StyleSheet, ScrollView } from 'react-native';
-import { useUser } from '@clerk/clerk-expo';
+import React from 'react';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
+import { useUser, useAuth } from '@clerk/clerk-expo';
 import { MaterialIcons } from '@expo/vector-icons';
 
 export default function HomeScreen() {
   const { user } = useUser();
+  const { signOut } = useAuth();
 
   return (
     <ScrollView style={styles.container}>
@@ -11,9 +13,18 @@ export default function HomeScreen() {
         <MaterialIcons name="folder" size={48} color="#007AFF" />
         <Text style={styles.title}>Welcome to File Organizer</Text>
         {user && (
-          <Text style={styles.userInfo}>
-            {user.emailAddresses[0]?.emailAddress}
-          </Text>
+          <>
+            <Text style={styles.userInfo}>
+              {user.emailAddresses[0]?.emailAddress}
+            </Text>
+            <TouchableOpacity 
+              style={styles.signOutButton} 
+              onPress={() => signOut()}
+            >
+              <MaterialIcons name="logout" size={24} color="#FF3B30" />
+              <Text style={styles.signOutText}>Sign Out</Text>
+            </TouchableOpacity>
+          </>
         )}
       </View>
 
@@ -108,5 +119,18 @@ const styles = StyleSheet.create({
   featureDescription: {
     fontSize: 14,
     color: '#666',
+  },
+  signOutButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 10,
+    borderWidth: 1,
+    borderColor: '#eee',
+    borderRadius: 5,
+  },
+  signOutText: {
+    marginLeft: 10,
+    fontSize: 16,
+    fontWeight: '600',
   },
 });
