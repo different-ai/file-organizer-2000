@@ -12,6 +12,7 @@ import {
   CachedMetadata,
   LinkCache,
 } from "obsidian";
+// Use ArrayBuffer instead of Buffer for binary data
 import { logMessage, sanitizeTag } from "./someUtils";
 import { FileOrganizerSettingTab } from "./views/settings/view";
 import {
@@ -102,7 +103,7 @@ export default class FileOrganizer extends Plugin {
     // fetch the file organizer premium status
     // if process env prod then point to prod server if not to localhost
     const serverUrl =
-      process.env.NODE_ENV === "production"
+      false // Disable production mode in plugin
         ? "https://app.fileorganizer2000.com"
         : this.getServerUrl();
     const premiumStatus = await fetch(`${serverUrl}/api/check-premium`, {
@@ -682,7 +683,7 @@ export default class FileOrganizer extends Plugin {
     });
   }
 
-  async compressImage(fileContent: Buffer): Promise<Buffer> {
+  async compressImage(fileContent: ArrayBuffer): Promise<ArrayBuffer> {
     const image = await Jimp.read(fileContent);
 
     // Check if the image is bigger than 1000 pixels in either width or height
@@ -695,17 +696,17 @@ export default class FileOrganizer extends Plugin {
     return resizedImage;
   }
 
-  isWebP(fileContent: Buffer): boolean {
+  isWebP(fileContent: ArrayBuffer): boolean {
     // Check if the file starts with the WebP signature
-    return (
-      fileContent.slice(0, 4).toString("hex") === "52494646" &&
-      fileContent.slice(8, 12).toString("hex") === "57454250"
-    );
+    const view = new Uint8Array(fileContent);
+    const riff = Array.from(view.slice(0, 4)).map(b => b.toString(16).padStart(2, '0')).join('');
+    const webp = Array.from(view.slice(8, 12)).map(b => b.toString(16).padStart(2, '0')).join('');
+    return riff === "52494646" && webp === "57454250";
   }
 
   async generateImageAnnotation(file: TFile) {
     const arrayBuffer = await this.app.vault.readBinary(file);
-    const fileContent = Buffer.from(arrayBuffer);
+    const fileContent = arrayBuffer;
     const imageSize = fileContent.byteLength;
     const imageSizeInMB2 = imageSize / (1024 * 1024);
     logMessage(`Image size: ${imageSizeInMB2.toFixed(2)} MB`);
@@ -715,7 +716,7 @@ export default class FileOrganizer extends Plugin {
     if (!this.isWebP(fileContent)) {
       // Compress the image if it's not a WebP
       const resizedImage = await this.compressImage(fileContent);
-      processedArrayBuffer = resizedImage.buffer;
+      processedArrayBuffer = resizedImage;
     } else {
       // If it's a WebP, use the original file content directly
       processedArrayBuffer = arrayBuffer;
@@ -793,26 +794,46 @@ export default class FileOrganizer extends Plugin {
     const cutoff = this.settings.contentCutoffChars;
     const trimmedContent = content.slice(0, cutoff);
 
-    const response = await fetch(`${this.getServerUrl()}/api/tags/v2`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${this.settings.API_KEY}`,
-      },
-      body: JSON.stringify({
-        content: trimmedContent,
-        fileName: filePath,
-        existingTags,
-        customInstructions: this.settings.customTagInstructions,
-      }),
-    });
+    try {
+      const response = await fetch(`${this.getServerUrl()}/api/tags/v2`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${this.settings.API_KEY}`,
+        },
+        body: JSON.stringify({
+          content: trimmedContent,
+          fileName: filePath,
+          existingTags,
+          customInstructions: this.settings.customTagInstructions,
+        }),
+      });
 
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        logger.error('Tag recommendation failed:', {
+          status: response.status,
+          error: errorData.error,
+          details: errorData.details
+        });
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const data = await response.json();
+      if (!data.tags || !Array.isArray(data.tags)) {
+        logger.error('Invalid response format:', { data });
+        throw new Error('Invalid response format: missing or invalid tags array');
+      }
+
+      return data.tags;
+    } catch (error) {
+      logger.error('Tag recommendation error:', {
+        error,
+        message: error.message,
+        stack: error.stack
+      });
+      throw error;
     }
-
-    const { tags: suggestedTags } = await response.json();
-    return suggestedTags;
   }
 
   async recommendFolders(
@@ -892,7 +913,11 @@ export default class FileOrganizer extends Plugin {
 
     // If view doesn't exist, create it
     if (!view) {
-      await this.app.workspace.getRightLeaf(false).setViewState({
+      const leaf = this.app.workspace.getRightLeaf(false);
+      if (!leaf) {
+        throw new Error('Failed to create view: could not get right leaf');
+      }
+      await leaf.setViewState({
         type: ORGANIZER_VIEW_TYPE,
         active: true,
       });
@@ -1120,7 +1145,11 @@ export default class FileOrganizer extends Plugin {
     let leaf = workspace.getLeavesOfType(DASHBOARD_VIEW_TYPE)[0];
     
     if (!leaf) {
-      leaf = workspace.getRightLeaf(false);
+      const newLeaf = workspace.getRightLeaf(false);
+      if (!newLeaf) {
+        throw new Error('Failed to create dashboard: could not get right leaf');
+      }
+      leaf = newLeaf;
       await leaf.setViewState({
         type: DASHBOARD_VIEW_TYPE,
         active: true,
