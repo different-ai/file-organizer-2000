@@ -24,6 +24,7 @@ import {
   safeMove,
   safeModifyContent as safeModify,
 } from "../fileUtils";
+import { extractYouTubeVideoId, getYouTubeContent } from "./services/youtube-service";
 
 // Move constants to the top level and ensure they're used consistently
 const MAX_CONCURRENT_TASKS = 5;
@@ -353,6 +354,12 @@ export class Inbox {
       );
       await executeStep(
         context,
+        fetchYouTubeTranscriptStep,
+        Action.FETCH_YOUTUBE,
+        Action.ERROR_FETCH_YOUTUBE
+      );
+      await executeStep(
+        context,
         recommendClassificationStep,
         Action.CLASSIFY,
         Action.ERROR_CLASSIFY
@@ -554,6 +561,54 @@ async function getContentStep(
   }
   return context;
 }
+
+async function fetchYouTubeTranscriptStep(
+  context: ProcessingContext
+): Promise<ProcessingContext> {
+  try {
+    if (!context.content || !context.containerFile) {
+      logger.info("Skipping YouTube transcript: missing content or container file");
+      return context;
+    }
+
+    const videoId = await extractYouTubeVideoId(context.content);
+    if (!videoId) {
+      return context;
+    }
+
+    const youtubeContent = await getYouTubeContent(videoId);
+    if (!youtubeContent) {
+      return context;
+    }
+
+    const { title, transcript } = youtubeContent;
+    const appendContent = `\n\n## YouTube Video: ${title}\n\n### Transcript\n\n${transcript}`;
+    
+    await context.plugin.app.vault.modify(
+      context.containerFile,
+      context.content + appendContent
+    );
+    
+    // Update the context content to include the transcript
+    context.content += appendContent;
+    
+    return context;
+  } catch (error) {
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+    const errorDetails = error instanceof Error && 'details' in error ? error.details : undefined;
+    
+    logger.error("Error in fetchYouTubeTranscriptStep:", { error, details: errorDetails });
+    
+    context.recordManager.addError(context.hash, {
+      action: Action.ERROR_FETCH_YOUTUBE,
+      message: errorMessage,
+      stack: error instanceof Error ? error.stack : undefined,
+    });
+    
+    throw error;
+  }
+}
+
 
 async function cleanupStep(
   context: ProcessingContext

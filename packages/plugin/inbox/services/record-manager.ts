@@ -3,6 +3,8 @@ import { IdService } from "./id-service";
 import moment from "moment";
 import { App, TAbstractFile } from "obsidian";
 import { FileOrganizerSettings } from "../../settings";
+// Using setTimeout type instead of NodeJS.Timeout
+type TimeoutID = ReturnType<typeof setTimeout>;
 
 export type FileStatus =
   | "queued"
@@ -53,6 +55,8 @@ export enum Action {
   ERROR_TAGGING = "Failed to generate tags",
   ERROR_FORMATTING = "Failed to format content",
   ERROR_MOVING = "Failed to move file",
+  FETCH_YOUTUBE = "Fetching YouTube transcript...",
+  ERROR_FETCH_YOUTUBE = "Failed to fetch YouTube transcript",
 }
 
 export interface LogEntry {
@@ -85,7 +89,7 @@ export class RecordManager {
   private records: Map<string, FileRecord> = new Map();
   private idService: IdService;
   private app: App;
-  private debounceTimeout: NodeJS.Timeout | null = null;
+  private debounceTimeout: TimeoutID | null = null;
   // temp hack while using hardcoded path
   private settings: { recordFilePath: string };
 
@@ -125,7 +129,7 @@ export class RecordManager {
         this.records = new Map(
           Object.entries(data).map(([hash, record]) => {
             // Restore TFile reference as null since it can't be serialized
-            return [hash, { ...record, file: null }];
+            return [hash, { ...record as FileRecord, file: null } as FileRecord];
           })
         );
       }
