@@ -1,7 +1,7 @@
 {
   "name": "@file-organizer/plugin",
   "version": "1.152.1",
-  "description": "AI File Organizer 2000",
+  "description": "Note Companion",
   "main": "main.js",
   "scripts": {
     "dev": "node esbuild.config.mjs",
