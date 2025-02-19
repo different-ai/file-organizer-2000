@@ -36,6 +36,11 @@ export async function getYouTubeContent(videoId: string): Promise<{ title: strin
   }
 }
 
+export function getOriginalContent(content: string): string {
+  // Split on YouTube section and take first part
+  return content.split('\n\n## YouTube Video:')[0];
+}
+
 export class YouTubeError extends Error {
   constructor(message: string, public details?: any) {
     super(message);

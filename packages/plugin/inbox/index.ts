@@ -24,7 +24,7 @@ import {
   safeMove,
   safeModifyContent as safeModify,
 } from "../fileUtils";
-import { extractYouTubeVideoId, getYouTubeContent, YouTubeError } from "./services/youtube-service";
+import { extractYouTubeVideoId, getYouTubeContent, getOriginalContent, YouTubeError } from "./services/youtube-service";
 
 // Move constants to the top level and ensure they're used consistently
 const MAX_CONCURRENT_TASKS = 5;
@@ -461,7 +461,7 @@ async function recommendNameStep(
   }
 
   const newName = await context.plugin.recommendName(
-    context.content,
+    getOriginalContent(context.content),
     context.containerFile.basename
   );
   context.newName = newName[0]?.title;
@@ -494,7 +494,7 @@ async function recommendFolderStep(
   }
 
   // Get original content without transcript for folder recommendation
-  const originalContent = context.content.split('\n\n## YouTube Video:')[0];
+  const originalContent = getOriginalContent(context.content);
   
   const newPath = await context.plugin.recommendFolders(
     originalContent,
@@ -531,7 +531,7 @@ async function recommendClassificationStep(
   }
 
   const result = await context.plugin.classifyContentV2(
-    `${context.content}, ${context.containerFile.name}`,
+    `${getOriginalContent(context.content)}, ${context.containerFile.name}`,
     templateNames
   );
   logger.info("Classification result", result);
