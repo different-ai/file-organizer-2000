@@ -493,8 +493,11 @@ async function recommendFolderStep(
     return context;
   }
 
+  // Get original content without transcript for folder recommendation
+  const originalContent = context.content.split('\n\n## YouTube Video:')[0];
+  
   const newPath = await context.plugin.recommendFolders(
-    context.content,
+    originalContent,
     context.inboxFile.basename
   );
 
