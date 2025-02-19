@@ -17,18 +17,22 @@ export async function extractYouTubeVideoId(content: string): Promise<string | n
   return null;
 }
 
-export async function getYouTubeContent(videoId: string): Promise<{ title: string; transcript: string } | null> {
+export async function getYouTubeContent(videoId: string): Promise<{ title: string; transcript: string }> {
   try {
     const [title, transcript] = await Promise.all([
       getYouTubeVideoTitle(videoId),
       getYouTubeTranscript(videoId)
     ]);
 
+    if (!title || !transcript) {
+      throw new YouTubeError('Failed to fetch YouTube content');
+    }
+
     return { title, transcript };
   } catch (error) {
     const message = error instanceof Error ? error.message : 'Unknown error';
     logger.error("Error fetching YouTube content:", error);
-    return null;
+    throw new YouTubeError(message);
   }
 }
 

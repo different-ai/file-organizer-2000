@@ -24,7 +24,7 @@ import {
   safeMove,
   safeModifyContent as safeModify,
 } from "../fileUtils";
-import { extractYouTubeVideoId, getYouTubeContent } from "./services/youtube-service";
+import { extractYouTubeVideoId, getYouTubeContent, YouTubeError } from "./services/youtube-service";
 
 // Move constants to the top level and ensure they're used consistently
 const MAX_CONCURRENT_TASKS = 5;
@@ -577,10 +577,6 @@ async function fetchYouTubeTranscriptStep(
     }
 
     const youtubeContent = await getYouTubeContent(videoId);
-    if (!youtubeContent) {
-      return context;
-    }
-
     const { title, transcript } = youtubeContent;
     const appendContent = `\n\n## YouTube Video: ${title}\n\n### Transcript\n\n${transcript}`;
     
@@ -594,17 +590,15 @@ async function fetchYouTubeTranscriptStep(
     
     return context;
   } catch (error) {
-    const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
-    const errorDetails = error instanceof Error && 'details' in error ? error.details : undefined;
-    
-    logger.error("Error in fetchYouTubeTranscriptStep:", { error, details: errorDetails });
-    
-    context.recordManager.addError(context.hash, {
-      action: Action.ERROR_FETCH_YOUTUBE,
-      message: errorMessage,
-      stack: error instanceof Error ? error.stack : undefined,
-    });
-    
+    if (error instanceof YouTubeError) {
+      context.recordManager.addError(context.hash, {
+        action: Action.ERROR_FETCH_YOUTUBE,
+        message: error.message,
+        stack: error.stack,
+      });
+      throw error;
+    }
+    // For other errors, use default error handling
     throw error;
   }
 }
@@ -808,6 +802,10 @@ async function handleError(
     case Action.ERROR_CLASSIFY:
     case Action.ERROR_TAGGING:
       // Handle AI-related errors
+      await moveToBackupFolder(context);
+      break;
+    case Action.ERROR_FETCH_YOUTUBE:
+      // Handle YouTube errors by moving to backup folder
       await moveToBackupFolder(context);
       break;
     default:
