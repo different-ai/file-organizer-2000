@@ -24,6 +24,7 @@ import {
   safeMove,
   safeModifyContent as safeModify,
 } from "../fileUtils";
+import { extractYouTubeVideoId, getYouTubeContent, getOriginalContent, YouTubeError } from "./services/youtube-service";
 
 // Move constants to the top level and ensure they're used consistently
 const MAX_CONCURRENT_TASKS = 5;
@@ -353,6 +354,12 @@ export class Inbox {
       );
       await executeStep(
         context,
+        fetchYouTubeTranscriptStep,
+        Action.FETCH_YOUTUBE,
+        Action.ERROR_FETCH_YOUTUBE
+      );
+      await executeStep(
+        context,
         recommendClassificationStep,
         Action.CLASSIFY,
         Action.ERROR_CLASSIFY
@@ -454,7 +461,7 @@ async function recommendNameStep(
   }
 
   const newName = await context.plugin.recommendName(
-    context.content,
+    getOriginalContent(context.content),
     context.containerFile.basename
   );
   context.newName = newName[0]?.title;
@@ -486,8 +493,11 @@ async function recommendFolderStep(
     return context;
   }
 
+  // Get original content without transcript for folder recommendation
+  const originalContent = getOriginalContent(context.content);
+  
   const newPath = await context.plugin.recommendFolders(
-    context.content,
+    originalContent,
     context.inboxFile.basename
   );
 
@@ -521,7 +531,7 @@ async function recommendClassificationStep(
   }
 
   const result = await context.plugin.classifyContentV2(
-    `${context.content}, ${context.containerFile.name}`,
+    `${getOriginalContent(context.content)}, ${context.containerFile.name}`,
     templateNames
   );
   logger.info("Classification result", result);
@@ -554,6 +564,48 @@ async function getContentStep(
   }
   return context;
 }
+
+async function fetchYouTubeTranscriptStep(
+  context: ProcessingContext
+): Promise<ProcessingContext> {
+  try {
+    if (!context.content || !context.containerFile) {
+      logger.info("Skipping YouTube transcript: missing content or container file");
+      return context;
+    }
+
+    const videoId = await extractYouTubeVideoId(context.content);
+    if (!videoId) {
+      return context;
+    }
+
+    const youtubeContent = await getYouTubeContent(videoId);
+    const { title, transcript } = youtubeContent;
+    const appendContent = `\n\n## YouTube Video: ${title}\n\n### Transcript\n\n${transcript}`;
+    
+    await context.plugin.app.vault.modify(
+      context.containerFile,
+      context.content + appendContent
+    );
+    
+    // Update the context content to include the transcript
+    context.content += appendContent;
+    
+    return context;
+  } catch (error) {
+    if (error instanceof YouTubeError) {
+      context.recordManager.addError(context.hash, {
+        action: Action.ERROR_FETCH_YOUTUBE,
+        message: error.message,
+        stack: error.stack,
+      });
+      throw error;
+    }
+    // For other errors, use default error handling
+    throw error;
+  }
+}
+
 
 async function cleanupStep(
   context: ProcessingContext
@@ -753,6 +805,10 @@ async function handleError(
     case Action.ERROR_CLASSIFY:
     case Action.ERROR_TAGGING:
       // Handle AI-related errors
+      await moveToBackupFolder(context);
+      break;
+    case Action.ERROR_FETCH_YOUTUBE:
+      // Handle YouTube errors by moving to backup folder
       await moveToBackupFolder(context);
       break;
     default:
