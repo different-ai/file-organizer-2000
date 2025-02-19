@@ -6,50 +6,92 @@ interface SharedFile {
   uri: string;
   mimeType?: string;
   name?: string;
+  text?: string;
 }
 
-export const processSharedFile = async (sharedFile: SharedFile) => {
+export const getMimeTypeFromExtension = (filename: string): string => {
+  const extension = filename.split('.').pop()?.toLowerCase();
+  switch (extension) {
+    case 'pdf':
+      return 'application/pdf';
+    case 'jpg':
+    case 'jpeg':
+      return 'image/jpeg';
+    case 'png':
+      return 'image/png';
+    case 'webp':
+      return 'image/webp';
+    case 'txt':
+      return 'text/plain';
+    case 'md':
+      return 'text/markdown';
+    case 'doc':
+      return 'application/msword';
+    case 'docx':
+      return 'application/vnd.openxmlformats-officedocument.wordprocessingml.document';
+    case 'html':
+      return 'text/html';
+    default:
+      return 'application/octet-stream';
+  }
+};
+
+export const getFileNameFromUri = (uri: string): string => {
+  const parts = decodeURIComponent(uri).split('/');
+  return parts[parts.length - 1] || `shared-file-${Date.now()}`;
+};
+
+export const processSharedFile = async (file: SharedFile): Promise<SharedFile> => {
   try {
-    // For Android, we need to copy the file to app's cache directory
-    // as we might not have permission to read from the original location
-    if (Platform.OS === 'android') {
-      const fileInfo = await FileSystem.getInfoAsync(sharedFile.uri);
-      if (!fileInfo.exists) {
-        throw new Error('Shared file does not exist');
-      }
-
-      // Generate a temporary filename
-      const timestamp = new Date().getTime();
-      const extension = sharedFile.name?.split('.').pop() || 'tmp';
-      const tempFilename = `${timestamp}.${extension}`;
-      const tempFilePath = `${FileSystem.cacheDirectory}${tempFilename}`;
-
-      // Copy file to our cache directory
-      await FileSystem.copyAsync({
-        from: sharedFile.uri,
-        to: tempFilePath,
-      });
-
-      // Update the uri to point to our copied file
-      sharedFile.uri = tempFilePath;
-    }
-
-    // Read the file as base64
-    const base64 = await FileSystem.readAsStringAsync(sharedFile.uri, {
-      encoding: FileSystem.EncodingType.Base64,
+    const fileUri = Platform.select({
+      ios: file.uri.replace('file://', ''),
+      android: file.uri,
+      default: file.uri,
     });
 
-    // Prepare the file data
-    const fileData = {
-      name: sharedFile.name || `shared-file-${new Date().getTime()}`,
-      type: sharedFile.mimeType || 'application/octet-stream',
-      base64,
-    };
+    // Check if file exists
+    const fileInfo = await FileSystem.getInfoAsync(fileUri);
+    if (!fileInfo.exists) {
+      throw new Error('File does not exist');
+    }
 
-    return fileData;
+    // Get file name and mime type if not provided
+    const fileName = file.name || getFileNameFromUri(fileUri);
+    const mimeType = file.mimeType || getMimeTypeFromExtension(fileName);
+
+    // For text files, read the content directly
+    if (mimeType.startsWith('text/')) {
+      const text = await FileSystem.readAsStringAsync(fileUri);
+      return {
+        uri: fileUri,
+        mimeType,
+        name: fileName,
+        text,
+      };
+    }
+
+    // For other files, ensure they're readable
+    await FileSystem.readAsStringAsync(fileUri, { encoding: FileSystem.EncodingType.Base64 });
+
+    return {
+      uri: fileUri,
+      mimeType,
+      name: fileName,
+    };
   } catch (error) {
     console.error('Error processing shared file:', error);
     throw error;
+  }
+};
+
+export const cleanupSharedFile = async (uri: string): Promise<void> => {
+  try {
+    // Only delete files in the temporary directory
+    if (uri.includes(FileSystem.cacheDirectory || '') || uri.includes(FileSystem.documentDirectory || '')) {
+      await FileSystem.deleteAsync(uri, { idempotent: true });
+    }
+  } catch (error) {
+    console.error('Error cleaning up shared file:', error);
   }
 };
 

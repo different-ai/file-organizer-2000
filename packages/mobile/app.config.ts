@@ -28,12 +28,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
       NSUserActivityTypes: [
         "INSendMessageIntent",
         "INSearchForMessagesIntent"
-      ]
-    },
-    usesIcloudStorage: true,
-    associatedDomains: ['applinks:notecompanion.app'],
-    infoPlist: {
-      ...config.ios?.infoPlist,
+      ],
       UIFileSharingEnabled: true,
       LSSupportsOpeningDocumentsInPlace: true,
       UISupportsDocumentBrowser: true,
@@ -45,7 +40,14 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
           "public.data",
           "public.image",
           "public.pdf",
-          "public.text"
+          "public.text",
+          "public.audio",
+          "public.movie",
+          "com.adobe.pdf",
+          "com.microsoft.word.doc",
+          "org.openxmlformats.wordprocessingml.document",
+          "public.plain-text",
+          "public.html"
         ]
       }],
       UTExportedTypeDeclarations: [{
@@ -53,11 +55,23 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
         UTTypeDescription: "Note Companion Document",
         UTTypeConformsTo: ["public.data"],
         UTTypeTagSpecification: {
-          "public.filename-extension": ["pdf", "jpg", "jpeg", "png", "webp"],
-          "public.mime-type": ["application/pdf", "image/jpeg", "image/png", "image/webp"]
+          "public.filename-extension": ["pdf", "jpg", "jpeg", "png", "webp", "txt", "md", "doc", "docx", "html"],
+          "public.mime-type": [
+            "application/pdf",
+            "image/jpeg",
+            "image/png",
+            "image/webp",
+            "text/plain",
+            "text/markdown",
+            "application/msword",
+            "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+            "text/html"
+          ]
         }
       }]
-    }
+    },
+    usesIcloudStorage: true,
+    associatedDomains: ['applinks:notecompanion.app'],
   },
   android: {
     adaptiveIcon: {
@@ -70,24 +84,26 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
         action: "android.intent.action.SEND",
         category: ["android.intent.category.DEFAULT"],
         data: [
-          {
-            mimeType: "application/pdf"
-          },
-          {
-            mimeType: "image/*"
-          }
+          { mimeType: "application/pdf" },
+          { mimeType: "image/*" },
+          { mimeType: "text/plain" },
+          { mimeType: "text/markdown" },
+          { mimeType: "text/html" },
+          { mimeType: "application/msword" },
+          { mimeType: "application/vnd.openxmlformats-officedocument.wordprocessingml.document" }
         ]
       },
       {
         action: "android.intent.action.SEND_MULTIPLE",
         category: ["android.intent.category.DEFAULT"],
         data: [
-          {
-            mimeType: "application/pdf"
-          },
-          {
-            mimeType: "image/*"
-          }
+          { mimeType: "application/pdf" },
+          { mimeType: "image/*" },
+          { mimeType: "text/plain" },
+          { mimeType: "text/markdown" },
+          { mimeType: "text/html" },
+          { mimeType: "application/msword" },
+          { mimeType: "application/vnd.openxmlformats-officedocument.wordprocessingml.document" }
         ]
       }
     ]
@@ -104,9 +120,33 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
       {
         iCloudContainerEnvironment: 'Production'
       }
+    ],
+    [
+      'expo-share-intent',
+      {
+        iosActivationRules: {
+          NSExtensionActivationSupportsText: true,
+          NSExtensionActivationSupportsWebURLWithMaxCount: 1,
+          NSExtensionActivationSupportsImageWithMaxCount: 1,
+          NSExtensionActivationSupportsFileWithMaxCount: 1,
+          NSExtensionActivationSupportsMovieWithMaxCount: 1,
+          NSExtensionActivationSupportsWebPageWithMaxCount: 1
+        },
+        androidMimeTypes: [
+          "text/*",
+          "image/*",
+          "application/pdf",
+          "application/msword",
+          "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+          "text/plain",
+          "text/markdown",
+          "text/html"
+        ]
+      }
     ]
   ],
   extra: {
     clerkPublishableKey: process.env.EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY
-  }
+  },
+  scheme: 'notecompanion'
 }); 

@@ -13,6 +13,7 @@ import { MaterialIcons } from "@expo/vector-icons";
 import * as DocumentPicker from "expo-document-picker";
 import * as ImagePicker from "expo-image-picker";
 import * as FileSystem from "expo-file-system";
+import { useShareIntent } from "expo-share-intent";
 import { API_URL } from "@/constants/config";
 import { useLocalSearchParams } from 'expo-router';
 
@@ -35,6 +36,44 @@ export default function HomeScreen() {
   const [uploadResult, setUploadResult] = useState<UploadResult | null>(null);
   const [status, setStatus] = useState<UploadStatus>("idle");
   const params = useLocalSearchParams<{ sharedFile?: string }>();
+  const { shareIntent } = useShareIntent();
+
+  useEffect(() => {
+    // Handle shared content
+    const handleSharedContent = async () => {
+      if (shareIntent) {
+        try {
+          if (shareIntent.files && shareIntent.files.length > 0) {
+            // Handle shared files
+            const file = shareIntent.files[0];
+            await uploadFile({
+              uri: file.path,
+              mimeType: file.mimeType,
+              name: file.fileName,
+            });
+          } else if (shareIntent.text) {
+            // Handle shared text (could save as markdown or process differently)
+            const textFile = {
+              uri: `${FileSystem.cacheDirectory}shared-text-${Date.now()}.md`,
+              mimeType: 'text/markdown',
+              name: 'shared-text.md'
+            };
+            
+            await FileSystem.writeAsStringAsync(textFile.uri, shareIntent.text);
+            await uploadFile(textFile);
+          }
+        } catch (error) {
+          console.error('Error handling shared content:', error);
+          setUploadResult({
+            status: 'error',
+            error: 'Failed to process shared content'
+          });
+        }
+      }
+    };
+
+    handleSharedContent();
+  }, [shareIntent]);
 
   useEffect(() => {
     // Handle shared file if present

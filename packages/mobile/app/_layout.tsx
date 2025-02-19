@@ -13,7 +13,7 @@ import * as Linking from 'expo-linking';
 import { ClerkProvider } from "@clerk/clerk-expo";
 import * as SecureStore from "expo-secure-store";
 import Constants from 'expo-constants';
-import { processSharedFile } from '@/utils/share-handler';
+import { processSharedFile, cleanupSharedFile } from '@/utils/share-handler';
 
 import { useColorScheme } from '@/hooks/useColorScheme';
 
@@ -54,37 +54,62 @@ export default function RootLayout() {
   }, [loaded]);
 
   useEffect(() => {
-    if (Platform.OS === 'ios') {
-      // Handle incoming shared files
-      const subscription = Linking.addEventListener('url', async ({ url }) => {
-        try {
-          const { path, queryParams } = Linking.parse(url);
-          
-          // Handle shared file URLs
-          if (path === 'share' && queryParams?.uri) {
-            const sharedFile = {
-              uri: decodeURIComponent(queryParams.uri as string),
-              mimeType: (queryParams.type as string) || 'application/octet-stream',
-              name: (queryParams.name as string) || `shared-file-${Date.now()}`,
-            };
-            
-            const fileData = await processSharedFile(sharedFile);
-            // Navigate to home screen with the file data
-            router.push({
-              pathname: '/(tabs)',
-              params: { sharedFile: JSON.stringify(fileData) }
-            });
-          }
-        } catch (error) {
-          console.error('Error handling shared file:', error);
-        }
-      });
+    // Handle initial URL when app is opened from share
+    Linking.getInitialURL().then(handleIncomingURL);
 
-      return () => {
-        subscription.remove();
-      };
-    }
+    // Listen for URLs while app is running
+    const subscription = Linking.addEventListener('url', ({ url }) => {
+      handleIncomingURL(url);
+    });
+
+    return () => subscription.remove();
   }, []);
+
+  const handleIncomingURL = async (url: string | null) => {
+    if (!url) return;
+
+    try {
+      const { path, queryParams } = Linking.parse(url);
+
+      // Handle shared file URLs
+      if (path === 'share') {
+        if (queryParams?.uri) {
+          const sharedFile = {
+            uri: decodeURIComponent(queryParams.uri as string),
+            mimeType: queryParams.type as string,
+            name: queryParams.name as string,
+          };
+
+          const fileData = await processSharedFile(sharedFile);
+          
+          // Navigate to home screen with the file data
+          router.push({
+            pathname: '/(tabs)',
+            params: { sharedFile: JSON.stringify(fileData) }
+          });
+
+          // Clean up temporary files after processing
+          if (Platform.OS === 'android') {
+            await cleanupSharedFile(sharedFile.uri);
+          }
+        } else if (queryParams?.text) {
+          // Handle shared text
+          const textData = {
+            text: decodeURIComponent(queryParams.text as string),
+            mimeType: 'text/plain',
+            name: 'shared-text.txt'
+          };
+
+          router.push({
+            pathname: '/(tabs)',
+            params: { sharedFile: JSON.stringify(textData) }
+          });
+        }
+      }
+    } catch (error) {
+      console.error('Error handling shared content:', error);
+    }
+  };
 
   if (!loaded) {
     return null;
