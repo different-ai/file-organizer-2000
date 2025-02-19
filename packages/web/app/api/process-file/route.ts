@@ -7,12 +7,33 @@ import { generateObject } from "ai";
 import { getModel } from "@/lib/models";
 import { incrementAndLogTokenUsage } from "@/lib/incrementAndLogTokenUsage";
 import { z } from "zod";
+import sharp from 'sharp';
 
 type FileContent = 
   | { type: "file"; data: Buffer; mimeType: "application/pdf" }
   | { type: "image"; image: string };
 
 export const maxDuration = 300; // 5 minutes
+
+// Helper function to compress image
+async function compressImage(buffer: Buffer): Promise<Buffer> {
+  try {
+    // Process image with Sharp
+    return await sharp(buffer)
+      .resize(800, 800, { // Resize to max 800x800 while maintaining aspect ratio
+        fit: 'inside',
+        withoutEnlargement: true
+      })
+      .jpeg({ // Convert to JPEG with moderate compression
+        quality: 60,
+        mozjpeg: true
+      })
+      .toBuffer();
+  } catch (error) {
+    console.error('Image compression error:', error);
+    return buffer; // Return original buffer if compression fails
+  }
+}
 
 export async function POST(request: NextRequest) {
   let fileId: number | null = null;
@@ -55,18 +76,24 @@ export async function POST(request: NextRequest) {
       throw new Error("Failed to fetch file from storage");
     }
     const arrayBuffer = await response.arrayBuffer();
+    const buffer = Buffer.from(arrayBuffer);
 
     // Prepare file content based on type
-    const fileContent: FileContent = file.fileType === 'pdf' ? 
-      {
+    let fileContent: FileContent;
+    if (file.fileType === 'pdf') {
+      fileContent = {
         type: "file",
-        data: Buffer.from(arrayBuffer),
+        data: buffer,
         mimeType: "application/pdf",
-      } : 
-      {
-        type: "image",
-        image: Buffer.from(arrayBuffer).toString('base64'),
       };
+    } else {
+      // Compress image before converting to base64
+      const compressedBuffer = await compressImage(buffer);
+      fileContent = {
+        type: "image",
+        image: compressedBuffer.toString('base64'),
+      };
+    }
 
     // Process with Claude
     const model = getModel('claude-3-5-sonnet-20241022');

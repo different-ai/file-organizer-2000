@@ -15,9 +15,9 @@
             <BuildableReference
                BuildableIdentifier = "primary"
                BlueprintIdentifier = "13B07F861A680F5B00A75B9A"
-               BuildableName = "FileOrganizer.app"
-               BlueprintName = "FileOrganizer"
-               ReferencedContainer = "container:FileOrganizer.xcodeproj">
+               BuildableName = "NoteCompanionAI.app"
+               BlueprintName = "NoteCompanionAI"
+               ReferencedContainer = "container:NoteCompanionAI.xcodeproj">
             </BuildableReference>
          </BuildActionEntry>
       </BuildActionEntries>
@@ -33,9 +33,9 @@
             <BuildableReference
                BuildableIdentifier = "primary"
                BlueprintIdentifier = "00E356ED1AD99517003FC87E"
-               BuildableName = "FileOrganizerTests.xctest"
-               BlueprintName = "FileOrganizerTests"
-               ReferencedContainer = "container:FileOrganizer.xcodeproj">
+               BuildableName = "NoteCompanionAITests.xctest"
+               BlueprintName = "NoteCompanionAITests"
+               ReferencedContainer = "container:NoteCompanionAI.xcodeproj">
             </BuildableReference>
          </TestableReference>
       </Testables>
@@ -55,9 +55,9 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "13B07F861A680F5B00A75B9A"
-            BuildableName = "FileOrganizer.app"
-            BlueprintName = "FileOrganizer"
-            ReferencedContainer = "container:FileOrganizer.xcodeproj">
+            BuildableName = "NoteCompanionAI.app"
+            BlueprintName = "NoteCompanionAI"
+            ReferencedContainer = "container:NoteCompanionAI.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>
    </LaunchAction>
@@ -72,9 +72,9 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "13B07F861A680F5B00A75B9A"
-            BuildableName = "FileOrganizer.app"
-            BlueprintName = "FileOrganizer"
-            ReferencedContainer = "container:FileOrganizer.xcodeproj">
+            BuildableName = "NoteCompanionAI.app"
+            BlueprintName = "NoteCompanionAI"
+            ReferencedContainer = "container:NoteCompanionAI.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>
    </ProfileAction>

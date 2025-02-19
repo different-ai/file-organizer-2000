@@ -245,6 +245,9 @@ importers:
       expo-secure-store:
         specifier: ^12.8.1
         version: 12.8.1(expo@52.0.35)
+      expo-sharing:
+        specifier: ^13.0.1
+        version: 13.0.1(expo@52.0.35)
       expo-splash-screen:
         specifier: 0.29.22
         version: 0.29.22(expo@52.0.35)
@@ -656,6 +659,9 @@ importers:
       react-hot-toast:
         specifier: ^2.4.1
         version: 2.5.2(react-dom@19.0.0)(react@19.0.0)
+      sharp:
+        specifier: ^0.33.5
+        version: 0.33.5
       stripe:
         specifier: ^16.12.0
         version: 16.12.0
@@ -10959,7 +10965,6 @@ packages:
     engines: {node: '>=8'}
     requiresBuild: true
     dev: false
-    optional: true
 
   /detect-newline@3.1.0:
     resolution: {integrity: sha512-TLz+x/vEXm/Y7P7wn1EJFNLxYpUD4TgMosxY6fAVJUnJMbupHBOncxyWUG9OpTaH9EBD7uFI5LfEgmMOc54DsA==}
@@ -11045,7 +11050,7 @@ packages:
     resolution: {integrity: sha512-Kv5nKlh6yRrdrGvxeJ2e5y2eRUpkUosIW4A2AS38zwSz27zu7ufDwQPi5Jhs3XAlGNetl3bmnGhQsMtkKJnj3w==}
     dependencies:
       no-case: 3.0.4
-      tslib: 2.4.1
+      tslib: 2.8.1
     dev: false
 
   /dotenv-cli@7.4.4:
@@ -12206,6 +12211,14 @@ packages:
 
   /expo-secure-store@12.8.1(expo@52.0.35):
     resolution: {integrity: sha512-Ju3jmkHby4w7rIzdYAt9kQyQ7HhHJ0qRaiQOInknhOLIltftHjEgF4I1UmzKc7P5RCfGNmVbEH729Pncp/sHXQ==}
+    peerDependencies:
+      expo: '*'
+    dependencies:
+      expo: 52.0.35(@babel/core@7.25.2)(@babel/preset-env@7.26.9)(react-native-webview@13.12.5)(react-native@0.76.7)(react@18.3.1)
+    dev: false
+
+  /expo-sharing@13.0.1(expo@52.0.35):
+    resolution: {integrity: sha512-qych3Nw65wlFcnzE/gRrsdtvmdV0uF4U4qVMZBJYPG90vYyWh2QM9rp1gVu0KWOBc7N8CC2dSVYn4/BXqJy6Xw==}
     peerDependencies:
       expo: '*'
     dependencies:
@@ -14742,7 +14755,7 @@ packages:
   /lower-case@2.0.2:
     resolution: {integrity: sha512-7fm3l3NAF9WfN6W3JOmf5drwpVqX78JtoGJ3A6W0a6ZnldM41w2fV5D490psKFTpMds8TJse/eHLFFsNHHjHgg==}
     dependencies:
-      tslib: 2.4.1
+      tslib: 2.8.1
     dev: false
 
   /lru-cache@10.4.3:
@@ -15860,7 +15873,7 @@ packages:
     resolution: {integrity: sha512-fgAN3jGAh+RoxUGZHTSOLJIqUc2wmoBwGR4tbpNAKmmovFoWq0OdRkb0VkldReO2a2iBT/OEulG9XSUc10r3zg==}
     dependencies:
       lower-case: 2.0.2
-      tslib: 2.4.1
+      tslib: 2.8.1
     dev: false
 
   /node-dir@0.1.17:
@@ -18141,7 +18154,6 @@ packages:
       '@img/sharp-win32-ia32': 0.33.5
       '@img/sharp-win32-x64': 0.33.5
     dev: false
-    optional: true
 
   /shebang-command@1.2.0:
     resolution: {integrity: sha512-EV3L1+UQWGor21OmnvojK36mhg+TyIKDh3iFBKBohr5xeXIhNBcx8oWdgkTEEQ+BEFFYdLRuqMfd5L84N1V5Vg==}

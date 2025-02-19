@@ -49,9 +49,5 @@
 	</array>
 	<key>UIViewControllerBasedStatusBarAppearance</key>
 	<false/>
-	<key>NSCameraUsageDescription</key>
-	<string>Note Companion needs camera access to scan documents and capture notes for organization.</string>
-	<key>NSPhotoLibraryUsageDescription</key>
-	<string>Note Companion needs access to your photo library to import existing documents and images for organization.</string>
 </dict>
 </plist>
