@@ -1,14 +1,15 @@
 import { NextResponse, NextRequest } from "next/server";
 import { fetchChunksForConcept } from "../aiService";
 import { getModel } from "@/lib/models";
+import { ollama } from "ollama-ai-provider";
 import { incrementAndLogTokenUsage } from "@/lib/incrementAndLogTokenUsage";
 import { handleAuthorization } from "@/lib/handleAuthorization";
 
 export async function POST(request: NextRequest) {
   try {
     const { userId } = await handleAuthorization(request);
-    const { content, concept } = await request.json();
-    const model = getModel(process.env.MODEL_NAME);
+    const { content, concept, model = process.env.MODEL_NAME } = await request.json();
+    const modelProvider = model === 'ollama-deepseek-r1' ? ollama("deepseek-r1") : getModel(model);
     const response = await fetchChunksForConcept(content, concept, model);
     console.log("response", response);
     const tokens = response.usage.totalTokens;

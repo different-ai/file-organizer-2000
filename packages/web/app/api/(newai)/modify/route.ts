@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { handleAuthorization } from "@/lib/handleAuthorization";
 import { incrementAndLogTokenUsage } from "@/lib/incrementAndLogTokenUsage";
 import { getModel } from "@/lib/models";
+import { ollama } from "ollama-ai-provider";
 import { z } from "zod";
 import { generateObject } from "ai";
 import { diffLines } from "diff";
@@ -19,11 +20,11 @@ const modifySchema = z.object({
 export async function POST(request: NextRequest) {
   try {
     const { userId } = await handleAuthorization(request);
-    const { content, originalContent, instructions } = await request.json();
-    const model = getModel(process.env.MODEL_NAME);
+    const { content, originalContent, instructions, model = process.env.MODEL_NAME } = await request.json();
+    const modelProvider = model === 'ollama-deepseek-r1' ? ollama("deepseek-r1") : getModel(model);
 
     const response = await generateObject({
-      model,
+      model: modelProvider,
       schema: modifySchema,
       system: `You are a precise code and text modification assistant. Your task is to modify the given content according to the user's instructions.
               Follow these guidelines:
@@ -55,4 +56,4 @@ export async function POST(request: NextRequest) {
       { status: error.status || 500 }
     );
   }
-} 
+}  
