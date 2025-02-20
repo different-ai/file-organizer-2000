@@ -81,7 +81,7 @@ export default function RootLayout({
                           className="inline-flex items-center space-x-2 bg-[#1F2937] text-white px-3 py-1.5 rounded-full text-sm font-semibold"
                         >
                           <Star className="h-4 w-4" />
-                          <span>492</span>
+                          <span>530</span>
                         </a>
                         <Link href="https://app.fileorganizer2000.com">
                           <Button variant="default" size="sm" className="bg-primary text-white hover:bg-primary/90">
