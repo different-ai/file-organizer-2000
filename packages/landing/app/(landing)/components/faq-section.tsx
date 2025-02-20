@@ -74,7 +74,9 @@ export function FaqSection() {
           />
           <FaqItem
             question="Is there a free version?"
-            answer="Yes! You can self-host the plugin for free. We also offer a 7-day free trial for our managed service if you prefer a no-hassle experience."
+            answer="Yes! You can self-host the plugin for free. We also offer a 7-day free trial for our managed service if you prefer a no-hassle experience.
+            If you get enough value out of the plugin, please consider supporting the product. This is an open source initiative developed by two brothers and we are 100% self-funded. Any contribution helps us continue to maintain and improve the plugin. ❤️"
+            
           />
           <FaqItem
             question="Privacy Policy & Contact"
