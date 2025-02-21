@@ -49,29 +49,10 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
           "public.plain-text",
           "public.html"
         ]
-      }],
-      UTExportedTypeDeclarations: [{
-        UTTypeIdentifier: "com.notecompanion.app",
-        UTTypeDescription: "Note Companion Document",
-        UTTypeConformsTo: ["public.data"],
-        UTTypeTagSpecification: {
-          "public.filename-extension": ["pdf", "jpg", "jpeg", "png", "webp", "txt", "md", "doc", "docx", "html"],
-          "public.mime-type": [
-            "application/pdf",
-            "image/jpeg",
-            "image/png",
-            "image/webp",
-            "text/plain",
-            "text/markdown",
-            "application/msword",
-            "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-            "text/html"
-          ]
-        }
       }]
     },
     usesIcloudStorage: true,
-    associatedDomains: ['applinks:notecompanion.app'],
+    associatedDomains: ['applinks:notecompanion.app']
   },
   android: {
     adaptiveIcon: {
@@ -127,11 +108,13 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
         iosActivationRules: {
           NSExtensionActivationSupportsText: true,
           NSExtensionActivationSupportsWebURLWithMaxCount: 1,
-          NSExtensionActivationSupportsImageWithMaxCount: 1,
-          NSExtensionActivationSupportsFileWithMaxCount: 1,
+          NSExtensionActivationSupportsImageWithMaxCount: 5,
+          NSExtensionActivationSupportsFileWithMaxCount: 5,
           NSExtensionActivationSupportsMovieWithMaxCount: 1,
-          NSExtensionActivationSupportsWebPageWithMaxCount: 1
+          NSExtensionActivationSupportsWebPageWithMaxCount: 1,
+          NSExtensionActivationRule: "SUBQUERY (extensionItems, $extensionItem, SUBQUERY ($extensionItem.attachments, $attachment, ANY $attachment.registeredTypeIdentifiers UTI-CONFORMS-TO \"public.data\").@count == $extensionItem.attachments.@count).@count > 0"
         },
+        iosAppGroupIdentifier: "group.com.notecompanion.app",
         androidMimeTypes: [
           "text/*",
           "image/*",
@@ -149,4 +132,4 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     clerkPublishableKey: process.env.EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY
   },
   scheme: 'notecompanion'
-}); 
+});
