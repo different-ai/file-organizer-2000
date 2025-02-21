@@ -1,4 +1,4 @@
-package com.notecompanionai
+package com.notecompanion.app
 
 import android.os.Build
 import android.os.Bundle

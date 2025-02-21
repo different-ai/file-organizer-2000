@@ -1,65 +1,83 @@
-import { ExpoConfig, ConfigContext } from 'expo/config';
+import { ExpoConfig, ConfigContext } from "expo/config";
 
 export default ({ config }: ConfigContext): ExpoConfig => ({
   ...config,
-  name: 'Note Companion AI',
-  slug: 'note-companion',
-  version: '1.0.0',
-  orientation: 'portrait',
-  icon: './assets/icon.png',
-  userInterfaceStyle: 'light',
+  name: "Note Companion AI",
+  slug: "note-companion",
+  scheme: "notecompanion",
+  version: "1.0.0",
+  orientation: "portrait",
+  icon: "./assets/icon.png",
+  userInterfaceStyle: "automatic",
+  assetBundlePatterns: ["**/*"],
   splash: {
-    image: './assets/splash.png',
-    resizeMode: 'contain',
-    backgroundColor: '#ffffff'
+    image: "./assets/splash.png",
+    resizeMode: "contain",
+    backgroundColor: "#ffffff",
+    dark: {
+      image: "./assets/splash-white.png",
+      resizeMode: "contain",
+      backgroundColor: "#000000",
+    },
   },
-  assetBundlePatterns: ['**/*'],
   ios: {
     supportsTablet: true,
-    bundleIdentifier: 'com.notecompanion.app',
+    bundleIdentifier: "com.notecompanion.app",
+    config: {
+      usesNonExemptEncryption: false,
+    },
     infoPlist: {
+      NSAppTransportSecurity: {
+        NSAllowsArbitraryLoads: true,
+      },
       CFBundleAllowMixedLocalizations: true,
-      NSPhotoLibraryUsageDescription: "We need access to your photos to upload and process them.",
-      NSCameraUsageDescription: "We need access to your camera to take photos of documents.",
+      NSPhotoLibraryUsageDescription:
+        "We need access to your photos to upload and process them.",
+      NSCameraUsageDescription:
+        "We need access to your camera to take photos of documents.",
       LSApplicationQueriesSchemes: ["obsidian"],
-      CFBundleURLTypes: [{
-        CFBundleURLSchemes: ["notecompanion"]
-      }],
-      NSUserActivityTypes: [
-        "INSendMessageIntent",
-        "INSearchForMessagesIntent"
-      ],
       UIFileSharingEnabled: true,
       LSSupportsOpeningDocumentsInPlace: true,
       UISupportsDocumentBrowser: true,
-      CFBundleDocumentTypes: [{
-        CFBundleTypeName: "All Files",
-        LSHandlerRank: "Alternate",
-        LSItemContentTypes: [
-          "public.content",
-          "public.data",
-          "public.image",
-          "public.pdf",
-          "public.text",
-          "public.audio",
-          "public.movie",
-          "com.adobe.pdf",
-          "com.microsoft.word.doc",
-          "org.openxmlformats.wordprocessingml.document",
-          "public.plain-text",
-          "public.html"
-        ]
-      }]
+      CFBundleDocumentTypes: [
+        {
+          CFBundleTypeName: "All Files",
+          LSHandlerRank: "Alternate",
+          LSItemContentTypes: [
+            "public.content",
+            "public.data",
+            "public.image",
+            "public.pdf",
+            "public.text",
+            "public.audio",
+            "public.movie",
+            "com.adobe.pdf",
+            "com.microsoft.word.doc",
+            "org.openxmlformats.wordprocessingml.document",
+            "public.plain-text",
+            "public.html",
+          ],
+        },
+      ],
     },
     usesIcloudStorage: true,
-    associatedDomains: ['applinks:notecompanion.app']
   },
   android: {
     adaptiveIcon: {
-      foregroundImage: './assets/adaptive-icon.png',
-      backgroundColor: '#ffffff'
+      foregroundImage: "./assets/adaptive-icon.png",
+      backgroundColor: "#000000",
     },
-    package: 'com.notecompanion.app',
+    package: "com.notecompanion.app",
+    splash: {
+      image: "./assets/splash.png",
+      resizeMode: "contain",
+      backgroundColor: "#ffffff",
+      dark: {
+        image: "./assets/splash-white.png",
+        resizeMode: "contain",
+        backgroundColor: "#000000",
+      },
+    },
     intentFilters: [
       {
         action: "android.intent.action.SEND",
@@ -71,8 +89,11 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
           { mimeType: "text/markdown" },
           { mimeType: "text/html" },
           { mimeType: "application/msword" },
-          { mimeType: "application/vnd.openxmlformats-officedocument.wordprocessingml.document" }
-        ]
+          {
+            mimeType:
+              "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+          },
+        ],
       },
       {
         action: "android.intent.action.SEND_MULTIPLE",
@@ -84,37 +105,37 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
           { mimeType: "text/markdown" },
           { mimeType: "text/html" },
           { mimeType: "application/msword" },
-          { mimeType: "application/vnd.openxmlformats-officedocument.wordprocessingml.document" }
-        ]
-      }
-    ]
+          {
+            mimeType:
+              "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+          },
+        ],
+      },
+    ],
   },
   web: {
-    favicon: './assets/favicon.png'
+    favicon: "./assets/favicon.png",
   },
   plugins: [
-    'expo-router',
-    'expo-secure-store',
-    'expo-file-system',
+    "expo-router",
+    "expo-secure-store",
+    "expo-file-system",
     [
-      'expo-document-picker',
+      "expo-document-picker",
       {
-        iCloudContainerEnvironment: 'Production'
-      }
+        iCloudContainerEnvironment: "Production",
+      },
     ],
     [
-      'expo-share-intent',
+      "expo-share-intent",
       {
         iosActivationRules: {
-          NSExtensionActivationSupportsText: true,
           NSExtensionActivationSupportsWebURLWithMaxCount: 1,
-          NSExtensionActivationSupportsImageWithMaxCount: 5,
-          NSExtensionActivationSupportsFileWithMaxCount: 5,
-          NSExtensionActivationSupportsMovieWithMaxCount: 1,
           NSExtensionActivationSupportsWebPageWithMaxCount: 1,
-          NSExtensionActivationRule: "SUBQUERY (extensionItems, $extensionItem, SUBQUERY ($extensionItem.attachments, $attachment, ANY $attachment.registeredTypeIdentifiers UTI-CONFORMS-TO \"public.data\").@count == $extensionItem.attachments.@count).@count > 0"
+          NSExtensionActivationSupportsImageWithMaxCount: 1,
+          NSExtensionActivationSupportsMovieWithMaxCount: 0,
+          NSExtensionActivationSupportsText: true,
         },
-        iosAppGroupIdentifier: "group.com.notecompanion.app",
         androidMimeTypes: [
           "text/*",
           "image/*",
@@ -123,13 +144,23 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
           "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
           "text/plain",
           "text/markdown",
-          "text/html"
-        ]
-      }
-    ]
+          "text/html",
+        ],
+      },
+    ],
+    [
+      "expo-build-properties",
+      {
+        android: {
+          usesCleartextTraffic: true,
+        },
+      },
+    ],
   ],
   extra: {
-    clerkPublishableKey: process.env.EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY
+    clerkPublishableKey: process.env.EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY,
+    router: {
+      origin: false,
+    },
   },
-  scheme: 'notecompanion'
 });

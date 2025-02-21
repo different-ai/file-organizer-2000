@@ -9,8 +9,7 @@
     "ios": "expo run:ios",
     "web": "expo start --web",
     "test": "jest --watchAll",
-    "lint": "expo lint",
-    "postinstall": "patch-package"
+    "lint": "expo lint"
   },
   "jest": {
     "preset": "jest-expo"
@@ -24,6 +23,7 @@
     "expo": "52.0.35",
     "expo-application": "^6.0.2",
     "expo-blur": "14.0.3",
+    "expo-build-properties": "~0.13.2",
     "expo-constants": "17.0.6",
     "expo-crypto": "~14.0.2",
     "expo-document-picker": "~13.0.3",
