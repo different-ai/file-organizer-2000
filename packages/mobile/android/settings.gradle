@@ -21,7 +21,7 @@ extensions.configure(com.facebook.react.ReactSettingsExtension) { ex ->
   }
 }
 
-rootProject.name = 'NoteCompanionAI'
+rootProject.name = 'Note Companion AI'
 
 dependencyResolutionManagement {
   versionCatalogs {

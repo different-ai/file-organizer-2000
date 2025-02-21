@@ -63,17 +63,14 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     usesIcloudStorage: true,
   },
   android: {
-    adaptiveIcon: {
-      foregroundImage: "./assets/adaptive-icon.png",
-      backgroundColor: "#000000",
-    },
+    icon: "./assets/icon.png",
     package: "com.notecompanion.app",
     splash: {
       image: "./assets/splash.png",
       resizeMode: "contain",
       backgroundColor: "#ffffff",
       dark: {
-        image: "./assets/splash-white.png",
+        image: "./assets/splash.png",
         resizeMode: "contain",
         backgroundColor: "#000000",
       },
@@ -83,32 +80,22 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
         action: "android.intent.action.SEND",
         category: ["android.intent.category.DEFAULT"],
         data: [
-          { mimeType: "application/pdf" },
+          { mimeType: "text/*" },
           { mimeType: "image/*" },
-          { mimeType: "text/plain" },
-          { mimeType: "text/markdown" },
-          { mimeType: "text/html" },
+          { mimeType: "application/pdf" },
           { mimeType: "application/msword" },
-          {
-            mimeType:
-              "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-          },
+          { mimeType: "application/vnd.openxmlformats-officedocument.wordprocessingml.document" },
         ],
       },
       {
         action: "android.intent.action.SEND_MULTIPLE",
         category: ["android.intent.category.DEFAULT"],
         data: [
-          { mimeType: "application/pdf" },
+          { mimeType: "text/*" },
           { mimeType: "image/*" },
-          { mimeType: "text/plain" },
-          { mimeType: "text/markdown" },
-          { mimeType: "text/html" },
+          { mimeType: "application/pdf" },
           { mimeType: "application/msword" },
-          {
-            mimeType:
-              "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-          },
+          { mimeType: "application/vnd.openxmlformats-officedocument.wordprocessingml.document" },
         ],
       },
     ],
@@ -142,9 +129,6 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
           "application/pdf",
           "application/msword",
           "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-          "text/plain",
-          "text/markdown",
-          "text/html",
         ],
       },
     ],
