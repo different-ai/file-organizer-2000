@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { put } from "@vercel/blob";
-import { handleAuthorization } from "@/lib/handleAuthorization";
+import { auth } from "@clerk/nextjs/server";
 import { db, uploadedFiles } from "@/drizzle/schema";
 
 export const runtime = "nodejs"; // Use Node.js runtime
@@ -12,19 +12,24 @@ const ALLOWED_FILE_TYPES = {
   "image/webp": "image",
 };
 
-// Helper function to infer MIME type from filename extension
-function inferMimeType(fileName: string): string {
-  const extension = fileName.split('.').pop()?.toLowerCase();
-  if (extension === 'pdf') return 'application/pdf';
-  if (extension === 'jpg' || extension === 'jpeg') return 'image/jpeg';
-  if (extension === 'png') return 'image/png';
-  if (extension === 'webp') return 'image/webp';
-  return '';
-}
+// Add this type near the top of the file
+type UploadResponse = {
+  success: boolean;
+  fileId?: string;
+  status?: string;
+  error?: string;
+  retryable?: boolean;
+};
 
 export async function POST(request: NextRequest) {
   try {
-    const { userId } = await handleAuthorization(request);
+    const { userId } = await auth();
+    if (!userId) {
+      return NextResponse.json<UploadResponse>(
+        { success: false, error: "Unauthorized", retryable: false },
+        { status: 401 }
+      );
+    }
 
     // Parse JSON body
     let fileData;
@@ -47,8 +52,8 @@ export async function POST(request: NextRequest) {
 
     if (!fileName || !mimeType || !base64) {
       console.error("Missing required fields");
-      return NextResponse.json(
-        { error: "Missing required fields" },
+      return NextResponse.json<UploadResponse>(
+        { success: false, error: "Missing required fields", retryable: true },
         { status: 400 }
       );
     }
@@ -67,8 +72,8 @@ export async function POST(request: NextRequest) {
     // Check if file type is supported
     const fileCategory = ALLOWED_FILE_TYPES[mimeType];
     if (!fileCategory) {
-      return NextResponse.json(
-        { error: "Unsupported file type" },
+      return NextResponse.json<UploadResponse>(
+        { success: false, error: "Unsupported file type", retryable: false },
         { status: 400 }
       );
     }
@@ -90,15 +95,19 @@ export async function POST(request: NextRequest) {
       })
       .returning();
 
-    return NextResponse.json({
+    return NextResponse.json<UploadResponse>({
       success: true,
       fileId: uploadedFile.id,
-      status: "pending",
+      status: "pending"
     });
   } catch (error) {
     console.error("Upload error:", error);
-    return NextResponse.json(
-      { error: "Failed to upload file" },
+    return NextResponse.json<UploadResponse>(
+      { 
+        success: false, 
+        error: "Failed to upload file", 
+        retryable: true 
+      },
       { status: 500 }
     );
   }

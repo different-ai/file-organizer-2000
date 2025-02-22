@@ -1,11 +1,17 @@
 import { NextRequest, NextResponse } from "next/server";
-import { handleAuthorization } from "@/lib/handleAuthorization";
+import { auth } from "@clerk/nextjs/server";
 import { db, uploadedFiles } from "@/drizzle/schema";
 import { eq } from "drizzle-orm";
 
 export async function GET(request: NextRequest) {
   try {
-    const { userId } = await handleAuthorization(request);
+    const { userId } = await auth();
+    if (!userId) {
+      return NextResponse.json(
+        { error: "Unauthorized" },
+        { status: 401 }
+      );
+    }
     const fileId = parseInt(request.nextUrl.searchParams.get("fileId") || "0", 10);
 
     if (!fileId) {

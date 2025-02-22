@@ -1,5 +1,4 @@
 import { NextRequest, NextResponse } from "next/server";
-import { handleAuthorization } from "@/lib/handleAuthorization";
 import { db, uploadedFiles } from "@/drizzle/schema";
 import { eq } from "drizzle-orm";
 import { del, list } from "@vercel/blob";
@@ -8,7 +7,7 @@ import { getModel } from "@/lib/models";
 import { incrementAndLogTokenUsage } from "@/lib/incrementAndLogTokenUsage";
 import { z } from "zod";
 import sharp from 'sharp';
-
+import { auth } from "@clerk/nextjs/server";
 type FileContent = 
   | { type: "file"; data: Buffer; mimeType: "application/pdf" }
   | { type: "image"; image: string };
@@ -39,7 +38,13 @@ export async function POST(request: NextRequest) {
   let fileId: number | null = null;
   
   try {
-    const { userId } = await handleAuthorization(request);
+    const { userId } = await auth();
+    if (!userId) {
+      return NextResponse.json(
+        { error: "Unauthorized" },
+        { status: 401 }
+      );
+    }
     const payload = await request.json();
     fileId = payload.fileId;
 
