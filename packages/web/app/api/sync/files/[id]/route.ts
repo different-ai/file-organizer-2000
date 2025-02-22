@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
-import { handleAuthorization } from "../../../../lib/handleAuthorization";
-import { db, uploadedFiles } from "../../../../drizzle/schema";
+import { handleAuthorization } from "@/lib/handleAuthorization";
+import { db, uploadedFiles } from "@/drizzle/schema";
 import { and, eq } from "drizzle-orm";
 
 export async function DELETE(

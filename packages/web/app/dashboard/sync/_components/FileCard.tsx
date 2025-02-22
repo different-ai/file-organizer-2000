@@ -1,9 +1,9 @@
 import * as React from "react";
-import { Card, CardHeader, CardContent, CardFooter } from "../../../../components/ui/card";
-import { Button } from "../../../../components/ui/button";
+import { Card, CardHeader, CardContent, CardFooter } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 import { Eye, Trash2 } from "lucide-react";
 import { StatusBadge } from "./StatusBadge";
-import type { UploadedFile } from "../../../../drizzle/schema";
+import type { UploadedFile } from "@/drizzle/schema";
 
 interface FileCardProps {
   file: UploadedFile;
