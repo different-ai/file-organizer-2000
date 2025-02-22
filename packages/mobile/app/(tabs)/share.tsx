@@ -16,81 +16,120 @@ interface SharedFile {
 }
 
 export default function ShareScreen() {
-  const { sharedFile } = useLocalSearchParams<{ sharedFile?: string }>();
+  const params = useLocalSearchParams<{ sharedFile?: string }>();
   const { getToken } = useAuth();
   const router = useRouter();
   const [status, setStatus] = useState<UploadStatus>('idle');
   const [result, setResult] = useState<string | null>(null);
 
+  console.log('[ShareScreen] Rendered with params:', params);
+
   useEffect(() => {
-    if (sharedFile) {
-      handleSharedFile();
-    }
-  }, [sharedFile]);
-
-  const handleSharedFile = async () => {
-    try {
-      const fileData: SharedFile = JSON.parse(sharedFile!);
-      setStatus('uploading');
-
-      const token = await getToken();
-      if (!token) throw new Error('Authentication required');
-
-      const fileName = fileData.name || `shared-${Date.now()}.${fileData.mimeType?.split('/')[1] || 'file'}`;
-      const mimeType = fileData.mimeType || 'application/octet-stream';
-
-      const fileUri = fileData.text
-        ? `${FileSystem.cacheDirectory}${fileName}`
-        : fileData.uri.replace('file://', '');
-
-      if (fileData.text) {
-        await FileSystem.writeAsStringAsync(fileUri, fileData.text);
+    const processSharedFile = async () => {
+      console.log('[ShareScreen] Checking for shared file in params');
+      if (!params.sharedFile) {
+        console.log('[ShareScreen] No shared file found in params');
+        return;
       }
+      
+      try {
+        console.log('[ShareScreen] Parsing shared file data');
+        const fileData: SharedFile = JSON.parse(params.sharedFile);
+        console.log('[ShareScreen] Parsed file data:', fileData);
+        
+        setStatus('uploading');
+        console.log('[ShareScreen] Status set to uploading');
 
-      const fileContent = await FileSystem.readAsStringAsync(fileUri, {
-        encoding: FileSystem.EncodingType.Base64,
-      });
+        const token = await getToken();
+        if (!token) {
+          console.log('[ShareScreen] No auth token found');
+          throw new Error('Authentication required');
+        }
+        console.log('[ShareScreen] Got auth token');
 
-      const uploadResponse = await fetch(`${API_URL}/api/upload`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({
-          name: fileName,
-          type: mimeType,
-          base64: fileContent,
-        }),
-      });
+        const fileName = fileData.name || `shared-${Date.now()}.${fileData.mimeType?.split('/')[1] || 'file'}`;
+        const mimeType = fileData.mimeType || 'application/octet-stream';
+        console.log('[ShareScreen] Prepared file details:', { fileName, mimeType });
 
-      if (!uploadResponse.ok) throw new Error('Upload failed');
-      const { fileId } = await uploadResponse.json();
+        const fileUri = fileData.text
+          ? `${FileSystem.cacheDirectory}${fileName}`
+          : fileData.uri.replace('file://', '');
+        console.log('[ShareScreen] File URI:', fileUri);
 
-      setStatus('processing');
-      const processResponse = await fetch(`${API_URL}/api/process-file`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({ fileId }),
-      });
+        if (fileData.text) {
+          console.log('[ShareScreen] Writing text to file');
+          await FileSystem.writeAsStringAsync(fileUri, fileData.text);
+        }
 
-      if (!processResponse.ok) throw new Error('Processing failed');
-      setStatus('completed');
-      setResult('File processed successfully');
-    } catch (error) {
-      console.error('Error processing shared file:', error);
-      setStatus('error');
-      setResult(error instanceof Error ? error.message : 'Failed to process file');
-    }
+        console.log('[ShareScreen] Reading file content');
+        const fileContent = await FileSystem.readAsStringAsync(fileUri, {
+          encoding: FileSystem.EncodingType.Base64,
+        });
+        console.log('[ShareScreen] File content read successfully');
+
+        console.log('[ShareScreen] Uploading file');
+        const uploadResponse = await fetch(`${API_URL}/api/upload`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({
+            name: fileName,
+            type: mimeType,
+            base64: fileContent,
+          }),
+        });
+
+        if (!uploadResponse.ok) {
+          console.log('[ShareScreen] Upload failed:', uploadResponse.status);
+          throw new Error('Upload failed');
+        }
+        
+        const uploadResult = await uploadResponse.json();
+        console.log('[ShareScreen] Upload successful:', uploadResult);
+        const { fileId } = uploadResult;
+
+        setStatus('processing');
+        console.log('[ShareScreen] Status set to processing');
+
+        console.log('[ShareScreen] Processing file');
+        const processResponse = await fetch(`${API_URL}/api/process-file`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({ fileId }),
+        });
+
+        if (!processResponse.ok) {
+          console.log('[ShareScreen] Processing failed:', processResponse.status);
+          throw new Error('Processing failed');
+        }
+
+        console.log('[ShareScreen] Processing completed successfully');
+        setStatus('completed');
+        setResult('File processed successfully');
+      } catch (error) {
+        console.error('[ShareScreen] Error processing shared file:', error);
+        setStatus('error');
+        setResult(error instanceof Error ? error.message : 'Failed to process file');
+      }
+    };
+
+    processSharedFile();
+  }, [params.sharedFile]);
+
+  const handleBackToHome = () => {
+    console.log('[ShareScreen] Navigating back to home');
+    router.replace('/(tabs)');
   };
 
   return (
     <View style={styles.container}>
       <Text style={styles.title}>Share Content</Text>
-      {status === 'idle' && !sharedFile && (
+      {status === 'idle' && !params.sharedFile && (
         <Text style={styles.message}>No content shared yet</Text>
       )}
       {(status === 'uploading' || status === 'processing') && (
@@ -107,7 +146,7 @@ export default function ShareScreen() {
           <Text style={styles.resultText}>{result}</Text>
           <TouchableOpacity
             style={styles.button}
-            onPress={() => router.push('/(tabs)')}
+            onPress={handleBackToHome}
           >
             <Text style={styles.buttonText}>Back to Home</Text>
           </TouchableOpacity>
@@ -119,7 +158,7 @@ export default function ShareScreen() {
           <Text style={styles.errorText}>{result}</Text>
           <TouchableOpacity
             style={styles.button}
-            onPress={() => router.push('/(tabs)')}
+            onPress={handleBackToHome}
           >
             <Text style={styles.buttonText}>Back to Home</Text>
           </TouchableOpacity>

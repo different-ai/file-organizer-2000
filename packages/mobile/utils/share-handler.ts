@@ -43,43 +43,88 @@ export const getFileNameFromUri = (uri: string): string => {
 
 export const processSharedFile = async (file: SharedFile): Promise<SharedFile> => {
   try {
-    const fileUri = Platform.select({
-      ios: file.uri.replace('file://', ''),
-      android: file.uri,
-      default: file.uri,
-    });
+    console.log('\n[processSharedFile] ===== Starting File Processing =====');
+    console.log('[processSharedFile] Input file object:', JSON.stringify(file, null, 2));
 
-    // Check if file exists
-    const fileInfo = await FileSystem.getInfoAsync(fileUri);
+    // Debug file system paths
+    console.log('\n[processSharedFile] === File System Paths ===');
+    console.log('[processSharedFile] FileSystem.documentDirectory:', FileSystem.documentDirectory);
+    console.log('[processSharedFile] FileSystem.cacheDirectory:', FileSystem.cacheDirectory);
+
+    // Check file existence
+    console.log('\n[processSharedFile] === File Existence Check ===');
+    const fileInfo = await FileSystem.getInfoAsync(file.uri);
+    console.log('[processSharedFile] File info result:', JSON.stringify(fileInfo, null, 2));
+    
     if (!fileInfo.exists) {
-      throw new Error('File does not exist');
+      // Try alternative paths
+      console.log('\n[processSharedFile] === Trying Alternative Paths ===');
+      const alternativePaths = [
+        file.uri.replace('file://', ''),
+        decodeURIComponent(decodeURIComponent(file.uri)),
+        file.uri.replace(/%2520/g, '%20')
+      ];
+
+      let foundPath = null;
+      for (const path of alternativePaths) {
+        console.log('[processSharedFile] Trying path:', path);
+        const altFileInfo = await FileSystem.getInfoAsync(path);
+        console.log('[processSharedFile] Result for path:', { path, exists: altFileInfo.exists });
+        if (altFileInfo.exists) {
+          console.log('[processSharedFile] Found file at alternative path:', path);
+          foundPath = path;
+          break;
+        }
+      }
+
+      if (!foundPath) {
+        throw new Error(`File does not exist. Tried paths:\n${alternativePaths.join('\n')}`);
+      }
+      file.uri = foundPath;
     }
 
-    // Get file name and mime type if not provided
-    const fileName = file.name || getFileNameFromUri(fileUri);
-    const mimeType = file.mimeType || getMimeTypeFromExtension(fileName);
+    // Process filename and mime type
+    console.log('\n[processSharedFile] === File Details Processing ===');
+    const finalFileName = file.name || getFileNameFromUri(file.uri);
+    console.log('[processSharedFile] Final filename:', finalFileName);
+    
+    const mimeType = file.mimeType || getMimeTypeFromExtension(finalFileName);
+    console.log('[processSharedFile] Determined MIME type:', mimeType);
 
-    // For text files, read the content directly
+    // Handle file content
+    console.log('\n[processSharedFile] === Content Processing ===');
     if (mimeType.startsWith('text/')) {
-      const text = await FileSystem.readAsStringAsync(fileUri);
-      return {
-        uri: fileUri,
+      console.log('[processSharedFile] Processing as text file');
+      const text = await FileSystem.readAsStringAsync(file.uri);
+      console.log('[processSharedFile] Successfully read text content');
+      
+      const result = {
+        uri: file.uri,
         mimeType,
-        name: fileName,
+        name: finalFileName,
         text,
       };
+      console.log('[processSharedFile] Returning text file result:', JSON.stringify(result, null, 2));
+      return result;
     }
 
-    // For other files, ensure they're readable
-    await FileSystem.readAsStringAsync(fileUri, { encoding: FileSystem.EncodingType.Base64 });
+    console.log('[processSharedFile] Processing as binary file');
+    console.log('[processSharedFile] Verifying file is readable');
+    await FileSystem.readAsStringAsync(file.uri, { encoding: FileSystem.EncodingType.Base64 });
+    console.log('[processSharedFile] Successfully verified file is readable');
 
-    return {
-      uri: fileUri,
+    const result = {
+      uri: file.uri,
       mimeType,
-      name: fileName,
+      name: finalFileName,
     };
+    console.log('\n[processSharedFile] === Final Result ===');
+    console.log('[processSharedFile] Returning result:', JSON.stringify(result, null, 2));
+    return result;
   } catch (error) {
-    console.error('Error processing shared file:', error);
+    console.error('\n[processSharedFile] === Error ===');
+    console.error('[processSharedFile] Error details:', error);
+    console.error('[processSharedFile] Error stack:', error.stack);
     throw error;
   }
 };
