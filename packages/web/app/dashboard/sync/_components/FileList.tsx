@@ -1,8 +1,8 @@
 import * as React from "react";
 import { useState, useEffect } from "react";
 import { FileCard } from "./FileCard";
-import type { UploadedFile } from "../../../drizzle/schema";
-import { Button } from "../../../components/ui/button";
+import type { UploadedFile } from "@/drizzle/schema";
+import { Button } from "@/components/ui/button";
 import { ChevronLeft, ChevronRight, Loader2 } from "lucide-react";
 
 interface FileListProps {
