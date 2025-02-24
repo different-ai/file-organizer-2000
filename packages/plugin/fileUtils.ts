@@ -289,7 +289,7 @@ export async function safeMove(
  * Sanitizes content to ensure it's valid for Obsidian
  * Handles frontmatter and content separately for safety
  */
-async function sanitizeContent(content: string): Promise<string> {
+export async function sanitizeContent(content: string): Promise<string> {
   try {
     // If content is empty or not a string, return empty string
     if (!content || typeof content !== "string") {
