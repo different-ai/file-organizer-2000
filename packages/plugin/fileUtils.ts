@@ -363,11 +363,21 @@ export async function safeModifyContent(
       // Valid frontmatter should create 3 parts: ["", yaml content, remaining content]
       if (parts.length >= 3) {
         try {
-          // Only try to parse the YAML part (index 1)
-          parseYaml(parts[1]);
+          // Try to parse the YAML part (index 1) to validate it
+          const frontmatter = parseYaml(parts[1]);
+          
+          // If parsing succeeds, use processFrontMatter to ensure proper handling of arrays
+          await app.fileManager.processFrontMatter(file, (fm) => {
+            // Merge the parsed frontmatter with existing
+            Object.assign(fm, frontmatter);
+          });
+          
+          // Update the content after frontmatter is processed
+          await app.vault.modify(file, sanitizedContent);
+          return;
         } catch (e) {
-          logger.debug("Frontmatter parsing failed, preserving original content");
-          // Instead of stripping frontmatter, preserve the original content
+          logger.debug("Frontmatter parsing failed:", e);
+          // If parsing fails, preserve the original content
           await app.vault.modify(file, sanitizedContent);
           return;
         }
