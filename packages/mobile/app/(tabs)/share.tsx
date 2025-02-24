@@ -23,101 +23,101 @@ export default function ShareScreen() {
   const [result, setResult] = useState<string | null>(null);
 
   console.log('[ShareScreen] Rendered with params:', params);
+  
+  const processSharedFile = async () => {
+    console.log('[ShareScreen] Checking for shared file in params');
+    if (!params.sharedFile) {
+      console.log('[ShareScreen] No shared file found in params');
+      return;
+    }
+    
+    try {
+      console.log('[ShareScreen] Parsing shared file data');
+      const fileData: SharedFile = JSON.parse(params.sharedFile);
+      console.log('[ShareScreen] Parsed file data:', fileData);
+      
+      setStatus('uploading');
+      console.log('[ShareScreen] Status set to uploading');
 
-  useEffect(() => {
-    const processSharedFile = async () => {
-      console.log('[ShareScreen] Checking for shared file in params');
-      if (!params.sharedFile) {
-        console.log('[ShareScreen] No shared file found in params');
-        return;
+      const token = await getToken();
+      if (!token) {
+        console.log('[ShareScreen] No auth token found');
+        throw new Error('Authentication required');
+      }
+      console.log('[ShareScreen] Got auth token');
+
+      const fileName = fileData.name || `shared-${Date.now()}.${fileData.mimeType?.split('/')[1] || 'file'}`;
+      const mimeType = fileData.mimeType || 'application/octet-stream';
+      console.log('[ShareScreen] Prepared file details:', { fileName, mimeType });
+
+      const fileUri = fileData.text
+        ? `${FileSystem.cacheDirectory}${fileName}`
+        : fileData.uri.replace('file://', '');
+      console.log('[ShareScreen] File URI:', fileUri);
+
+      if (fileData.text) {
+        console.log('[ShareScreen] Writing text to file');
+        await FileSystem.writeAsStringAsync(fileUri, fileData.text);
+      }
+
+      console.log('[ShareScreen] Reading file content');
+      const fileContent = await FileSystem.readAsStringAsync(fileUri, {
+        encoding: FileSystem.EncodingType.Base64,
+      });
+      console.log('[ShareScreen] File content read successfully');
+
+      console.log('[ShareScreen] Uploading file');
+      const uploadResponse = await fetch(`${API_URL}/api/upload`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          name: fileName,
+          type: mimeType,
+          base64: fileContent,
+        }),
+      });
+
+      if (!uploadResponse.ok) {
+        console.log('[ShareScreen] Upload failed:', uploadResponse.status);
+        throw new Error('Upload failed');
       }
       
-      try {
-        console.log('[ShareScreen] Parsing shared file data');
-        const fileData: SharedFile = JSON.parse(params.sharedFile);
-        console.log('[ShareScreen] Parsed file data:', fileData);
-        
-        setStatus('uploading');
-        console.log('[ShareScreen] Status set to uploading');
+      const uploadResult = await uploadResponse.json();
+      console.log('[ShareScreen] Upload successful:', uploadResult);
+      const { fileId } = uploadResult;
 
-        const token = await getToken();
-        if (!token) {
-          console.log('[ShareScreen] No auth token found');
-          throw new Error('Authentication required');
-        }
-        console.log('[ShareScreen] Got auth token');
+      setStatus('processing');
+      console.log('[ShareScreen] Status set to processing');
 
-        const fileName = fileData.name || `shared-${Date.now()}.${fileData.mimeType?.split('/')[1] || 'file'}`;
-        const mimeType = fileData.mimeType || 'application/octet-stream';
-        console.log('[ShareScreen] Prepared file details:', { fileName, mimeType });
+      console.log('[ShareScreen] Processing file');
+      const processResponse = await fetch(`${API_URL}/api/process-file`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ fileId }),
+      });
 
-        const fileUri = fileData.text
-          ? `${FileSystem.cacheDirectory}${fileName}`
-          : fileData.uri.replace('file://', '');
-        console.log('[ShareScreen] File URI:', fileUri);
-
-        if (fileData.text) {
-          console.log('[ShareScreen] Writing text to file');
-          await FileSystem.writeAsStringAsync(fileUri, fileData.text);
-        }
-
-        console.log('[ShareScreen] Reading file content');
-        const fileContent = await FileSystem.readAsStringAsync(fileUri, {
-          encoding: FileSystem.EncodingType.Base64,
-        });
-        console.log('[ShareScreen] File content read successfully');
-
-        console.log('[ShareScreen] Uploading file');
-        const uploadResponse = await fetch(`${API_URL}/api/upload`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${token}`,
-          },
-          body: JSON.stringify({
-            name: fileName,
-            type: mimeType,
-            base64: fileContent,
-          }),
-        });
-
-        if (!uploadResponse.ok) {
-          console.log('[ShareScreen] Upload failed:', uploadResponse.status);
-          throw new Error('Upload failed');
-        }
-        
-        const uploadResult = await uploadResponse.json();
-        console.log('[ShareScreen] Upload successful:', uploadResult);
-        const { fileId } = uploadResult;
-
-        setStatus('processing');
-        console.log('[ShareScreen] Status set to processing');
-
-        console.log('[ShareScreen] Processing file');
-        const processResponse = await fetch(`${API_URL}/api/process-file`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${token}`,
-          },
-          body: JSON.stringify({ fileId }),
-        });
-
-        if (!processResponse.ok) {
-          console.log('[ShareScreen] Processing failed:', processResponse.status);
-          throw new Error('Processing failed');
-        }
-
-        console.log('[ShareScreen] Processing completed successfully');
-        setStatus('completed');
-        setResult('File processed successfully');
-      } catch (error) {
-        console.error('[ShareScreen] Error processing shared file:', error);
-        setStatus('error');
-        setResult(error instanceof Error ? error.message : 'Failed to process file');
+      if (!processResponse.ok) {
+        console.log('[ShareScreen] Processing failed:', processResponse.status);
+        throw new Error('Processing failed');
       }
-    };
 
+      console.log('[ShareScreen] Processing completed successfully');
+      setStatus('completed');
+      setResult('File processed successfully');
+    } catch (error) {
+      console.error('[ShareScreen] Error processing shared file:', error);
+      setStatus('error');
+      setResult(error instanceof Error ? error.message : 'Failed to process file');
+    }
+  };
+
+  useEffect(() => {
     processSharedFile();
   }, [params.sharedFile]);
 
@@ -156,12 +156,23 @@ export default function ShareScreen() {
         <View style={styles.resultContainer}>
           <MaterialIcons name="error" size={24} color="#f44336" />
           <Text style={styles.errorText}>{result}</Text>
-          <TouchableOpacity
-            style={styles.button}
-            onPress={handleBackToHome}
-          >
-            <Text style={styles.buttonText}>Back to Home</Text>
-          </TouchableOpacity>
+          <View style={styles.buttonContainer}>
+            <TouchableOpacity
+              style={styles.button}
+              onPress={() => {
+                setStatus('uploading');
+                processSharedFile();
+              }}
+            >
+              <Text style={styles.buttonText}>Retry</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={[styles.button, styles.secondaryButton]}
+              onPress={handleBackToHome}
+            >
+              <Text style={styles.buttonText}>Back to Home</Text>
+            </TouchableOpacity>
+          </View>
         </View>
       )}
     </View>
@@ -209,11 +220,21 @@ const styles = StyleSheet.create({
     color: '#f44336',
     marginVertical: 10,
   },
+  buttonContainer: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    gap: 10,
+    marginTop: 20,
+  },
   button: {
     backgroundColor: '#007AFF',
     padding: 12,
     borderRadius: 8,
-    marginTop: 20,
+    minWidth: 100,
+    alignItems: 'center',
+  },
+  secondaryButton: {
+    backgroundColor: '#6c757d',
   },
   buttonText: {
     color: '#fff',

@@ -134,6 +134,11 @@ export default function HomeScreen() {
         }
       }
 
+      // Ensure PDF files are correctly identified regardless of case
+      if (mimeType.toLowerCase().includes('pdf')) {
+        mimeType = 'application/pdf';
+      }
+
       const fileUri = Platform.select({
         ios: file.uri.replace('file://', ''),
         android: file.uri,
@@ -416,7 +421,7 @@ export default function HomeScreen() {
                   ? "File processed successfully"
                   : uploadResult.error}
               </Text>
-              {uploadResult.status === "completed" && (
+              {uploadResult.status === "completed" ? (
                 <Text style={styles.resultSubtext}>
                   Your file has been upload to Note Companion AI.
 
@@ -424,6 +429,16 @@ export default function HomeScreen() {
 
                   It will be automatically synced to any services you have enabled.
                 </Text>
+              ) : (
+                <TouchableOpacity
+                  style={styles.retryButton}
+                  onPress={() => {
+                    setStatus("idle");
+                    setUploadResult(null);
+                  }}
+                >
+                  <Text style={styles.retryButtonText}>Retry</Text>
+                </TouchableOpacity>
               )}
             </View>
           </View>
@@ -577,5 +592,18 @@ const styles = StyleSheet.create({
   },
   errorText: {
     color: "#C62828",
+  },
+  retryButton: {
+    backgroundColor: "#007AFF",
+    paddingVertical: 8,
+    paddingHorizontal: 16,
+    borderRadius: 8,
+    marginTop: 12,
+    alignSelf: "flex-start",
+  },
+  retryButtonText: {
+    color: "#fff",
+    fontSize: 14,
+    fontWeight: "600",
   },
 });

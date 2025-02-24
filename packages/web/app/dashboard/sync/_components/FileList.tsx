@@ -1,9 +1,11 @@
+'use client'
 import * as React from "react";
 import { useState, useEffect } from "react";
 import { FileCard } from "./FileCard";
 import type { UploadedFile } from "@/drizzle/schema";
 import { Button } from "@/components/ui/button";
 import { ChevronLeft, ChevronRight, Loader2 } from "lucide-react";
+import { getFiles, deleteFile } from "../actions";
 
 interface FileListProps {
   pageSize?: number;
@@ -27,12 +29,16 @@ export function FileList({ pageSize = 10 }: FileListProps) {
     try {
       setLoading(true);
       setError(null);
-      const response = await fetch(`/api/sync/files?page=${page}&limit=${pageSize}`);
-      if (!response.ok) throw new Error("Failed to fetch files");
       
-      const data = await response.json();
-      setFiles(data.files);
-      setPagination(data.pagination);
+      // Use server action instead of fetch
+      const result = await getFiles({ page, limit: pageSize });
+      
+      if ('error' in result) {
+        throw new Error(result.error);
+      }
+      
+      setFiles(result.files as UploadedFile[]);
+      setPagination(result.pagination);
     } catch (err) {
       setError("Failed to load files. Please try again.");
       console.error("Error fetching files:", err);
@@ -47,11 +53,12 @@ export function FileList({ pageSize = 10 }: FileListProps) {
 
   const handleDelete = async (id: number) => {
     try {
-      const response = await fetch(`/api/sync/files/${id}`, {
-        method: "DELETE",
-      });
+      // Use server action instead of fetch
+      const result = await deleteFile(id);
       
-      if (!response.ok) throw new Error("Failed to delete file");
+      if (!result.success) {
+        throw new Error(result.error || "Failed to delete file");
+      }
       
       // Refresh the file list
       fetchFiles();
