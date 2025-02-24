@@ -254,7 +254,7 @@ export async function safeRename(
   file: TFile,
   newName: string
 ): Promise<void> {
-  const parentPath = file.parent.path;
+  const parentPath = file.parent?.path ?? '';
   const extension = file.extension;
   const desiredPath = `${parentPath}/${newName}.${extension}`;
 
@@ -289,7 +289,7 @@ export async function safeMove(
  * Sanitizes content to ensure it's valid for Obsidian
  * Handles frontmatter and content separately for safety
  */
-async function sanitizeContent(content: string): Promise<string> {
+export async function sanitizeContent(content: string): Promise<string> {
   try {
     // If content is empty or not a string, return empty string
     if (!content || typeof content !== "string") {
@@ -319,16 +319,8 @@ async function sanitizeContent(content: string): Promise<string> {
       }
 
       if (inFrontmatter) {
-        // Validate frontmatter line
-        try {
-          // Check if line is valid YAML key-value pair
-          const [key, ...valueParts] = line.split(":");
-          if (key && key.trim() && !key.includes(" ")) {
-            validContent.push(line);
-          }
-        } catch (e) {
-          logger.debug("Skipping invalid frontmatter line:", line);
-        }
+        // Keep all frontmatter lines as-is
+        validContent.push(line);
       } else {
         // Regular content - remove null characters and other potentially problematic chars
         const sanitizedLine = line
@@ -371,11 +363,21 @@ export async function safeModifyContent(
       // Valid frontmatter should create 3 parts: ["", yaml content, remaining content]
       if (parts.length >= 3) {
         try {
-          // Only try to parse the YAML part (index 1)
-          parseYaml(parts[1]);
+          // Try to parse the YAML part (index 1) to validate it
+          const frontmatter = parseYaml(parts[1]);
+          
+          // If parsing succeeds, use processFrontMatter to ensure proper handling of arrays
+          await app.fileManager.processFrontMatter(file, (fm) => {
+            // Merge the parsed frontmatter with existing
+            Object.assign(fm, frontmatter);
+          });
+          
+          // Update the content after frontmatter is processed
+          await app.vault.modify(file, sanitizedContent);
+          return;
         } catch (e) {
-          logger.debug("Frontmatter parsing failed, preserving original content");
-          // Instead of stripping frontmatter, preserve the original content
+          logger.debug("Frontmatter parsing failed:", e);
+          // If parsing fails, preserve the original content
           await app.vault.modify(file, sanitizedContent);
           return;
         }
