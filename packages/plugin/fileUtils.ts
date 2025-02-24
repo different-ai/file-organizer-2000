@@ -319,16 +319,8 @@ export async function sanitizeContent(content: string): Promise<string> {
       }
 
       if (inFrontmatter) {
-        // Validate frontmatter line
-        try {
-          // Check if line is valid YAML key-value pair
-          const [key, ...valueParts] = line.split(":");
-          if (key && key.trim() && !key.includes(" ")) {
-            validContent.push(line);
-          }
-        } catch (e) {
-          logger.debug("Skipping invalid frontmatter line:", line);
-        }
+        // Keep all frontmatter lines as-is
+        validContent.push(line);
       } else {
         // Regular content - remove null characters and other potentially problematic chars
         const sanitizedLine = line
