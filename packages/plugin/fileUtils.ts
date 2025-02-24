@@ -254,7 +254,7 @@ export async function safeRename(
   file: TFile,
   newName: string
 ): Promise<void> {
-  const parentPath = file.parent.path;
+  const parentPath = file.parent?.path ?? '';
   const extension = file.extension;
   const desiredPath = `${parentPath}/${newName}.${extension}`;
 
