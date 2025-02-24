@@ -24,6 +24,7 @@ import {
   safeMove,
   safeModifyContent as safeModify,
 } from "../fileUtils";
+import { sanitizeContent } from "../fileUtils";
 import { extractYouTubeVideoId, getYouTubeContent, getOriginalContent, YouTubeError } from "./services/youtube-service";
 
 // Move constants to the top level and ensure they're used consistently
@@ -616,21 +617,21 @@ async function cleanupStep(
       await handleBypass(context, "No content available");
     }
 
-    // Strip front matter and trim
     if (!context.content) {
       throw new Error("Content is required for cleanup step");
     }
-    const contentWithoutFrontMatter = context.content
-      .replace(/^---\n[\s\S]*?\n---\n/, "")
-      .trim();
 
-    // Bypass if content is too short
-    if (contentWithoutFrontMatter.length < 5) {
+    // Use the sanitizeContent utility which properly preserves frontmatter
+    const sanitizedContent = await sanitizeContent(context.content);
+
+    // Bypass if content is too short (excluding frontmatter)
+    const contentWithoutFrontmatter = sanitizedContent.replace(/^---\n[\s\S]*?\n---\n/, "").trim();
+    if (contentWithoutFrontmatter.length < 5) {
       await handleBypass(context, "Content too short (less than 5 characters)");
     }
 
-    // Set the cleaned content back
-    context.content = contentWithoutFrontMatter;
+    // Set the sanitized content back
+    context.content = sanitizedContent;
     return context;
   } catch (error) {
     logger.error("Error in preprocessContentStep:", error);
