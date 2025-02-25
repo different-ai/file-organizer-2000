@@ -147,7 +147,9 @@ app.post(
         console.log("in loop");
 
         console.log("Sending chunk to Deepgram for transcription...");
-        const { result, error } = await deepgram.listen.prerecorded.transcribeFile(
+        
+        // First attempt with auto-detection
+        let { result, error } = await deepgram.listen.prerecorded.transcribeFile(
           fs.readFileSync(chunkPath),
           {
             model: "nova-2",
@@ -156,6 +158,64 @@ app.post(
           }
         );
         console.log("Deepgram transcription result:", JSON.stringify(result, null, 2));
+
+        // If transcript is empty but language was detected, try again with explicit language
+        if (result?.results?.channels[0]?.alternatives[0]?.transcript === "" && 
+            result?.results?.channels[0]?.detected_language) {
+          
+          const detectedLanguage = result.results.channels[0].detected_language;
+          const languageConfidence = result.results.channels[0].language_confidence || 0;
+          console.log(`Empty transcript with detected language: ${detectedLanguage} (confidence: ${languageConfidence}). Trying again with explicit language.`);
+          
+          // If detected as English but confidence is below threshold, try with common languages
+          if (detectedLanguage === "en" && languageConfidence < 0.85) {
+            console.log("Low confidence English detection. Trying with different Chinese variants...");
+            
+            // Try with different Chinese variants
+            const chineseVariants = ["zh", "zh-CN", "zh-TW", "zh-Hans", "zh-Hant"];
+            let transcriptionSuccessful = false;
+            
+            for (const variant of chineseVariants) {
+              console.log(`Trying with Chinese variant: ${variant}`);
+              const chineseResult = await deepgram.listen.prerecorded.transcribeFile(
+                fs.readFileSync(chunkPath),
+                {
+                  model: "nova-2",
+                  smart_format: true,
+                  language: variant,
+                }
+              );
+              
+              if (chineseResult.result?.results?.channels[0]?.alternatives[0]?.transcript) {
+                console.log(`Chinese transcription successful with variant: ${variant}!`);
+                result = chineseResult.result;
+                error = chineseResult.error;
+                transcriptionSuccessful = true;
+                break;
+              }
+            }
+            
+            // If Chinese variants didn't work, try Vietnamese
+            if (!transcriptionSuccessful) {
+              console.log("Chinese transcription failed. Trying with Vietnamese...");
+              
+              const vietnameseResult = await deepgram.listen.prerecorded.transcribeFile(
+                fs.readFileSync(chunkPath),
+                {
+                  model: "nova-2",
+                  smart_format: true,
+                  language: "vi",
+                }
+              );
+              
+              if (vietnameseResult.result?.results?.channels[0]?.alternatives[0]?.transcript) {
+                console.log("Vietnamese transcription successful!");
+                result = vietnameseResult.result;
+                error = vietnameseResult.error;
+              }
+            }
+          }
+        }
 
         if (error) {
           console.error("Deepgram transcription error:", error);

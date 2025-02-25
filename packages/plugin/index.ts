@@ -479,17 +479,25 @@ export default class FileOrganizer extends Plugin {
 
   async transcribeAudio(
     audioBuffer: ArrayBuffer,
-    fileExtension: string
+    fileExtension: string,
+    language?: string
   ): Promise<Response> {
     const formData = new FormData();
     const blob = new Blob([audioBuffer], { type: `audio/${fileExtension}` });
     formData.append("audio", blob, `audio.${fileExtension}`);
     formData.append("fileExtension", fileExtension);
+    
+    // Add language parameter if specified
+    if (language) {
+      formData.append("language", language);
+      logger.info(`Sending audio transcription request for ${fileExtension} file with language: ${language}`);
+    } else {
+      logger.info(`Sending audio transcription request for ${fileExtension} file with auto language detection`);
+    }
+    
     // const newServerUrl = "http://localhost:3001/transcribe";
     const newServerUrl =
       "https://file-organizer-2000-audio-transcription.onrender.com/transcribe";
-    
-    logger.info(`Sending audio transcription request for ${fileExtension} file`);
     
     const response = await fetch(newServerUrl, {
       method: "POST",
@@ -516,7 +524,30 @@ export default class FileOrganizer extends Plugin {
     try {
       logger.info(`Generating transcript for audio file: ${file.path}`);
       const audioBuffer = await this.app.vault.readBinary(file);
-      const response = await this.transcribeAudio(audioBuffer, file.extension);
+      
+      // First try with auto language detection
+      logger.info("Attempting transcription with auto language detection");
+      let response = await this.transcribeAudio(audioBuffer, file.extension);
+      
+      // Check if response is empty by cloning and checking text content
+      const responseClone = response.clone();
+      const responseText = await responseClone.text().catch(() => "");
+      
+      // If response is empty or error, try with specific languages
+      if (!response.ok || responseText.trim() === "") {
+        logger.info("Auto language detection failed or returned empty transcript. Trying with Chinese...");
+        response = await this.transcribeAudio(audioBuffer, file.extension, "zh");
+        
+        // Clone response to check content
+        const chineseResponseClone = response.clone();
+        const chineseResponseText = await chineseResponseClone.text().catch(() => "");
+        
+        // If Chinese fails, try Vietnamese
+        if (!response.ok || chineseResponseText.trim() === "") {
+          logger.info("Chinese transcription failed or returned empty transcript. Trying with Vietnamese...");
+          response = await this.transcribeAudio(audioBuffer, file.extension, "vi");
+        }
+      }
 
       if (!response.body) {
         throw new Error("Response body is null");
@@ -903,14 +934,17 @@ export default class FileOrganizer extends Plugin {
 
     // If view doesn't exist, create it
     if (!view) {
-      await this.app.workspace.getRightLeaf(false).setViewState({
-        type: ORGANIZER_VIEW_TYPE,
-        active: true,
-      });
+      const rightLeaf = this.app.workspace.getRightLeaf(false);
+      if (rightLeaf) {
+        await rightLeaf.setViewState({
+          type: ORGANIZER_VIEW_TYPE,
+          active: true,
+        });
 
-      // Get the newly created view
-      view = this.app.workspace.getLeavesOfType(ORGANIZER_VIEW_TYPE)[0]
-        ?.view as AssistantViewWrapper;
+        // Get the newly created view
+        view = this.app.workspace.getLeavesOfType(ORGANIZER_VIEW_TYPE)[0]
+          ?.view as AssistantViewWrapper;
+      }
     }
 
     // Reveal and focus the leaf
@@ -1131,11 +1165,16 @@ export default class FileOrganizer extends Plugin {
     let leaf = workspace.getLeavesOfType(DASHBOARD_VIEW_TYPE)[0];
     
     if (!leaf) {
-      leaf = workspace.getRightLeaf(false);
-      await leaf.setViewState({
-        type: DASHBOARD_VIEW_TYPE,
-        active: true,
-      });
+      const rightLeaf = workspace.getRightLeaf(false);
+      if (rightLeaf) {
+        leaf = rightLeaf;
+        await leaf.setViewState({
+          type: DASHBOARD_VIEW_TYPE,
+          active: true,
+        });
+      } else {
+        return null;
+      }
     }
     
     workspace.revealLeaf(leaf);
