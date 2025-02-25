@@ -9,14 +9,14 @@ interface TranscriptionButtonProps {
   content: string;
 }
 
-export const TranscriptionButton: React.FC<TranscriptionButtonProps> = ({ plugin, file, content }) => {
-  const [transcribing, setTranscribing] = React.useState<boolean>(false);
+export const TranscriptionButton = ({ plugin, file, content }: TranscriptionButtonProps) => {
+  const [transcribing, setTranscribing] = React.useState(false);
 
   const handleTranscribe = async () => {
     setTranscribing(true);
     try {
       const audioRegex = /!\[\[(.*?\.(mp3|wav|m4a|ogg|webm))]]/gi;
-      const matches = Array.from(content.matchAll(audioRegex));
+      const matches = Array.from(content.matchAll(audioRegex)) as RegExpMatchArray[];
 
       if (matches.length === 0) {
         new Notice("No audio files found");

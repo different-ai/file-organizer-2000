@@ -1,21 +1,21 @@
 import React from 'react';
-import { Button } from '@/components/ui/button';
+import { Button } from '~/components/ui/button';
 import { Mic, Square } from 'lucide-react';
 import {
   Tooltip,
   TooltipContent,
   TooltipTrigger,
-} from '@/components/ui/tooltip';
+} from '~/components/ui/tooltip';
 
 interface AudioRecorderProps {
   onTranscriptionComplete: (text: string) => void;
 }
 
-export const AudioRecorder: React.FC<AudioRecorderProps> = ({
+export const AudioRecorder = ({
   onTranscriptionComplete,
-}) => {
+}: AudioRecorderProps) => {
   const [isRecording, setIsRecording] = React.useState(false);
-  const [mediaRecorder, setMediaRecorder] = React.useState<MediaRecorder | null>(null);
+  const [mediaRecorder, setMediaRecorder] = React.useState(null as MediaRecorder | null);
 
   const startRecording = async () => {
     try {
@@ -78,4 +78,4 @@ export const AudioRecorder: React.FC<AudioRecorderProps> = ({
       </TooltipContent>
     </Tooltip>
   );
-}; 
+};      
