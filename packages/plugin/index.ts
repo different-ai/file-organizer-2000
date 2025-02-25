@@ -488,7 +488,9 @@ export default class FileOrganizer extends Plugin {
     // const newServerUrl = "http://localhost:3001/transcribe";
     const newServerUrl =
       "https://file-organizer-2000-audio-transcription.onrender.com/transcribe";
-
+    
+    logger.info(`Sending audio transcription request for ${fileExtension} file`);
+    
     const response = await fetch(newServerUrl, {
       method: "POST",
       body: formData,
@@ -497,10 +499,14 @@ export default class FileOrganizer extends Plugin {
         // "Content-Type": "multipart/form-data",
       },
     });
+    
     if (!response.ok) {
       const errorData = await response.json();
+      logger.error(`Transcription failed: ${JSON.stringify(errorData)}`);
       throw new Error(`Transcription failed: ${errorData.error}`);
     }
+    
+    logger.info("Transcription request successful");
     return response;
   }
 
@@ -508,6 +514,7 @@ export default class FileOrganizer extends Plugin {
     file: TFile
   ): Promise<AsyncIterableIterator<string>> {
     try {
+      logger.info(`Generating transcript for audio file: ${file.path}`);
       const audioBuffer = await this.app.vault.readBinary(file);
       const response = await this.transcribeAudio(audioBuffer, file.extension);
 
@@ -518,11 +525,15 @@ export default class FileOrganizer extends Plugin {
       const reader = response.body.getReader();
 
       async function* generateTranscript() {
+        let fullTranscript = "";
         while (true) {
           const { done, value } = await reader.read();
           if (done) break;
-          yield new TextDecoder().decode(value);
+          const chunk = new TextDecoder().decode(value);
+          fullTranscript += chunk;
+          yield chunk;
         }
+        logger.info(`Completed transcript: ${fullTranscript}`);
       }
 
       return generateTranscript();

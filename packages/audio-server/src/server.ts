@@ -146,6 +146,7 @@ app.post(
         await splitAudio(req.file.path, chunkPath, start, end);
         console.log("in loop");
 
+        console.log("Sending chunk to Deepgram for transcription...");
         const { result, error } = await deepgram.listen.prerecorded.transcribeFile(
           fs.readFileSync(chunkPath),
           {
@@ -154,10 +155,18 @@ app.post(
             detect_language: true,
           }
         );
+        console.log("Deepgram transcription result:", JSON.stringify(result, null, 2));
 
         if (error) {
           console.error("Deepgram transcription error:", error);
           throw new Error("Deepgram transcription failed");
+        }
+        
+        // Log detected language
+        if (result.results?.channels[0]?.alternatives[0]?.languages) {
+          console.log("Detected language:", result.results.channels[0].alternatives[0].languages);
+        } else {
+          console.log("No language detected in the response");
         }
 
         console.log(result.results?.channels[0]?.alternatives[0]?.transcript);
@@ -169,6 +178,10 @@ app.post(
       res.end();
     } catch (error) {
       console.error("Error transcribing audio:", error);
+      // Log more detailed error information
+      if ((error as any).response) {
+        console.error("Deepgram API response error:", JSON.stringify((error as any).response, null, 2));
+      }
       fs.unlinkSync(req.file.path);
       res
         .status(500)
