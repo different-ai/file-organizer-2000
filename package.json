@@ -5,14 +5,27 @@
     "build": "turbo run build",
     "dev": "turbo run dev",
     "lint": "turbo run lint",
-    "test": "turbo run test"
+    "test": "turbo run test",
+    "android": "expo run:android",
+    "ios": "expo run:ios"
   },
   "devDependencies": {
+    "node-gyp": "^11.1.0",
     "turbo": "latest",
     "typescript": "^5.2.2"
   },
   "dependencies": {
-    "@ai-sdk/google": "^1.0.12"
+    "@ai-sdk/google": "^1.0.12",
+    "expo": "~52.0.35",
+    "react": "18.3.1",
+    "react-native": "0.76.7"
   },
-  "packageManager": "pnpm@8.15.4"
+  "packageManager": "pnpm@8.15.4",
+  "version": "1.0.0",
+  "pnpm": {
+    "patchedDependencies": {
+      "xcode@3.0.1": "patches/xcode@3.0.1.patch",
+      "react-native@0.76.7": "patches/react-native@0.76.7.patch"
+    }
+  }
 }

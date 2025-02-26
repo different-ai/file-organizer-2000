@@ -139,6 +139,26 @@ export async function incrementTokenUsage(
   tokens: number
 ): Promise<{ remaining: number; usageError: boolean }> {
   try {
+    // First check if the user has a usage row
+    const existingUsage = await db
+      .select()
+      .from(UserUsageTable)
+      .where(eq(UserUsageTable.userId, userId))
+      .limit(1);
+
+    // If no usage row exists, create one with initial values
+    if (existingUsage.length === 0) {
+      await db.insert(UserUsageTable).values({
+        userId,
+        tokenUsage: 0,
+        maxTokenUsage: 0, // Set default max tokens to 0 or another appropriate default
+        billingCycle: "default", // Required field in the schema
+        subscriptionStatus: "inactive",
+        paymentStatus: "unpaid",
+      });
+    }
+
+    // Now update the token usage
     const userUsage = await db
       .update(UserUsageTable)
       .set({
@@ -146,11 +166,12 @@ export async function incrementTokenUsage(
       })
       .where(eq(UserUsageTable.userId, userId))
       .returning({
-        remaining: sql<number>`${UserUsageTable.maxTokenUsage} - ${UserUsageTable.tokenUsage}`,
+        remaining: sql<number>`${UserUsageTable.maxTokenUsage} - COALESCE(${UserUsageTable.tokenUsage}, 0)`,
       });
 
+    console.log("Incremented token usage for user:", userId, userUsage[0]?.remaining, userUsage);
     return {
-      remaining: userUsage[0].remaining,
+      remaining: userUsage[0]?.remaining ?? 0,
       usageError: false,
     };
   } catch (error) {
@@ -291,3 +312,23 @@ export async function handleFailedPayment(
     console.error(error);
   }
 }
+
+export const uploadedFiles = pgTable(
+  "uploaded_files",
+  {
+    id: serial("id").primaryKey(),
+    userId: text("user_id").notNull(),
+    blobUrl: text("blob_url").notNull(),
+    fileType: text("file_type").notNull(), // "pdf" or "image"
+    originalName: text("original_name").notNull(),
+    status: text("status").notNull().default("pending"), // pending, processing, completed, error
+    textContent: text("text_content"), // extracted text content
+    tokensUsed: integer("tokens_used"), // tokens used for processing
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+    updatedAt: timestamp("updated_at").defaultNow().notNull(),
+    error: text("error"), // error message if processing failed
+  }
+);
+
+export type UploadedFile = typeof uploadedFiles.$inferSelect;
+export type NewUploadedFile = typeof uploadedFiles.$inferInsert;
