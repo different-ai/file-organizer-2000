@@ -14,7 +14,7 @@ import * as DocumentPicker from "expo-document-picker";
 import * as ImagePicker from "expo-image-picker";
 import * as FileSystem from "expo-file-system";
 import { useShareIntent } from "expo-share-intent";
-import { API_URL } from "@/constants/config";
+import { API_URL, API_CONFIG } from "@/constants/config";
 import { useLocalSearchParams } from 'expo-router';
 
 type UploadStatus = "idle" | "uploading" | "processing" | "completed" | "error";
@@ -180,20 +180,60 @@ export default function HomeScreen() {
       const uploadData = (await uploadResponse.json()) as UploadResponse;
       setStatus("processing");
 
-      const processResponse = await fetch(`${API_URL}/api/process-file`, {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ fileId: uploadData.fileId }),
-      });
+      // Process the file with retry logic
+      let retryCount = 0;
+      let processResponse;
 
-      if (!processResponse.ok) {
-        const errorData = await processResponse
-          .json()
-          .catch(() => ({ error: "Processing failed" }));
-        throw new Error(errorData.error || "Processing failed");
+      while (retryCount < API_CONFIG.maxRetries) {
+        try {
+          processResponse = await fetch(`${API_URL}/api/process-file`, {
+            method: "POST",
+            headers: {
+              Authorization: `Bearer ${token}`,
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ fileId: uploadData.fileId }),
+          });
+
+          if (processResponse.ok) {
+            break;
+          }
+
+          // Check if we should retry based on status code
+          if (processResponse.status >= 500 || processResponse.status === 429) {
+            // Server error or rate limit - retry
+            retryCount++;
+            if (retryCount < API_CONFIG.maxRetries) {
+              const delay = API_CONFIG.retryDelay * Math.pow(2, retryCount - 1); // Exponential backoff
+              console.log(`Retrying process request (${retryCount}/${API_CONFIG.maxRetries}) after ${delay}ms`);
+              await new Promise(resolve => setTimeout(resolve, delay));
+              continue;
+            }
+          }
+
+          // Not retryable status code or max retries reached
+          const errorData = await processResponse
+            .json()
+            .catch(() => ({ error: "Processing failed" }));
+          throw new Error(errorData.error || "Processing failed");
+        } catch (error) {
+          if (error.name === 'AbortError') {
+            console.log('Request timed out');
+          }
+          
+          retryCount++;
+          if (retryCount < API_CONFIG.maxRetries) {
+            const delay = API_CONFIG.retryDelay * Math.pow(2, retryCount - 1);
+            console.log(`Retrying after error (${retryCount}/${API_CONFIG.maxRetries}) after ${delay}ms:`, error.message);
+            await new Promise(resolve => setTimeout(resolve, delay));
+          } else {
+            throw error;
+          }
+        }
+      }
+
+      if (!processResponse || !processResponse.ok) {
+        throw new Error("Processing failed after maximum retry attempts");
       }
 
       const result = await pollForResults(uploadData.fileId, token);

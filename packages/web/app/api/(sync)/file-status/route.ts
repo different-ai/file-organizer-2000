@@ -10,62 +10,20 @@ type FileStatusResponse = {
 };
 
 export async function GET(request: NextRequest) {
-  // print authorization header
-  console.log("authorization header", request.headers.get("authorization"));
   try {
-    // Check authentication first - support both Clerk auth and API token
-    console.log("getFileStatus");
+    // Check authentication using Clerk
     const { userId } = await auth();
-    console.log("userId", userId);
-    const authHeader = request.headers.get("authorization");
     
-    // Handle API key auth from mobile app
-    if (!userId && authHeader) {
-      const token = authHeader.replace("Bearer ", "");
-      
-      // Skip user check for mobile requests if we have a token
-      if (token) {
-        // Continue with the request
-        const fileId = parseInt(request.nextUrl.searchParams.get("fileId") || "0", 10);
-
-        if (!fileId) {
-          return NextResponse.json(
-            { error: "File ID is required" },
-            { status: 400 }
-          );
-        }
-
-        console.log(`Processing mobile request for fileId: ${fileId} with token`);
-        
-        // Pass the token to getFileStatus for mobile authentication
-        const result = await getFileStatus(fileId, token);
-        
-        if ('error' in result) {
-          console.log(`Error in getFileStatus: ${result.error}`);
-          return NextResponse.json(
-            { error: result.error },
-            { status: result.error === "Unauthorized" ? 401 : 
-                    result.error === "File not found" ? 404 : 500 }
-          );
-        }
-
-        return NextResponse.json(result as FileStatusResponse);
-      } else {
-        console.error("Unauthorized status check attempt - invalid token");
-        return NextResponse.json(
-          { error: "Unauthorized - invalid token" },
-          { status: 401 }
-        );
-      }
-    } else if (!userId) {
-      console.error("Unauthorized status check attempt - no userId or token");
+    // If no userId, user is not authenticated
+    if (!userId) {
+      console.error("Unauthorized status check attempt - no userId");
       return NextResponse.json(
         { error: "Unauthorized - authentication required" },
         { status: 401 }
       );
     }
     
-    // Handle web app authentication with Clerk userId
+    // Get fileId from request parameters
     const fileId = parseInt(request.nextUrl.searchParams.get("fileId") || "0", 10);
 
     if (!fileId) {
@@ -75,10 +33,23 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    const result = await getFileStatus(fileId);
+    console.log(`Processing file status request for fileId: ${fileId} with userId: ${userId}`);
     
-    if ('error' in result) {
-      console.log(`Error in getFileStatus with userId ${userId}: ${result.error}`);
+    // Pass the userId from Clerk to getFileStatus
+    const result = await getFileStatus(fileId, userId);
+    
+    if (!result) {
+      console.error(`Unexpected null result from getFileStatus for fileId: ${fileId}`);
+      return NextResponse.json(
+        { error: "Failed to retrieve file status" },
+        { status: 500 }
+      );
+    }
+    console.log(result);
+    
+    // and not null
+    if ('error' in result && result.error !== null) {
+      console.log(`Error in getFileStatus: ${result.error}`);
       return NextResponse.json(
         { error: result.error },
         { status: result.error === "Unauthorized" ? 401 : 
@@ -86,15 +57,29 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    return NextResponse.json(result as FileStatusResponse);
+    // Ensure proper response structure before sending
+    const response = result as FileStatusResponse;
+    
+    // If the text field contains stringified JSON, try to parse it
+    if (response.text && response.text.trim().startsWith('{') && response.text.trim().endsWith('}')) {
+      try {
+        // Parse the text field if it's a JSON string
+        const parsedText = JSON.parse(response.text);
+        response.text = parsedText;
+      } catch (e) {
+        // If parsing fails, leave as is - it might be valid text that just happens to start/end with curly braces
+        console.log('Text field appears to be JSON but failed to parse:', e);
+      }
+    }
+
+    return NextResponse.json(response);
   } catch (error) {
     console.error("Status check error:", error);
     const errorMessage = error instanceof Error ? error.message : String(error);
     return NextResponse.json(
       { 
         error: "Failed to check file status", 
-        details: errorMessage,
-        stack: error instanceof Error ? error.stack : undefined
+        details: errorMessage
       },
       { status: 500 }
     );
