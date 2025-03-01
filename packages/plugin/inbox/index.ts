@@ -861,11 +861,7 @@ async function completeProcessing(
   context: ProcessingContext
 ): Promise<ProcessingContext> {
   // Add completion timestamp and details to the log
-  context.recordManager.addAction(context.hash, Action.COMPLETED, true, false, {
-    timestamp: moment().format("YYYY-MM-DD HH:mm:ss"),
-    fileName: context.containerFile?.basename || context.inboxFile.basename,
-    filePath: context.containerFile?.parent?.path || context.inboxFile.parent?.path || ""
-  });
+  context.recordManager.addAction(context.hash, Action.COMPLETED);
   
   // Set the status to completed
   context.recordManager.setStatus(context.hash, "completed");
