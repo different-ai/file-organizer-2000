@@ -100,11 +100,8 @@ export default class FileOrganizer extends Plugin {
 
   async checkCatalystAccess(): Promise<boolean> {
     // fetch the file organizer premium status
-    // if process env prod then point to prod server if not to localhost
-    const serverUrl =
-      process.env.NODE_ENV === "production"
-        ? "https://app.fileorganizer2000.com"
-        : this.getServerUrl();
+    // Use production URL by default, or self-hosted URL if configured
+    const serverUrl = "https://app.fileorganizer2000.com";
     const premiumStatus = await fetch(`${serverUrl}/api/check-premium`, {
       headers: {
         Authorization: `Bearer ${this.settings.API_KEY}`,
@@ -685,7 +682,7 @@ export default class FileOrganizer extends Plugin {
     });
   }
 
-  async compressImage(fileContent: Buffer): Promise<Buffer> {
+  async compressImage(fileContent: ArrayBuffer): Promise<ArrayBuffer> {
     const image = await Jimp.read(fileContent);
 
     // Check if the image is bigger than 1000 pixels in either width or height
@@ -698,27 +695,28 @@ export default class FileOrganizer extends Plugin {
     return resizedImage;
   }
 
-  isWebP(fileContent: Buffer): boolean {
+  isWebP(fileContent: ArrayBuffer): boolean {
     // Check if the file starts with the WebP signature
-    return (
-      fileContent.slice(0, 4).toString("hex") === "52494646" &&
-      fileContent.slice(8, 12).toString("hex") === "57454250"
-    );
+    const view = new Uint8Array(fileContent);
+    // Check for RIFF header (52 49 46 46 in hex)
+    const isRiff = view[0] === 0x52 && view[1] === 0x49 && view[2] === 0x46 && view[3] === 0x46;
+    // Check for WEBP identifier (57 45 42 50 in hex)
+    const isWebP = view[8] === 0x57 && view[9] === 0x45 && view[10] === 0x42 && view[11] === 0x50;
+    return isRiff && isWebP;
   }
 
   async generateImageAnnotation(file: TFile) {
     const arrayBuffer = await this.app.vault.readBinary(file);
-    const fileContent = Buffer.from(arrayBuffer);
-    const imageSize = fileContent.byteLength;
+    const imageSize = arrayBuffer.byteLength;
     const imageSizeInMB2 = imageSize / (1024 * 1024);
     logMessage(`Image size: ${imageSizeInMB2.toFixed(2)} MB`);
 
     let processedArrayBuffer: ArrayBuffer;
 
-    if (!this.isWebP(fileContent)) {
+    if (!this.isWebP(arrayBuffer)) {
       // Compress the image if it's not a WebP
-      const resizedImage = await this.compressImage(fileContent);
-      processedArrayBuffer = resizedImage.buffer;
+      const resizedImage = await this.compressImage(arrayBuffer);
+      processedArrayBuffer = resizedImage;
     } else {
       // If it's a WebP, use the original file content directly
       processedArrayBuffer = arrayBuffer;
@@ -895,10 +893,13 @@ export default class FileOrganizer extends Plugin {
 
     // If view doesn't exist, create it
     if (!view) {
-      await this.app.workspace.getRightLeaf(false).setViewState({
-        type: ORGANIZER_VIEW_TYPE,
-        active: true,
-      });
+      const leaf = this.app.workspace.getRightLeaf(false);
+      if (leaf) {
+        await leaf.setViewState({
+          type: ORGANIZER_VIEW_TYPE,
+          active: true,
+        });
+      }
 
       // Get the newly created view
       view = this.app.workspace.getLeavesOfType(ORGANIZER_VIEW_TYPE)[0]
@@ -1123,15 +1124,21 @@ export default class FileOrganizer extends Plugin {
     let leaf = workspace.getLeavesOfType(DASHBOARD_VIEW_TYPE)[0];
     
     if (!leaf) {
-      leaf = workspace.getRightLeaf(false);
-      await leaf.setViewState({
-        type: DASHBOARD_VIEW_TYPE,
-        active: true,
-      });
+      const rightLeaf = workspace.getRightLeaf(false);
+      if (rightLeaf) {
+        await rightLeaf.setViewState({
+          type: DASHBOARD_VIEW_TYPE,
+          active: true,
+        });
+        leaf = workspace.getLeavesOfType(DASHBOARD_VIEW_TYPE)[0];
+      }
     }
     
-    workspace.revealLeaf(leaf);
-    return leaf.view as DashboardView;
+    if (leaf) {
+      workspace.revealLeaf(leaf);
+      return leaf.view as DashboardView;
+    }
+    return null;
   }
 
   

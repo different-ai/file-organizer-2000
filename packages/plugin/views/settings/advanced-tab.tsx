@@ -15,7 +15,6 @@ export const AdvancedTab: React.FC<AdvancedTabProps> = ({ plugin }) => {
   );
   const [useLogs, setUseLogs] = useState(plugin.settings.useLogs);
   const [debugMode, setDebugMode] = useState(plugin.settings.debugMode);
-  const [showLogs, setShowLogs] = useState(false);
   const [contentCutoffChars, setContentCutoffChars] = useState(
     plugin.settings.contentCutoffChars
   );
@@ -99,35 +98,9 @@ export const AdvancedTab: React.FC<AdvancedTabProps> = ({ plugin }) => {
 
       {useLogs && (
         <div className="space-y-2">
-          {showLogs && (
-            <div className="max-h-96 overflow-y-auto border border-[--background-modifier-border] rounded p-2">
-              {logger.getLogs().map((log, index) => (
-                <div
-                  key={index}
-                  className={`py-1 ${
-                    log.level === "error"
-                      ? "text-[--text-error]"
-                      : log.level === "warn"
-                      ? "text-[--text-warning]"
-                      : "text-[--text-normal]"
-                  }`}
-                >
-                  <span className="text-[--text-muted] text-xs">
-                    {new Date(log.timestamp).toLocaleString()}
-                  </span>{" "}
-                  <span className="font-medium">
-                    [{log.level.toUpperCase()}]
-                  </span>{" "}
-                  {log.message}
-                  {log.details && (
-                    <pre className="text-xs mt-1 text-[--text-muted]">
-                      {log.details}
-                    </pre>
-                  )}
-                </div>
-              ))}
-            </div>
-          )}
+          <div className="text-[--text-muted]">
+            Logs are enabled. Check the console for detailed logs.
+          </div>
         </div>
       )}
 
