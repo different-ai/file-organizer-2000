@@ -45,150 +45,68 @@ const ErrorTooltip: React.FC<{ error: LogEntry["error"] }> = ({
 };
 
 // Function to get detailed display text based on action and details
+// Function to get detailed display text based on action and details
 const getDisplayText = (step: Action, details?: Record<string, any>): string => {
   switch (step) {
     // File type detection
-    case Action.VALIDATE:
-      return "Validating file type";
     case Action.VALIDATE_DONE:
       return details?.fileType
-        ? `Recognized file type as "${details.fileType}"`
-        : "File type validated";
+        ? `Recognized as ${details.fileType}`
+        : "File validated";
     
     // Reading / Extraction
-    case Action.EXTRACT:
-      return details?.fileType
-        ? `Extracting text from ${details.fileType}`
-        : "Extracting text";
     case Action.EXTRACT_DONE:
-      return details?.charCount
-        ? `Extracted ${details.charCount} characters of text`
-        : "Text extracted";
+      return details?.fileType
+        ? `Extracted text from ${details.fileType}`
+        : "Extracted text";
     
     // Classification
-    case Action.CLASSIFY:
-      return "Classifying document";
     case Action.CLASSIFY_DONE:
       return details?.classification
         ? `Classified as "${details.classification}"`
-        : "Document classified";
+        : "Classified document";
     
     // Tagging
-    case Action.TAGGING:
-      return "Analyzing content for tags";
-    case Action.TAGGING_DONE:
-      return details?.tags
-        ? `Recommended tags: ${details.tags.join(", ")}`
-        : "Tags generated";
-    case Action.APPLYING_TAGS:
-      return "Applying tags to document";
     case Action.APPLYING_TAGS_DONE:
       return details?.tags
-        ? `Applied tags: ${details.tags.join(", ")}`
-        : "Tags applied";
+        ? `Tagged with: ${details.tags.join(", ")}`
+        : "Tagged document";
     
     // Naming
-    case Action.RECOMMEND_NAME:
-      return "Generating file name";
-    case Action.RECOMMEND_NAME_DONE:
-      return details?.newName
-        ? `Generated file name: "${details.newName}"`
-        : "File name generated";
-    case Action.APPLYING_NAME:
-      return "Renaming file";
     case Action.APPLYING_NAME_DONE:
       if (details?.oldName && details?.newName) {
         return `Renamed from "${details.oldName}" to "${details.newName}"`;
       }
-      return "File renamed";
+      return "Renamed file";
     
     // Formatting
-    case Action.FORMATTING:
-      return details?.format
-        ? `Formatting as "${details.format}" style`
-        : "Formatting content";
     case Action.FORMATTING_DONE:
       return details?.format
         ? `Formatted as "${details.format}" style`
-        : "Content formatted";
-    
-    // Moving attachments
-    case Action.MOVING_ATTACHMENT:
-      return "Processing attachments";
-    case Action.MOVING_ATTACHEMENT_DONE:
-      return details?.attachments
-        ? `Moved ${details.attachments.length} attachment(s) to ${details.destination || "attachments folder"}`
-        : "Attachments processed";
+        : "Formatted document";
     
     // Moving file
-    case Action.MOVING:
-      return "Finding optimal location";
     case Action.MOVING_DONE:
       return details?.destination
         ? `Moved to ${details.destination}`
-        : "File moved to final location";
-    
-    // Cleanup
-    case Action.CLEANUP:
-      return "Cleaning up file";
-    case Action.CLEANUP_DONE:
-      return "File cleaned up";
-    
-    // Container
-    case Action.CONTAINER:
-      return "Creating document container";
-    case Action.CONTAINER_DONE:
-      return "Document container created";
-    
-    // Append
-    case Action.APPEND:
-      return "Appending content";
-    case Action.APPEND_DONE:
-      return "Content appended";
+        : "Moved to folder";
     
     // YouTube
     case Action.FETCH_YOUTUBE:
       return details?.videoId
-        ? `Fetching transcript for YouTube video: ${details.videoId}`
-        : "Fetching YouTube transcript";
+        ? `Transcribed YouTube video: ${details.videoId}`
+        : "Transcribed YouTube video";
     
     // Completion
     case Action.COMPLETED:
-      return `File fully processed at ${moment().format("HH:mm:ss")}`;
-    
-    // Error states
-    case Action.ERROR_VALIDATE:
-      return "Error validating file type";
-    case Action.ERROR_EXTRACT:
-      return "Error extracting content";
-    case Action.ERROR_CLASSIFY:
-      return "Error classifying document";
-    case Action.ERROR_TAGGING:
-      return "Error generating tags";
-    case Action.ERROR_FORMATTING:
-      return "Error formatting content";
-    case Action.ERROR_MOVING_ATTACHMENT:
-      return "Error moving attachments";
-    case Action.ERROR_MOVING:
-      return "Error moving file";
-    case Action.ERROR_RENAME:
-      return "Error renaming file";
-    case Action.ERROR_CLEANUP:
-      return "Error cleaning up file";
-    case Action.ERROR_CONTAINER:
-      return "Error creating container";
-    case Action.ERROR_APPEND:
-      return "Error appending content";
-    case Action.ERROR_FETCH_YOUTUBE:
-      return "Error fetching YouTube transcript";
-    case Action.ERROR_COMPLETE:
-      return "Processing failed";
+      return `File fully processed at ${details?.timestamp || moment().format("HH:mm:ss")}`;
     
     default:
       return step.toString();
   }
 };
 
+// Enhanced log entry display component
 // Enhanced log entry display component
 const LogEntryDisplay: React.FC<{ entry: LogEntry; step: Action; plugin: any }> = ({
   entry,
@@ -198,6 +116,28 @@ const LogEntryDisplay: React.FC<{ entry: LogEntry; step: Action; plugin: any }> 
   const details = entry.details || {};
   const isErrorStep = step.toString().startsWith("ERROR_");
   const hasError = entry.error || isErrorStep;
+  
+  // Function to get badge color based on action
+  const getBadgeColor = () => {
+    switch (step) {
+      case Action.MOVING_DONE:
+        return "bg-[--background-modifier-success]";
+      case Action.FORMATTING_DONE:
+        return "bg-[--background-modifier-success]";
+      case Action.APPLYING_NAME_DONE:
+        return "bg-[--background-modifier-success]";
+      case Action.APPLYING_TAGS_DONE:
+        return "bg-[--background-modifier-success]";
+      case Action.EXTRACT_DONE:
+        return "bg-[--background-modifier-success]";
+      case Action.FETCH_YOUTUBE:
+        return "bg-[--background-modifier-success]";
+      case Action.COMPLETED:
+        return "bg-[--background-modifier-success]";
+      default:
+        return "bg-[--background-secondary]";
+    }
+  };
   
   // Function to handle clicking on a path or file
   const handlePathClick = () => {
@@ -224,49 +164,25 @@ const LogEntryDisplay: React.FC<{ entry: LogEntry; step: Action; plugin: any }> 
 
   return (
     <div className="flex items-center gap-2 py-1.5">
-      {/* Status indicator */}
-      <div
-        className={`w-2 h-2 rounded-full ${
-          hasError
-            ? "bg-[--text-error]"
-            : entry.skipped
-            ? "bg-[--text-muted]"
-            : entry.completed
-            ? "bg-[--text-success]"
-            : "bg-[--text-accent] animate-pulse"
-        }`}
-      />
-
       {/* Timestamp */}
       <span className="text-[--text-muted] w-20 text-xs">
         {moment(entry.timestamp).format("HH:mm:ss")}
       </span>
 
-      {/* Step name and details */}
-      <div className="flex flex-col">
+      {/* Action badge */}
+      <span className={`px-2 py-0.5 rounded-full text-xs ${getBadgeColor()} text-[--text-on-accent]`}>
+        {getDisplayText(step, details)}
+      </span>
+      
+      {/* Clickable paths if available */}
+      {(details.destination || details.newPath || details.attachmentPath) && (
         <span
-          className={`text-sm ${
-            hasError 
-              ? "text-[--text-error]" 
-              : entry.skipped
-              ? "text-[--text-muted] line-through"
-              : "text-[--text-normal]"
-          }`}
+          onClick={handlePathClick}
+          className="text-[--text-accent] cursor-pointer text-sm hover:underline"
         >
-          {getDisplayText(step, details)}
-          {entry.skipped && " (skipped)"}
+          {details.destination || details.newPath || details.attachmentPath}
         </span>
-        
-        {/* Clickable paths if available */}
-        {(details.destination || details.newPath || details.attachmentPath) && (
-          <span
-            onClick={handlePathClick}
-            className="text-[--text-accent] cursor-pointer text-sm hover:underline"
-          >
-            {details.destination || details.newPath || details.attachmentPath}
-          </span>
-        )}
-      </div>
+      )}
 
       {/* Error display */}
       {entry.error && (
@@ -332,9 +248,21 @@ function FileCard({ record }: { record: FileRecord }) {
 
   // Memoize sorted logs using the stable key
   const sortedLogs = React.useMemo(() => {
+    // Define important actions to show
+    const importantActions = [
+      Action.MOVING_DONE,           // File moved to folder
+      Action.FORMATTING_DONE,       // File formatted
+      Action.APPLYING_NAME_DONE,    // File renamed
+      Action.APPLYING_TAGS_DONE,    // File tagged
+      Action.EXTRACT_DONE,          // Text extracted
+      Action.FETCH_YOUTUBE,         // YouTube transcript (only for YouTube files)
+      Action.COMPLETED,             // Final completion message
+    ];
+    
     return Object.entries(record.logs)
+      .filter(([action, _]) => importantActions.includes(action as Action))
       .sort(([_, a], [__, b]) => 
-        moment(b.timestamp).diff(moment(a.timestamp))
+        moment(a.timestamp).diff(moment(b.timestamp)) // Sort by timestamp in ascending order
       )
       .map(([action, log]) => [action as Action, log] as [Action, LogEntry]);
   }, [logsKey]);
@@ -766,46 +694,48 @@ export const InboxLogs: React.FC = () => {
   const haveRecordsChanged = (oldRecords: FileRecord[], newRecords: FileRecord[]): boolean => {
     if (oldRecords.length !== newRecords.length) return true;
 
-    for (let i = 0; i < newRecords.length; i++) {
-      const oldRecord = oldRecords[i];
-      const newRecord = newRecords[i];
-
-      // Check basic changes (status, name, tags, etc.)
-      if (
-        oldRecord.status !== newRecord.status ||
-        oldRecord.newName !== newRecord.newName ||
-        oldRecord.newPath !== newRecord.newPath ||
-        oldRecord.tags.length !== newRecord.tags.length
-      ) {
+    // Create maps for faster lookup
+    const oldRecordMap = new Map(oldRecords.map(record => [record.id, record]));
+    
+    // Check each new record against its old counterpart
+    for (const newRecord of newRecords) {
+      const oldRecord = oldRecordMap.get(newRecord.id);
+      
+      // If record is new or basic properties changed
+      if (!oldRecord || 
+          oldRecord.status !== newRecord.status ||
+          oldRecord.newName !== newRecord.newName ||
+          oldRecord.newPath !== newRecord.newPath ||
+          JSON.stringify(oldRecord.tags) !== JSON.stringify(newRecord.tags)) {
         return true;
       }
-
-      // Compare logs thoroughly
+      
+      // Check logs thoroughly
       const oldActions = Object.keys(oldRecord.logs);
       const newActions = Object.keys(newRecord.logs);
-
+      
+      // If number of actions changed
       if (oldActions.length !== newActions.length) return true;
-
+      
+      // Check for new actions
       for (const action of newActions) {
+        if (!oldActions.includes(action)) return true;
+        
         const oldLog = oldRecord.logs[action];
         const newLog = newRecord.logs[action];
-
-        if (!oldLog || !newLog) return true;
-
-        // Compare relevant fields
-        if (
-          oldLog.timestamp !== newLog.timestamp ||
-          oldLog.completed !== newLog.completed ||
-          oldLog.skipped !== newLog.skipped ||
-          oldLog.error?.message !== newLog.error?.message ||
-          oldLog.error?.stack !== newLog.error?.stack ||
-          JSON.stringify(oldLog.details) !== JSON.stringify(newLog.details)
-        ) {
+        
+        // If log entry is new or changed
+        if (!oldLog || 
+            oldLog.timestamp !== newLog.timestamp ||
+            oldLog.completed !== newLog.completed ||
+            oldLog.skipped !== newLog.skipped ||
+            JSON.stringify(oldLog.error) !== JSON.stringify(newLog.error) ||
+            JSON.stringify(oldLog.details) !== JSON.stringify(newLog.details)) {
           return true;
         }
       }
     }
-
+    
     return false;
   };
 

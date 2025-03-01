@@ -476,9 +476,19 @@ async function recommendNameStep(
     return context;
   }
   
+  // Add action with details before renaming
+  context.recordManager.addAction(context.hash, Action.APPLYING_NAME, false, false, {
+    oldName: context.containerFile.basename,
+    newName: context.newName
+  });
+  
   context.recordManager.setNewName(context.hash, context.newName);
   // @ts-ignore - FileOrganizer has app property at runtime
   await safeRename(context.plugin.app, context.containerFile, context.newName);
+  
+  // Mark action as completed
+  context.recordManager.completeAction(context.hash, Action.APPLYING_NAME);
+  
   return context;
 }
 
@@ -512,10 +522,19 @@ async function recommendFolderStep(
     "Folder recommendation must return a valid path"
   );
 
+  // Add action with details before moving
+  context.recordManager.addAction(context.hash, Action.MOVING, false, false, {
+    oldPath: context.containerFile.parent?.path || "",
+    destination: newPath[0]?.folder || ""
+  });
+
   context.newPath = newPath[0]?.folder;
   // @ts-ignore - FileOrganizer has app property at runtime
   await safeMove(context.plugin.app, context.containerFile, context.newPath);
   context.recordManager.setFolder(context.hash, context.newPath);
+  
+  // Mark action as completed
+  context.recordManager.completeAction(context.hash, Action.MOVING);
 
   return context;
 }
@@ -537,17 +556,31 @@ async function recommendClassificationStep(
     return context;
   }
 
+  // Add action with details before classification
+  context.recordManager.addAction(context.hash, Action.CLASSIFY, false, false, {
+    fileName: context.containerFile.name,
+    contentLength: context.content.length
+  });
+  
   const result = await context.plugin.classifyContentV2(
     `${getOriginalContent(context.content)}, ${context.containerFile.name}`,
     templateNames
   );
   logger.info("Classification result", result);
-  if (!result) return context;
+  
+  if (!result) {
+    context.recordManager.skipAction(context.hash, Action.CLASSIFY);
+    return context;
+  }
+  
   context.classification = {
     documentType: result,
     confidence: 100,
     reasoning: "N/A",
   };
+  
+  // Mark action as completed
+  context.recordManager.completeAction(context.hash, Action.CLASSIFY);
   return context;
 }
 
@@ -564,12 +597,23 @@ async function getContentStep(
   context: ProcessingContext
 ): Promise<ProcessingContext> {
   const fileToRead = context.inboxFile;
+  
+  // Add action with details before extraction
+  context.recordManager.addAction(context.hash, Action.EXTRACT, false, false, {
+    fileType: fileToRead.extension.toUpperCase(),
+    fileName: fileToRead.basename
+  });
+  
   const content = await context.plugin.getTextFromFile(fileToRead);
   context.content = content;
   if (context.containerFile) {
     // @ts-ignore - FileOrganizer has app property at runtime
     await context.plugin.app.vault.modify(context.containerFile, content);
   }
+  
+  // Mark action as completed
+  context.recordManager.completeAction(context.hash, Action.EXTRACT);
+  
   return context;
 }
 
@@ -761,18 +805,37 @@ async function recommendTagsStep(
     return context;
   }
 
+  // Add action with details before tagging
+  context.recordManager.addAction(context.hash, Action.TAGGING, false, false, {
+    fileName: context.containerFile.path,
+    existingTagCount: existingTags.length
+  });
+  
   const tags = await context.plugin.recommendTags(
     context.content,
     context.containerFile.path,
     existingTags
   );
   context.tags = tags?.map(t => t.tag);
+  
   // for each tag, append it to the file
   if (context.tags && context.containerFile) {
+    // Add action for applying tags
+    context.recordManager.addAction(context.hash, Action.APPLYING_TAGS, false, false, {
+      tags: context.tags
+    });
+    
     for (const tag of context.tags) {
       await context.plugin.appendTag(context.containerFile, tag);
     }
+    
+    // Mark action as completed
+    context.recordManager.completeAction(context.hash, Action.APPLYING_TAGS);
   }
+  
+  // Mark tagging action as completed
+  context.recordManager.completeAction(context.hash, Action.TAGGING);
+  
   context.recordManager.setTags(context.hash, context.tags);
   return context;
 }
