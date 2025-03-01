@@ -68,6 +68,7 @@ export interface LogEntry {
     stack?: string;
     action: Action;
   };
+  details?: Record<string, any>; // For storing dynamic data like filenames, paths, etc.
 }
 
 export interface FileRecord {
@@ -223,7 +224,8 @@ export class RecordManager {
     hash: string,
     step: Action,
     completed = false,
-    skipped = false
+    skipped = false,
+    details?: Record<string, any>
   ): void {
     const record = this.records.get(hash);
     if (record) {
@@ -232,6 +234,9 @@ export class RecordManager {
         const baseAction = this.getBaseAction(step);
         if (baseAction && record.logs[baseAction]) {
           record.logs[baseAction].completed = true;
+          if (details) {
+            record.logs[baseAction].details = details;
+          }
           this.debounceSave();
           return;
         }
@@ -242,6 +247,7 @@ export class RecordManager {
         timestamp: moment().format("YYYY-MM-DD HH:mm:ss"),
         completed,
         skipped,
+        details,
       };
       this.debounceSave();
     }

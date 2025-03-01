@@ -44,44 +44,183 @@ const ErrorTooltip: React.FC<{ error: LogEntry["error"] }> = ({
   );
 };
 
+// Function to get detailed display text based on action and details
+const getDisplayText = (step: Action, details?: Record<string, any>): string => {
+  switch (step) {
+    // File type detection
+    case Action.VALIDATE:
+      return "Validating file type";
+    case Action.VALIDATE_DONE:
+      return details?.fileType
+        ? `Recognized file type as "${details.fileType}"`
+        : "File type validated";
+    
+    // Reading / Extraction
+    case Action.EXTRACT:
+      return details?.fileType
+        ? `Extracting text from ${details.fileType}`
+        : "Extracting text";
+    case Action.EXTRACT_DONE:
+      return details?.charCount
+        ? `Extracted ${details.charCount} characters of text`
+        : "Text extracted";
+    
+    // Classification
+    case Action.CLASSIFY:
+      return "Classifying document";
+    case Action.CLASSIFY_DONE:
+      return details?.classification
+        ? `Classified as "${details.classification}"`
+        : "Document classified";
+    
+    // Tagging
+    case Action.TAGGING:
+      return "Analyzing content for tags";
+    case Action.TAGGING_DONE:
+      return details?.tags
+        ? `Recommended tags: ${details.tags.join(", ")}`
+        : "Tags generated";
+    case Action.APPLYING_TAGS:
+      return "Applying tags to document";
+    case Action.APPLYING_TAGS_DONE:
+      return details?.tags
+        ? `Applied tags: ${details.tags.join(", ")}`
+        : "Tags applied";
+    
+    // Naming
+    case Action.RECOMMEND_NAME:
+      return "Generating file name";
+    case Action.RECOMMEND_NAME_DONE:
+      return details?.newName
+        ? `Generated file name: "${details.newName}"`
+        : "File name generated";
+    case Action.APPLYING_NAME:
+      return "Renaming file";
+    case Action.APPLYING_NAME_DONE:
+      if (details?.oldName && details?.newName) {
+        return `Renamed from "${details.oldName}" to "${details.newName}"`;
+      }
+      return "File renamed";
+    
+    // Formatting
+    case Action.FORMATTING:
+      return details?.format
+        ? `Formatting as "${details.format}" style`
+        : "Formatting content";
+    case Action.FORMATTING_DONE:
+      return details?.format
+        ? `Formatted as "${details.format}" style`
+        : "Content formatted";
+    
+    // Moving attachments
+    case Action.MOVING_ATTACHMENT:
+      return "Processing attachments";
+    case Action.MOVING_ATTACHEMENT_DONE:
+      return details?.attachments
+        ? `Moved ${details.attachments.length} attachment(s) to ${details.destination || "attachments folder"}`
+        : "Attachments processed";
+    
+    // Moving file
+    case Action.MOVING:
+      return "Finding optimal location";
+    case Action.MOVING_DONE:
+      return details?.destination
+        ? `Moved to ${details.destination}`
+        : "File moved to final location";
+    
+    // Cleanup
+    case Action.CLEANUP:
+      return "Cleaning up file";
+    case Action.CLEANUP_DONE:
+      return "File cleaned up";
+    
+    // Container
+    case Action.CONTAINER:
+      return "Creating document container";
+    case Action.CONTAINER_DONE:
+      return "Document container created";
+    
+    // Append
+    case Action.APPEND:
+      return "Appending content";
+    case Action.APPEND_DONE:
+      return "Content appended";
+    
+    // YouTube
+    case Action.FETCH_YOUTUBE:
+      return details?.videoId
+        ? `Fetching transcript for YouTube video: ${details.videoId}`
+        : "Fetching YouTube transcript";
+    
+    // Completion
+    case Action.COMPLETED:
+      return `File fully processed at ${moment().format("HH:mm:ss")}`;
+    
+    // Error states
+    case Action.ERROR_VALIDATE:
+      return "Error validating file type";
+    case Action.ERROR_EXTRACT:
+      return "Error extracting content";
+    case Action.ERROR_CLASSIFY:
+      return "Error classifying document";
+    case Action.ERROR_TAGGING:
+      return "Error generating tags";
+    case Action.ERROR_FORMATTING:
+      return "Error formatting content";
+    case Action.ERROR_MOVING_ATTACHMENT:
+      return "Error moving attachments";
+    case Action.ERROR_MOVING:
+      return "Error moving file";
+    case Action.ERROR_RENAME:
+      return "Error renaming file";
+    case Action.ERROR_CLEANUP:
+      return "Error cleaning up file";
+    case Action.ERROR_CONTAINER:
+      return "Error creating container";
+    case Action.ERROR_APPEND:
+      return "Error appending content";
+    case Action.ERROR_FETCH_YOUTUBE:
+      return "Error fetching YouTube transcript";
+    case Action.ERROR_COMPLETE:
+      return "Processing failed";
+    
+    default:
+      return step.toString();
+  }
+};
+
 // Enhanced log entry display component
-const LogEntryDisplay: React.FC<{ entry: LogEntry; step: Action }> = ({
+const LogEntryDisplay: React.FC<{ entry: LogEntry; step: Action; plugin: any }> = ({
   entry,
   step,
+  plugin,
 }) => {
-  const getDisplayText = (step: Action) => {
-    switch (step) {
-      case Action.CLEANUP:
-        return "Cleaning up file";
-      case Action.RENAME:
-        return "Renaming file";
-      case Action.EXTRACT:
-        return "Extracting text";
-      case Action.MOVING_ATTACHMENT:
-        return "Moving attachments";
-      case Action.CLASSIFY:
-        return "Classifying";
-      case Action.TAGGING:
-        return "Recommending tags";
-      case Action.APPLYING_TAGS:
-        return "Applying tags";
-      case Action.RECOMMEND_NAME:
-        return "Recommending name";
-      case Action.APPLYING_NAME:
-        return "Applying name";
-      case Action.FORMATTING:
-        return "Formatting";
-      case Action.MOVING:
-        return "Moving file";
-      case Action.COMPLETED:
-        return "Completed";
-      default:
-        return step;
-    }
-  };
-
+  const details = entry.details || {};
   const isErrorStep = step.toString().startsWith("ERROR_");
   const hasError = entry.error || isErrorStep;
+  
+  // Function to handle clicking on a path or file
+  const handlePathClick = () => {
+    if (details.destination) {
+      // For folder paths
+      plugin.app.workspace.openLinkText(
+        "", // Empty string for the basename when opening a folder
+        details.destination
+      );
+    } else if (details.newName && details.newPath) {
+      // For files with both name and path
+      plugin.app.workspace.openLinkText(
+        details.newName,
+        details.newPath
+      );
+    } else if (details.attachments && details.attachmentPath) {
+      // For attachments
+      plugin.app.workspace.openLinkText(
+        "", // Empty string to just open the folder
+        details.attachmentPath
+      );
+    }
+  };
 
   return (
     <div className="flex items-center gap-2 py-1.5">
@@ -103,19 +242,31 @@ const LogEntryDisplay: React.FC<{ entry: LogEntry; step: Action }> = ({
         {moment(entry.timestamp).format("HH:mm:ss")}
       </span>
 
-      {/* Step name */}
-      <span
-        className={`text-sm ${
-          hasError 
-            ? "text-[--text-error]" 
-            : entry.skipped
-            ? "text-[--text-muted] line-through"
-            : "text-[--text-muted]"
-        }`}
-      >
-        {getDisplayText(step)}
-        {entry.skipped && " (skipped)"}
-      </span>
+      {/* Step name and details */}
+      <div className="flex flex-col">
+        <span
+          className={`text-sm ${
+            hasError 
+              ? "text-[--text-error]" 
+              : entry.skipped
+              ? "text-[--text-muted] line-through"
+              : "text-[--text-normal]"
+          }`}
+        >
+          {getDisplayText(step, details)}
+          {entry.skipped && " (skipped)"}
+        </span>
+        
+        {/* Clickable paths if available */}
+        {(details.destination || details.newPath || details.attachmentPath) && (
+          <span
+            onClick={handlePathClick}
+            className="text-[--text-accent] cursor-pointer text-sm hover:underline"
+          >
+            {details.destination || details.newPath || details.attachmentPath}
+          </span>
+        )}
+      </div>
 
       {/* Error display */}
       {entry.error && (
@@ -285,7 +436,7 @@ function FileCard({ record }: { record: FileRecord }) {
               className="mt-4 space-y-1 border-t border-[--background-modifier-border] pt-4"
             >
               {sortedLogs.map(([action, log]) => (
-                <LogEntryDisplay key={action} entry={log} step={action} />
+                <LogEntryDisplay key={action} entry={log} step={action} plugin={plugin} />
               ))}
             </motion.div>
           )}
@@ -612,19 +763,50 @@ export const InboxLogs: React.FC = () => {
   );
 
   // Add a function to check if records have changed
-  const haveRecordsChanged = (oldRecords: FileRecord[], newRecords: FileRecord[]) => {
+  const haveRecordsChanged = (oldRecords: FileRecord[], newRecords: FileRecord[]): boolean => {
     if (oldRecords.length !== newRecords.length) return true;
-    
-    return newRecords.some((newRecord, index) => {
-      const oldRecord = oldRecords[index];
-      return (
-        newRecord.status !== oldRecord.status ||
-        newRecord.tags.length !== oldRecord.tags.length ||
-        Object.keys(newRecord.logs).length !== Object.keys(oldRecord.logs).length ||
-        newRecord.newName !== oldRecord.newName ||
-        newRecord.newPath !== oldRecord.newPath
-      );
-    });
+
+    for (let i = 0; i < newRecords.length; i++) {
+      const oldRecord = oldRecords[i];
+      const newRecord = newRecords[i];
+
+      // Check basic changes (status, name, tags, etc.)
+      if (
+        oldRecord.status !== newRecord.status ||
+        oldRecord.newName !== newRecord.newName ||
+        oldRecord.newPath !== newRecord.newPath ||
+        oldRecord.tags.length !== newRecord.tags.length
+      ) {
+        return true;
+      }
+
+      // Compare logs thoroughly
+      const oldActions = Object.keys(oldRecord.logs);
+      const newActions = Object.keys(newRecord.logs);
+
+      if (oldActions.length !== newActions.length) return true;
+
+      for (const action of newActions) {
+        const oldLog = oldRecord.logs[action];
+        const newLog = newRecord.logs[action];
+
+        if (!oldLog || !newLog) return true;
+
+        // Compare relevant fields
+        if (
+          oldLog.timestamp !== newLog.timestamp ||
+          oldLog.completed !== newLog.completed ||
+          oldLog.skipped !== newLog.skipped ||
+          oldLog.error?.message !== newLog.error?.message ||
+          oldLog.error?.stack !== newLog.error?.stack ||
+          JSON.stringify(oldLog.details) !== JSON.stringify(newLog.details)
+        ) {
+          return true;
+        }
+      }
+    }
+
+    return false;
   };
 
   // Update filtered records when filters change

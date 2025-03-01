@@ -575,11 +575,17 @@ async function fetchYouTubeTranscriptStep(
       return context;
     }
 
+    // Check if content contains a YouTube link before adding the action to logs
     const videoId = await extractYouTubeVideoId(context.content);
     if (!videoId) {
+      // Skip this step entirely for non-YouTube content
+      context.recordManager.skipAction(context.hash, Action.FETCH_YOUTUBE);
       return context;
     }
-
+    
+    // Only add the action to logs if we have a valid YouTube video ID
+    context.recordManager.addAction(context.hash, Action.FETCH_YOUTUBE);
+    
     const youtubeContent = await getYouTubeContent(videoId);
     const { title, transcript } = youtubeContent;
     const appendContent = `\n\n## YouTube Video: ${title}\n\n### Transcript\n\n${transcript}`;
@@ -591,6 +597,9 @@ async function fetchYouTubeTranscriptStep(
     
     // Update the context content to include the transcript
     context.content += appendContent;
+    
+    // Mark the action as completed
+    context.recordManager.completeAction(context.hash, Action.FETCH_YOUTUBE);
     
     return context;
   } catch (error) {
@@ -776,7 +785,16 @@ async function appendAttachmentStep(
 async function completeProcessing(
   context: ProcessingContext
 ): Promise<ProcessingContext> {
+  // Add completion timestamp and details to the log
+  context.recordManager.addAction(context.hash, Action.COMPLETED, true, false, {
+    timestamp: moment().format("YYYY-MM-DD HH:mm:ss"),
+    fileName: context.containerFile?.basename || context.inboxFile.basename,
+    filePath: context.containerFile?.parent?.path || context.inboxFile.parent.path
+  });
+  
+  // Set the status to completed
   context.recordManager.setStatus(context.hash, "completed");
+  
   return context;
 }
 
