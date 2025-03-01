@@ -353,12 +353,17 @@ export class Inbox {
         Action.CLEANUP,
         Action.ERROR_CLEANUP
       );
-      await executeStep(
-        context,
-        fetchYouTubeTranscriptStep,
-        Action.FETCH_YOUTUBE,
-        Action.ERROR_FETCH_YOUTUBE
-      );
+      
+      // Only process YouTube if content contains a YouTube URL
+      if (await shouldProcessYouTube(context)) {
+        await executeStep(
+          context,
+          fetchYouTubeTranscriptStep,
+          Action.FETCH_YOUTUBE,
+          Action.ERROR_FETCH_YOUTUBE
+        );
+      }
+      
       await executeStep(
         context,
         recommendClassificationStep,
@@ -577,6 +582,7 @@ async function fetchYouTubeTranscriptStep(
 
     const videoId = await extractYouTubeVideoId(context.content);
     if (!videoId) {
+      // This should never happen now, but just in case
       return context;
     }
 
@@ -892,4 +898,12 @@ async function executeStep(
     });
     throw error;
   }
+}
+
+// Add this function to check if content contains a YouTube URL
+async function shouldProcessYouTube(context: ProcessingContext): Promise<boolean> {
+  if (!context.content) return false;
+  
+  const videoId = await extractYouTubeVideoId(context.content);
+  return !!videoId;
 }
