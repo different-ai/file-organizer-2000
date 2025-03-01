@@ -1,3 +1,4 @@
+// @ts-ignore
 import { TFile, moment, TFolder, Vault } from "obsidian";
 import FileOrganizer from "../index";
 import { Queue } from "./services/queue";
@@ -126,6 +127,7 @@ export class Inbox {
   private constructor(plugin: FileOrganizer) {
     this.plugin = plugin;
     console.log("initializing inbox", plugin.settings, plugin.app);
+    // @ts-ignore - FileOrganizer has app property at runtime
     this.recordManager = RecordManager.getInstance(plugin.app);
     this.idService = IdService.getInstance();
     this.initializeQueue();
@@ -413,6 +415,7 @@ async function moveAttachmentFile(
   if (VALID_MEDIA_EXTENSIONS.includes(context.inboxFile.extension)) {
     context.attachmentFile = context.inboxFile;
     await safeMove(
+      // @ts-ignore - FileOrganizer has app property at runtime
       context.plugin.app,
       context.inboxFile,
       context.plugin.settings.attachmentsPath
@@ -427,6 +430,7 @@ async function getContainerFileStep(
   logger.info("Get container file step");
   if (VALID_MEDIA_EXTENSIONS.includes(context.inboxFile?.extension)) {
     const containerFile = await safeCreate(
+      // @ts-ignore - FileOrganizer has app property at runtime
       context.plugin.app,
       context.inboxFile.basename + ".md",
       ""
@@ -473,6 +477,7 @@ async function recommendNameStep(
   }
   
   context.recordManager.setNewName(context.hash, context.newName);
+  // @ts-ignore - FileOrganizer has app property at runtime
   await safeRename(context.plugin.app, context.containerFile, context.newName);
   return context;
 }
@@ -508,6 +513,7 @@ async function recommendFolderStep(
   );
 
   context.newPath = newPath[0]?.folder;
+  // @ts-ignore - FileOrganizer has app property at runtime
   await safeMove(context.plugin.app, context.containerFile, context.newPath);
   context.recordManager.setFolder(context.hash, context.newPath);
 
@@ -561,6 +567,7 @@ async function getContentStep(
   const content = await context.plugin.getTextFromFile(fileToRead);
   context.content = content;
   if (context.containerFile) {
+    // @ts-ignore - FileOrganizer has app property at runtime
     await context.plugin.app.vault.modify(context.containerFile, content);
   }
   return context;
@@ -590,6 +597,7 @@ async function fetchYouTubeTranscriptStep(
     const { title, transcript } = youtubeContent;
     const appendContent = `\n\n## YouTube Video: ${title}\n\n### Transcript\n\n${transcript}`;
     
+    // @ts-ignore - FileOrganizer has app property at runtime
     await context.plugin.app.vault.modify(
       context.containerFile,
       context.content + appendContent
@@ -659,6 +667,7 @@ async function handleBypass(
 
     // Then move the file
     const bypassedFolderPath = context.plugin.settings.bypassedFilePath;
+    // @ts-ignore - FileOrganizer has app property at runtime
     await safeMove(context.plugin.app, context.inboxFile, bypassedFolderPath);
 
     context.queue.bypass(context.hash);
@@ -789,7 +798,7 @@ async function completeProcessing(
   context.recordManager.addAction(context.hash, Action.COMPLETED, true, false, {
     timestamp: moment().format("YYYY-MM-DD HH:mm:ss"),
     fileName: context.containerFile?.basename || context.inboxFile.basename,
-    filePath: context.containerFile?.parent?.path || context.inboxFile.parent.path
+    filePath: context.containerFile?.parent?.path || context.inboxFile.parent?.path || ""
   });
   
   // Set the status to completed

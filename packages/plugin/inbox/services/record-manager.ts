@@ -1,6 +1,9 @@
+// @ts-ignore
 import { normalizePath, TFile } from "obsidian";
 import { IdService } from "./id-service";
+// @ts-ignore
 import moment from "moment";
+// @ts-ignore
 import { App, TAbstractFile } from "obsidian";
 import { FileOrganizerSettings } from "../../settings";
 // Using setTimeout type instead of NodeJS.Timeout

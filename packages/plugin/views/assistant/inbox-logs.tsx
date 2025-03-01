@@ -374,8 +374,8 @@ function FileCard({ record }: { record: FileRecord }) {
                 className="cursor-pointer"
                 onClick={() =>
                   plugin.app.workspace.openLinkText(
-                    record.file?.basename,
-                    record.file?.parent.path
+                    record.file?.basename || "",
+                    record.file?.parent?.path || ""
                   )
                 }
               >
@@ -519,14 +519,14 @@ const InboxAnalytics: React.FC<{
         {/* Main flow row */}
         <div className="grid grid-cols-3 gap-2">
           {mainFlow.map(({ status, icon }) => (
-            <StatusBox key={status} status={status} icon={icon} />
+            <StatusBox key={status.toString()} status={status} icon={icon} />
           ))}
         </div>
 
         {/* Exceptions row */}
         <div className="grid grid-cols-2 gap-2">
           {exceptions.map(({ status, icon }) => (
-            <StatusBox key={status} status={status} icon={icon} />
+            <StatusBox key={status.toString()} status={status} icon={icon} />
           ))}
         </div>
       </div>
@@ -877,7 +877,7 @@ export const InboxLogs: React.FC = () => {
       )}
 
       {filteredRecords.map(record => (
-        <FileCard key={record.id} record={record} />
+        <FileCard key={record.id.toString()} record={record} />
       ))}
       {filteredRecords.length === 0 && (
         <div className="text-center py-8 text-[--text-muted]">
