@@ -820,14 +820,14 @@ export const InboxLogs: React.FC = () => {
       const newFiles = plugin.inbox.getAllFiles();
       const newAnalytics = plugin.inbox.getAnalytics();
       
-      // Only update if something has changed
+      // Use deep comparison for records
       if (haveRecordsChanged(records, newFiles)) {
-        setRecords(newFiles);
+        setRecords([...newFiles]); // Create a new array to ensure React detects the change
       }
       
-      // Update analytics only if they've changed
+      // Use deep comparison for analytics
       if (JSON.stringify(analytics) !== JSON.stringify(newAnalytics)) {
-        setAnalytics(newAnalytics);
+        setAnalytics({...newAnalytics}); // Create a new object to ensure React detects the change
       }
     };
 

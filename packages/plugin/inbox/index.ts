@@ -591,7 +591,10 @@ async function fetchYouTubeTranscriptStep(
     }
     
     // Only add the action to logs if we have a valid YouTube video ID
-    context.recordManager.addAction(context.hash, Action.FETCH_YOUTUBE);
+    context.recordManager.addAction(context.hash, Action.FETCH_YOUTUBE, false, false, {
+      videoId: videoId,
+      title: "YouTube Video"
+    });
     
     const youtubeContent = await getYouTubeContent(videoId);
     const { title, transcript } = youtubeContent;
