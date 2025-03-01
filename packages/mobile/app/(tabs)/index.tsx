@@ -5,7 +5,6 @@ import {
   StyleSheet,
   ScrollView,
   TouchableOpacity,
-  ActivityIndicator,
   Platform,
 } from "react-native";
 import { useAuth } from "@clerk/clerk-expo";
@@ -14,25 +13,18 @@ import * as DocumentPicker from "expo-document-picker";
 import * as ImagePicker from "expo-image-picker";
 import * as FileSystem from "expo-file-system";
 import { useShareIntent } from "expo-share-intent";
-import { API_URL, API_CONFIG } from "@/constants/config";
-import { useLocalSearchParams } from 'expo-router';
-
-type UploadStatus = "idle" | "uploading" | "processing" | "completed" | "error";
-
-interface UploadResult {
-  status: UploadStatus;
-  text?: string;
-  error?: string;
-}
-
-interface UploadResponse {
-  success: boolean;
-  fileId: number;
-  status: string;
-}
+import { useLocalSearchParams, useRouter } from 'expo-router';
+import { ProcessingStatus } from "@/components/processing-status";
+import { 
+  SharedFile, 
+  UploadStatus, 
+  UploadResult, 
+  handleFileProcess 
+} from "@/utils/file-handler";
 
 export default function HomeScreen() {
   const { getToken } = useAuth();
+  const router = useRouter();
   const [uploadResult, setUploadResult] = useState<UploadResult | null>(null);
   const [status, setStatus] = useState<UploadStatus>("idle");
   const params = useLocalSearchParams<{ sharedFile?: string }>();
@@ -56,18 +48,19 @@ export default function HomeScreen() {
             const textFile = {
               uri: `${FileSystem.cacheDirectory}shared-text-${Date.now()}.md`,
               mimeType: 'text/markdown',
-              name: 'shared-text.md'
+              name: 'shared-text.md',
+              text: shareIntent.text
             };
             
-            await FileSystem.writeAsStringAsync(textFile.uri, shareIntent.text);
             await uploadFile(textFile);
           }
         } catch (error) {
           console.error('Error handling shared content:', error);
           setUploadResult({
             status: 'error',
-            error: 'Failed to process shared content'
+            error: error instanceof Error ? error.message : 'Failed to process shared content'
           });
+          setStatus('error');
         }
       }
     };
@@ -86,8 +79,9 @@ export default function HomeScreen() {
           console.error('Error handling shared file:', error);
           setUploadResult({
             status: 'error',
-            error: 'Failed to process shared file'
+            error: error instanceof Error ? error.message : 'Failed to process shared file'
           });
+          setStatus('error');
         }
       }
     };
@@ -95,13 +89,10 @@ export default function HomeScreen() {
     handleSharedFile();
   }, [params.sharedFile]);
 
-  const uploadFile = async (file: {
-    uri: string;
-    mimeType?: string;
-    name?: string;
-  }) => {
+  const uploadFile = async (file: SharedFile) => {
     try {
-      setStatus("uploading");
+      // Reset state
+      setStatus("idle");
       setUploadResult(null);
 
       const token = await getToken();
@@ -109,134 +100,14 @@ export default function HomeScreen() {
         throw new Error("Authentication required");
       }
 
-      const uriParts = file.uri.split(".");
-      const fileExtension = uriParts[uriParts.length - 1].toLowerCase();
-      const fileName = file.name || `upload.${fileExtension}`;
-      
-      let mimeType = file.mimeType;
-      if (!mimeType) {
-        switch (fileExtension) {
-          case 'pdf':
-            mimeType = 'application/pdf';
-            break;
-          case 'jpg':
-          case 'jpeg':
-            mimeType = 'image/jpeg';
-            break;
-          case 'png':
-            mimeType = 'image/png';
-            break;
-          case 'webp':
-            mimeType = 'image/webp';
-            break;
-          default:
-            mimeType = 'application/octet-stream';
-        }
-      }
+      // Process the file using our shared utility
+      const result = await handleFileProcess(
+        file,
+        token,
+        (newStatus) => setStatus(newStatus)
+      );
 
-      // Ensure PDF files are correctly identified regardless of case
-      if (mimeType.toLowerCase().includes('pdf')) {
-        mimeType = 'application/pdf';
-      }
-
-      const fileUri = Platform.select({
-        ios: file.uri.replace('file://', ''),
-        android: file.uri,
-        default: file.uri,
-      });
-
-      if (Platform.OS === 'ios') {
-        const fileInfo = await FileSystem.getInfoAsync(fileUri);
-        if (!fileInfo.exists) {
-          throw new Error('File does not exist');
-        }
-      }
-
-      const fileData = {
-        name: fileName,
-        type: mimeType,
-        base64: await FileSystem.readAsStringAsync(fileUri, {
-          encoding: FileSystem.EncodingType.Base64,
-        }),
-      };
-
-      const uploadResponse = await fetch(`${API_URL}/api/upload`, {
-        method: "POST",
-        headers: {
-          Accept: "application/json",
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify(fileData),
-      });
-
-      if (!uploadResponse.ok) {
-        const errorData = await uploadResponse
-          .json()
-          .catch(() => ({ error: "Upload failed" }));
-        throw new Error(errorData.error || "Upload failed");
-      }
-
-      const uploadData = (await uploadResponse.json()) as UploadResponse;
-      setStatus("processing");
-
-      // Process the file with retry logic
-      let retryCount = 0;
-      let processResponse;
-
-      while (retryCount < API_CONFIG.maxRetries) {
-        try {
-          processResponse = await fetch(`${API_URL}/api/process-file`, {
-            method: "POST",
-            headers: {
-              Authorization: `Bearer ${token}`,
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({ fileId: uploadData.fileId }),
-          });
-
-          if (processResponse.ok) {
-            break;
-          }
-
-          // Check if we should retry based on status code
-          if (processResponse.status >= 500 || processResponse.status === 429) {
-            // Server error or rate limit - retry
-            retryCount++;
-            if (retryCount < API_CONFIG.maxRetries) {
-              const delay = API_CONFIG.retryDelay * Math.pow(2, retryCount - 1); // Exponential backoff
-              console.log(`Retrying process request (${retryCount}/${API_CONFIG.maxRetries}) after ${delay}ms`);
-              await new Promise(resolve => setTimeout(resolve, delay));
-              continue;
-            }
-          }
-
-          // Not retryable status code or max retries reached
-          const errorData = await processResponse
-            .json()
-            .catch(() => ({ error: "Processing failed" }));
-          throw new Error(errorData.error || "Processing failed");
-        } catch (error) {
-          if (error.name === 'AbortError') {
-            console.log('Request timed out');
-          }
-          
-          retryCount++;
-          if (retryCount < API_CONFIG.maxRetries) {
-            const delay = API_CONFIG.retryDelay * Math.pow(2, retryCount - 1);
-            console.log(`Retrying after error (${retryCount}/${API_CONFIG.maxRetries}) after ${delay}ms:`, error.message);
-            await new Promise(resolve => setTimeout(resolve, delay));
-          } else {
-            throw error;
-          }
-        }
-      }
-
-      if (!processResponse || !processResponse.ok) {
-        throw new Error("Processing failed after maximum retry attempts");
-      }
-
-      const result = await pollForResults(uploadData.fileId, token);
+      // Update state with the result
       setUploadResult(result);
       setStatus(result.status);
     } catch (error) {
@@ -249,37 +120,6 @@ export default function HomeScreen() {
     }
   };
 
-  const pollForResults = async (
-    fileId: number,
-    token: string
-  ): Promise<UploadResult> => {
-    let attempts = 0;
-    const maxAttempts = 30;
-
-    while (attempts < maxAttempts) {
-      const response = await fetch(
-        `${API_URL}/api/file-status?fileId=${fileId}`,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
-      const data = await response.json();
-
-      if (data.error) return { status: "error", error: data.error };
-      if (data.status === "completed")
-        return { status: "completed", text: data.text };
-      if (data.status === "error")
-        return { status: "error", error: data.error };
-
-      await new Promise((resolve) => setTimeout(resolve, 2000));
-      attempts++;
-    }
-
-    return { status: "error", error: "Processing timeout" };
-  };
-
   const pickDocument = async () => {
     try {
       const result = await DocumentPicker.getDocumentAsync({
@@ -290,24 +130,29 @@ export default function HomeScreen() {
       await uploadFile(result.assets[0]);
     } catch (error) {
       console.error("Error picking document:", error);
-      setUploadResult({ status: "error", error: "Failed to pick document" });
+      setUploadResult({ 
+        status: "error", 
+        error: error instanceof Error ? error.message : "Failed to pick document" 
+      });
+      setStatus("error");
     }
   };
 
   const pickPhotos = async () => {
     try {
-      const { status } =
+      const { status: permissionStatus } =
         await ImagePicker.requestMediaLibraryPermissionsAsync();
-      if (status !== "granted") {
+      if (permissionStatus !== "granted") {
         setUploadResult({
           status: "error",
           error: "Gallery permission denied",
         });
+        setStatus("error");
         return;
       }
 
       const result = await ImagePicker.launchImageLibraryAsync({
-        mediaTypes: "images" as ImagePicker.MediaType,
+        mediaTypes: ImagePicker.MediaTypeOptions.Images,
         allowsMultipleSelection: true,
         quality: 0.8,
       });
@@ -321,7 +166,11 @@ export default function HomeScreen() {
       }
     } catch (error) {
       console.error("Error picking photos:", error);
-      setUploadResult({ status: "error", error: "Failed to pick photos" });
+      setUploadResult({ 
+        status: "error", 
+        error: error instanceof Error ? error.message : "Failed to pick photos" 
+      });
+      setStatus("error");
     }
   };
 
@@ -330,12 +179,16 @@ export default function HomeScreen() {
       const { status: cameraStatus } =
         await ImagePicker.requestCameraPermissionsAsync();
       if (cameraStatus !== "granted") {
-        setUploadResult({ status: "error", error: "Camera permission denied" });
+        setUploadResult({ 
+          status: "error", 
+          error: "Camera permission denied" 
+        });
+        setStatus("error");
         return;
       }
 
       const result = await ImagePicker.launchCameraAsync({
-        mediaTypes: "images" as ImagePicker.MediaType,
+        mediaTypes: ImagePicker.MediaTypeOptions.Images,
         quality: 0.8,
       });
 
@@ -343,146 +196,114 @@ export default function HomeScreen() {
       await uploadFile(result.assets[0]);
     } catch (error) {
       console.error("Error taking photo:", error);
-      setUploadResult({ status: "error", error: "Failed to take photo" });
+      setUploadResult({ 
+        status: "error", 
+        error: error instanceof Error ? error.message : "Failed to take photo" 
+      });
+      setStatus("error");
     }
   };
 
+  const handleRetry = () => {
+    setStatus("idle");
+    setUploadResult(null);
+  };
+
+  const renderHeader = () => (
+    <View style={styles.header}>
+      <MaterialIcons name="folder" size={48} color="#007AFF" />
+      <Text style={styles.title}>Note Companion</Text>
+      <Text style={styles.subtitle}>AI-powered document organization</Text>
+    </View>
+  );
+
+  const renderExplanation = () => (
+    <View style={styles.explanationCard}>
+      <MaterialIcons name="auto-awesome" size={24} color="#007AFF" />
+      <Text style={styles.explanationTitle}>
+        Get OCR from any image or pdf
+      </Text>
+      <Text style={styles.explanationText}>
+        Upload any image or pdf and get the text extracted. You can also use
+        the share sheet to upload from other apps.
+      </Text>
+    </View>
+  );
+
+  const renderUploadButtons = () => (
+    <View style={styles.uploadButtons}>
+      <TouchableOpacity
+        style={[
+          styles.uploadButton,
+          (status !== "idle" && status !== "completed" && status !== "error") && styles.uploadButtonDisabled,
+        ]}
+        onPress={pickDocument}
+        disabled={status !== "idle" && status !== "completed" && status !== "error"}
+      >
+        <View style={styles.uploadButtonContent}>
+          <MaterialIcons name="file-upload" size={32} color="#007AFF" />
+          <Text style={styles.uploadButtonText}>Upload File</Text>
+          <Text style={styles.uploadButtonSubtext}>PDF or Image</Text>
+        </View>
+      </TouchableOpacity>
+
+      <TouchableOpacity
+        style={[
+          styles.uploadButton,
+          (status !== "idle" && status !== "completed" && status !== "error") && styles.uploadButtonDisabled,
+        ]}
+        onPress={pickPhotos}
+        disabled={status !== "idle" && status !== "completed" && status !== "error"}
+      >
+        <View style={styles.uploadButtonContent}>
+          <MaterialIcons name="photo-library" size={32} color="#007AFF" />
+          <Text style={styles.uploadButtonText}>Photo Library</Text>
+          <Text style={styles.uploadButtonSubtext}>Choose Photos</Text>
+        </View>
+      </TouchableOpacity>
+
+      <TouchableOpacity
+        style={[
+          styles.uploadButton,
+          (status !== "idle" && status !== "completed" && status !== "error") && styles.uploadButtonDisabled,
+        ]}
+        onPress={takePhoto}
+        disabled={status !== "idle" && status !== "completed" && status !== "error"}
+      >
+        <View style={styles.uploadButtonContent}>
+          <MaterialIcons name="camera-alt" size={32} color="#007AFF" />
+          <Text style={styles.uploadButtonText}>Take Photo</Text>
+          <Text style={styles.uploadButtonSubtext}>Document or Note</Text>
+        </View>
+      </TouchableOpacity>
+    </View>
+  );
+
+  const renderHelpLink = () => (
+    <TouchableOpacity
+      style={styles.helpLink}
+      onPress={() => router.push('/help')}
+    >
+      <MaterialIcons name="help-outline" size={18} color="#007AFF" />
+      <Text style={styles.helpLinkText}>Need help with sharing?</Text>
+    </TouchableOpacity>
+  );
+
   return (
     <ScrollView style={styles.container}>
-      <View style={styles.header}>
-        <MaterialIcons name="folder" size={48} color="#007AFF" />
-        <Text style={styles.title}>Note Companion</Text>
-        <Text style={styles.subtitle}>AI-powered document organization </Text>
-      </View>
-
       <View style={styles.mainSection}>
-        <View style={styles.explanationCard}>
-          <MaterialIcons name="auto-awesome" size={24} color="#007AFF" />
-          <Text style={styles.explanationTitle}>
-            Get OCR from any image or pdf
-          </Text>
-          <Text style={styles.explanationText}>
-            Upload any image or pdf and get the text extracted. You can also use
-            the share sheet to upload from other apps.
-          </Text>
-        </View>
+        {renderHeader()}
+        {renderExplanation()}
+        {renderUploadButtons()}
+        
+        <ProcessingStatus
+          status={status}
+          result={uploadResult?.text || uploadResult?.error}
+          onRetry={handleRetry}
+          showDetails={true}
+        />
 
-        <View style={styles.uploadButtons}>
-          <TouchableOpacity
-            style={[
-              styles.uploadButton,
-              status !== "idle" && styles.uploadButtonDisabled,
-            ]}
-            onPress={pickDocument}
-            disabled={status !== "idle"}
-          >
-            <View style={styles.uploadButtonContent}>
-              <MaterialIcons name="file-upload" size={32} color="#007AFF" />
-              <Text style={styles.uploadButtonText}>Upload File</Text>
-              <Text style={styles.uploadButtonSubtext}>PDF or Image</Text>
-            </View>
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            style={[
-              styles.uploadButton,
-              status !== "idle" && styles.uploadButtonDisabled,
-            ]}
-            onPress={pickPhotos}
-            disabled={status !== "idle"}
-          >
-            <View style={styles.uploadButtonContent}>
-              <MaterialIcons name="photo-library" size={32} color="#007AFF" />
-              <Text style={styles.uploadButtonText}>Photo Library</Text>
-              <Text style={styles.uploadButtonSubtext}>Choose Photos</Text>
-            </View>
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            style={[
-              styles.uploadButton,
-              status !== "idle" && styles.uploadButtonDisabled,
-            ]}
-            onPress={takePhoto}
-            disabled={status !== "idle"}
-          >
-            <View style={styles.uploadButtonContent}>
-              <MaterialIcons name="camera-alt" size={32} color="#007AFF" />
-              <Text style={styles.uploadButtonText}>Take Photo</Text>
-              <Text style={styles.uploadButtonSubtext}>Document or Note</Text>
-            </View>
-          </TouchableOpacity>
-        </View>
-
-        {(status === "uploading" || status === "processing") && (
-          <View style={styles.statusContainer}>
-            <ActivityIndicator size="large" color="#007AFF" />
-            <Text style={styles.statusText}>
-              {status === "uploading"
-                ? "Uploading your file..."
-                : "AI is processing your document..."}
-            </Text>
-            <Text style={styles.statusSubtext}>
-              {status === "uploading"
-                ? "This will just take a moment"
-                : "Extracting text and organizing content"}
-            </Text>
-          </View>
-        )}
-
-        {uploadResult && (
-          <View
-            style={[
-              styles.resultContainer,
-              uploadResult.status === "completed"
-                ? styles.successContainer
-                : styles.errorContainer,
-            ]}
-          >
-            <MaterialIcons
-              name={
-                uploadResult.status === "completed" ? "check-circle" : "error"
-              }
-              size={24}
-              color={
-                uploadResult.status === "completed" ? "#4CAF50" : "#f44336"
-              }
-            />
-            <View style={styles.resultTextContainer}>
-              <Text
-                style={[
-                  styles.resultText,
-                  uploadResult.status === "completed"
-                    ? styles.successText
-                    : styles.errorText,
-                ]}
-              >
-                {uploadResult.status === "completed"
-                  ? "File processed successfully"
-                  : uploadResult.error}
-              </Text>
-              {uploadResult.status === "completed" ? (
-                <Text style={styles.resultSubtext}>
-                  Your file has been upload to Note Companion AI.
-
-                  You can view it in your document list.
-
-                  It will be automatically synced to any services you have enabled.
-                </Text>
-              ) : (
-                <TouchableOpacity
-                  style={styles.retryButton}
-                  onPress={() => {
-                    setStatus("idle");
-                    setUploadResult(null);
-                  }}
-                >
-                  <Text style={styles.retryButtonText}>Retry</Text>
-                </TouchableOpacity>
-              )}
-            </View>
-          </View>
-        )}
+        {renderHelpLink()}
       </View>
     </ScrollView>
   );
@@ -578,72 +399,17 @@ const styles = StyleSheet.create({
     color: "#666",
     textAlign: "center",
   },
-  statusContainer: {
-    alignItems: "center",
-    backgroundColor: "#f8f9fa",
-    padding: 20,
-    borderRadius: 16,
-    marginTop: 20,
+  helpLink: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginTop: 24,
+    padding: 12,
   },
-  statusText: {
-    marginTop: 12,
-    fontSize: 16,
-    fontWeight: "600",
-    color: "#1a1a1a",
-  },
-  statusSubtext: {
-    marginTop: 4,
+  helpLinkText: {
     fontSize: 14,
-    color: "#666",
-    textAlign: "center",
-  },
-  resultContainer: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginTop: 20,
-    padding: 16,
-    borderRadius: 16,
-  },
-  successContainer: {
-    backgroundColor: "#E8F5E9",
-    borderWidth: 1,
-    borderColor: "#A5D6A7",
-  },
-  errorContainer: {
-    backgroundColor: "#FFEBEE",
-    borderWidth: 1,
-    borderColor: "#FFCDD2",
-  },
-  resultTextContainer: {
-    marginLeft: 12,
-    flex: 1,
-  },
-  resultText: {
-    fontSize: 16,
-    fontWeight: "600",
-  },
-  resultSubtext: {
-    fontSize: 14,
-    color: "#666",
-    marginTop: 4,
-  },
-  successText: {
-    color: "#2E7D32",
-  },
-  errorText: {
-    color: "#C62828",
-  },
-  retryButton: {
-    backgroundColor: "#007AFF",
-    paddingVertical: 8,
-    paddingHorizontal: 16,
-    borderRadius: 8,
-    marginTop: 12,
-    alignSelf: "flex-start",
-  },
-  retryButtonText: {
-    color: "#fff",
-    fontSize: 14,
-    fontWeight: "600",
+    color: '#007AFF',
+    marginLeft: 6,
+    fontWeight: '500',
   },
 });

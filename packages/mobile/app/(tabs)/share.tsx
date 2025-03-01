@@ -1,19 +1,10 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ActivityIndicator } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useAuth } from '@clerk/clerk-expo';
-import * as FileSystem from 'expo-file-system';
-import { API_URL } from '@/constants/config';
 import { MaterialIcons } from '@expo/vector-icons';
-
-type UploadStatus = 'idle' | 'uploading' | 'processing' | 'completed' | 'error';
-
-interface SharedFile {
-  uri: string;
-  mimeType?: string;
-  name?: string;
-  text?: string;
-}
+import { SharedFile, UploadStatus, handleFileProcess } from '@/utils/file-handler';
+import { ProcessingStatus } from '@/components/processing-status';
 
 export default function ShareScreen() {
   const params = useLocalSearchParams<{ sharedFile?: string }>();
@@ -21,95 +12,52 @@ export default function ShareScreen() {
   const router = useRouter();
   const [status, setStatus] = useState<UploadStatus>('idle');
   const [result, setResult] = useState<string | null>(null);
+  const [processingStarted, setProcessingStarted] = useState(false);
+  const [sharedFileData, setSharedFileData] = useState<SharedFile | null>(null);
 
-  console.log('[ShareScreen] Rendered with params:', params);
-  
-  const processSharedFile = async () => {
-    console.log('[ShareScreen] Checking for shared file in params');
-    if (!params.sharedFile) {
-      console.log('[ShareScreen] No shared file found in params');
-      return;
+  // Parse the shared file data from params
+  useEffect(() => {
+    if (params.sharedFile && !processingStarted) {
+      try {
+        const fileData: SharedFile = JSON.parse(params.sharedFile);
+        setSharedFileData(fileData);
+        console.log('[ShareScreen] Parsed shared file data:', fileData);
+      } catch (error) {
+        console.error('[ShareScreen] Error parsing shared file data:', error);
+        setStatus('error');
+        setResult('Invalid shared file data');
+      }
     }
-    
-    try {
-      console.log('[ShareScreen] Parsing shared file data');
-      const fileData: SharedFile = JSON.parse(params.sharedFile);
-      console.log('[ShareScreen] Parsed file data:', fileData);
-      
-      setStatus('uploading');
-      console.log('[ShareScreen] Status set to uploading');
+  }, [params.sharedFile, processingStarted]);
 
+  // Process the shared file when data is available
+  useEffect(() => {
+    if (sharedFileData && !processingStarted) {
+      processSharedFile(sharedFileData);
+      setProcessingStarted(true);
+    }
+  }, [sharedFileData, processingStarted]);
+
+  const processSharedFile = async (fileData: SharedFile) => {
+    try {
       const token = await getToken();
       if (!token) {
-        console.log('[ShareScreen] No auth token found');
         throw new Error('Authentication required');
       }
-      console.log('[ShareScreen] Got auth token');
 
-      const fileName = fileData.name || `shared-${Date.now()}.${fileData.mimeType?.split('/')[1] || 'file'}`;
-      const mimeType = fileData.mimeType || 'application/octet-stream';
-      console.log('[ShareScreen] Prepared file details:', { fileName, mimeType });
+      // Handle the entire file processing workflow
+      const uploadResult = await handleFileProcess(
+        fileData,
+        token,
+        (newStatus) => setStatus(newStatus)
+      );
 
-      const fileUri = fileData.text
-        ? `${FileSystem.cacheDirectory}${fileName}`
-        : fileData.uri.replace('file://', '');
-      console.log('[ShareScreen] File URI:', fileUri);
-
-      if (fileData.text) {
-        console.log('[ShareScreen] Writing text to file');
-        await FileSystem.writeAsStringAsync(fileUri, fileData.text);
+      // Update result based on the processing outcome
+      if (uploadResult.status === 'completed') {
+        setResult('File processed successfully');
+      } else if (uploadResult.status === 'error') {
+        setResult(uploadResult.error || 'Processing failed');
       }
-
-      console.log('[ShareScreen] Reading file content');
-      const fileContent = await FileSystem.readAsStringAsync(fileUri, {
-        encoding: FileSystem.EncodingType.Base64,
-      });
-      console.log('[ShareScreen] File content read successfully');
-
-      console.log('[ShareScreen] Uploading file');
-      const uploadResponse = await fetch(`${API_URL}/api/upload`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({
-          name: fileName,
-          type: mimeType,
-          base64: fileContent,
-        }),
-      });
-
-      if (!uploadResponse.ok) {
-        console.log('[ShareScreen] Upload failed:', uploadResponse.status);
-        throw new Error('Upload failed');
-      }
-      
-      const uploadResult = await uploadResponse.json();
-      console.log('[ShareScreen] Upload successful:', uploadResult);
-      const { fileId } = uploadResult;
-
-      setStatus('processing');
-      console.log('[ShareScreen] Status set to processing');
-
-      console.log('[ShareScreen] Processing file');
-      const processResponse = await fetch(`${API_URL}/api/process-file`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({ fileId }),
-      });
-
-      if (!processResponse.ok) {
-        console.log('[ShareScreen] Processing failed:', processResponse.status);
-        throw new Error('Processing failed');
-      }
-
-      console.log('[ShareScreen] Processing completed successfully');
-      setStatus('completed');
-      setResult('File processed successfully');
     } catch (error) {
       console.error('[ShareScreen] Error processing shared file:', error);
       setStatus('error');
@@ -117,128 +65,165 @@ export default function ShareScreen() {
     }
   };
 
-  useEffect(() => {
-    processSharedFile();
-  }, [params.sharedFile]);
+  const handleRetry = () => {
+    if (sharedFileData) {
+      setStatus('uploading');
+      setResult(null);
+      processSharedFile(sharedFileData);
+    }
+  };
 
   const handleBackToHome = () => {
-    console.log('[ShareScreen] Navigating back to home');
     router.replace('/(tabs)');
   };
 
-  return (
-    <View style={styles.container}>
+  const renderHeader = () => (
+    <View style={styles.header}>
+      <MaterialIcons name="share" size={36} color="#007AFF" />
       <Text style={styles.title}>Share Content</Text>
-      {status === 'idle' && !params.sharedFile && (
-        <Text style={styles.message}>No content shared yet</Text>
-      )}
-      {(status === 'uploading' || status === 'processing') && (
-        <View style={styles.statusContainer}>
-          <ActivityIndicator size="large" color="#007AFF" />
-          <Text style={styles.statusText}>
-            {status === 'uploading' ? 'Uploading...' : 'Processing...'}
-          </Text>
-        </View>
-      )}
-      {status === 'completed' && (
-        <View style={styles.resultContainer}>
-          <MaterialIcons name="check-circle" size={24} color="#4CAF50" />
-          <Text style={styles.resultText}>{result}</Text>
-          <TouchableOpacity
-            style={styles.button}
-            onPress={handleBackToHome}
-          >
-            <Text style={styles.buttonText}>Back to Home</Text>
-          </TouchableOpacity>
-        </View>
-      )}
-      {status === 'error' && (
-        <View style={styles.resultContainer}>
-          <MaterialIcons name="error" size={24} color="#f44336" />
-          <Text style={styles.errorText}>{result}</Text>
-          <View style={styles.buttonContainer}>
+      <Text style={styles.subtitle}>
+        Process and organize shared files automatically
+      </Text>
+    </View>
+  );
+
+  return (
+    <ScrollView contentContainerStyle={styles.scrollContainer}>
+      <View style={styles.container}>
+        {renderHeader()}
+
+        {status === 'idle' && !sharedFileData && (
+          <View style={styles.emptyState}>
+            <MaterialIcons name="info-outline" size={48} color="#8e8e93" />
+            <Text style={styles.emptyStateText}>No content shared yet</Text>
+            <Text style={styles.emptyStateSubtext}>
+              Use the share sheet from another app to send files to Note Companion
+            </Text>
+          </View>
+        )}
+
+        <ProcessingStatus
+          status={status}
+          result={result}
+          onRetry={handleRetry}
+          onBackToHome={handleBackToHome}
+          showDetails={true}
+        />
+
+        {(status === 'completed' || status === 'error') && (
+          <View style={styles.tipsContainer}>
+            <Text style={styles.tipsTitle}>Tips</Text>
+            <View style={styles.tipItem}>
+              <MaterialIcons name="lightbulb" size={18} color="#FFC107" />
+              <Text style={styles.tipText}>Share PDFs, images, or text from any app</Text>
+            </View>
+            <View style={styles.tipItem}>
+              <MaterialIcons name="lightbulb" size={18} color="#FFC107" />
+              <Text style={styles.tipText}>Use the iOS Shortcut for Apple Notes</Text>
+            </View>
             <TouchableOpacity
-              style={styles.button}
-              onPress={() => {
-                setStatus('uploading');
-                processSharedFile();
-              }}
+              style={styles.helpButton}
+              onPress={() => router.push('/help')}
             >
-              <Text style={styles.buttonText}>Retry</Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={[styles.button, styles.secondaryButton]}
-              onPress={handleBackToHome}
-            >
-              <Text style={styles.buttonText}>Back to Home</Text>
+              <Text style={styles.helpButtonText}>Learn More</Text>
+              <MaterialIcons name="arrow-forward" size={16} color="#007AFF" />
             </TouchableOpacity>
           </View>
-        </View>
-      )}
-    </View>
+        )}
+      </View>
+    </ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
+  scrollContainer: {
+    flexGrow: 1,
+    backgroundColor: '#fff',
+  },
   container: {
     flex: 1,
     padding: 20,
     backgroundColor: '#fff',
     alignItems: 'center',
-    justifyContent: 'center',
+  },
+  header: {
+    width: '100%',
+    alignItems: 'center',
+    marginBottom: 24,
+    paddingVertical: 16,
   },
   title: {
-    fontSize: 24,
+    fontSize: 28,
     fontWeight: 'bold',
-    marginBottom: 20,
-  },
-  message: {
-    fontSize: 16,
-    color: '#666',
-  },
-  statusContainer: {
-    alignItems: 'center',
-  },
-  statusText: {
-    marginTop: 10,
-    fontSize: 16,
+    marginTop: 12,
     color: '#1a1a1a',
   },
-  resultContainer: {
+  subtitle: {
+    fontSize: 16,
+    color: '#666',
+    marginTop: 8,
+    textAlign: 'center',
+  },
+  emptyState: {
     alignItems: 'center',
-    padding: 20,
+    justifyContent: 'center',
+    padding: 30,
     backgroundColor: '#f8f9fa',
     borderRadius: 16,
+    borderWidth: 1,
+    borderColor: '#e1e1e1',
+    marginVertical: 24,
+    width: '100%',
   },
-  resultText: {
-    fontSize: 16,
-    color: '#4CAF50',
-    marginVertical: 10,
+  emptyStateText: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: '#1a1a1a',
+    marginTop: 16,
   },
-  errorText: {
-    fontSize: 16,
-    color: '#f44336',
-    marginVertical: 10,
+  emptyStateSubtext: {
+    fontSize: 14,
+    color: '#666',
+    textAlign: 'center',
+    marginTop: 8,
+    lineHeight: 20,
   },
-  buttonContainer: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    gap: 10,
-    marginTop: 20,
+  tipsContainer: {
+    backgroundColor: '#f8f9fa',
+    borderRadius: 16,
+    padding: 16,
+    width: '100%',
+    marginTop: 24,
+    borderWidth: 1,
+    borderColor: '#e1e1e1',
   },
-  button: {
-    backgroundColor: '#007AFF',
-    padding: 12,
-    borderRadius: 8,
-    minWidth: 100,
-    alignItems: 'center',
-  },
-  secondaryButton: {
-    backgroundColor: '#6c757d',
-  },
-  buttonText: {
-    color: '#fff',
+  tipsTitle: {
     fontSize: 16,
     fontWeight: '600',
+    marginBottom: 12,
+    color: '#1a1a1a',
+  },
+  tipItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 10,
+  },
+  tipText: {
+    fontSize: 14,
+    color: '#666',
+    marginLeft: 8,
+  },
+  helpButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginTop: 16,
+    padding: 8,
+  },
+  helpButtonText: {
+    fontSize: 14,
+    color: '#007AFF',
+    fontWeight: '600',
+    marginRight: 4,
   },
 });
