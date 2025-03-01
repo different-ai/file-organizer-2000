@@ -410,7 +410,10 @@ export default class FileOrganizer extends Plugin {
       const bytes = new Uint8Array(arrayBuffer);
       const doc = await pdfjsLib.getDocument({ data: bytes }).promise;
       let text = "";
-      for (let pageNum = 1; pageNum <= Math.min(doc.numPages, 10); pageNum++) {
+      
+      // Use pdfPageLimit to cap the maximum pages read.
+      const pageLimit = Math.min(doc.numPages, this.settings.pdfPageLimit);
+      for (let pageNum = 1; pageNum <= pageLimit; pageNum++) {
         const page = await doc.getPage(pageNum);
         const textContent = await page.getTextContent();
         text += textContent.items.map(item => item.str).join(" ");
