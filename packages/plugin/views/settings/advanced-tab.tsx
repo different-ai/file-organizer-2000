@@ -22,6 +22,9 @@ export const AdvancedTab: React.FC<AdvancedTabProps> = ({ plugin }) => {
   const [maxFormattingTokens, setMaxFormattingTokens] = useState(
     plugin.settings.maxFormattingTokens
   );
+  const [pdfPageLimit, setPdfPageLimit] = useState(
+    plugin.settings.pdfPageLimit
+  );
 
   const handleToggleChange = async (value: boolean) => {
     setEnableSelfHosting(value);
@@ -174,6 +177,30 @@ export const AdvancedTab: React.FC<AdvancedTabProps> = ({ plugin }) => {
               const value = parseInt(e.target.value);
               setMaxFormattingTokens(value);
               plugin.settings.maxFormattingTokens = value;
+              plugin.saveSettings();
+            }}
+            className="w-24"
+          />
+        </div>
+      </div>
+
+      <div className="setting-item">
+        <div className="setting-item-info">
+          <div className="setting-item-name">PDF Page Cutoff</div>
+          <div className="setting-item-description">
+            Maximum number of PDF pages to analyze for context. Default: 10
+          </div>
+        </div>
+        <div className="setting-item-control">
+          <input
+            type="number"
+            min="1"
+            max="500"
+            value={pdfPageLimit}
+            onChange={e => {
+              const value = parseInt(e.target.value, 10);
+              setPdfPageLimit(value);
+              plugin.settings.pdfPageLimit = value;
               plugin.saveSettings();
             }}
             className="w-24"
