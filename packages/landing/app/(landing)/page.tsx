@@ -351,7 +351,7 @@ export default function Page() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
             <div className="relative aspect-video rounded-lg overflow-hidden">
               <iframe
-                src="https://www.youtube.com/embed/IcfgdJ6b4hk?iv_load_policy=3&rel=0&modestbranding=1&playsinline=1&autoplay=1&mute=1"
+                src="https://www.youtube.com/embed/IcfgdJ6b4hk?iv_load_policy=3&rel=0&modestbranding=1&playsinline=1"
                 frameBorder="0"
                 allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                 allowFullScreen
@@ -360,7 +360,7 @@ export default function Page() {
             </div>
             <div className="relative aspect-video rounded-lg overflow-hidden">
               <iframe
-                src="https://www.youtube.com/embed/lUo3AVnlSsI?iv_load_policy=3&rel=0&modestbranding=1&playsinline=1&autoplay=1&mute=1"
+                src="https://www.youtube.com/embed/lUo3AVnlSsI?iv_load_policy=3&rel=0&modestbranding=1&playsinline=1"
                 frameBorder="0"
                 allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                 allowFullScreen
