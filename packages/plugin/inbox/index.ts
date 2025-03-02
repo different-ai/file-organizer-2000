@@ -547,6 +547,7 @@ async function recommendClassificationStep(
     confidence: 100,
     reasoning: "N/A",
   };
+  context.recordManager.completeAction(context.hash, Action.CLASSIFY);
   return context;
 }
 
@@ -731,6 +732,7 @@ async function formatContentStep(
       formattingInstruction: instructions,
     });
 
+    context.recordManager.completeAction(context.hash, Action.FORMATTING);
     return context;
   } catch (error) {
     logger.error("Error in formatContentStep:", error);
@@ -759,6 +761,7 @@ async function recommendTagsStep(
     }
   }
   context.recordManager.setTags(context.hash, context.tags);
+  context.recordManager.completeAction(context.hash, Action.TAGGING);
   return context;
 }
 async function appendAttachmentStep(
@@ -776,6 +779,7 @@ async function appendAttachmentStep(
       `\n\n${link}`
     );
   }
+  context.recordManager.completeAction(context.hash, Action.APPEND);
   return context;
 }
 

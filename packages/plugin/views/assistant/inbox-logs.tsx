@@ -221,12 +221,14 @@ function FileCard({ record }: { record: FileRecord }) {
             <div className="flex items-center gap-2">
               <div
                 className="cursor-pointer"
-                onClick={() =>
-                  plugin.app.workspace.openLinkText(
-                    record.file?.basename,
-                    record.file?.parent.path
-                  )
-                }
+                onClick={() => {
+                  if (record.file?.basename && record.file?.parent?.path) {
+                    plugin.app.workspace.openLinkText(
+                      record.file.basename,
+                      record.file.parent.path
+                    );
+                  }
+                }}
               >
                 <FileNameDisplay record={record} />
               </div>
