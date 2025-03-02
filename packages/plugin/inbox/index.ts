@@ -514,6 +514,7 @@ async function recommendFolderStep(
 
   context.newPath = newPath[0]?.folder;
   await safeMove(context.plugin.app, context.containerFile, context.newPath);
+  context.recordManager.completeAction(context.hash, Action.MOVING);
   context.recordManager.setFolder(context.hash, context.newPath);
 
   return context;
