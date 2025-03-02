@@ -619,13 +619,79 @@ export const InboxLogs: React.FC = () => {
     
     return newRecords.some((newRecord, index) => {
       const oldRecord = oldRecords[index];
-      return (
+      
+      // Compare top-level fields first (quick check)
+      if (
         newRecord.status !== oldRecord.status ||
         newRecord.tags.length !== oldRecord.tags.length ||
-        Object.keys(newRecord.logs).length !== Object.keys(oldRecord.logs).length ||
         newRecord.newName !== oldRecord.newName ||
-        newRecord.newPath !== oldRecord.newPath
-      );
+        newRecord.newPath !== oldRecord.newPath ||
+        newRecord.classification !== oldRecord.classification ||
+        newRecord.formatted !== oldRecord.formatted
+      ) {
+        return true;
+      }
+      
+      // Compare tags deeply if lengths match but content might differ
+      if (newRecord.tags.length > 0) {
+        for (let i = 0; i < newRecord.tags.length; i++) {
+          if (newRecord.tags[i] !== oldRecord.tags[i]) {
+            return true;
+          }
+        }
+      }
+      
+      // Compare logs deeply
+      const oldLogs = oldRecord.logs;
+      const newLogs = newRecord.logs;
+      const oldLogKeys = Object.keys(oldLogs);
+      const newLogKeys = Object.keys(newLogs);
+      
+      // Check if log keys differ
+      if (oldLogKeys.length !== newLogKeys.length) {
+        return true;
+      }
+      
+      // Check if any log keys are different
+      for (const key of newLogKeys) {
+        if (!oldLogKeys.includes(key)) {
+          return true;
+        }
+      }
+      
+      // Check each log entry deeply
+      for (const step of newLogKeys) {
+        const oldLog = oldLogs[step as Action];
+        const newLog = newLogs[step as Action];
+        
+        if (!oldLog || !newLog) {
+          return true;
+        }
+        
+        // Compare log entry fields
+        if (
+          oldLog.timestamp !== newLog.timestamp ||
+          oldLog.completed !== newLog.completed ||
+          oldLog.skipped !== newLog.skipped
+        ) {
+          return true;
+        }
+        
+        // Compare error objects if they exist
+        if (
+          (oldLog.error && !newLog.error) ||
+          (!oldLog.error && newLog.error) ||
+          (oldLog.error && newLog.error && (
+            oldLog.error.message !== newLog.error.message ||
+            oldLog.error.stack !== newLog.error.stack ||
+            oldLog.error.action !== newLog.error.action
+          ))
+        ) {
+          return true;
+        }
+      }
+      
+      return false;
     });
   };
 
