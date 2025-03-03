@@ -1,10 +1,10 @@
 import { GeistSans } from "geist/font/sans";
 import Link from "next/link";
-import "./globals.css";
+import "../globals.css";
 import Image from "next/image";
 import { Toaster } from "@/components/ui/use-toast";
 import { TooltipProvider } from "@/components/ui/tooltip";
-import Providers from "./providers";
+import Providers from "../providers";
 import { Metadata } from "next";
 import { Button } from "@/components/ui/button";
 import { Star } from "lucide-react";
@@ -53,7 +53,7 @@ export default function RootLayout({
               <div className="max-w-7xl mx-auto px-6 py-3 text-center">
                 <p className="text-sm text-primary-800">
                   <span className="font-semibold">Exciting news!</span> We're
-                  creating a community-owned DAO.
+                  become a community-owned organization.
                   <a
                     href="/dao"
                     className="ml-2 font-medium underline hover:text-primary-600"
