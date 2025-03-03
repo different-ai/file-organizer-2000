@@ -221,6 +221,16 @@ export default function DaoPage() {
               </Button>
             </a>
           </div>
+
+          <div className="bg-orange-50 border border-orange-200 rounded-lg p-6 mb-8">
+            <h3 className="text-xl font-medium text-orange-700 mb-2">Community Guidelines</h3>
+            <p className="text-gray-700 mb-4">
+              <strong>Important:</strong> Please keep DAO and token discussions limited to the dedicated Telegram channel and DAO-specific spaces. Do not discuss or promote tokens in the general Discord server or other community spaces not specifically for DAO activities, as this may result in moderation action.
+            </p>
+            <p className="text-gray-700">
+              We want to maintain a positive environment for all users, including those who just want to use the Note Companion product without DAO involvement.
+            </p>
+          </div>
         </div>
       </div>
     </main>
