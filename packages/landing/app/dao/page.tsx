@@ -74,8 +74,8 @@ export default function DaoPage() {
             There are several ways to participate in the Note Companion DAO:
           </p>
           
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-            <div className="bg-blue-50 p-6 rounded-lg">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+            <div className="bg-primary-50 border border-primary-100 p-6 rounded-lg">
               <h3 className="text-xl font-medium mb-2">Join Our Community</h3>
               <p className="text-gray-700 mb-4">
                 Connect with other Note Companion enthusiasts and stay updated on DAO developments.
@@ -85,7 +85,7 @@ export default function DaoPage() {
                   href="https://t.me/notecompanion" 
                   target="_blank" 
                   rel="noopener noreferrer"
-                  className="block text-blue-600 hover:underline"
+                  className="block text-primary-600 hover:underline"
                 >
                   → Join our Telegram
                 </a>
@@ -93,30 +93,104 @@ export default function DaoPage() {
                   href="https://x.com/notecompanion" 
                   target="_blank" 
                   rel="noopener noreferrer"
-                  className="block text-blue-600 hover:underline"
+                  className="block text-primary-600 hover:underline"
                 >
                   → Follow on Twitter
                 </a>
               </div>
             </div>
             
-            <div className="bg-blue-50 p-6 rounded-lg">
-              <h3 className="text-xl font-medium mb-2">View on daos.fun</h3>
+            <div className="bg-primary-50 border border-primary-100 p-6 rounded-lg">
+              <h3 className="text-xl font-medium mb-2">Join via daos.fun</h3>
               <p className="text-gray-700 mb-4">
-                Check out our DAO page to see current proposals, token information, and governance details.
+                Visit our page on daos.fun to purchase Note Companion DAO tokens and become a community member. This is currently the primary way to join and support the project.
               </p>
               <a 
                 href="https://www.daos.fun/dao/8iLdHtnZL3aLVRVseT1Rv3cytngqPPoe2hWcouJLd8Gd" 
                 target="_blank" 
                 rel="noopener noreferrer"
-                className="block text-blue-600 hover:underline"
+                className="block text-primary-600 hover:underline"
               >
-                → View Note Companion DAO
+                → Get Note Companion DAO Tokens
               </a>
+            </div>
+
+            <div className="bg-primary-50 border border-primary-100 p-6 rounded-lg">
+              <h3 className="text-xl font-medium mb-2">Contribute on GitHub</h3>
+              <p className="text-gray-700 mb-4">
+                Star our repository, report issues, or contribute code. Active GitHub contributors will be eligible for DAO token rewards and special access privileges.
+              </p>
+              <div className="space-y-2">
+                <a 
+                  href="https://github.com/different-ai/file-organizer-2000" 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="block text-primary-600 hover:underline"
+                >
+                  → Star on GitHub
+                </a>
+                <a 
+                  href="https://github.com/different-ai/file-organizer-2000/issues" 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="block text-primary-600 hover:underline"
+                >
+                  → Report Issues
+                </a>
+              </div>
             </div>
           </div>
           
-          <h2 className="text-2xl font-semibold mt-8 mb-4">Roadmap</h2>
+          <h2 className="text-2xl font-semibold mt-8 mb-4">Alternative Access Models</h2>
+          <p className="text-gray-700 mb-6">
+            The DAO introduces new ways to access and contribute to Note Companion:
+          </p>
+
+          <div className="space-y-4 mb-8">
+            <div className="bg-primary-50 border border-primary-100 rounded-lg p-5">
+              <h3 className="text-lg font-medium mb-2">Token Staking for Access</h3>
+              <p className="text-gray-700">
+                In addition to traditional subscription and lifetime plans, we'll implement a token staking model. By staking a certain amount of Note Companion DAO tokens, users can gain access to premium features without additional payments.
+              </p>
+            </div>
+
+            <div className="bg-primary-50 border border-primary-100 rounded-lg p-5">
+              <h3 className="text-lg font-medium mb-2">Free Community Plan</h3>
+              <p className="text-gray-700">
+                We're introducing a new free tier for active community contributors. By participating in governance, providing feedback, or contributing to development, users can earn access to the platform.
+              </p>
+            </div>
+          </div>
+
+          <h2 className="text-2xl font-semibold mt-12 mb-4">Product Roadmap</h2>
+          <p className="text-gray-700 mb-6">
+            With community governance, we're expanding Note Companion in exciting new directions:
+          </p>
+
+          <div className="space-y-4 mb-8">
+            <div className="bg-primary-50 border border-primary-100 rounded-lg p-5">
+              <h3 className="text-lg font-medium mb-2">Model Context Protocol (MCP) Integration</h3>
+              <p className="text-gray-700">
+                We're implementing <a href="https://www.anthropic.com/news/model-context-protocol" target="_blank" rel="noopener noreferrer" className="text-primary-600 hover:underline">Model Context Protocol</a> to significantly enhance our AI capabilities. This will allow Note Companion to connect with any MCP-compatible AI system, giving users more choice in which models they use and enabling more powerful grounding and context management.
+              </p>
+            </div>
+
+            <div className="bg-primary-50 border border-primary-100 rounded-lg p-5">
+              <h3 className="text-lg font-medium mb-2">Mobile Companion App</h3>
+              <p className="text-gray-700">
+                We're developing dedicated mobile apps to bring the power of Note Companion beyond the desktop. Capture thoughts, organize notes, and access your knowledge base wherever you are.
+              </p>
+            </div>
+
+            <div className="bg-primary-50 border border-primary-100 rounded-lg p-5">
+              <h3 className="text-lg font-medium mb-2">Expanded Platform Support</h3>
+              <p className="text-gray-700">
+                While we started with Obsidian, we're extending Note Companion to support other note-taking platforms and communication tools, including Telegram, Logseq, Notion, and more. Our goal is to create a unified knowledge management experience across all your tools.
+              </p>
+            </div>
+          </div>
+
+          <h2 className="text-2xl font-semibold mt-12 mb-4">DAO Development Phases</h2>
           <p className="text-gray-700 mb-6">
             Our journey to a fully community-owned project will unfold in several phases:
           </p>
@@ -136,16 +210,16 @@ export default function DaoPage() {
             </li>
           </ol>
           
-          <div className="bg-gray-50 border border-gray-200 rounded-lg p-6 mb-8">
+          <div className="bg-primary-50 border border-primary-100 rounded-lg p-6 mb-8">
             <h3 className="text-xl font-medium mb-2">Stay Updated</h3>
             <p className="text-gray-700 mb-4">
               This is just the beginning of our journey. Join our community channels to stay informed about the latest developments, token distributions, and governance opportunities.
             </p>
-            <Link href="https://t.me/notecompanion">
+            <a href="https://t.me/notecompanion" target="_blank" rel="noopener noreferrer">
               <Button className="bg-primary text-white hover:bg-primary/90">
                 Join Our Telegram
               </Button>
-            </Link>
+            </a>
           </div>
         </div>
       </div>

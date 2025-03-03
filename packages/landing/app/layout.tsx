@@ -49,14 +49,14 @@ export default function RootLayout({
         <TooltipProvider>
           <Providers>
             {/* DAO Announcement Banner */}
-            <div className="w-full bg-blue-50 border-b border-blue-100">
+            <div className="w-full bg-primary-100 border-b border-primary-200">
               <div className="max-w-7xl mx-auto px-6 py-3 text-center">
-                <p className="text-sm text-blue-800">
+                <p className="text-sm text-primary-800">
                   <span className="font-semibold">Exciting news!</span> We're
-                  creating a community-owned organization.
+                  creating a community-owned DAO.
                   <a
                     href="/dao"
-                    className="ml-2 font-medium underline hover:text-blue-600"
+                    className="ml-2 font-medium underline hover:text-primary-600"
                   >
                     Learn why and how to get involved →
                   </a>
