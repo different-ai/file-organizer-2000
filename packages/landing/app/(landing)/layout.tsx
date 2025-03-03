@@ -52,7 +52,7 @@ export default function RootLayout({
             <div className="w-full bg-primary-100 border-b border-primary-200">
               <div className="max-w-7xl mx-auto px-6 py-3 text-center">
                 <p className="text-sm text-primary-800">
-                  <span className="font-semibold">Exciting news!</span> We're
+                  <span className="font-semibold">Exciting news!</span> We've
                   become a community-owned organization.
                   <a
                     href="/dao"
