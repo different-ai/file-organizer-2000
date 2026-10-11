@@ -1,5 +1,6 @@
 'use client';
 
+import { ManageSubscriptionLink } from "@/components/manage-subscription-link";
 import * as React from 'react';
 import { Link } from '@/components/ui/link';
 import {
@@ -284,6 +285,17 @@ export default function DashboardPage() {
                       <Key className="mr-2 h-4 w-4" />
                       Get license key
                     </Link>
+                  </Button>
+                )}
+                {['active', 'trialing', 'past_due', 'unpaid'].includes(
+                  apiUsage.subscriptionStatus
+                ) &&
+                  apiUsage.currentPlan !== 'Free Plan' && (
+                  <Button variant="outline" size="sm" asChild>
+                    <ManageSubscriptionLink>
+                      <CreditCard className="mr-2 h-4 w-4" />
+                      Manage or cancel subscription
+                    </ManageSubscriptionLink>
                   </Button>
                 )}
                 <Button variant="outline" size="sm" asChild>
