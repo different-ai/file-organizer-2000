@@ -287,7 +287,10 @@ export default function DashboardPage() {
                     </Link>
                   </Button>
                 )}
-                {apiUsage.isActive && (
+                {['active', 'trialing', 'past_due', 'unpaid'].includes(
+                  apiUsage.subscriptionStatus
+                ) &&
+                  apiUsage.currentPlan !== 'Free Plan' && (
                   <Button variant="outline" size="sm" asChild>
                     <ManageSubscriptionLink>
                       <CreditCard className="mr-2 h-4 w-4" />

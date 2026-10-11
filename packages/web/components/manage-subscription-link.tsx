@@ -31,7 +31,7 @@ export function ManageSubscriptionLink({
     <a
       href={FALLBACK_URL}
       onClick={onClick}
-      className={className}
+      className={pending ? `${className ?? ""} cursor-wait opacity-70` : className}
       aria-busy={pending}
     >
       {children}

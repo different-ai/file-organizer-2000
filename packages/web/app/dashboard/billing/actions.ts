@@ -13,7 +13,8 @@ async function findStripeCustomerId(userId: string): Promise<string | null> {
   // Fast path: written to Clerk metadata by the subscription webhooks.
   const client = await clerkClient();
   const user = await client.users.getUser(userId);
-  const fromClerk = (user.publicMetadata as any)?.stripe?.customerId;
+  const fromClerk = (user.publicMetadata as { stripe?: { customerId?: unknown } })
+    .stripe?.customerId;
   if (typeof fromClerk === "string" && fromClerk.startsWith("cus_")) {
     return fromClerk;
   }
