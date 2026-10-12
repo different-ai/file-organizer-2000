@@ -1,16 +1,9 @@
 import { MetadataRoute } from 'next';
+import { getSiteBaseUrl } from '@/lib/site-url';
 import { getAllPosts } from '@/lib/blog';
 
 export default function sitemap(): MetadataRoute.Sitemap {
-  // Use environment variable if available, otherwise default to notecompanion.ai
-  let baseUrl =
-    process.env.NEXT_PUBLIC_SITE_URL ||
-    (process.env.VERCEL_URL
-      ? `https://${process.env.VERCEL_URL}`
-      : 'https://notecompanion.ai');
-
-  // Ensure URL doesn't have trailing slash
-  baseUrl = baseUrl.replace(/\/$/, '');
+  const baseUrl = getSiteBaseUrl();
 
   // Static routes
   const staticRoutes: MetadataRoute.Sitemap = [
