@@ -5,10 +5,14 @@ export const metadata: Metadata = {
   title: 'Note Companion Developer Resources — API & Agent Integration',
   description:
     'Developer documentation for Note Companion: OpenAPI spec, authentication, API base URL, and guidance for AI agents integrating with Obsidian vault workflows.',
+  alternates: {
+    canonical: '/developers',
+  },
   openGraph: {
     title: 'Note Companion Developer Resources',
     description:
       'OpenAPI, auth, and integration docs for the Note Companion API used by the Obsidian plugin and mobile apps.',
+    url: '/developers',
   },
 };
 

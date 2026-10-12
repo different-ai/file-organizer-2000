@@ -7,6 +7,12 @@ export const metadata: Metadata = {
   title: 'Blog',
   description:
     'Read the latest updates, tips, and insights about Note Companion',
+  alternates: {
+    canonical: '/blog',
+  },
+  openGraph: {
+    url: '/blog',
+  },
 };
 
 export default function BlogPage() {
