@@ -6,6 +6,7 @@ import { ArrowLeft, Calendar } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { BlogContent } from "../components/blog-content";
+import { BlogFaq } from "../components/blog-faq";
 import { BlogFaqSchema } from "../components/blog-faq-schema";
 import { BlogPostingSchema } from "../components/blog-posting-schema";
 import { BreadcrumbSchema } from "@/components/breadcrumb-schema";
@@ -155,6 +156,8 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
 
         {/* Article Content */}
         <BlogContent post={post} />
+
+        {post.faq && post.faq.length > 0 && <BlogFaq faq={post.faq} />}
 
         <RelatedPosts posts={relatedPosts} />
 

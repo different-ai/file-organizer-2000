@@ -250,28 +250,6 @@ and
 
 "My notes think with me"
 
-## FAQ
-
-### Is Obsidian good for a second brain?
-
-Yes — it's arguably the best option. Its local-first storage and `[[backlink]]` system are purpose-built for connecting ideas over time, which is the core job of a second brain. Cloud-only note apps are fine for capture but weak at the linking that makes a second brain actually think with you.
-
-### Do I need plugins to build a second brain in Obsidian?
-
-No. You can build a solid second brain with core Obsidian alone — vault, folders, links, and frontmatter. Plugins (and AI tools like Note Companion) come in when you want to *automate* the upkeep: auto-tagging, suggested links, summaries, and resurfacing old notes.
-
-### How is a second brain different from just taking notes?
-
-Note-taking captures information. A second brain *connects and resurfaces* it. The difference is between "I wrote that down somewhere" and "my system brought that idea back exactly when I needed it."
-
-### Can AI build my second brain for me?
-
-AI shouldn't build it *for* you — deciding what matters is human work. But AI is excellent at the maintenance: organizing, linking, summarizing, and reviewing. The best setup keeps capture human and delegates the friction to AI.
-
-### How long does it take to set up a second brain in Obsidian?
-
-The foundation — vault, three folders, frontmatter, and the linking habit — takes about an hour to set up. The habit of writing atomic, linked notes is what compounds over the following weeks.
-
 ## Final Thoughts
 
 The future of knowledge work isn't more tools—it's better systems.
