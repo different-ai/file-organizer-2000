@@ -1,5 +1,6 @@
 import { Metadata } from 'next';
 import Link from 'next/link';
+import { defaultOpenGraph } from '@/lib/og';
 
 export const metadata: Metadata = {
   title: 'Note Companion Developer Resources — API & Agent Integration',
@@ -9,6 +10,7 @@ export const metadata: Metadata = {
     canonical: '/developers',
   },
   openGraph: {
+    ...defaultOpenGraph,
     title: 'Note Companion Developer Resources',
     description:
       'OpenAPI, auth, and integration docs for the Note Companion API used by the Obsidian plugin and mobile apps.',

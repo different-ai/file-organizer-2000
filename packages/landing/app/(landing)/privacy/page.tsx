@@ -1,5 +1,6 @@
 import React from 'react';
 import { Metadata } from 'next';
+import { defaultOpenGraph } from '@/lib/og';
 
 export const metadata: Metadata = {
   title: 'Privacy Policy',
@@ -9,6 +10,10 @@ export const metadata: Metadata = {
     canonical: '/privacy',
   },
   openGraph: {
+    ...defaultOpenGraph,
+    title: 'Privacy Policy',
+    description:
+      'How Note Companion collects, uses, and protects your account, usage, and vault content data.',
     url: '/privacy',
   },
 };

@@ -2,6 +2,7 @@ import { Metadata } from 'next';
 import { BlogListingClient } from './blog-listing-client';
 import { getAllPosts, getAllCategories } from '@/lib/blog';
 import { BreadcrumbSchema } from '@/components/breadcrumb-schema';
+import { defaultOpenGraph } from '@/lib/og';
 
 export const metadata: Metadata = {
   title: 'Blog',
@@ -11,6 +12,10 @@ export const metadata: Metadata = {
     canonical: '/blog',
   },
   openGraph: {
+    ...defaultOpenGraph,
+    title: 'Blog',
+    description:
+      'Read the latest updates, tips, and insights about Note Companion',
     url: '/blog',
   },
 };
