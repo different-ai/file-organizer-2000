@@ -4,15 +4,21 @@ import { ArrowRight, Smartphone, Check, Camera, FileText, MessageSquare, Bell } 
 import Image from 'next/image';
 import Link from "next/link";
 import { BetaRequestForm } from "../components/beta-request-form";
+import { defaultOpenGraph } from "@/lib/og";
 
 export const metadata: Metadata = {
   title: "Note Companion Mobile - Your AI-powered Knowledge Partner with OCR",
   description:
     "Access your notes anywhere with the Note Companion mobile app. Capture text from images with our powerful OCR, manage your knowledge, and stay organized across all your devices.",
+  alternates: {
+    canonical: '/mobile',
+  },
   openGraph: {
+    ...defaultOpenGraph,
     title: "Note Companion Mobile - Your AI-powered Knowledge Partner with OCR",
     description:
       "Access your notes anywhere with the Note Companion mobile app. Capture text from images with our powerful OCR, manage your knowledge, and stay organized across all your devices.",
+    url: '/mobile',
   },
 };
 
