@@ -8,6 +8,12 @@ import type { FileRecord, FileStatus } from "./record-manager";
  * These bounds are deliberately explicit (and generous) rather than implicit —
  * a user should be able to read them and predict exactly what survives.
  *
+ * Upgrade note: the first launch after this ships drops every terminal record
+ * whose newest log entry is over RECORD_RETENTION_DAYS old, together with its
+ * log entries and the Undo affordance on those old completed moves. Records
+ * with no parseable timestamp go too. This is a one-time catch-up on a store
+ * that was never pruned before; afterwards it stays within the bounds.
+ *
  * Pruning runs only when the store is loaded, i.e. once per Obsidian session.
  * A vault left open for weeks can therefore sit above the bounds until the
  * next restart; that is intended, since pruning mid-session would delete log
