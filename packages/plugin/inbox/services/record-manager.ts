@@ -2,6 +2,7 @@ import { normalizePath, TFile, App } from "obsidian";
 import { IdService } from "./id-service";
 import { parseJsonString } from "../../lib/api-json";
 import { pruneRecords } from "./record-pruning";
+import { logger } from "../../services/logger";
 /** Browser timer handle from `window.setTimeout` (Obsidian/Electron). */
 type TimeoutID = number;
 
@@ -151,7 +152,7 @@ export class RecordManager {
         const { records, removed } = pruneRecords(loaded);
         this.records = records;
         if (removed > 0) {
-          console.log(
+          logger.debug(
             `RecordManager: pruned ${removed} record(s) outside the retention bounds`
           );
           this.debounceSave();

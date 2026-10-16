@@ -2,6 +2,7 @@ import * as React from "react";
 import { FileRecord, FileStatus, RecordManager } from "../../../inbox/services/record-manager";
 import { TFile, Notice } from "obsidian";
 import { Inbox } from "../../../inbox";
+import { getLatestLogTime } from "../../../inbox/services/record-pruning";
 import { tw } from "../../../lib/utils";
 import { RotateCcw, AlertCircle, X } from "lucide-react";
 import { Button } from "../../../components/ui/button";
@@ -158,17 +159,11 @@ export const RecentIssuesPanel: React.FC<{ plugin: FileOrganizer }> = ({ plugin 
         (r) => !r.dismissed && (r.status === "error" || r.status === "bypassed")
       );
 
-      // Sort by most recent timestamp
-      const sorted = errorAndBypassed.sort((a, b) => {
-        const getLatestTimestamp = (record: FileRecord): number => {
-          const timestamps = Object.values(record.logs).map((log) =>
-            new Date(log.timestamp).getTime()
-          );
-          return timestamps.length > 0 ? Math.max(...timestamps) : 0;
-        };
-
-        return getLatestTimestamp(b) - getLatestTimestamp(a);
-      });
+      // Sort by most recent timestamp. Shares the parser with the retention
+      // policy so log timestamps are read the same way everywhere.
+      const sorted = errorAndBypassed.sort(
+        (a, b) => getLatestLogTime(b) - getLatestLogTime(a)
+      );
 
       setIssues(sorted);
     } catch (error) {

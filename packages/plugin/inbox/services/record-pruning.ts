@@ -7,6 +7,11 @@ import type { FileRecord, FileStatus } from "./record-manager";
  * entry, so a long-lived vault accumulated one JSON blob per file ever seen.
  * These bounds are deliberately explicit (and generous) rather than implicit —
  * a user should be able to read them and predict exactly what survives.
+ *
+ * Pruning runs only when the store is loaded, i.e. once per Obsidian session.
+ * A vault left open for weeks can therefore sit above the bounds until the
+ * next restart; that is intended, since pruning mid-session would delete log
+ * entries out from under an open Inbox view.
  */
 export const RECORD_RETENTION_DAYS = 30;
 export const MAX_RETAINED_RECORDS = 500;
