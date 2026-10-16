@@ -13,81 +13,85 @@ to the vault.
 
 ## The page
 
-Print it. Do not join the letters.
-
 ```
-INTERVIEW - RAVI M.          24 SEP
+                    Interview — Ravi M.    24 Sep
 
-Freelance editor. 5 clients.
-Vault is 2 years old, 900 notes.
+ freelance editor, 5 clients
+ vault ~2yrs, 900 notes
 
-Records every client call.
-Transcribes maybe 1 in 3.
-The rest sit in a folder he calls "the pile".
+ • records every client call
+ • transcribes maybe 1 in 3
+   → rest sit in a folder he calls "the pile"
 
-Files everything by hand, 20 minutes a day.
-Says it is the only reason the vault still works.
+ • files everything by hand, ~20 min/day
+   says it's the only reason the vault still works
 
-"I do not need it to be clever.
-I need it to be right every time."
+ "I don't need it to be clever.
+  I need it to be right every time."
 
-Same pattern as Dana. Precision over recall.
+ • tried auto-tagging 2024 → turned it off in a week
+   everything came back #notes / #ideas   ← useless
+
+ ★ ask next time: how big is the pile actually?
+
+ same pattern as Dana. precision > recall.
 ```
 
 ## Why it is shaped like that
 
-The quoted line is the payoff -- quoted speech reads well in the output note,
-so the before/after contrast is strongest there. The last line names Dana, who
-is already in `Research/`, so the extracted note may surface a real connection
-rather than sitting alone.
+Abbreviations, arrows, a star, an aside. Clean block capitals prove nothing
+about OCR; messy real notes do.
 
-Everything else about the shape is a reaction to two failed takes. The first
-draft of this page used abbreviations, arrows, a star and an aside, on the
-theory that clean block capitals prove nothing about OCR and messy real notes
-do. That was wrong. Across two shoots the extraction came back roughly 35%
-accurate, and the lines it mangled were the ones the cut depends on:
-`precision > recall` became "Persian vocal", and the quoted payoff became
-"I don't need the have drive".
+The quoted line is the payoff — quoted speech reads well in the output note, so
+the before/after contrast is strongest there.
 
-What actually failed, in order of damage:
+The last line names Dana, who is already in `Research/`, so the extracted note
+may surface a real connection rather than sitting alone.
 
-- **Symbols.** `->`, `<-`, `*`, `>`, `#`. The line
-  `everything came back #notes / #ideas <- useless` came back as
-  "everything can't back #need | files etc leverers". This page now has none.
-- **Joined letters.** Hybrid cursive compresses a word into one stroke and the
-  model has nothing to segment. "transcribes" became "mansuibes", then
-  "promising money". Print, with visible gaps between letters.
-- **Abbreviations.** `~2yrs`, `20 min/day`, `1 in 3`. Shorthand carries no
-  redundancy for the model to recover from, so a single bad character loses the
-  whole token. Full words instead.
-- **Corrections.** A struck-out word over "actually" killed that line in both
-  takes. If you make a mistake, start the page again.
-- **A sloping last line.** Keep the baselines flat; use the ruled lines.
+## Record this against a build that can read it
 
-The auto-tagging bullet is gone entirely. It failed four times across two
-takes, and its punchline -- everything came back `#notes` / `#ideas`, useless --
-read badly on camera when the plugin then tagged the output note `#notes`.
+Two takes shot in October came back roughly 35% accurate, and the failures
+looked like the page was at fault: `precision > recall` became "Persian vocal",
+the quoted payoff became "I don't need the have drive". It was not the page.
+`feat/unified-ocr-pipeline` transcribes this same page essentially verbatim.
 
-This is a deliberately easier page than the first one, and worth being honest
-about: it supports the claim "it reads clear handwriting", not "it reads any
-handwriting". It is still a phone photo of a real page in a real hand, so the
-demo is not staged -- it is just not the hardest case. If the episode ever
-wants to claim the hard case, that is a different page and probably a different
-product state.
+What was wrong, per `memory/2026-09-28-ocr-pipeline-review.md` on that branch:
+
+- The plugin's default `imageInstructions` asked the model to *describe* the
+  image, and `/api/vision` asked it to transcribe. Both strings were
+  concatenated, so the request was self-contradictory — which is why the output
+  was fluent, confident and invented rather than visibly broken.
+- `getModel(name)` ignored its argument, so the plugin path ran on `MODEL_NAME`
+  (gpt-4.1-mini), not a vision model. The branch adds `getVisionModel()`,
+  defaulting to gpt-4o via `VISION_MODEL`.
+- Images were compressed to 1000px before upload; now 2048px.
+
+**OCR runs server-side.** The plugin POSTs to `${serverUrl}/api/vision`
+(`packages/plugin/index.ts`), so extraction quality follows whatever is
+deployed, not which plugin build is installed locally. Recording against a
+local server running the fix would produce footage that shipped users cannot
+reproduce. Shoot this episode after the fix is merged and deployed, not before.
+
+Do not quietly rewrite this page to make an older build look better. If the
+extraction is wrong, the build is wrong.
 
 ## Photographing it
 
-The second shoot got this part right; keep doing it. Bright even light, dark
-pen, page filling the frame, shot straight down, in focus. Crop out the spiral
+The October shoot got this right; keep doing it. Bright even light, dark pen,
+page filling the frame, shot straight down, in focus. Crop out the spiral
 binding if it is easy. Name the file something unhelpful, e.g. `IMG_4821.jpeg`,
 so the rename at the end of the pipeline has something to push against.
 
 ## Test before you record
 
-Dropping a photo in and reading the output takes about two minutes. Recording a
-take takes fifteen. Do the cheap one first, every time: drop it in the inbox,
-read the note, delete it, reset, adjust the handwriting, repeat. Only start the
-recorder once an extraction comes back clean.
+Dropping a photo in and reading the extraction takes about two minutes.
+Recording a take takes fifteen. Do the cheap one first, every time: drop it in
+the inbox, read the note, delete it, reset, repeat. Only start the recorder
+once an extraction comes back clean.
+
+Read the transcript, not just the finished note. The note goes through title,
+format and tag steps afterwards, so a clean transcript can still produce a
+scruffy note — and a bad note does not tell you which stage failed.
 
 ## The shot
 
