@@ -293,6 +293,15 @@ export class Inbox {
     return this.recordManager.getAllRecords();
   }
 
+  /**
+   * Records the user has not cleared. The full log view wants every record
+   * (dismissing preserves history); the status tiles want only what is still
+   * actionable.
+   */
+  public getActiveFiles(): FileRecord[] {
+    return this.recordManager.getActiveRecords();
+  }
+
   public getQueueStats(): QueueStatus {
     return this.queue.getStats();
   }
@@ -313,7 +322,7 @@ export class Inbox {
     };
     queueStats: QueueStatus;
   } {
-    const records = this.getAllFiles();
+    const records = this.getActiveFiles();
     const byStatus = records.reduce((acc, record) => {
       acc[record.status] = (acc[record.status] || 0) + 1;
       return acc;
