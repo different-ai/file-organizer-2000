@@ -48,6 +48,24 @@ import {
 const MAX_CONCURRENT_TASKS = 5;
 const MAX_CONCURRENT_MEDIA_TASKS = 2;
 
+/** Text-only inbox files: classify, tag, move */
+const INBOX_QUEUE_TIMEOUT_MS = 30_000;
+/** Images/PDF: vision OCR plus full organize pipeline */
+const INBOX_MEDIA_QUEUE_TIMEOUT_MS = 3 * 60_000;
+/** Audio: transcription can run for several minutes */
+const INBOX_AUDIO_QUEUE_TIMEOUT_MS = 15 * 60_000;
+
+function getInboxQueueTimeoutMs(file: TFile): number {
+  const ext = file.extension.toLowerCase();
+  if (VALID_AUDIO_EXTENSIONS.includes(ext)) {
+    return INBOX_AUDIO_QUEUE_TIMEOUT_MS;
+  }
+  if (VALID_IMAGE_EXTENSIONS.includes(ext) || ext === "pdf") {
+    return INBOX_MEDIA_QUEUE_TIMEOUT_MS;
+  }
+  return INBOX_QUEUE_TIMEOUT_MS;
+}
+
 export interface FolderSuggestion {
   isNewFolder: boolean;
   score: number;
@@ -197,14 +215,18 @@ export class Inbox {
     for (const file of regularFiles) {
       const hash = this.idService.generateFileHash(file);
       this.recordManager.startTracking(hash, file.basename);
-      this.queue.add(file, { metadata: { hash } });
+      this.queue.add(file, {
+        metadata: { hash, timeoutMs: getInboxQueueTimeoutMs(file) },
+      });
     }
 
     // Then enqueue media files
     for (const file of mediaFiles) {
       const hash = this.idService.generateFileHash(file);
       this.recordManager.startTracking(hash, file.basename);
-      this.queue.add(file, { metadata: { hash } });
+      this.queue.add(file, {
+        metadata: { hash, timeoutMs: getInboxQueueTimeoutMs(file) },
+      });
     }
 
     logMessage(
@@ -215,7 +237,7 @@ export class Inbox {
   private initializeQueue(): void {
     this.queue = new Queue<TFile>({
       concurrency: MAX_CONCURRENT_TASKS,
-      timeout: 30000,
+      timeout: INBOX_QUEUE_TIMEOUT_MS,
       onProcess: async (file: TFile, metadata?: QueueTaskMetadata) => {
         try {
           const isMediaFile = this.plugin.shouldCreateMarkdownContainer(file);
@@ -275,7 +297,9 @@ export class Inbox {
     const nextFile = this.mediaQueue.shift();
     if (nextFile) {
       const hash = this.idService.generateFileHash(nextFile);
-      this.queue.add(nextFile, { metadata: { hash } });
+      this.queue.add(nextFile, {
+        metadata: { hash, timeoutMs: getInboxQueueTimeoutMs(nextFile) },
+      });
     }
   }
 
