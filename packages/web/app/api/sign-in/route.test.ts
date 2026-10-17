@@ -55,6 +55,15 @@ describe('POST /api/sign-in', () => {
     expect(mockCreateKey).not.toHaveBeenCalled();
   });
 
+  it('rejects when verifyPassword resolves without verified: true', async () => {
+    mockGetUserList.mockResolvedValue({ data: [{ id: 'user_1', passwordEnabled: true }] });
+    mockVerifyPassword.mockResolvedValue({ verified: false });
+    const res = await POST(req({ email: 'a@b.com', password: 'pw' }));
+    expect(res.status).toBe(400);
+    expect((await res.json()).licenseKey).toBeUndefined();
+    expect(mockCreateKey).not.toHaveBeenCalled();
+  });
+
   it('gives the same response for unknown email, wrong password and social accounts', async () => {
     mockGetUserList.mockResolvedValueOnce({ data: [] });
     const unknown = await (await POST(req({ email: 'x@b.com', password: 'pw' }))).json();

@@ -90,7 +90,11 @@ export async function POST(req: NextRequest) {
     }
 
     try {
-      await clerk.users.verifyPassword({ userId: user.id, password });
+      const result = await clerk.users.verifyPassword({
+        userId: user.id,
+        password,
+      });
+      if (!result?.verified) return invalidCredentials();
     } catch (error: any) {
       // Clerk rejects wrong passwords with a 4xx; treat anything else as a server error.
       const status = error?.status;
