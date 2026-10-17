@@ -1,16 +1,13 @@
-import sharp from "sharp";
 import type { UploadedFile } from "@/drizzle/schema";
 import { extractTextFromVisionImage } from "@/lib/ocr-extract";
+import { ocrPdfFromBuffer, PDF_OCR_PAGE_LIMIT } from "@/lib/ocr-pdf";
 import { prepareImageBufferForOcr } from "@/lib/prepare-image-for-ocr";
 import {
   deriveR2KeyFromBlobUrl,
   downloadFromR2,
 } from "@/lib/r2-client";
 
-export const PDF_OCR_PAGE_LIMIT = Number.parseInt(
-  process.env.PDF_OCR_PAGE_LIMIT || "10",
-  10
-);
+export { PDF_OCR_PAGE_LIMIT };
 
 export type UploadProcessResult = {
   status: "completed" | "error";
@@ -54,44 +51,7 @@ export async function ocrPdfFromR2(
   pageLimit = PDF_OCR_PAGE_LIMIT
 ): Promise<{ textContent: string; tokensUsed: number; error?: string }> {
   const pdfBuffer = await downloadFromR2(r2Key);
-  let pageCount = 1;
-  try {
-    const meta = await sharp(pdfBuffer, { density: 200 }).metadata();
-    pageCount = Math.min(meta.pages ?? 1, pageLimit);
-  } catch {
-    pageCount = 1;
-  }
-
-  const parts: string[] = [];
-  let tokensUsed = 0;
-
-  for (let page = 0; page < pageCount; page++) {
-    let png: Buffer;
-    try {
-      png = await sharp(pdfBuffer, { density: 200, page })
-        .png()
-        .toBuffer();
-    } catch (error) {
-      const message =
-        error instanceof Error ? error.message : "PDF page render failed";
-      return { textContent: "", tokensUsed: 0, error: message };
-    }
-
-    const result = await extractTextFromVisionImage({
-      image: { kind: "buffer", buffer: png },
-      retryOnEmpty: true,
-    });
-    if (result.error) {
-      return { textContent: "", tokensUsed, error: result.error };
-    }
-    tokensUsed += result.tokensUsed;
-    if (result.text) {
-      parts.push(result.text);
-    }
-  }
-
-  const textContent = parts.join("\n\n---\n\n");
-  return { textContent, tokensUsed };
+  return ocrPdfFromBuffer(pdfBuffer, { pageLimit });
 }
 
 /** Shared OCR / text extraction for mobile sync uploads (not magic-diagram). */

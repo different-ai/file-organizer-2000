@@ -394,15 +394,15 @@ export class Inbox {
       );
       await executeStep(
         context,
-        getContainerFileStep,
-        Action.CONTAINER,
-        Action.ERROR_CONTAINER
-      );
-      await executeStep(
-        context,
         moveAttachmentFile,
         Action.MOVING_ATTACHMENT,
         Action.ERROR_MOVING_ATTACHMENT
+      );
+      await executeStep(
+        context,
+        getContainerFileStep,
+        Action.CONTAINER,
+        Action.ERROR_CONTAINER
       );
       await executeStep(
         context,
@@ -499,9 +499,13 @@ async function getContainerFileStep(
 ): Promise<ProcessingContext> {
   logger.info("Get container file step");
   if (VALID_MEDIA_EXTENSIONS.includes(context.inboxFile?.extension)) {
+    const parentFolder =
+      context.inboxFile.parent?.path ??
+      context.plugin.settings.attachmentsPath;
+    const containerPath = `${parentFolder}/${context.inboxFile.basename}.md`;
     const containerFile = await safeCreate(
       context.plugin.app,
-      context.inboxFile.basename + ".md",
+      containerPath,
       ""
     );
     context.containerFile = containerFile;
@@ -691,7 +695,7 @@ async function startProcessing(
 async function getContentStep(
   context: ProcessingContext
 ): Promise<ProcessingContext> {
-  const fileToRead = context.inboxFile;
+  const fileToRead = context.attachmentFile ?? context.inboxFile;
   let content: string;
 
   if (isMediaExtractionSkipped(context)) {
@@ -852,6 +856,23 @@ async function handleBypass(
 
     // Then move the file
     await safeMove(context.plugin.app, context.inboxFile, bypassedFolderPath);
+
+    if (
+      context.containerFile &&
+      context.attachmentFile &&
+      context.containerFile.path !== context.inboxFile.path
+    ) {
+      try {
+        const containerContent = await context.plugin.app.vault.read(
+          context.containerFile
+        );
+        if (!containerContent.trim()) {
+          await context.plugin.app.vault.delete(context.containerFile);
+        }
+      } catch (deleteError) {
+        logger.warn("Could not remove empty container after bypass", deleteError);
+      }
+    }
 
     context.queue.bypass(context.hash);
     context.recordManager.setStatus(context.hash, "bypassed");
