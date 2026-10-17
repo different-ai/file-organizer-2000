@@ -204,6 +204,16 @@ export function OnboardingWizard({ plugin, onComplete }: OnboardingWizardProps) 
               </div>
             )}
             
+            {!isSignup && (
+              <p className={tw("text-xs text-[--text-muted]")}>
+                Signed up with Google or another social login? You have no password here.{" "}
+                <a href="https://app.notecompanion.ai/dashboard" target="_blank" rel="noopener noreferrer">
+                  Open the dashboard
+                </a>
+                , copy your license key, and paste it in Settings → Note Companion.
+              </p>
+            )}
+
             <Button
               onClick={() => { void handleSignup(); }}
               disabled={isLoading}
