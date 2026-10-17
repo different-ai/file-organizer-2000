@@ -6,17 +6,40 @@ place for it.
 
 ## Before anything goes out
 
-OCR runs server-side at `/api/vision`. This episode was shot against
-`feat/unified-ocr-pipeline`, which is **not merged into master** as of
-2026-10-17. Until that is merged and deployed, the video shows an extraction
-quality that a shipped user does not get. Do not publish before then.
+The copy below is written for the world after the OCR fix ships. It is not
+hedged and makes no reference to a branch -- it describes the product as it
+will be. The gate is here so it does not go out early.
 
-Check with:
+The fix is `feat/unified-ocr-pipeline`, and it lands in **two** vehicles.
+Both need to be out, not just one:
+
+**Server** (a web deploy). `getVisionModel()` moves vision off
+`gpt-4.1-mini` onto gpt-4o, and `buildOcrPrompt()` asks for a transcription
+instead of a description -- it also discards the legacy "describe the image"
+string if an old client still sends it, so this half reaches everyone the
+moment it deploys.
+
+**Plugin** (a plugin release). `MAX_IMAGE_EDGE` goes from 1000 to 2048 with a
+format-preserving encode, and `migrateImageOcrSettings()` rewrites the legacy
+default instruction.
+
+Publishing after only the server deploy is the trap. Those users get the
+right model and the right prompt, but they still upload a **1000px** image,
+and on a full page of handwriting resolution is exactly what decides whether
+a line resolves. They would try the thing in the video and get a worse
+result, which is the specific outcome this gate exists to prevent.
 
 ```sh
 git merge-base --is-ancestor origin/feat/unified-ocr-pipeline origin/master \
   && echo MERGED || echo "NOT MERGED"
 ```
+
+Merged is not deployed and not released. Confirm all three.
+
+One residual, not worth saying in the copy but worth knowing if someone
+reports a bad result: the migration only rewrites the *exact* legacy default.
+Anyone who hand-edited `imageInstructions` into something description-shaped
+keeps it, and it is concatenated onto the OCR prompt.
 
 ## YouTube
 
