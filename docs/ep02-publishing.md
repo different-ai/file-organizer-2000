@@ -10,8 +10,7 @@ The copy below is written for the world after the OCR fix ships. It is not
 hedged and makes no reference to a branch -- it describes the product as it
 will be. The gate is here so it does not go out early.
 
-The fix is `feat/unified-ocr-pipeline`, and it lands in **two** vehicles.
-Both need to be out, not just one:
+The fix lands in **two** vehicles, and both have to be out:
 
 **Server** (a web deploy). `getVisionModel()` moves vision off
 `gpt-4.1-mini` onto gpt-4o, and `buildOcrPrompt()` asks for a transcription
@@ -29,12 +28,40 @@ and on a full page of handwriting resolution is exactly what decides whether
 a line resolves. They would try the thing in the video and get a worse
 result, which is the specific outcome this gate exists to prevent.
 
+### Status as of 2026-10-17
+
+- **Merged** -- `d286fa43`, "feat(ocr): unify vision pipeline across plugin,
+  mobile, and sync (#497)", on master.
+- **Plugin release: not yet.** The latest release is 3.6.36, published
+  2026-09-26, three weeks before the merge. Its `compress-image.ts` still
+  reads `MAX_IMAGE_EDGE = 1000`. Run the "Manual Plugin Release" workflow
+  (`.github/workflows/manual-release.yml`, workflow_dispatch, `patch`).
+- **Web deploy: confirm before posting.** The server half goes live when
+  master deploys. The Vercel `note-companion` project had failing deploys
+  earlier in this cycle, so check it rather than assuming master implies live.
+
+### Checking it, correctly
+
+Do **not** use `git merge-base --is-ancestor` against the feature branch.
+#497 was squash-merged, so the branch is not an ancestor of master and that
+check reports NOT MERGED while the code is sitting there. Check the content:
+
 ```sh
-git merge-base --is-ancestor origin/feat/unified-ocr-pipeline origin/master \
-  && echo MERGED || echo "NOT MERGED"
+git fetch -q origin
+git show origin/master:packages/plugin/lib/compress-image.ts \
+  | grep -q "MAX_IMAGE_EDGE = 2048" && echo "fix is on master"
 ```
 
-Merged is not deployed and not released. Confirm all three.
+And check what the latest *release* actually contains, which is the half that
+decides what a new installer gets:
+
+```sh
+git fetch -q --tags origin
+TAG=$(git tag --sort=-creatordate | head -1)
+git show "$TAG:packages/plugin/lib/compress-image.ts" | grep "MAX_IMAGE_EDGE ="
+```
+
+2048 there means the plugin half has shipped.
 
 One residual, not worth saying in the copy but worth knowing if someone
 reports a bad result: the migration only rewrites the *exact* legacy default.
