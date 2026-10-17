@@ -33,6 +33,7 @@ import { FileOrganizerSettings, DEFAULT_SETTINGS } from "./settings";
 
 import { extractSelectionToNewNote } from "./commands/extract-selection-to-note";
 import { registerEventHandlers } from "./handlers/eventHandlers";
+import { shouldAutoOpenOnboarding } from "./onboarding-gate";
 import {
   initializeOrganizer,
   initializeFileOrganizationCommands,
@@ -1852,7 +1853,10 @@ export default class FileOrganizer extends Plugin {
     initializeOrganizer(this);
     initializeFileOrganizationCommands(this);
 
-    this.app.workspace.onLayoutReady(() => registerEventHandlers(this));
+    this.app.workspace.onLayoutReady(() => {
+      registerEventHandlers(this);
+      void this.maybeShowOnboarding();
+    });
     if (this.settings.useInbox) {
       void this.processBacklog();
     }
@@ -2361,6 +2365,24 @@ export default class FileOrganizer extends Plugin {
 
     const { titles } = await readResponseJson<TitlesResponse>(response);
     return titles;
+  }
+
+  /**
+   * Opens the onboarding wizard once for a brand-new install: no license key,
+   * not self-hosting, and the wizard has never been shown. Existing users and
+   * anyone who closed it are never interrupted again.
+   */
+  private async maybeShowOnboarding(): Promise<void> {
+    if (!shouldAutoOpenOnboarding(this.settings)) {
+      return;
+    }
+    this.settings.hasShownOnboarding = true;
+    await this.saveSettings();
+    await this.activateDashboard();
+  }
+
+  closeDashboard(): void {
+    this.app.workspace.detachLeavesOfType(DASHBOARD_VIEW_TYPE);
   }
 
   async activateDashboard(): Promise<DashboardView | null> {
