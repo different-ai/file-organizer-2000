@@ -32,13 +32,18 @@ result, which is the specific outcome this gate exists to prevent.
 
 - **Merged** -- `d286fa43`, "feat(ocr): unify vision pipeline across plugin,
   mobile, and sync (#497)", on master.
-- **Plugin release: not yet.** The latest release is 3.6.36, published
-  2026-09-26, three weeks before the merge. Its `compress-image.ts` still
-  reads `MAX_IMAGE_EDGE = 1000`. Run the "Manual Plugin Release" workflow
-  (`.github/workflows/manual-release.yml`, workflow_dispatch, `patch`).
-- **Web deploy: confirm before posting.** The server half goes live when
-  master deploys. The Vercel `note-companion` project had failing deploys
-  earlier in this cycle, so check it rather than assuming master implies live.
+- **Plugin released** -- 3.6.37, "Smarter Inbox & PDF/Image Processing",
+  published 01:29. Verified against the tag, not the workflow status:
+  `MAX_IMAGE_EDGE = 2048`, the default `imageInstructions` is the OCR string
+  rather than the legacy description one, and
+  `inbox/migrate-image-instructions.ts` is present so existing users on the
+  old default get rewritten on load.
+- **Web deploy -- the one thing left to confirm.** The server half (gpt-4o
+  via `getVisionModel()`, and the transcription prompt) goes live when master
+  deploys to Vercel. The `note-companion` project had failing deploys earlier
+  in this cycle, so check it rather than assuming the merge implies live.
+  Without it the plugin sends a 2048px image to the old small model with the
+  old description prompt, which is the failure the first two takes recorded.
 
 ### Checking it, correctly
 
