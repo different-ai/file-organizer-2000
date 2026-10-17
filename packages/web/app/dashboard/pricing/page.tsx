@@ -1,5 +1,6 @@
 "use client";
 
+import { ManageSubscriptionLink } from "@/components/manage-subscription-link";
 import { PricingCards } from "@/components/pricing-cards";
 import { Star } from "lucide-react";
 import { Card } from "@/components/ui/card";
@@ -66,7 +67,7 @@ export default function PlanSelectionPage() {
       
       <div className="mt-8 pt-6 border-t border-slate-200">
         <p className="text-sm text-slate-500">
-          All plans include our core features. Have questions? <a href="#" className="text-blue-600 hover:underline">Contact us</a>
+          Already subscribed? <ManageSubscriptionLink className="text-blue-600 hover:underline">Manage or cancel your subscription</ManageSubscriptionLink>. All plans include our core features. Have questions? <a href="#" className="text-blue-600 hover:underline">Contact us</a>
         </p>
       </div>
     </div>

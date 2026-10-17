@@ -5,12 +5,10 @@ import { TooltipProvider } from '@/components/ui/tooltip';
 import { Metadata } from 'next';
 import { Button } from '@/components/ui/button';
 import { GitHubStarCount } from '@/components/github-star-count';
+import { defaultOpenGraph } from '@/lib/og';
+import { getSiteBaseUrl } from '@/lib/site-url';
 
-const siteUrl =
-  process.env.NEXT_PUBLIC_SITE_URL ||
-  (process.env.VERCEL_URL
-    ? `https://${process.env.VERCEL_URL}`
-    : 'https://notecompanion.ai');
+const siteUrl = getSiteBaseUrl();
 
 export const metadata: Metadata = {
   title: {
@@ -25,11 +23,8 @@ export const metadata: Metadata = {
     apple: '/favicon.ico',
   },
   openGraph: {
-    type: 'website',
-    locale: 'en_US',
+    ...defaultOpenGraph,
     url: siteUrl,
-    siteName: 'Note Companion',
-    images: ['/notecompanion.png'],
   },
   twitter: {
     card: 'summary_large_image',
