@@ -118,7 +118,7 @@ export function OnboardingWizard({ plugin, onComplete }: OnboardingWizardProps) 
       setStep("done");
     } catch (err) {
       console.error("Failed to create sample note:", err);
-      new Notice("Could not create the sample note. You can still add notes to the Inbox folder.", 6000);
+      new Notice("Could not create the sample note. You can still add notes to the inbox folder.", 6000);
       await markComplete();
       setStep("done");
     } finally {
