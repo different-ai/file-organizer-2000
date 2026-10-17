@@ -89,6 +89,55 @@ export const RemotionRoot: React.FC = () => {
         defaultProps={{ ...ep01, format: 'clip' } satisfies EpisodeProps}
       />
       <Composition
+        id="Ep2ThumbA"
+        component={Thumbnail}
+        durationInFrames={1}
+        fps={1}
+        width={1280}
+        height={720}
+        defaultProps={{
+          headline: 'Your handwriting.\nSearchable.',
+          kicker: 'Note Companion for Obsidian',
+          shot: 'shot-page2.png',
+          shotFocusX: 0.53,
+          shotFocusY: 0.5,
+        } satisfies ThumbnailProps}
+      />
+      <Composition
+        id="Ep2ThumbB"
+        component={Thumbnail}
+        durationInFrames={1}
+        fps={1}
+        width={1280}
+        height={720}
+        defaultProps={{
+          headline: 'Notebook\n\u2192 Obsidian',
+          kicker: 'Read, titled, tagged, filed',
+          shot: 'shot-note2.png',
+          shotFocusX: 0.53,
+          // Pushed down past the generated title, which is the clunkiest thing
+          // in the capture ("...Vault Organization Pile Precision Over Recall").
+          // The monospace body is the part worth showing behind the headline.
+          shotFocusY: 0.85,
+        } satisfies ThumbnailProps}
+      />
+      <Composition
+        id="Ep2ThumbC"
+        component={Thumbnail}
+        durationInFrames={1}
+        fps={1}
+        width={1280}
+        height={720}
+        defaultProps={{
+          headline: 'Stop retyping\nyour notes.',
+          kicker: 'Obsidian + AI',
+          shot: 'shot-page2.png',
+          shotFocusX: 0.53,
+          shotFocusY: 0.5,
+          dark: true,
+        } satisfies ThumbnailProps}
+      />
+      <Composition
         id="Episode2"
         component={Episode}
         durationInFrames={duration2}
