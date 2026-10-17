@@ -8,7 +8,7 @@ const DASHBOARD_URL = "https://app.notecompanion.ai/dashboard";
 
 // One generic message for every credential failure (unknown email, wrong
 // password, passwordless/social account) so account existence is not leaked.
-const INVALID_CREDENTIALS_ERROR = `Invalid email or password. If you signed up with Google or another social login, sign in at ${DASHBOARD_URL} and copy your license key from there.`;
+const INVALID_CREDENTIALS_ERROR = `Signed up with Google or another social login? There is no password to enter: sign in at ${DASHBOARD_URL} and copy your license key from there. Otherwise, check your email and password.`;
 
 const WINDOW_MS = 15 * 60 * 1000;
 const MAX_ATTEMPTS_PER_IP = 20;
