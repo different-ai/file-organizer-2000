@@ -89,8 +89,25 @@ it pre-empts the obvious objection instead of waiting for it in the comments.
 Lower-key and searchable. Matches what someone actually types when they have
 this problem, which option A does not.
 
-Run both. The channel is small enough that the thumbnail A/B test matters
-more than the title, but there is no reason not to test both.
+### Pick one title, test the thumbnails
+
+Do not run both titles against three thumbnails. That is six combinations,
+and on a channel this size there is nowhere near enough traffic to tell them
+apart -- a difference in CTR would not say which variable moved it.
+
+Three thumbnails is the number because Test & compare takes up to three and
+randomises them properly. The two titles above are a choice, not a second
+test.
+
+Ship with option A. It is specific, the claim is what the video proves, and
+"messy" pre-empts the objection that is otherwise the top comment. If you
+want the search play afterwards, swap to option B once the thumbnail test has
+concluded -- sequentially, with the description left byte-identical, or the
+comparison is worthless.
+
+(Whether Test & compare also covers titles on this channel is worth checking
+in Studio rather than assuming; availability varies. It does cover
+thumbnails.)
 
 ### Description
 
