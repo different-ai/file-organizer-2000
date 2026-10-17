@@ -105,9 +105,32 @@ want the search play afterwards, swap to option B once the thumbnail test has
 concluded -- sequentially, with the description left byte-identical, or the
 comparison is worthless.
 
-(Whether Test & compare also covers titles on this channel is worth checking
-in Studio rather than assuming; availability varies. It does cover
-thumbnails.)
+Studio's A/B Testing dialog offers three **mutually exclusive** modes: Title
+only, Thumbnail only, Title and thumbnail. Up to three variants each. Confirmed
+on this channel, so titles are testable after all.
+
+Avoid "Title and thumbnail": it pairs each title with a thumbnail rather than
+running a grid, so a winning variant tells you the *pair* won and not which
+half did it. Fine if all you want is a winner, useless if you want to learn
+something that carries to the next episode.
+
+**Run Thumbnail only.** Title A is the stronger title on merit and is worth
+shipping rather than diluting.
+
+Worth knowing about the three thumbnails, though: they are less visually
+distinct than a good test wants. Same grid, same type scale, same faint
+background texture. The variables are really the headline words plus
+light-vs-dark on C. A-versus-C is the one genuine visual contrast, and dark
+thumbnails do tend to stand out in a light feed. If a sharper thumbnail test
+is wanted later, the fix is to make one variant structurally different --
+different crop, different composition -- not to reword it.
+
+A third title, if the title test is preferred instead:
+
+> Your paper notes, searchable in Obsidian in 30 seconds
+
+Benefit plus a concrete time claim the footage backs up -- a third strategy
+alongside A's narrative claim and B's search phrasing.
 
 ### Description
 
