@@ -8,6 +8,8 @@
     "build": "tsc --noEmit",
     "render:episode": "remotion render Episode out/episode.mp4",
     "render:clip": "remotion render Clip out/clip.mp4",
+    "render:episode2": "remotion render Episode2 out/episode2.mp4",
+    "render:clip2": "remotion render Clip2 out/clip2.mp4",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
