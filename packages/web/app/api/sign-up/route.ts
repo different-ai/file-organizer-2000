@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { clerkClient, auth } from "@clerk/nextjs/server";
 import { createLicenseKeyFromUserId } from "@/app/actions";
 import { createEmptyUserUsage, initializeTierConfig } from "@/drizzle/schema";
+import { isRateLimited } from "@/lib/auth-rate-limit";
 
 export async function POST(req: NextRequest) {
   try {
@@ -61,6 +62,17 @@ export async function POST(req: NextRequest) {
       }, { status: 400 });
     }
 
+    const ip =
+      req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ||
+      req.headers.get("x-real-ip") ||
+      "unknown";
+    if (isRateLimited(`sign-up:ip:${ip}`, 10, 60 * 60 * 1000)) {
+      return NextResponse.json(
+        { success: false, error: "Too many attempts. Please try again later." },
+        { status: 429 }
+      );
+    }
+
     // Check if user already exists - handle clerkClient as a function
     const clerk = await clerkClient();
     const existingUsersResponse = await clerk.users.getUserList({
@@ -101,11 +113,11 @@ export async function POST(req: NextRequest) {
       userId: user.id,
     });
   } catch (error: any) {
-    console.error("Error creating user:", error);
+    console.error("Error creating user:", error?.name);
 
-    // Log detailed Clerk errors if available
+    // Log only error codes (not full payloads, which can echo the email)
     if (error.clerkError && error.errors) {
-      console.error("Clerk validation errors:", JSON.stringify(error.errors, null, 2));
+      console.error("Clerk error codes:", error.errors.map((e: any) => e.code));
     }
 
     // If it's a Clerk error, return the actual error details
@@ -116,7 +128,6 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({
         success: false,
         error: errorMessage,
-        details: error.errors, // Include full error details for debugging
       }, { status: statusCode });
     }
 
