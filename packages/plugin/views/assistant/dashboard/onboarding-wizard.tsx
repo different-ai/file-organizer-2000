@@ -142,7 +142,7 @@ export function OnboardingWizard({ plugin, onComplete }: OnboardingWizardProps) 
 
   return (
     <StyledContainer>
-      <div className={tw("max-w-xl mx-auto p-3 text-[--text-normal]")}>
+      <div className={tw("w-full max-w-xl mx-auto p-3 text-[--text-normal]")}>
         {step === "welcome" && (
           <div className={tw("space-y-3")}>
             <div
