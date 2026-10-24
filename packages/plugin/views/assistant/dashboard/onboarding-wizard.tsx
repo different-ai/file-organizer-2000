@@ -1,5 +1,4 @@
 import React, { useState } from "react";
-import { Button } from "../../../components/ui/button";
 import FileOrganizer from "../../../index";
 import { Notice, TFile, normalizePath } from "obsidian";
 import { StyledContainer } from "../../../components/ui/utils";
@@ -167,9 +166,9 @@ export function OnboardingWizard({ plugin, onComplete }: OnboardingWizardProps) 
               card needed. You can start a 7-day free trial of the full plan
               later.
             </p>
-            <Button onClick={() => setStep("account")} className={tw("w-full")}>
+            <button onClick={() => setStep("account")} className="mod-cta w-full">
               Get started
-            </Button>
+            </button>
           </div>
         )}
 
@@ -182,31 +181,39 @@ export function OnboardingWizard({ plugin, onComplete }: OnboardingWizardProps) 
             >
               {isSignup ? "Create your free account" : "Sign in"}
             </div>
-            <div className={tw("flex gap-4 border-b border-[--background-modifier-border]")}>
-              <button
-                className={tw(
-                  `py-1 border-b-2 ${
-                    isSignup
-                      ? "border-[--text-accent] text-[--text-accent]"
-                      : "border-transparent text-[--text-muted]"
-                  }`
-                )}
-                onClick={() => setIsSignup(true)}
-              >
-                Sign up
-              </button>
-              <button
-                className={tw(
-                  `py-1 border-b-2 ${
-                    !isSignup
-                      ? "border-[--text-accent] text-[--text-accent]"
-                      : "border-transparent text-[--text-muted]"
-                  }`
-                )}
-                onClick={() => setIsSignup(false)}
-              >
-                Sign in
-              </button>
+            <div
+              role="tablist"
+              className={tw("flex border-b border-[--background-modifier-border]")}
+            >
+              {([true, false] as const).map(signupTab => {
+                const active = isSignup === signupTab;
+                return (
+                  <button
+                    key={signupTab ? "signup" : "signin"}
+                    role="tab"
+                    aria-selected={active}
+                    onClick={() => setIsSignup(signupTab)}
+                    // Inline styles: Obsidian's default button styling overrides utility classes
+                    style={{
+                      flex: 1,
+                      background: "transparent",
+                      boxShadow: "none",
+                      borderRadius: 0,
+                      border: "none",
+                      borderBottom: active
+                        ? "2px solid var(--interactive-accent)"
+                        : "2px solid transparent",
+                      color: active
+                        ? "var(--text-normal)"
+                        : "var(--text-muted)",
+                      fontWeight: active ? 600 : 400,
+                      cursor: "pointer",
+                    }}
+                  >
+                    {signupTab ? "Sign up" : "Sign in"}
+                  </button>
+                );
+              })}
             </div>
 
             {error && (
@@ -268,15 +275,15 @@ export function OnboardingWizard({ plugin, onComplete }: OnboardingWizardProps) 
               </p>
             )}
 
-            <Button
+            <button
               onClick={() => {
                 void handleAuth();
               }}
               disabled={isLoading}
-              className={tw("w-full")}
+              className="mod-cta w-full"
             >
               {isLoading ? "Processing..." : isSignup ? "Sign up" : "Sign in"}
-            </Button>
+            </button>
 
             <button
               onClick={() => {
@@ -321,15 +328,15 @@ export function OnboardingWizard({ plugin, onComplete }: OnboardingWizardProps) 
                 <strong>_NoteCompanion/References</strong>: reference material
               </div>
             </div>
-            <Button
+            <button
               onClick={() => {
                 void createSampleNote();
               }}
               disabled={isLoading}
-              className={tw("w-full")}
+              className="mod-cta w-full"
             >
               {isLoading ? "Setting up..." : "Organize a sample note"}
-            </Button>
+            </button>
           </div>
         )}
 
@@ -348,9 +355,9 @@ export function OnboardingWizard({ plugin, onComplete }: OnboardingWizardProps) 
               From now on, anything you drop in the Inbox folder is organized
               the same way.
             </p>
-            <Button onClick={() => onComplete("inbox")} className={tw("w-full")}>
+            <button onClick={() => onComplete("inbox")} className="mod-cta w-full">
               Open Inbox
-            </Button>
+            </button>
           </div>
         )}
       </div>

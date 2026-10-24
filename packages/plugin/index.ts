@@ -1812,29 +1812,28 @@ export default class FileOrganizer extends Plugin {
   }
 
   async ensureAssistantView(): Promise<AssistantViewWrapper | null> {
-    // Try to find existing view
-    let view = this.app.workspace.getLeavesOfType(ORGANIZER_VIEW_TYPE)[0]
-      ?.view as AssistantViewWrapper;
+    const { workspace } = this.app;
 
-    // If view doesn't exist, create it
-    if (!view) {
-      const leaf = this.app.workspace.getRightLeaf(false);
-      if (leaf) {
-        await leaf.setViewState({
-          type: ORGANIZER_VIEW_TYPE,
-          active: true,
-        });
-
-        // Get the newly created view
-        view = this.app.workspace.getLeavesOfType(ORGANIZER_VIEW_TYPE)[0]
-          ?.view as AssistantViewWrapper;
-      }
+    // Reuse an existing leaf, or create one in the right sidebar
+    let leaf = workspace.getLeavesOfType(ORGANIZER_VIEW_TYPE)[0] ?? null;
+    if (!leaf) {
+      leaf = workspace.getRightLeaf(false);
+      if (!leaf) return null;
+      await leaf.setViewState({
+        type: ORGANIZER_VIEW_TYPE,
+        active: true,
+      });
     }
+
+    // A leaf restored from the saved workspace can still be a deferred view
+    // without our methods (such as activateTab) until it is loaded.
+    await leaf.loadIfDeferred();
+
+    const view = leaf.view as AssistantViewWrapper;
+    if (!view || typeof view.activateTab !== "function") return null;
 
     // Reveal and focus the leaf
-    if (view) {
-      void this.app.workspace.revealLeaf(view.leaf);
-    }
+    void workspace.revealLeaf(leaf);
 
     return view;
   }
