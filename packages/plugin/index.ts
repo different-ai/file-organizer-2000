@@ -2127,12 +2127,14 @@ export default class FileOrganizer extends Plugin {
       leaf => new DashboardView(leaf, this)
     );
 
-    // Add command to open dashboard
+    // Re-run the first-run setup wizard (kept under the old command id so hotkeys still work)
     this.addCommand({
       id: "open-fo2k-dashboard",
-      name: "Open dashboard",
-      callback: () => {
-        void this.activateDashboard();
+      name: "Run setup wizard",
+      callback: async () => {
+        this.settings.hasRunOnboarding = false;
+        await this.saveSettings();
+        await this.activateDashboard();
       },
     });
 

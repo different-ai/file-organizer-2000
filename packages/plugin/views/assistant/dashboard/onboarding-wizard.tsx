@@ -77,8 +77,17 @@ export function OnboardingWizard({ plugin, onComplete }: OnboardingWizardProps) 
         return;
       }
 
-      // Stores the key and marks the license valid so the organizer works right away
-      await plugin.isLicenseKeyValid(data.licenseKey);
+      // Store the key first so a retry from the organizer works even if validation fails now
+      plugin.settings.API_KEY = data.licenseKey;
+      await plugin.saveSettings();
+
+      const isValid = await plugin.isLicenseKeyValid(data.licenseKey);
+      if (!isValid) {
+        setError(
+          "Your account is connected, but we could not verify your license yet. Check your connection and try again."
+        );
+        return;
+      }
 
       new Notice(
         `Successfully ${isSignup ? "signed up" : "signed in"}! Your account is now connected.`,
@@ -150,8 +159,8 @@ export function OnboardingWizard({ plugin, onComplete }: OnboardingWizardProps) 
             </p>
             <ul className={tw("list-disc pl-5 space-y-1 m-0")}>
               <li>Moves each note into the right folder</li>
-              <li>Suggests tags and a clear title</li>
-              <li>Handles PDFs, images and voice memos too</li>
+              <li>Gives each note tags and a clear name</li>
+              <li>Works with PDFs and images (voice memos need a paid plan)</li>
             </ul>
             <p className={tw("m-0 text-[--text-muted]")}>
               Create a free account to start. It includes free AI usage, no
